@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+
+# Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+# Clara, California 95054, U.S.A. All rights reserved.
+# 
+# U.S. Government Rights - Commercial software. Government users are
+# subject to the Sun Microsystems, Inc. standard license agreement and
+# applicable provisions of the FAR and its supplements.
+# 
+# Use is subject to license terms.
+# 
+# This distribution may include materials developed by third parties.
+# 
+# Parts of the product may be derived from Berkeley BSD systems,
+# licensed from the University of California. UNIX is a registered
+# trademark in the U.S.  and in other countries, exclusively licensed
+# through X/Open Company, Ltd.
+# 
+# Sun, Sun Microsystems, the Sun logo and Java are trademarks or
+# registered trademarks of Sun Microsystems, Inc. in the U.S. and other
+# countries.
+# 
+# This product is covered and controlled by U.S. Export Control laws and
+# may be subject to the export or import laws in other
+# countries. Nuclear, missile, chemical biological weapons or nuclear
+# maritime end uses or end users, whether direct or indirect, are
+# strictly prohibited. Export or reexport to countries subject to
+# U.S. embargo or to entities identified on U.S. export exclusion lists,
+# including, but not limited to, the denied persons and specially
+# designated nationals lists is strictly prohibited.
+# 
+#
+# This script runs the Maxine inspector (on Linux).
+# This requires that the maxine/Native libraries tele and prototype have
+# been compiled for Linux. To do this execute the following command in
+# the maxine/Native directory on a Linux system:
+#
+# gmake OSNAME=GuestVM tele prototype
+#
+CWD=`basename $PWD`
+if [ "$CWD" != "GuestVMNative" ];
+then
+  echo "cwd is not in GuestVMNative package"
+  exit 1
+fi
+
+OS=GUESTVM
+GUESTVM_ROOT=`dirname $PWD`
+WS_ROOT=`dirname $GUESTVM_ROOT`
+
+echocmd=0
+mainclass="UNBOUND"
+d="-d"
+id=""
+run=1
+trace=1
+dialog=""
+commandfilearg=""
+xvm=0
+cp=""
+vmargs=""
+
+while [ "$1" != "" ];
+do
+  case $1 in
+  "-echo" )
+    echocmd=1
+    ;;
+  "-nod" )
+    d=""
+    ;;
+  "-norun" )
+    run=0
+    echocmd=1;
+    ;;
+  "-trace" )
+    trace="$1"
+    ;;
+  "-c" )
+    shift
+    commandfilearg="-c=$1"
+    ;;
+  "-xvm" )
+    xvm=1
+    ;;
+  "-id" )
+    shift
+    id="-id=$1"
+    ;;
+  "-classpath" | "-cp" )
+    shift
+    cp="$1"
+    ;;
+  "-J" )
+    shift
+    if [ "$vmargs" = "" ] ;
+    then
+      vmargs=$1
+    else
+      vmargs="$vmargs $1"
+    fi
+    ;;
+  * )
+    ;;
+  esac
+  shift
+done
+
+if [ "$xvm" -eq 0 ] ;
+then
+  BUILD_WS_ROOT="$WS_ROOT"
+  INS_WS_ROOT="$WS_ROOT"
+  IMAGE_WS_ROOT="$WS_ROOT"
+else
+# If we are running Solaris xVM assume that we are cd'ed in the Solaris build image workspace
+# and that the Linux Inspector is in a sibling workpace named $WS_ROOT-linux
+  BUILD_WS_ROOT="$WS_ROOT"
+  INS_WS_ROOT=${WS_ROOT}-linux
+  IMAGE_WS_ROOT="$BUILD_WS_ROOT"
+  # This is to avoid protection issues with the $Proxy*.class files
+  cd $INS_WS_ROOT
+fi
+
+JVM_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.vm
+JAR_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.jar
+
+classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin
+if [ "$cp" != "" ] ;
+then
+  classpath=${classpath}:$cp
+fi
+
+cmd="java $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx512m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
+
+if [ "$echocmd" -eq 1 ] ;
+then
+  echo "$cmd"
+fi
+
+if [ "$run" -eq 1 ] ;
+then
+  $cmd
+fi
+
+exit 0

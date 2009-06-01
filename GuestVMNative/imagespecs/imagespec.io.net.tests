@@ -1,0 +1,27 @@
+# Basic imagespec file for running io/net tests
+# Includes the classes for all the tests in the image file system
+include imagespec.io
+include imagespec.net
+imagefsprefix /guestvm/image
+imagefile ../GuestVM/bin/test /GuestVM/bin/test
+imagefile ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
+imagefile ../../maxine/VM/bin/util /maxine/VM/bin/util
+package test.jvmni
+forcemethod com.sun.guestvm.test.VmThreadTestHelper.*
+forcemethod com.sun.guestvm.test.VMTestHelper.*
+package com.sun.guestvm.spinlock.tas.c
+package com.sun.guestvm.spinlock.tas.p
+package com.sun.guestvm.spinlock.tas.cp
+forcemethod com.sun.guestvm.spinlock.PFieldSpinLock.*
+forcemethod com.sun.guestvm.spinlock.PCountingSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.c.CTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.c.CTTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.c.CTASTSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.p.PTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.p.PTTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.p.PTASTSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.cp.PCTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.cp.PCTTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.cp.PCTASTSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.inline.TISpinLock.*
+package com.sun.guestvm.sched.priority

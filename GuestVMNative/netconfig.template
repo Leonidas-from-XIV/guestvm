@@ -1,0 +1,9 @@
+# Edit this file to configure your default network settings
+# The assumption is that DHCP will be used
+guestvm.net.dhcp=true
+# Uncomment previous line and edit the following for static IP configuration
+# guestvm.net.ipaddress=
+# guestvm.net.gateway=
+# guestvm.net.netmask=
+# guestvm.net.nameserver=
+# guestvm.net.domainname=

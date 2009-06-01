@@ -1,0 +1,95 @@
+# basic stuff needed to support the JDK
+class java.io.UnixFileSystem
+forceconstructorstubs java.io.UnixFileSystem
+forcemethod java.io.File.<clinit>
+forcemethod java.lang.Runtime.*
+forcemethod sun.misc.OSEnvironment.initialize
+forcemethod sun.misc.Launcher.getLauncher
+forcemethod java.util.zip.ZipFile.entries
+forceinvocationstub java.lang.System.initializeSystemClass
+forceinvocationstub java.lang.Runtime.loadLibrary0
+forceinvocationstub java.io.UnixFileSystem.initIDs
+forceinvocationstub java.util.zip.ZipEntry.initIDs
+forceinvocationstub java.util.zip.ZipFile.initIDs
+forceinvocationstub java.util.zip.Deflater.initIDs
+forceinvocationstub java.util.zip.Inflater.initIDs
+forceinvocationstub java.lang.UNIXProcess.initIDs
+forceinvocationstub java.io.FileInputStream.initIDs
+forceinvocationstub java.io.FileOutputStream.initIDs
+forceinvocationstub java.io.FileDescriptor.initIDs
+forceinvocationstub java.io.RandomAccessFile.initIDs
+forcemethod java.lang.System.initializeSystemClass
+class sun.security.action.LoadLibraryAction
+package sun.reflect
+package sun.misc
+class sun.jkernel.DownloadManager
+resetlauncher
+package sun.util.calendar
+package sun.net.www
+package sun.net.www.protocol.jar
+package sun.nio
+# we can't load all the classes in sun.nio.ch because there are implementations
+# for multiple operating systems that may not initialize due to, e.g., missing native methods.
+# E.g. EPollArrayWrapper. We just need those for which we have to substitute native methods.
+# Have to init now else FileKey might be compiled first and it accesses the native library but doesn't load it.
+classinit sun.nio.ch.IOUtil
+# Have to load sun.nio.ch.Util upfront as it is referenced by IOUtil and loads the nio native library. The build fails
+# if this is done lazily because it alters data in ClassLoader.NativeLibrary that has already been processed.
+class sun.nio.ch.Util
+class sun.nio.ch.FileKey
+package java.util.jar
+package java.util.concurrent
+package java.util.concurrent.atomic
+package java.util.concurrent.locks
+forcemethod sun.security.action.LoadLibraryAction.<init>
+package com.sun.max.vm.run.guestvm
+package com.sun.max.vm.guestvm
+package com.sun.guestvm.guk
+classinit com.sun.guestvm.guk.GUK
+package com.sun.guestvm.guk.x64
+package com.sun.guestvm.memory
+package com.sun.guestvm.sched
+forcemethod com.sun.guestvm.guk.GUKPageTables.*
+forcemethod com.sun.guestvm.guk.GUKPagePool.*
+forcemethod com.sun.guestvm.guk.GUKMachinePagePool.*
+forcemethod com.sun.guestvm.memory.HeapPool.*
+forcemethod com.sun.guestvm.memory.StackPool.*
+forcemethod com.sun.guestvm.memory.CodePool.*
+forcemethod com.sun.guestvm.sched.GUKVmThread.*
+package com.sun.guestvm.monitor
+package com.sun.guestvm.spinlock
+package com.sun.guestvm.spinlock.guk
+package com.sun.guestvm.spinlock.tas
+package com.sun.guestvm.spinlock.tas.inline
+forcemethod com.sun.guestvm.spinlock.NPFieldSpinLock.*
+forcemethod com.sun.guestvm.spinlock.NPCountingSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.TASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.TTASSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.TASTSpinLock.*
+forcemethod com.sun.guestvm.spinlock.guk.GUKSpinLock.*
+forcemethod com.sun.guestvm.spinlock.guk.DIGUKSpinLock.*
+forcemethod com.sun.guestvm.spinlock.tas.inline.ISpinLock.*
+package com.sun.guestvm.jdk
+package com.sun.guestvm.zip
+# logging
+package java.util.logging
+# the following stuff is needed for the default
+# logger but it is (a) a lot of code and (b)
+# sun.util.resources breaks the Maxine compiler
+# as of 7/15/08
+#package java.beans
+#reinitclass java.util.logging.LogManager
+#resetfield java.util.logging.LogManager.manager
+#package sun.util.resources
+#imagefile ../GuestVMNative/jre/lib/logging.properties /guestvm/image/jre/lib/logging.properties
+#imagefile ../GuestVMNative/jre/lib/logging.properties /guestvm/image/lib/logging.properties
+#
+# so we use our very simple logging handler
+package com.sun.guestvm.logging
+resetfield com.sun.guestvm.logging.Logger._singleton
+# we don't want these fields in the image - and they cause the build to fail
+resetfield java.lang.reflect.Proxy.loaderToCache
+resetfield java.lang.reflect.Proxy.proxyClasses
+# this resets the remaining state
+reinitclass java.lang.reflect.Proxy
+
