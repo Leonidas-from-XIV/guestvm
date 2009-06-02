@@ -1,0 +1,13 @@
+
+syntax: regexp
+^GuestVMNative/objs$
+syntax: regexp
+\.out$
+syntax: regexp
+^GuestVMNative/guestvm$
+syntax: glob
+GuestVMNative/guestvm-*
+GuestVMNative/zlibobjs/*
+YANFS/bin/com/sun/gssapi/dummy/*
+*.class
+
