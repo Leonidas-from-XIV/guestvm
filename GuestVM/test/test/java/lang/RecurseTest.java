@@ -39,8 +39,7 @@ public class RecurseTest {
    /**
      * @param args
      */
-    public static void main(String[] args) throws InterruptedException {
-        Thread.sleep(1);
+    public static void main(String[] args) {
         _depth = Long.MAX_VALUE;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
@@ -53,8 +52,9 @@ public class RecurseTest {
         try {
             recurse();
         } catch (StackOverflowError ex) {
-            System.out.println("recurse depth: " + _count);
+            System.out.println(ex);
         }
+        System.out.println("recurse depth: " + _count);
 
     }
 

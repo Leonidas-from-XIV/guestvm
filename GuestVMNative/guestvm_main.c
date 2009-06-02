@@ -100,6 +100,9 @@ static void maxine_start(void *p) {
       block(current);
       preempt_enable();
       schedule();
+  } else {
+	  /* This seems to avoid a startup bug involving xm and the console */
+	  guk_sleep(500);
   }
   init_thread_stacks();
   maxine(argc, argv, NULL);
