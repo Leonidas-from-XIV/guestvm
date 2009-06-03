@@ -79,9 +79,14 @@ public class GUKTrace {
     }
 
     private static boolean _cached;
+    /* This will force class initialization for Name at image build time
+     * Important if we do any tracing before the GC is ready!
+     */
+    private static Name[] _allNames = Name.values();
+
     private static void populateCache() {
         if (!_cached) {
-            for (Name name : Name.values())  {
+            for (Name name : _allNames)  {
                 final int state =  GUK.guk_get_trace_state(name.ordinal());
                 name._value = state != 0;
             }
