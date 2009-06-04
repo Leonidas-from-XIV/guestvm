@@ -82,8 +82,7 @@ void *dlsym(void *a1, const char *symbol) {
       (result = thread_stack_pool_dlsym(symbol)) ||
       (result = heap_pool_dlsym(symbol)) ||
       (result = code_pool_dlsym(symbol)) ||
-      (result = StrictMath_dlsym(symbol)) ||
-      (result = inflater_dlsym(symbol))) {
+      (result = StrictMath_dlsym(symbol))) {
     return result;
   } else {
     guk_printk("Guest VM: symbol %s not found, exiting\n", symbol);

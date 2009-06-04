@@ -92,4 +92,5 @@ resetfield java.lang.reflect.Proxy.loaderToCache
 resetfield java.lang.reflect.Proxy.proxyClasses
 # this resets the remaining state
 reinitclass java.lang.reflect.Proxy
+package gnu.java.util.zip
 
