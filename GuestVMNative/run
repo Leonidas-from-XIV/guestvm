@@ -45,7 +45,7 @@ name=""
 classpath="/guestvm/image/GuestVM/bin"
 guest=""
 jar=""
-vmalloc="-XX:SemiSpaceGC:Virtual"
+vmalloc="-XX:+SemiSpaceUseVirtualMemory"
 
 function show_help() {
   echo "run the Guest VM image
