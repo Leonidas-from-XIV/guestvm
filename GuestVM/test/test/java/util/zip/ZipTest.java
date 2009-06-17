@@ -75,12 +75,15 @@ public class ZipTest {
         }
         ZipFile zipFile = null;
         JarFile jarFile = null;
+        ZipInputStream zipStream = null;
         for (int j = 0; j < opCount; j++) {
             try {
                 final String fileName = fileNames[j];
                 final String op = ops[j];
                 if (op.equals("open")) {
                     zipFile = new ZipFile(fileName);
+                } else if (op.equals("openStream")) {
+                    zipStream = openZipStream(fileName);
                 } else if (op.equals("openJar")) {
                     jarFile = new JarFile(fileName);
                     zipFile = jarFile;
@@ -90,12 +93,16 @@ public class ZipTest {
                     doGetEntry(checkOpen(zipFile), fileNames[j]);
                 } else if (op.equals("entries")) {
                     doEntries(checkOpen(zipFile), false);
-                } else if (op.equals("entries_details")) {
+                } else if (op.equals("entriesDetails")) {
                     doEntries(checkOpen(zipFile), true);
+                } else if (op.equals("entriesStream")) {
+                    doEntriesStream(checkOpen(zipStream), false);
+                } else if (op.equals("entriesStreamDetails")) {
+                    doEntriesStream(checkOpen(zipStream), true);
                 } else if (op.equals("readEntry")) {
-                    doReadEntry(checkOpen(zipFile), fileNames[j], null);
+                    doReadEntry(checkOpen(zipFile), fileNames[j], null, fileNames2[j] != null && fileNames2[j].equals("print"));
                 } else if (op.equals("copyEntry")) {
-                    doReadEntry(checkOpen(zipFile), fileNames[j], fileNames2[j]);
+                    doReadEntry(checkOpen(zipFile), fileNames[j], fileNames2[j], false);
                 } else if (op.equals("metaNames")) {
                     checkOpen(zipFile);
                     doMetaNames(jarFile);
@@ -115,11 +122,22 @@ public class ZipTest {
 
     }
 
+    private static ZipInputStream openZipStream(String fileName) throws Exception {
+        return new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+    }
+
     private static ZipFile checkOpen(ZipFile zipFile) throws Exception {
         if (zipFile == null) {
             throw new Exception("zip file not opened");
         }
         return zipFile;
+    }
+
+    private static ZipInputStream checkOpen(ZipInputStream zipStream) throws Exception {
+        if (zipStream == null) {
+            throw new Exception("zip file not opened");
+        }
+        return zipStream;
     }
 
     private static void doGetEntry(ZipFile zipFile, String entryName) {
@@ -146,21 +164,35 @@ public class ZipTest {
         final Enumeration<? extends ZipEntry> iter = zipFile.entries();
         while (iter.hasMoreElements()) {
             final ZipEntry zipEntry = iter.nextElement();
-            if (!_quiet) {
-                System.out.print(zipEntry.getName());
-                if (verbose) {
-                    displayEntry(zipEntry);
-                }
-            }
-            _zipMap.put(zipEntry.getName(), zipEntry);
-            if (!_quiet) {
-                System.out.println("");
-            }
+            handleEntry(zipEntry, verbose);
         }
     }
 
-    private static void doReadEntry(ZipFile zipFile, String entryName, String outFile) {
+    private static void handleEntry(ZipEntry zipEntry, boolean verbose) {
+        if (!_quiet) {
+            System.out.print(zipEntry.getName());
+            if (verbose) {
+                displayEntry(zipEntry);
+            }
+        }
+        _zipMap.put(zipEntry.getName(), zipEntry);
+        if (!_quiet) {
+            System.out.println("");
+        }
+
+    }
+
+    private static void doEntriesStream(ZipInputStream zipStream, boolean verbose) throws IOException {
+        ZipEntry zipEntry;
+        while((zipEntry = zipStream.getNextEntry()) != null) {
+            handleEntry(zipEntry, verbose);
+        }
+    }
+
+    private static void doReadEntry(ZipFile zipFile, String entryName, String outFile, boolean print) {
+        System.out.println("readEntry " + entryName + " outFile " + outFile + " print " + print);
         final ZipEntry zipEntry = zipFile.getEntry(entryName);
+        final long size = zipEntry.getSize();
         if (zipEntry == null) {
             System.out.println("entry " + entryName + " not found");
             return;
@@ -173,15 +205,34 @@ public class ZipTest {
             }
             is = zipFile.getInputStream(zipEntry);
             int n = 0;
+            int pc = 0;
+            long rsize = 0;
             final byte[] buf = new byte[128];
             while ((n = is.read(buf)) > 0) {
+                rsize += n;
                 if (outFile == null) {
                     for (int i = 0; i < n; i++) {
-                        System.out.write(buf[i]);
+                        if (print) {
+                            final int d1 = (buf[i] >> 4) & 0xF;
+                            final int d2 = buf[i] & 0xF;
+                            System.out.print(Integer.toHexString(d1));
+                            System.out.print(Integer.toHexString(d2));
+                            pc++;
+                            if (pc % 32  == 0) {
+                                System.out.println();
+                            } else {
+                                System.out.print(" ");
+                            }
+                        } else {
+                            System.out.write(buf[i]);
+                        }
                     }
                 } else {
                     os.write(buf, 0, n);
                 }
+            }
+            if (rsize != size) {
+                System.out.println("size mismatch: " + size + ", read " + rsize);
             }
         } catch (IOException ex) {
             System.out.println(ex);
