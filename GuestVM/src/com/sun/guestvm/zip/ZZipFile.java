@@ -266,7 +266,7 @@ public final class ZZipFile {
             if (getInt(_locHdr, 0) != LOCSIG) {
                 throw new ZipException("invalid LOC header (bad signature)");
             }
-            entryPos = _locPos + getInt(_cenBuf, cenIndex + CENOFF) + LOCHDR + getShort(_cenBuf, cenIndex + LOCNAM) + getShort(_cenBuf, cenIndex + LOCEXT);
+            entryPos = _locPos + getInt(_cenBuf, cenIndex + CENOFF) + LOCHDR + getShort(_cenBuf, cenIndex + CENNAM) + getShort(_cenBuf, cenIndex + CENEXT);
             entryPos += pos;
             if (entryPos + len > _len) {
                 throw new ZipException("ZIP_Read: corrupt zip file: invalid entry size");
@@ -400,9 +400,6 @@ public final class ZZipFile {
     private static final int CENHDR = 46;
     private static final int ENDHDR = 22; // Length of end of central directory header
     private static final long END_MAXLEN = ENDHDR + 0xFFFF; // The END header is followed by a variable length comment of size < 64k.
-
-    private static final int LOCNAM = 26;
-    private static final int LOCEXT = 28;
 
     private static final int ENDTOT = 10;
     private static final int ENDSIZ = 12;
