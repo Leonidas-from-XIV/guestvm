@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.max.annotate.*;
 import com.sun.max.program.*;
+import com.sun.max.vm.runtime.*;
 
 /**
  * Substitutions for  @see sun.nio.ch.FileDispatcher.
@@ -47,37 +48,37 @@ import com.sun.max.program.*;
 final class JDK_sun_nio_ch_FileDispatcher {
     @SUBSTITUTE
     private static int read0(FileDescriptor fd, long address, int len) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.read0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.read0");
         return 0;
     }
 
     @SUBSTITUTE
     private static int pread0(FileDescriptor fd, long address, int len, long position) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.pread0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.pread0");
         return 0;
     }
 
     @SUBSTITUTE
     private static long readv0(FileDescriptor fd, long address, int len) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.readv0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.readv0");
         return 0;
     }
 
     @SUBSTITUTE
     private static int write0(FileDescriptor fd, long address, int len) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.write0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.write0");
         return 0;
     }
 
     @SUBSTITUTE
     private static int pwrite0(FileDescriptor fd, long address, int len, long position) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.pwrite0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.pwrite0");
         return 0;
     }
 
     @SUBSTITUTE
     private static long writev0(FileDescriptor fd, long address, int len) throws IOException {
-        Problem.unimplemented("sun.nio.ch.FileDispatcher.writev0");
+        FatalError.crash("sun.nio.ch.FileDispatcher.writev0");
         return 0;
     }
 

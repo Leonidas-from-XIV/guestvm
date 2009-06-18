@@ -36,7 +36,7 @@ import java.util.*;
 
 import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.*;
-import com.sun.max.program.Problem;
+import com.sun.max.vm.runtime.*;
 
 import com.sun.nfs.*;
 import static com.sun.nfs.Nfs.*;
@@ -467,18 +467,18 @@ public final class NfsFileSystem implements VirtualFileSystem {
 
     @Override
     public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        Problem.unimplemented(getClass().getName() + "lock0");
+        FatalError.crash(getClass().getName() + "lock0");
         return 0;
     }
 
     @Override
     public void release0(int fd, long pos, long size) throws IOException {
-        Problem.unimplemented(getClass().getName() + "release0");
+        FatalError.crash(getClass().getName() + "release0");
     }
 
     @Override
     public int force0(int fd, boolean metaData) throws IOException {
-        Problem.unimplemented(getClass().getName() + "force0");
+        FatalError.crash(getClass().getName() + "force0");
         return 0;
     }
 
