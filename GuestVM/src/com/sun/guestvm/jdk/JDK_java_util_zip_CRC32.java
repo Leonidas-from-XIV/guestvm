@@ -32,6 +32,7 @@
 package com.sun.guestvm.jdk;
 
 import com.sun.max.annotate.*;
+import com.sun.max.vm.*;
 import java.util.zip.CRC32;
 
 /**
@@ -100,6 +101,8 @@ public class JDK_java_util_zip_CRC32 {
         0x2d02ef8dL
     };
 
+    private static final long MAXINT_MASK = 0xFFFFFFFFL;
+
     @SUBSTITUTE
     private  static int update(int crc, int b) {
         final byte[] buf = new byte[1];
@@ -112,15 +115,21 @@ public class JDK_java_util_zip_CRC32 {
         return (int) crc32(crcin, b, off, len);
     }
 
-    static long crc32(int crcin, byte[] buf, int off, int len) {
-        long crc = crcin ^ 0xFFFFFFFFL;
+    static long crc32(long crcin, byte[] buf, int off, int alen) {
+        // Our caller represents the crc as an int so it might show up sign extended
+        long crc = (crcin & MAXINT_MASK) ^ MAXINT_MASK;
+        //Log.println("len=" + alen + ", crcin=0x" + Long.toHexString(crcin) + ", crc=0x" + Long.toHexString(crc));
+        int len = alen;
         while (len > 0) {
             // CheckStyle: stop parameter assignment check
             crc = _crcTable[((int) crc ^ buf[off++]) & 0xFF] ^ (crc >> 8);
+            //System.out.println("crc=0x" + Long.toHexString(crc));
             len--;
             // CheckStyle: resume parameter assignment check
         }
-        return crc ^ 0xFFFFFFFFL;
+        final long result = crc ^ MAXINT_MASK;
+        //Log.println("crc=0x" + Long.toHexString(crc) + ", crc^=0x" + Long.toHexString(result));
+        return result;
     }
 
     /**

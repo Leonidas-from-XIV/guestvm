@@ -153,7 +153,7 @@ public class ZipTest {
     private static void displayEntry(ZipEntry zipEntry) {
         System.out.print(" size: " + zipEntry.getSize() +
                         " csize: " + zipEntry.getCompressedSize() +
-                        " crc: " + zipEntry.getCrc() +
+                        " crc: " + Long.toHexString(zipEntry.getCrc()) +
                         " method: " + zipEntry.getMethod() +
                         " time: " + zipEntry.getTime() +
                         " comment: " + zipEntry.getComment() +
