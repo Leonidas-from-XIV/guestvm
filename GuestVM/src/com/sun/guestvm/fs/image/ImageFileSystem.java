@@ -37,6 +37,7 @@ import java.util.*;
 
 import com.sun.max.program.*;
 import com.sun.max.vm.MaxineVM;
+import com.sun.max.vm.runtime.*;
 import com.sun.max.vm.run.extendimage.*;
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.*;
@@ -305,7 +306,7 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
 
     @Override
     public long uniqueId(int fd) {
-        Problem.unimplemented("uniqueId");
+        FatalError.crash("ImageFileSystem.uniqueId not implemented");
         return -1;
     }
 

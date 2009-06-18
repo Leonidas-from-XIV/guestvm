@@ -35,6 +35,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.max.annotate.*;
 import com.sun.max.program.*;
+import com.sun.max.vm.runtime.*;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -63,13 +64,13 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private long map0(int prot, long position, long length) throws IOException {
-        Problem.unimplemented("sun.nio.FileChannelImpl.map0");
+        FatalError.crash("sun.nio.FileChannelImpl.map0");
         return -1;
     }
 
     @SUBSTITUTE
     private static int unmap0(long address, long length) {
-        Problem.unimplemented("sun.nio.FileChannelImpl.unmap0");
+        FatalError.crash("sun.nio.FileChannelImpl.unmap0");
         return -1;
     }
 
@@ -83,31 +84,31 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private int truncate0(FileDescriptor fd, long size) {
-        Problem.unimplemented("sun.nio.FileChannelImpl.truncate0");
+        FatalError.crash("sun.nio.FileChannelImpl.truncate0");
         return -1;
     }
 
     @SUBSTITUTE
     private long transferTo0(int src, long position, long count, int dst) {
-        Problem.unimplemented("sun.nio.FileChannelImpl.transferTo0");
+        FatalError.crash("sun.nio.FileChannelImpl.transferTo0");
         return -1;
     }
 
     @SUBSTITUTE
     private long position0(FileDescriptor fd, long offset) {
-        Problem.unimplemented("sun.nio.FileChannelImpl.position0");
+        FatalError.crash("sun.nio.FileChannelImpl.position0");
         return -1;
     }
 
     @SUBSTITUTE
     private long size0(FileDescriptor fd) {
-        Problem.unimplemented("sun.nio.FileChannelImpl.size0");
+        FatalError.crash("sun.nio.FileChannelImpl.size0");
         return -1;
     }
 
     @SUBSTITUTE
     private static long initIDs() {
-        return 4096; // pagesize - should be acquired from XenOS
+        return 4096; // pagesize - should be acquired from GUK
     }
 
 }
