@@ -31,7 +31,7 @@
  */
 package test.java.util.zip;
 
-
+import java.io.*;
 public class CRC32 {
 
     private static long[] _crcTable = new long[256];
@@ -90,26 +90,72 @@ public class CRC32 {
         0x2d02ef8dL
     };
 
-    public static void main(String[] args) {
+    private static boolean _verbose;
+
+    public static void main(String[] args) throws IOException {
+        String fileName = null;
+        int bsize = 0;
+        int[] bss = null;
         make_crc_table();
         for (int i = 0; i < _crcTable.length; i++) {
-            /*
-            System.out.print("0x" + Long.toHexString(_crcTable[i]) + "UL,");
-            if ((i + 1) % 5 == 0) {
-                System.out.println();
-            }
-            */
             if (_crcTable[i] != _crcTableStatic[i]) {
                 System.out.println("mismatch at " + i);
             }
         }
-        //System.out.println();
-        final byte[] test = new byte[1023];
-        for (int i = 0; i < test.length; i++) {
-            test[i] = (byte) (i & 0xFF);
+
+        for (int i = 0; i < args.length; i++) {
+            final String arg = args[i];
+            if (arg.equals("f")) {
+                fileName = args[++i];
+            } else if (arg.equals("b")) {
+                bsize = Integer.parseInt(args[++i]);
+            } else if (arg.equals("a")) {
+                final int n = Integer.parseInt(args[++i]);
+                bss = new int[n];
+                for (int j = 0; j < n; j++) {
+                    bss[j] = Integer.parseInt(args[++i]);
+                    if (bss[j] > bsize) {
+                        bsize = bss[j];
+                    }
+                }
+            } else if (arg.equals("v")) {
+                _verbose = true;
+            }
         }
-        final long crc = crc32(0, test, 0, test.length);
-        System.out.println("crc=" + Long.toHexString(crc));
+
+        if (fileName == null) {
+            throw new IOException("usage: f filename [[b buffersize] | [a n b1 b2 .. bn]");
+        }
+
+        long crc = 0;
+        final File file = new File(fileName);
+        final int fileSize = (int) file.length();
+        final FileInputStream fs = new FileInputStream(file);
+        if (bsize == 0 && bss == null) {
+            final byte[] data = new byte[fileSize];
+            fs.read(data);
+            crc = crc32(0, data, 0, data.length);
+        } else {
+            final byte[] data = new byte[bsize];
+            if (bss == null) {
+                bss = new int[fileSize / bsize + 1];
+                for (int b = 0; b < bss.length; b++) {
+                    bss[b] = bsize;
+                }
+            }
+            int n = fileSize;
+            int iter = 0;
+            while (n > 0) {
+                final int todo = n > bss[iter] ? bss[iter] : n;
+                final int r = fs.read(data, 0, todo);
+                n -= r;
+                crc = crc32(crc, data, 0, todo);
+                iter++;
+            }
+        }
+        fs.close();
+
+        System.out.println("crc=" + crc + "(0x" + Long.toHexString(crc) + ")");
 
     }
 
@@ -118,15 +164,21 @@ public class CRC32 {
         return 0;
     }
 
-    static long crc32(int crcin, byte[] buf, int aoff, int alen) {
+    static long crc32(long crcin, byte[] buf, int aoff, int alen) {
         long crc = crcin ^ 0xFFFFFFFFL;
+        System.out.println("len=" + alen + ", crcin=0x" + Long.toHexString(crcin) + ", crc=0x" + Long.toHexString(crc));
         int len = alen;
         int off = aoff;
         while (len > 0) {
             crc = _crcTable[((int) crc ^ buf[off++]) & 0xFF] ^ (crc >> 8);
+            if (_verbose) {
+                System.out.println("crc=0x" + Long.toHexString(crc));
+            }
             len--;
         }
-        return crc ^ 0xFFFFFFFFL;
+        final long result = crc ^ 0xFFFFFFFFL;
+        System.out.println("crc=0x" + Long.toHexString(crc) + ", crc^=0x" + Long.toHexString(result));
+        return result;
     }
 
     private static void make_crc_table() {
