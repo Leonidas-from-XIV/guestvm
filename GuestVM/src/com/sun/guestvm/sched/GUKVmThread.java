@@ -87,17 +87,17 @@ public class GUKVmThread extends VmThread {
 
     @Override
     protected void initializationComplete() {
-        GUKScheduler.attachThread(_nativeThread, id());
+        GUKScheduler.attachThread(nativeThread, id());
     }
 
     @Override
     protected void terminationComplete() {
-        GUKScheduler.detachThread(_nativeThread);
+        GUKScheduler.detachThread(nativeThread);
     }
 
     @INLINE
     public final int nativeId() {
-        return _nativeThread.asPointer().getShort(ID_OFFSET_AS_SHORT);
+        return nativeThread.asPointer().getShort(ID_OFFSET_AS_SHORT);
     }
 
     public int compareTo(GUKVmThread sthread) {
@@ -106,12 +106,12 @@ public class GUKVmThread extends VmThread {
 
     @INLINE
     private void setFlags(int flags) {
-        _nativeThread.asPointer().setInt(FLAGS_OFFSET_ASINT, flags);
+        nativeThread.asPointer().setInt(FLAGS_OFFSET_ASINT, flags);
     }
 
     @INLINE
     private int getFlags() {
-        return _nativeThread.asPointer().getInt(FLAGS_OFFSET_ASINT);
+        return nativeThread.asPointer().getInt(FLAGS_OFFSET_ASINT);
     }
 
     @INLINE
@@ -231,7 +231,7 @@ public class GUKVmThread extends VmThread {
      */
     public void setCpu(int cpu) {
         this._cpu = cpu;
-        _nativeThread.asPointer().setInt(CPU_OFFSET_ASINT, cpu);
+        nativeThread.asPointer().setInt(CPU_OFFSET_ASINT, cpu);
     }
 
     /**
@@ -273,12 +273,12 @@ public class GUKVmThread extends VmThread {
 
     @INLINE
     private void block() {
-        GUKScheduler.block(_nativeThread);
+        GUKScheduler.block(nativeThread);
     }
 
     @INLINE
     private void wakeup() {
-        GUKScheduler.wake(_nativeThread);
+        GUKScheduler.wake(nativeThread);
     }
 
     @INLINE
