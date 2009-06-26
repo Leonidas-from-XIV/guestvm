@@ -17,3 +17,5 @@ package com.sun.security.auth
 package sun.security.acl
 reinitclass sun.util.LocaleServiceProviderPool
 reinitclass java.text.SimpleDateFormat
+resetfield java.text.DateFormatSymbols.cachedLocaleData
+reinitclass java.text.DateFormatSymbols
