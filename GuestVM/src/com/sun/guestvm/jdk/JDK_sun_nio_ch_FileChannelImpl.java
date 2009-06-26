@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 
 import java.io.*;
 import com.sun.max.annotate.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.program.*;
 import com.sun.max.vm.runtime.*;
 import com.sun.guestvm.fs.*;
@@ -51,13 +52,13 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private int lock0(FileDescriptor fdObj, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         return VirtualFileSystemId.getVfs(fd).lock0(fd, blocking, pos, size, shared);
     }
 
     @SUBSTITUTE
     private void release0(FileDescriptor fdObj, long pos, long size) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         vfs.release0(VirtualFileSystemId.getFd(fd), pos, size);
     }
@@ -76,7 +77,7 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private int force0(FileDescriptor fdObj, boolean metaData) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         return vfs.force0(VirtualFileSystemId.getFd(fd), metaData);
 

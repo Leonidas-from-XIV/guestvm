@@ -37,6 +37,7 @@ import com.sun.max.annotate.*;
 import com.sun.max.program.ProgramError;
 import static com.sun.guestvm.fs.VirtualFileSystem.*;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 
 import com.sun.guestvm.fs.*;
 
@@ -72,57 +73,57 @@ public class JDK_java_io_RandomAccessFile {
         } else {
             error("RandomAccessFile.open unexpected mode");
         }
-        JDK_java_io_util.open(fileDescriptorFieldActor().readObject(this), name, uMode);
+        JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, uMode);
     }
 
     @SUBSTITUTE
     private int read() throws IOException {
-        return JDK_java_io_util.read(fileDescriptorFieldActor().readObject(this));
+        return JDK_java_io_util.read(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
     private int readBytes(byte[] b, int offset, int length) throws IOException {
-        return JDK_java_io_util.readBytes(b, offset, length, fileDescriptorFieldActor().readObject(this));
+        return JDK_java_io_util.readBytes(b, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
     private void write(int b) throws IOException {
-        JDK_java_io_util.write(b, fileDescriptorFieldActor().readObject(this));
+        JDK_java_io_util.write(b, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
     private void writeBytes(byte[] bytes, int offset, int length) throws IOException {
-        JDK_java_io_util.writeBytes(bytes, offset, length, fileDescriptorFieldActor().readObject(this));
+        JDK_java_io_util.writeBytes(bytes, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
     private long getFilePointer() throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         return fileOffset;
     }
 
     @SUBSTITUTE
     private void seek(long pos) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         VirtualFileSystemOffset.set(fd, pos);
     }
 
     @SUBSTITUTE
     private long length() throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         return VirtualFileSystemId.getVfs(fd).getLength(VirtualFileSystemId.getFd(fd));
     }
 
     @SUBSTITUTE
     private void setLength(long newLength) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         VirtualFileSystemId.getVfs(fd).setLength(VirtualFileSystemId.getFd(fd), newLength);
     }
 
     @SUBSTITUTE
     private void close0() throws IOException {
-        JDK_java_io_util.close0(fileDescriptorFieldActor().readObject(this));
+        JDK_java_io_util.close0(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
@@ -135,10 +136,10 @@ public class JDK_java_io_RandomAccessFile {
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static ReferenceFieldActor _fileDescriptorFieldActor;
+    private static FieldActor _fileDescriptorFieldActor;
 
     @INLINE
-    private ReferenceFieldActor fileDescriptorFieldActor() {
+    private FieldActor fileDescriptorFieldActor() {
         if (_fileDescriptorFieldActor == null) {
             _fileDescriptorFieldActor = JDK_java_io_fdActor.fileDescriptorFieldActor(getClass());
         }

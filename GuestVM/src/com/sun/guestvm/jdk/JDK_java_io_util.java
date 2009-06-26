@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.max.vm.*;
 import com.sun.guestvm.fs.*;
+import com.sun.max.vm.object.TupleAccess;
 
 /**
  * Support methods for FileInputStream, RandomAccessFile.
@@ -52,7 +53,7 @@ import com.sun.guestvm.fs.*;
 public class JDK_java_io_util {
 
     static int read(Object fdObj)  throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         final int b = vfs.read(VirtualFileSystemId.getFd(fd), fileOffset);
@@ -70,7 +71,7 @@ public class JDK_java_io_util {
         if (length == 0) {
             return 0;
         }
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         final int result = vfs.readBytes(VirtualFileSystemId.getFd(fd), bytes, offset, length, fileOffset);
@@ -84,7 +85,7 @@ public class JDK_java_io_util {
     }
 
     static void write(int b, Object fdObj) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         vfs.write(VirtualFileSystemId.getFd(fd), b, fileOffset);
@@ -102,7 +103,7 @@ public class JDK_java_io_util {
         if (length == 0) {
             return;
         }
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         final int result = vfs.writeBytes(VirtualFileSystemId.getFd(fd), bytes, offset, length, fileOffset);
@@ -120,7 +121,7 @@ public class JDK_java_io_util {
         int fd = fs.open(name, flags);
         if (fd >= 0) {
             fd = VirtualFileSystemId.getUniqueFd(fs, fd);
-            JDK_java_io_fdActor.fdFieldActor().writeInt(fdObj, fd);
+            TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), fd);
             return fd;
         } else {
             throw new FileNotFoundException(ErrorDecoder.getFileMessage(-fd, name));
@@ -128,9 +129,9 @@ public class JDK_java_io_util {
     }
 
     static void close0(Object fdObj) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         if (fd > 0) {
-            JDK_java_io_fdActor.fdFieldActor().writeInt(fdObj, -1);
+            TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), -1);
             close0FD(fd);
         }
     }

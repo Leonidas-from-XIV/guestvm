@@ -63,7 +63,7 @@ public class GUKTrace {
     /**
      * The offset of the byte array data from the byte array object's origin.
      */
-    private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout().getElementOffsetFromOrigin(0);
+    private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout.getElementOffsetFromOrigin(0);
 
     public static boolean setTraceState(Name name, boolean value) {
         final int previous = GUK.guk_set_trace_state(name.ordinal(), value ? 1 : 0);

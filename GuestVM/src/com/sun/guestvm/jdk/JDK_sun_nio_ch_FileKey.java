@@ -36,6 +36,7 @@ import sun.nio.ch.FileKey;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.*;
 import com.sun.guestvm.fs.*;
 
@@ -74,30 +75,30 @@ public class JDK_sun_nio_ch_FileKey {
 
     @SUBSTITUTE
     private void init(FileDescriptor fdObj) throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fdObj);
-        devFieldActor().writeLong(this, VirtualFileSystemId.getVfsId(fd));
+        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+        TupleAccess.writeLong(this, devFieldActor().offset(), VirtualFileSystemId.getVfsId(fd));
         final VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        inoFieldActor().writeLong(this, vfs.uniqueId(VirtualFileSystemId.getFd(fd)));
+        TupleAccess.writeLong(this, inoFieldActor().offset(), vfs.uniqueId(VirtualFileSystemId.getFd(fd)));
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static LongFieldActor _devFieldActor;
+    private static FieldActor _devFieldActor;
 
     @INLINE
-    static LongFieldActor devFieldActor() {
+    static FieldActor devFieldActor() {
         if (_devFieldActor == null) {
-            _devFieldActor = (LongFieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_dev"));
+            _devFieldActor = (FieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_dev"));
         }
         return _devFieldActor;
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static LongFieldActor _inoFieldActor;
+    private static FieldActor _inoFieldActor;
 
     @INLINE
-    static LongFieldActor inoFieldActor() {
+    static FieldActor inoFieldActor() {
         if (_inoFieldActor == null) {
-            _inoFieldActor = (LongFieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_ino"));
+            _inoFieldActor = (FieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_ino"));
         }
         return _inoFieldActor;
     }
