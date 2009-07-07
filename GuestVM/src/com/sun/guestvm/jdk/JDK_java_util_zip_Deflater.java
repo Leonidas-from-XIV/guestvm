@@ -37,7 +37,8 @@ import java.util.zip.*;
 
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.ClassActor;
-import com.sun.max.vm.actor.member.LongFieldActor;
+import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
 
 /**
@@ -64,16 +65,15 @@ public class JDK_java_util_zip_Deflater {
     private static void initIDs() {
     }
 
-    /*
     private static List<gnu.java.util.zip.Deflater> _gnuDeflaters = new ArrayList<gnu.java.util.zip.Deflater>();
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static LongFieldActor _strmFieldActor;
+    private static FieldActor _strmFieldActor;
 
     @INLINE
-    static LongFieldActor strmFieldActor() {
+    static FieldActor strmFieldActor() {
         if (_strmFieldActor == null) {
-            _strmFieldActor = (LongFieldActor) ClassActor.fromJava(Deflater.class).findFieldActor(SymbolTable.makeSymbol("strm"));
+            _strmFieldActor = (FieldActor) ClassActor.fromJava(Deflater.class).findFieldActor(SymbolTable.makeSymbol("strm"));
         }
         return _strmFieldActor;
     }
@@ -90,7 +90,7 @@ public class JDK_java_util_zip_Deflater {
     }
 
     static gnu.java.util.zip.Deflater getGNUDeflater(Object deflater) {
-        return _gnuDeflaters.get((int) strmFieldActor().readLong(deflater));
+        return _gnuDeflaters.get((int) TupleAccess.readLong(deflater, strmFieldActor().offset()));
     }
 
     @SUBSTITUTE
@@ -167,12 +167,12 @@ public class JDK_java_util_zip_Deflater {
 
     @SUBSTITUTE
     private void end() {
-        final int strm = (int) strmFieldActor().readLong(this);
+        final int strm = (int) TupleAccess.readLong(this, strmFieldActor().offset());
         if (strm != 0) {
             _gnuDeflaters.get(strm).end();
-            strmFieldActor().writeLong(this, 0);
+            TupleAccess.writeLong(this, strmFieldActor().offset(), 0);
             _gnuDeflaters.set(strm, null);
         }
     }
-*/
+
 }
