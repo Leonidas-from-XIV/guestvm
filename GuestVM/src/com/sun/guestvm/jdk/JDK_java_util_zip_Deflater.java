@@ -50,7 +50,7 @@ import com.sun.max.vm.classfile.constant.SymbolTable;
  *
  * N.B. This code depends on the implementation of java.util.zip.Deflater.
  * It substitutes the native "init" method and uses the "strm" field to index an
- * array of GNU Inflater instances.
+ * array of GNU Deflater instances.
  *
  * @author Mick Jordan
  *

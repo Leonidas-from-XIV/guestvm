@@ -25,6 +25,16 @@ package sun.misc
 class sun.jkernel.DownloadManager
 resetlauncher
 package sun.util.calendar
+resetfield sun.util.calendar.ZoneInfo.aliasTable
+resetfield sun.util.calendar.ZoneInfoFile.zoneInfoMappings
+resetfield sun.util.calendar.ZoneInfoFile.rawOffsets
+resetfield sun.util.calendar.ZoneInfoFile.rawOffsetIndices
+resetfield sun.util.calendar.ZoneInfoFile.zoneIDs
+resetfield sun.util.calendar.ZoneInfoFile.excludedIDs
+resetfield sun.util.calendar.ZoneInfoFile.hasNoExcludeList
+resetfield sun.util.calendar.ZoneInfoFile.zoneInfoObjects
+# have to implement java.util.TimeZone.getSystemTimeZoneID if we reset this field.
+# resetfield java.util.TimeZone.defaultTimeZone
 package sun.net.www
 package sun.net.www.protocol.jar
 package sun.nio
