@@ -116,7 +116,7 @@ public class JDK_java_io_util {
     static int open(Object fdObj, String name, int flags) throws FileNotFoundException {
         final VirtualFileSystem fs = FSTable.exports(name);
         if (fs == null) {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException(name + " (Unmounted or uninitialized file system)");
         }
         int fd = fs.open(name, flags);
         if (fd >= 0) {
