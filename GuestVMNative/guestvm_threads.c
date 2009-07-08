@@ -40,6 +40,7 @@
 #include <hypervisor.h>
 #include <types.h>
 #include <sched.h>
+#include <arch_sched.h>
 #include <trace.h>
 #include <lib.h>
 #include <appsched.h>

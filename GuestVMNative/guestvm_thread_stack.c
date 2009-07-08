@@ -34,6 +34,7 @@
 #include <types.h>
 #include <list.h>
 #include <sched.h>
+#include <arch_sched.h>
 #include <trace.h>
 #include <lib.h>
 #include <guestvmXen.h>
