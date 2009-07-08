@@ -43,6 +43,7 @@
 #include <events.h>
 #include <spinlock.h>
 #include <guestvm_monitor.h>
+#include <arch_sched.h>
 
 guestvmXen_monitor_t *guestvmXen_monitor_create(void) {
   guestvmXen_monitor_t *result = xmalloc(struct guestvmXen_monitor);

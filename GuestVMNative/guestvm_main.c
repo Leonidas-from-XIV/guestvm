@@ -33,6 +33,7 @@
 #include <hypervisor.h>
 #include <types.h>
 #include <sched.h>
+#include <arch_sched.h>
 #include <spinlock.h>
 #include <xenbus.h>
 #include <db.h>
