@@ -185,7 +185,7 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     /**
      * The offset of the byte array data from the byte array object's origin.
      */
-    private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout().getElementOffsetFromOrigin(0);
+    private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout.getElementOffsetFromOrigin(0);
 
     /**
      *

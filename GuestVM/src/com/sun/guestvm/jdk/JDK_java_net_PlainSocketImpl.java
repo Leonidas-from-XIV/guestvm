@@ -40,6 +40,7 @@ import com.sun.max.collect.*;
 import com.sun.max.program.ProgramError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.tcp.TCPEndpoint;
@@ -66,7 +67,7 @@ public class JDK_java_net_PlainSocketImpl {
     private static Logger _logger;
 
     private static Object checkOpen(Object self) throws SocketException {
-        final Object fdObj = _fileDescriptorFieldActor.readObject(self);
+        final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
         if (fdObj == null) {
             throw new SocketException("socket closed");
         }
@@ -75,7 +76,7 @@ public class JDK_java_net_PlainSocketImpl {
 
     private static TCPEndpoint getEndpoint(Object self) throws SocketException {
         final Object fdObj = checkOpen(self);
-        return _endpoints.get(_fdFieldActor.readInt(fdObj));
+        return _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
     }
 
     private static int getFreeIndex(TCPEndpoint u) {
@@ -98,7 +99,7 @@ public class JDK_java_net_PlainSocketImpl {
      * @param fdObj
      */
     static TCPEndpoint getEndpoint(FileDescriptor fdObj) throws SocketException {
-        final int fd = _fdFieldActor.readInt(fdObj);
+        final int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
         if (fd < 0) {
             throw new SocketException("socket closed");
         }
@@ -110,7 +111,7 @@ public class JDK_java_net_PlainSocketImpl {
     private  void socketCreate(boolean isServer) throws IOException {
         final Object fdObj = checkOpen(this);
         final int fd = getFreeIndex(new TCPEndpoint());
-        _fdFieldActor.writeInt(fdObj, fd);
+        TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), fd);
     }
 
     @SUBSTITUTE
@@ -119,9 +120,9 @@ public class JDK_java_net_PlainSocketImpl {
         // CheckStyle: stop parameter assignment check
         port = endpoint.connect(IPAddress.byteToInt(address.getAddress()), port);
         // CheckStyle: resume parameter assignment check
-        _localportFieldActor.writeInt(this, port);
+        TupleAccess.writeInt(this, _localportFieldActor.offset(), port);
         // Odd that this does not happen in the caller
-        _addressFieldActor.writeObject(this, address);
+        TupleAccess.writeObject(this, _addressFieldActor.offset(), address);
     }
 
     @SUBSTITUTE
@@ -130,9 +131,9 @@ public class JDK_java_net_PlainSocketImpl {
         // CheckStyle: stop parameter assignment check
         port  = endpoint.bind(IPAddress.byteToInt(address.getAddress()), port, false);
         // CheckStyle: resume parameter assignment check
-        _localportFieldActor.writeInt(this, port);
+        TupleAccess.writeInt(this, _localportFieldActor.offset(), port);
         // Odd that this does not happen in the caller
-        _addressFieldActor.writeObject(this, address);
+        TupleAccess.writeObject(this, _addressFieldActor.offset(), address);
     }
 
     @SUBSTITUTE
@@ -144,16 +145,16 @@ public class JDK_java_net_PlainSocketImpl {
     @SUBSTITUTE
     private  void socketAccept(SocketImpl si) throws IOException {
         final TCPEndpoint endpoint = getEndpoint(this);
-        final int timeout = _timeoutFieldActor.readInt(this);
+        final int timeout = TupleAccess.readInt(this, _timeoutFieldActor.offset());
         if (timeout != 0) {
             endpoint.setTimeout(timeout);
         }
         final int fd = getFreeIndex((TCPEndpoint) endpoint.accept());
         // set fd field in FileDescriptor in si
-        _fdFieldActor.writeInt(_fileDescriptorFieldActor.readObject(si), fd);
+        TupleAccess.writeInt(TupleAccess.readObject(si, _fileDescriptorFieldActor.offset()), _fdFieldActor.offset(), fd);
         // copy address and localport fields from this to si
-        _addressFieldActor.writeObject(si, _addressFieldActor.readObject(this));
-        _localportFieldActor.writeInt(si, _localportFieldActor.readInt(this));
+        TupleAccess.writeObject(si, _addressFieldActor.offset(), TupleAccess.readObject(this, _addressFieldActor.offset()));
+        TupleAccess.writeInt(si, _localportFieldActor.offset(), TupleAccess.readInt(this, _localportFieldActor.offset()));
     }
 
     @SUBSTITUTE
@@ -165,10 +166,10 @@ public class JDK_java_net_PlainSocketImpl {
     private  void socketClose0(boolean useDeferredClose) throws IOException {
         // TODO: figure out what should really be done about useDeferredClose
         final Object fdObj = checkOpen(this);
-        final  int fd = _fdFieldActor.readInt(fdObj);
+        final  int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
         if (fd != -1) {
             _endpoints.get(fd).close();
-            _fdFieldActor.writeInt(fdObj, -1);
+            TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), -1);
         }
     }
     @SUBSTITUTE
@@ -220,9 +221,9 @@ public class JDK_java_net_PlainSocketImpl {
             final ClassActor classActor = ClassActor.fromJava(klass);
             _fileDescriptorFieldActor = JDK_java_io_FileDescriptor.fileDescriptorFieldActor(klass);
             _fdFieldActor = JDK_java_io_FileDescriptor.fdFieldActor();
-            _timeoutFieldActor = (IntFieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
-            _localportFieldActor = (IntFieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("localport"));
-            _addressFieldActor = (ReferenceFieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("address"));
+            _timeoutFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
+            _localportFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("localport"));
+            _addressFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("address"));
             _logger = Logger.getLogger("JDK_java_net_PlainSocketImpl");
         } catch (ClassNotFoundException ex) {
             ProgramError.unexpected("JDK_java_net_PlainSocketImpl: failed to load substitutee class");
@@ -230,10 +231,10 @@ public class JDK_java_net_PlainSocketImpl {
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static ReferenceFieldActor _fileDescriptorFieldActor;
-    private static IntFieldActor _fdFieldActor;
-    private static IntFieldActor _timeoutFieldActor;
-    private static IntFieldActor _localportFieldActor;
-    private static ReferenceFieldActor _addressFieldActor;
+    private static FieldActor _fileDescriptorFieldActor;
+    private static FieldActor _fdFieldActor;
+    private static FieldActor _timeoutFieldActor;
+    private static FieldActor _localportFieldActor;
+    private static FieldActor _addressFieldActor;
 
 }

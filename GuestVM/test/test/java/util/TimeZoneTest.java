@@ -29,26 +29,21 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.vm.run.guestvm;
+package test.java.util;
 
-import com.sun.max.vm.*;
-import com.sun.max.vm.run.*;
+import java.util.*;
 
-/**
- *
- * @author Mick Jordan
- */
+public class TimeZoneTest {
 
-
-public class Package extends VMPackage {
-
-    public Package() {
-        super();
-        registerScheme(RunScheme.class, GuestVMRunScheme.class);
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        final TimeZone gmt = TimeZone.getTimeZone("GMT");
+        call(gmt);
     }
 
-    @Override
-    public boolean isPartOfMaxineVM(VMConfiguration vmConfiguration) {
-        return vmConfiguration.runPackage.equals(this);
+    private static void call(TimeZone tz) {
+
     }
 }

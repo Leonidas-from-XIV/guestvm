@@ -38,6 +38,7 @@ import com.sun.max.collect.*;
 import com.sun.max.program.ProgramError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.udp.*;
@@ -74,7 +75,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     }
 
     private static Object checkOpen(Object self) throws SocketException {
-        final Object fdObj = _fileDescriptorFieldActor.readObject(self);
+        final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
         if (fdObj == null) {
             throw new SocketException("socket closed");
         }
@@ -84,7 +85,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private synchronized void bind0(int lport, InetAddress laddr) throws SocketException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(_fdFieldActor.readInt(fdObj));
+        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         // TODO fix bind's first argument
         endpoint.bind(0, lport, false);
     }
@@ -92,13 +93,13 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private void send(DatagramPacket p) throws IOException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(_fdFieldActor.readInt(fdObj));
+        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
         int port;
         int addr;
-        if (_connectedFieldActor.readBoolean(this)) {
+        if (TupleAccess.readBoolean(this, _connectedFieldActor.offset())) {
             port = endpoint.getRemotePort();
             addr = endpoint.getRemoteAddress();
         } else {
@@ -123,11 +124,11 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private synchronized void receive0(DatagramPacket p) throws IOException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(_fdFieldActor.readInt(fdObj));
+        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
-        final int timeout = _timeoutFieldActor.readInt(this);
+        final int timeout = TupleAccess.readInt(this, _timeoutFieldActor.offset());
         if (timeout > 0) {
             endpoint.setTimeout(timeout);
         }
@@ -182,17 +183,17 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     private void datagramSocketCreate() throws SocketException {
         final Object fdObj = checkOpen(this);
         final int fd = getFreeIndex(new UDPEndpoint());
-        _fdFieldActor.writeInt(fdObj, fd);
+        TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), fd);
     }
 
     @SUBSTITUTE
     private void datagramSocketClose() {
-        final Object fdObj = _fileDescriptorFieldActor.readObject(this);
+        final Object fdObj = TupleAccess.readObject(this, _fileDescriptorFieldActor.offset());
         if (fdObj != null) {
-            final int fd = _fdFieldActor.readInt(fdObj);
+            final int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
             if (fd != -1) {
                 _endpoints.set(fd, null);
-                _fdFieldActor.writeInt(fdObj, -1);
+                TupleAccess.writeInt(fdObj, _fdFieldActor.offset(),  -1);
             }
         }
     }
@@ -211,9 +212,9 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private void connect0(InetAddress address, int port) throws SocketException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(_fdFieldActor.readInt(fdObj));
+        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         endpoint.connect(IPAddress.byteToInt(address.getAddress()), port);
-        _connectedFieldActor.writeBoolean(this, true);
+        TupleAccess.writeBoolean(this, _connectedFieldActor.offset(), true);
     }
 
     @SUBSTITUTE
@@ -228,17 +229,17 @@ public class JDK_java_net_PlainDatagramSocketImpl {
             final ClassActor classActor = ClassActor.fromJava(klass);
             _fileDescriptorFieldActor = JDK_java_io_FileDescriptor.fileDescriptorFieldActor(klass);
             _fdFieldActor = JDK_java_io_FileDescriptor.fdFieldActor();
-            _connectedFieldActor = (BooleanFieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("connected"));
-            _timeoutFieldActor = (IntFieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
+            _connectedFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("connected"));
+            _timeoutFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
         } catch (ClassNotFoundException ex) {
             ProgramError.unexpected("JDK_java_net_PlainDatagramSocketImpl: failed to load substitutee class");
         }
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static ReferenceFieldActor _fileDescriptorFieldActor;
-    private static IntFieldActor _fdFieldActor;
-    private static BooleanFieldActor _connectedFieldActor;
-    private static IntFieldActor _timeoutFieldActor;
+    private static FieldActor _fileDescriptorFieldActor;
+    private static FieldActor _fdFieldActor;
+    private static FieldActor _connectedFieldActor;
+    private static FieldActor _timeoutFieldActor;
 
 }

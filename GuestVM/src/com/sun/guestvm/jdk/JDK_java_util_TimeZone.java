@@ -29,26 +29,32 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.vm.run.guestvm;
+package com.sun.guestvm.jdk;
 
-import com.sun.max.vm.*;
-import com.sun.max.vm.run.*;
+import com.sun.max.annotate.*;
 
 /**
+ * Substitutions for the native methods in @see java.util.TimeZone.
+ * These are needed iff TimeZone.defaultTimeZone is reset in the built image,
+ * otherwise the build host defaults are used.
  *
  * @author Mick Jordan
+ *
  */
 
+@METHOD_SUBSTITUTIONS(java.util.TimeZone.class)
+@SuppressWarnings("unused")
+final class JDK_java_util_TimeZone {
 
-public class Package extends VMPackage {
-
-    public Package() {
-        super();
-        registerScheme(RunScheme.class, GuestVMRunScheme.class);
+    @SUBSTITUTE
+    private static String getSystemTimeZoneID(String javaHome, String country) {
+        // TODO
+        return null;
     }
 
-    @Override
-    public boolean isPartOfMaxineVM(VMConfiguration vmConfiguration) {
-        return vmConfiguration.runPackage.equals(this);
+    @SUBSTITUTE
+    private static String getSystemGMTOffsetID() {
+        // TODO
+        return null;
     }
 }

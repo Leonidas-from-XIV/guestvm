@@ -45,20 +45,20 @@ import com.sun.max.vm.*;
 public final class GUESTVMVMProgramArguments {
 
     @SuppressWarnings({"unused"})
-    private static final VMOption _debugOption = new VMOption("-XX:GUKDebug", "Enables Guest VM debug mode.", MaxineVM.Phase.PRISTINE);
+    private static final VMOption _debugOption = VMOptions.register(new VMOption("-XX:GUKDebug", "Enables Guest VM debug mode."), MaxineVM.Phase.PRISTINE);
     @SuppressWarnings({"unused"})
-    private static final VMOption _xenTraceOption = new VMOption("-XX:GUKTrace", "Enables GuestVM microkernel tracing", MaxineVM.Phase.PRISTINE) {
+    private static final VMOption _xenTraceOption = VMOptions.register(new VMOption("-XX:GUKTrace", "Enables GuestVM microkernel tracing") {
         @Override
         public void printHelp() {
-            VMOptions.printHelpForOption("-XX:GUKTrace[:subsys1:subsys2:...[:buffer][:toring]]", "", _help);
+            VMOptions.printHelpForOption("-XX:GUKTrace[:subsys1:subsys2:...[:buffer][:toring]]", "", help);
         }
-    };
+    }, MaxineVM.Phase.PRISTINE);
 
-    private static final VMOption _upcallOption = new VMOption("-XX:GUKAS", "Enables the Guest VM Java thread scheduler", MaxineVM.Phase.PRISTINE);
+    private static final VMOption _upcallOption = VMOptions.register(new VMOption("-XX:GUKAS", "Enables the Guest VM Java thread scheduler"), MaxineVM.Phase.PRISTINE);
     @SuppressWarnings({"unused"})
-    private static final VMOption _timesliceOption = new VMIntOption("-XX:GUKTS=", 10, "Set Scheduler Time Slice (ms)", MaxineVM.Phase.PRISTINE);
+    private static final VMOption _timesliceOption = VMOptions.register(new VMIntOption("-XX:GUKTS=", 10, "Set Scheduler Time Slice (ms)"), MaxineVM.Phase.PRISTINE);
     @SuppressWarnings({"unused"})
-    private static final VMOption _traceCpuOption = new VMIntOption("-XX:GUKCT=", -1, "Reserves a CPU for tracing", MaxineVM.Phase.PRISTINE);
+    private static final VMOption _traceCpuOption = VMOptions.register(new VMIntOption("-XX:GUKCT=", -1, "Reserves a CPU for tracing"), MaxineVM.Phase.PRISTINE);
 
     private GUESTVMVMProgramArguments() {
     }
