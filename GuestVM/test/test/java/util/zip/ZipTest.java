@@ -70,9 +70,6 @@ public class ZipTest {
         }
         // Checkstyle: resume modified control variable check
 
-        if (_traceMM) {
-            OSSpecific.setTraceState(6, true);
-        }
         ZipFile zipFile = null;
         JarFile jarFile = null;
         ZipInputStream zipStream = null;

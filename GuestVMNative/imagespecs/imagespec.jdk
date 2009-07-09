@@ -102,4 +102,15 @@ resetfield java.lang.reflect.Proxy.loaderToCache
 resetfield java.lang.reflect.Proxy.proxyClasses
 # this resets the remaining state
 reinitclass java.lang.reflect.Proxy
+package java.text
+# Eager initialization because of library loading
+classinit java.text.Bidi
+package java.text.spi
+package sun.util
+package com.sun.security.auth
+package sun.security.acl
+reinitclass sun.util.LocaleServiceProviderPool
+reinitclass java.text.SimpleDateFormat
+reinitclass java.text.DateFormatSymbols
+
 
