@@ -48,17 +48,23 @@ import com.sun.max.program.*;
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.io.FileSystem")
 public final class JDK_java_io_FileSystem {
 
+    private static Object _singleton;
+
     @SUBSTITUTE
-    private static /*FileSystem*/Object getFileSystem() {
+    private static/* FileSystem */Object getFileSystem() {
         // return new UnixFileSystem();
-        try {
-            final Class<?> klass = Class.forName("java.io.UnixFileSystem");
-            final Constructor<?> c = klass.getDeclaredConstructor();
-            c.setAccessible(true);
-            return c.newInstance();
-        } catch (Exception ex) {
-            ProgramError.unexpected("failed to construct java.io.UnixFileSystem", ex);
-            return null;
+        if (_singleton == null) {
+            try {
+                final Class< ? > klass = Class.forName("java.io.UnixFileSystem");
+                final Constructor< ? > c = klass.getDeclaredConstructor();
+                c.setAccessible(true);
+                _singleton = c.newInstance();
+            } catch (Exception ex) {
+                ProgramError.unexpected("failed to construct java.io.UnixFileSystem", ex);
+                return null;
+            }
         }
+        return _singleton;
     }
+
 }
