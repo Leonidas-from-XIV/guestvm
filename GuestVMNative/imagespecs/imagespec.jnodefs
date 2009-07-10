@@ -8,12 +8,5 @@ package org.jnode.fs.spi
 package org.jnode.fs.util
 package org.jnode.partitions
 package org.jnode.util
-package java.text
-# Eager initialization because of library loading
-classinit java.text.Bidi
-package java.text.spi
-package sun.util
-package com.sun.security.auth
-package sun.security.acl
-reinitclass sun.util.LocaleServiceProviderPool
-reinitclass java.text.SimpleDateFormat
+
+

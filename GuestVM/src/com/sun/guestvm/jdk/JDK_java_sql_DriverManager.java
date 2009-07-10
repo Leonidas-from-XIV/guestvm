@@ -29,54 +29,25 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs;
+package com.sun.guestvm.jdk;
+
+import com.sun.max.annotate.*;
+import com.sun.max.vm.jni.JVMFunctions;
+
+import java.sql.*;
 
 /**
- * Standard "errno" error decoding.
- * TODO: flesh it out
- *
+ * Substitutions for @see java.sql.DriverManager.
  * @author Mick Jordan
  *
  */
-public class ErrorDecoder {
+@METHOD_SUBSTITUTIONS(DriverManager.class)
+final class JDK_java_sql_DriverManager {
 
-    public enum Code {
-        ENOENT(2, "No such file or directory"),
-        EIO(5, "I/O error"),
-        EBADF(9, "Bad file number"),
-        EACCES(13, "Permission denied"),
-        EISDIR(21, "Is a directory"),
-        EROFS(30, "Read only file system");
-
-        private int _code;
-        private String _message;
-
-        Code(int code, String message) {
-            _code = code;
-            _message = message;
-        }
-
-        public int getCode() {
-            return _code;
-        }
-
-        public String getMessage() {
-            return _message;
-        }
-
+    @SuppressWarnings("unused")
+    @SUBSTITUTE
+    private static ClassLoader getCallerClassLoader() {
+        final Class<?> caller = JVMFunctions.GetCallerClass(3);
+        return caller == null ? null : caller.getClassLoader();
     }
-
-    public static String getMessage(int errno) {
-        for (Code c : Code.values()) {
-            if (errno == c.getCode()) {
-                return c.getMessage();
-            }
-        }
-        return "unknown error code: " + errno;
-    }
-
-    public static String getFileMessage(int errno, String name) {
-        return name + " (" + getMessage(errno) + ")";
-    }
-
 }

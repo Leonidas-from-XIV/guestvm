@@ -41,6 +41,7 @@ extra_projects=( \
   MaxineELF:src \
   JNodeFS:src \
   YANFS:src \
+  GNUCP:src \
   GuestVM:src,test \
 )
 

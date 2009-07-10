@@ -150,6 +150,8 @@ do
     shift
     jar=$1
     if [ "$java_launcher_compat" -eq 1 ] ; then
+        shift
+        xtra_args=$*
         break
     fi
     ;;

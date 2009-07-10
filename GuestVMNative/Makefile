@@ -132,7 +132,7 @@ endif
 
 UKERNEL_OBJ := $(GUK_ROOT)/guk.o
 OBJS := $(patsubst %.c,objs/%.o,$(wildcard *.c))
-ZLIBOBJS := $(patsubst zlib/%.c,zlibobjs/%.o,$(wildcard zlib/*.c))
+FDLIBMOBJS := $(patsubst fdlibm/%.c,fdlibmobjs/%.o,$(wildcard fdlibm/*.c))
 
 LDLIBS += ${MAXINE_SUBSTRATE}/${LIB_MAXINE}
 
@@ -147,8 +147,8 @@ HDRS += $(extra_heads)
 .PHONY: default
 default: $(TARGET)
 
-$(TARGET):  $(OBJS) $(ZLIBOBJS) $(UKERNEL_OBJ) ${MAXINE_SUBSTRATE}/${LIB_MAXINE} $(LDS)
-	$(LD) $(LDFLAGS_FINAL) $(UKERNEL_OBJ) $(OBJS) $(ZLIBOBJS) $(LDLIBS) -o $@
+$(TARGET):  $(OBJS) $(FDLIBMOBJS) $(UKERNEL_OBJ) ${MAXINE_SUBSTRATE}/${LIB_MAXINE} $(LDS)
+	$(LD) $(LDFLAGS_FINAL) $(UKERNEL_OBJ) $(OBJS) $(FDLIBMOBJS) $(LDLIBS) -o $@
 #	gzip -f -9 -c $@ >$@.gz
 
 .PHONY: clean
@@ -165,13 +165,9 @@ objs/%.o: %.c $(HDRS) Makefile
 %.E: %.c $(HDRS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -E $< -o $@
 
-zlibobjs/%.o: zlib/%.c  Makefile
-	mkdir -p zlibobjs
+fdlibmobjs/%.o: fdlibm/%.c  Makefile
+	mkdir -p fdlibmobjs
 	$(CC) -m64 -c -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(HOSTOS_LC) $< -o $@
-
-zlibobjs/%.E: zlib/%.c Makefile
-	mkdir -p zlibobjs
-	$(CC) -m64 -E -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(HOSTOS_LC) $< -o $@
 
 define all_sources
      ( find . -follow -name SCCS -prune -o -name '*.[chS]' -print )
