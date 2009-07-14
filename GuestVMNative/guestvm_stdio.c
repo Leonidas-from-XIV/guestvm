@@ -131,7 +131,7 @@ int _IO_putc(int a1, FILE *a2) {
 #endif
 
 /*
- * A mystery wqhy we need this. Some of the zlib object files
+ * A mystery why we need this. Some of the zlib object files
  * have this as an undefined symbol. However, neither gcc -E nor objdump
  * provide any indication as to where the reference actually is.
  */
@@ -151,12 +151,20 @@ void close(int fd) {
  * Used in log_lock/unlock
  */
 char * strerror(int errnum) {
-	return "strerror not implemented";
+    return "strerror not implemented";
 }
 
 /*
- * used in memory.c
+ * Used in memory.c
  */
 void perror(const char *msg) {
-	guk_printk("%s\n", msg);
+    guk_printk("%s\n", msg);
+}
+
+/*
+  Used in fdlibm
+  */
+int fputs(const char *msg, FILE *stream) {
+    guk_printk("%s\n", msg);
+    return 0;
 }

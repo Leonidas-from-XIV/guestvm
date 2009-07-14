@@ -39,9 +39,9 @@
 #include <lib.h>
 #include <jni.h>
 
+extern double __ieee754_fmod(double x, double y);
 double fmod(double a, double b) {
-	printk("WARNING: fmod not implemented\n");
-	return 0;
+  return __ieee754_fmod(a, b);
 }
 
 // Defined in substrate/snippet.c
