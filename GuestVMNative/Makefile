@@ -70,8 +70,19 @@ LIB_MAXINE = libjvm.a
 FS_DIR = $(GUK_ROOT)/tools/fs-back
 DB_DIR = $(GUK_ROOT)/tools/db-front
 
+# find gcc headers
+GCC_BASE=$(shell $(CC) -print-search-dirs | grep ^install | cut -f 2 -d ' ')
+
+ifeq ($(XEN_OS),SunOS)
+GCC_INCLUDE:=${GCC_BASE}install-tools/include
+endif
+
+ifeq ($(XEN_OS),Linux)
+GCC_INCLUDE:=${GCC_BASE}include
+endif
+
 # NB. '-Wcast-qual' is nasty, so I omitted it.
-CFLAGS := -fno-builtin -Wall -Werror -Wredundant-decls -Wno-format
+CFLAGS := -fno-builtin -Wall -Werror -Wredundant-decls -Wno-format -nostdinc -I$(GCC_INCLUDE)
 CFLAGS += -Wstrict-prototypes -Wnested-externs -Wpointer-arith -Winline
 CFLAGS += -D__XEN_INTERFACE_VERSION__=$(XEN_INTERFACE_VERSION)
 
@@ -111,7 +122,7 @@ endif
 
 # Add the special header directories to the include paths.
 extra_incl := $(foreach dir,$(EXTRA_INC),-I$(GUK_ROOT)/include/$(dir))
-override CPPFLAGS := -I. -I$(FS_DIR) -I$(DB_DIR) -I$(GUK_ROOT)/include $(CPPFLAGS) -I$(GUK_ROOT)/include/$(TARGET_ARCH_DIR) $(extra_incl) $(MAXINE_INCL) -Ifdlibm
+override CPPFLAGS := -I. -I$(FS_DIR) -I$(DB_DIR) -I$(GUK_ROOT)/include -I$(GUK_ROOT)/include/guk $(CPPFLAGS) -I$(GUK_ROOT)/include/$(TARGET_ARCH_DIR) $(extra_incl) $(MAXINE_INCL) -Ifdlibm
 
 CFLAGS += -DCONFIG_SMP -DCONFIG_PREEMPT -D$(HOSTOS_LC)
 TARGET := guestvm
