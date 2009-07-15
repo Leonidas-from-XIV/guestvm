@@ -31,6 +31,7 @@
  */
 package test.java.lang;
 
+import java.io.*;
 import java.util.*;
 
 import test.util.OSSpecific;
@@ -52,6 +53,7 @@ public class ThreadFloat extends Thread {
         int nThreads = 2;
         int runtime = 10;
         int timeSlice = 0;
+        boolean fsThread = false;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
@@ -63,9 +65,16 @@ public class ThreadFloat extends Thread {
                 _yield = true;
             } else if (arg.equals("ts")) {
                 timeSlice = Integer.parseInt(args[++i]);
+            } else if (arg.equals("fs")) {
+                fsThread = true;
             }
         }
 
+        FSThread fst = null;
+        if (fsThread) {
+            fst = new FSThread();
+            fst.start();
+        }
         final Timer timer = new Timer(true);
         timer.schedule(new MyTimerTask(), runtime *1000);
         final ThreadFloat[] threads = new ThreadFloat[nThreads];
@@ -81,6 +90,9 @@ public class ThreadFloat extends Thread {
             threads[t].join();
             System.out.println(threads[t] + ": " + threads[t]._count);
         }
+        if (fsThread) {
+            System.out.println("read " + fst.read() + " files");
+        }
     }
 
     public void run() {
@@ -89,10 +101,14 @@ public class ThreadFloat extends Thread {
             double d2 = D2 * _id;
             double d3 = D3 * _id;
             double d4 = D4 * _id;
+            double d5 = D5 * _id;
+            double d6 = D6 * _id;
+            double d7 = D7 * _id;
+            double d8 = D8 * _id;
             if (_yield) {
                 Thread.yield();
             }
-            call(d1, d2, d3, d4);
+            call(d1, d2, d3, d4, d5, d6, d7, d8);
         }
     }
 
@@ -104,11 +120,15 @@ public class ThreadFloat extends Thread {
     private static final double D2 = 2.0;
     private static final double D3 = 3.0;
     private static final double D4 = 4.0;
+    private static final double D5 = 5.0;
+    private static final double D6 = 6.0;
+    private static final double D7 = 7.0;
+    private static final double D8 = 8.0;
     private int _id;
     private long _count;
 
-    public void call(double d1, double d2, double d3, double d4) {
-        if (d1 != D1 * _id || d2 != D2 * _id || d3 != D3 * _id || d4 != D4 * _id) {
+    public void call(double d1, double d2, double d3, double d4, double d5, double d6, double d7, double d8) {
+        if (d1 != D1 * _id || d2 != D2 * _id || d3 != D3 * _id || d4 != D4 * _id || d5 != D5 * _id || d6 != D6 * _id || d7 != D7 * _id || d8 != D8 * _id) {
             throw new IllegalArgumentException("thread arguments mismatch");
         }
         _count++;
@@ -117,6 +137,58 @@ public class ThreadFloat extends Thread {
     static class MyTimerTask extends TimerTask {
         public void run() {
             _done = true;
+        }
+    }
+
+    static class FSThread extends Thread {
+        private List<File> _files = new ArrayList<File>();
+        private Random _random = new Random();
+        private int _read;
+
+        FSThread() {
+            setDaemon(true);
+            final File root = new File("/guestvm/ext2");
+            addDir(root);
+            System.out.println("found " + _files.size() + " files");
+        }
+
+        private void addDir(File dir) {
+            File[] files = dir.listFiles();
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    addDir(file);
+                } else {
+                    _files.add(file);
+                }
+            }
+        }
+
+        int read() {
+            return _read;
+        }
+
+        public void run() {
+            while (true) {
+                final int x = _random.nextInt(_files.size());
+                final File file = _files.get(x);
+                FileInputStream fs = null;
+                try {
+                    fs = new FileInputStream(file);
+                    final byte[] buf = new byte[1024];
+                    while (fs.read(buf) != -1) {
+                    }
+                    _read++;
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                } finally {
+                    if (fs != null) {
+                        try {
+                            fs.close();
+                        } catch (IOException ex) {
+                        }
+                    }
+                }
+            }
         }
     }
 

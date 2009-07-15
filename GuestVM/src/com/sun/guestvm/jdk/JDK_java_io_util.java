@@ -32,7 +32,6 @@
 package com.sun.guestvm.jdk;
 
 import java.io.*;
-
 import com.sun.guestvm.fs.*;
 import com.sun.max.vm.object.TupleAccess;
 
@@ -114,6 +113,13 @@ public class JDK_java_io_util {
     }
 
     static int open(Object fdObj, String name, int flags) throws FileNotFoundException {
+        // You might think that at this point, name would be absolute (or canonical) but not so.
+        // We, obviously, assume Unix conventions here.
+        if (name.charAt(0) != '/') {
+            // Checkstyle: stop parameter assignment check
+            name = new File(name).getAbsolutePath();
+            // Checkstyle: resume parameter assignment check
+        }
         final VirtualFileSystem fs = FSTable.exports(name);
         if (fs == null) {
             throw new FileNotFoundException(name + " (Unmounted or uninitialized file system)");
@@ -130,8 +136,10 @@ public class JDK_java_io_util {
 
     static void close0(Object fdObj) throws IOException {
         final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), -1);
-        close0FD(fd);
+        if (fd > 0) {
+            TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), -1);
+            close0FD(fd);
+        }
     }
 
     static void close0FD(int fd) throws IOException {

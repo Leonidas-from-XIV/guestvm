@@ -242,7 +242,7 @@ public class Ext2DirectoryRecord {
         if (log.isLoggable(Level.FINEST)) {
             log.log(Level.FINEST, "expandRecord(" + beginning + ", " + end + ")");
         }
-        if (beginning + getNameLen() + 8 < end) {
+        if (beginning + getNameLen() + 8 <= end) {
             // the record fits in the block
             setRecLen((int) (end - beginning));
             // pad the end of the record with zeroes
