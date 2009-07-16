@@ -31,7 +31,6 @@
  */
 package com.sun.guestvm.fs;
 
-import java.io.File;
 import java.util.*;
 
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
@@ -192,11 +191,6 @@ public class FSTable {
             }
         }
         return null;
-    }
-
-    public static VirtualFileSystem exports(File file) {
-        // TODO The matter of canonicalization, e.g. file.getCanonicalPath();
-        return exports(file.getAbsolutePath());
     }
 
     static class CloseHook implements Runnable {

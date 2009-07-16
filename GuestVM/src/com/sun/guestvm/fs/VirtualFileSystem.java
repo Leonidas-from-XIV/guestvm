@@ -82,6 +82,7 @@ public interface VirtualFileSystem {
 
     /*
      *  UnixFileSystem methods
+     *  All file system paths passed to the following methods should be absolute.
      */
 
     String canonicalize0(String path) throws IOException;

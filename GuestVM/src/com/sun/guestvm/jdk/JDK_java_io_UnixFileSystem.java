@@ -72,11 +72,12 @@ public final class JDK_java_io_UnixFileSystem {
 
     @SUBSTITUTE
     private int getBooleanAttributes0(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return 0;
         }
-        final int mode = fs.getMode(f.getPath());
+        final int mode = fs.getMode(absPath);
         if (mode < 0) {
             return 0;
         }
@@ -86,43 +87,47 @@ public final class JDK_java_io_UnixFileSystem {
 
     @SUBSTITUTE
     private long getLastModifiedTime(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return 0;
         }
-        return fs.getLastModifiedTime(f.getPath());
+        return fs.getLastModifiedTime(absPath);
     }
 
     @SUBSTITUTE
     private boolean checkAccess(File f, int access) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.checkAccess(f.getPath(), access);
+        return fs.checkAccess(absPath, access);
     }
 
     @SUBSTITUTE
     private long getLength(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return 0;
         }
-        return fs.getLength(f.getPath());
+        return fs.getLength(absPath);
     }
 
     @SUBSTITUTE
     private boolean setPermission(File f, int access, boolean enable, boolean owneronly) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.setPermission(f.getPath(), access, enable, owneronly);
+        return fs.setPermission(absPath, access, enable, owneronly);
     }
 
     @SUBSTITUTE
     private boolean createFileExclusively(String path) throws IOException {
-        final VirtualFileSystem fs = FSTable.exports(path);
+         final VirtualFileSystem fs = FSTable.exports(path);
         if (fs == null) {
             return false;
         }
@@ -131,65 +136,77 @@ public final class JDK_java_io_UnixFileSystem {
 
     @SUBSTITUTE
     private boolean delete0(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.delete0(f.getPath());
+        return fs.delete0(absPath);
     }
 
     @SUBSTITUTE
     private String[] list(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return null;
         }
-        return fs.list(f.getPath());
+        return fs.list(absPath);
     }
 
     @SUBSTITUTE
     private boolean createDirectory(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.createDirectory(f.getPath());
+        return fs.createDirectory(absPath);
     }
 
     @SUBSTITUTE
     private boolean rename0(File f1, File f2) {
-        final VirtualFileSystem fs = FSTable.exports(f1);
-        if (fs == null) {
+        final String absPath1 = f1.getAbsolutePath();
+        final VirtualFileSystem fs1 = FSTable.exports(absPath1);
+        if (fs1 == null) {
             return false;
         }
-        return fs.rename0(f1.getPath(), f2.getPath());
+        final String absPath2 = f2.getAbsolutePath();
+        final VirtualFileSystem fs2 = FSTable.exports(absPath2);
+        if (fs1 != fs2) {
+            return false;
+        }
+        return fs1.rename0(absPath1, absPath2);
     }
 
     @SUBSTITUTE
     private boolean setLastModifiedTime(File f, long time) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.setLastModifiedTime(f.getPath(), time);
+        return fs.setLastModifiedTime(absPath, time);
     }
 
     @SUBSTITUTE
     private boolean setReadOnly(File f) {
-        final VirtualFileSystem fs = FSTable.exports(f.getPath());
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return false;
         }
-        return fs.setReadOnly(f.getPath());
+        return fs.setReadOnly(absPath);
     }
 
     @SUBSTITUTE
     private long getSpace(File f, int t) {
-        final VirtualFileSystem fs = FSTable.exports(f);
+        final String absPath = f.getAbsolutePath();
+        final VirtualFileSystem fs = FSTable.exports(absPath);
         if (fs == null) {
             return 0;
         }
-        return fs.getSpace(f.getPath(), t);
+        return fs.getSpace(absPath, t);
     }
 
     @SUBSTITUTE
