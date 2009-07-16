@@ -69,6 +69,7 @@ extern void * thread_stack_pool_dlsym(const char *symbol);
 extern void * heap_pool_dlsym(const char *symbol);
 extern void * code_pool_dlsym(const char *symbol);
 extern void * inflater_dlsym(const char *symbol);
+extern void * StrictMath_dlsym(const char *symbol);
 
 
 void *dlsym(void *a1, const char *symbol) {
@@ -80,7 +81,8 @@ void *dlsym(void *a1, const char *symbol) {
       (result = blk_dlsym(symbol)) ||
       (result = thread_stack_pool_dlsym(symbol)) ||
       (result = heap_pool_dlsym(symbol)) ||
-      (result = code_pool_dlsym(symbol))) {
+      (result = code_pool_dlsym(symbol)) ||
+      (result = StrictMath_dlsym(symbol))) {
     return result;
   } else {
     guk_printk("Guest VM: symbol %s not found, exiting\n", symbol);
