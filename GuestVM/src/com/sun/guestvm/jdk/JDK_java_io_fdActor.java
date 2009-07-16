@@ -46,24 +46,24 @@ import com.sun.max.vm.classfile.constant.*;
 public class JDK_java_io_fdActor {
 
     /**
-     * Returns a ReferenceFieldActor for the field named "fd" of type FileDescriptor in given class.
+     * Returns a FieldActor for the field named "fd" of type FileDescriptor in given class.
      * @param klass
      * @return field actor
      */
-    static ReferenceFieldActor fileDescriptorFieldActor(Class<?> klass) {
-        return (ReferenceFieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
+    static FieldActor fileDescriptorFieldActor(Class<?> klass) {
+        return (FieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static IntFieldActor _fdFieldActor;
+    private static FieldActor _fdFieldActor;
 
     /**
-     * Returns an IntFieldActor for the field "fd" in the FileDescriptorClass.
+     * Returns an FieldActor for the field "fd" in the FileDescriptorClass.
      */
     @INLINE
-    static IntFieldActor fdFieldActor() {
+    static FieldActor fdFieldActor() {
         if (_fdFieldActor == null) {
-            _fdFieldActor = (IntFieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
+            _fdFieldActor = (FieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
         }
         return _fdFieldActor;
     }

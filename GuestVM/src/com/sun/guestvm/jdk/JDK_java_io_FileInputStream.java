@@ -38,6 +38,8 @@ import static com.sun.guestvm.fs.VirtualFileSystem.*;
 
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
+
 import com.sun.guestvm.fs.ErrorDecoder;
 
 /**
@@ -57,17 +59,17 @@ final class JDK_java_io_FileInputStream {
 
     @SUBSTITUTE
     private void open(String name) throws FileNotFoundException {
-        JDK_java_io_util.open(fileDescriptorFieldActor().readObject(this), name, O_RDONLY);
+        JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, O_RDONLY);
     }
 
     @SUBSTITUTE
     int read() throws IOException {
-        return JDK_java_io_util.read(fileDescriptorFieldActor().readObject(this));
+        return JDK_java_io_util.read(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
     int readBytes(byte[] bytes, int offset, int length) throws IOException {
-        return JDK_java_io_util.readBytes(bytes, offset, length, fileDescriptorFieldActor().readObject(this));
+        return JDK_java_io_util.readBytes(bytes, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
@@ -75,7 +77,7 @@ final class JDK_java_io_FileInputStream {
         if (n < 0) {
             throw new IOException("skip with negative argument: " + n);
         }
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         final long result = VirtualFileSystemId.getVfs(fd).skip(VirtualFileSystemId.getFd(fd), n, VirtualFileSystemOffset.get(fd));
         if (result < 0) {
             throw new IOException("error in skip: " + ErrorDecoder.getMessage((int) -result));
@@ -87,7 +89,7 @@ final class JDK_java_io_FileInputStream {
 
     @SUBSTITUTE
     private int available() throws IOException {
-        final int fd = JDK_java_io_fdActor.fdFieldActor().readInt(fileDescriptorFieldActor().readObject(this));
+        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
         final int result = VirtualFileSystemId.getVfs(fd).available(VirtualFileSystemId.getFd(fd), VirtualFileSystemOffset.get(fd));
         if (result < 0) {
             throw new IOException("error in available: " + ErrorDecoder.getMessage(-result));
@@ -98,7 +100,7 @@ final class JDK_java_io_FileInputStream {
 
     @SUBSTITUTE
     void close0() throws IOException {
-        JDK_java_io_util.close0(fileDescriptorFieldActor().readObject(this));
+        JDK_java_io_util.close0(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
     }
 
     @SUBSTITUTE
@@ -107,10 +109,10 @@ final class JDK_java_io_FileInputStream {
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static ReferenceFieldActor _fileDescriptorFieldActor;
+    private static FieldActor _fileDescriptorFieldActor;
 
     @INLINE
-    private ReferenceFieldActor fileDescriptorFieldActor() {
+    private FieldActor fileDescriptorFieldActor() {
         if (_fileDescriptorFieldActor == null) {
             _fileDescriptorFieldActor = JDK_java_io_fdActor.fileDescriptorFieldActor(getClass());
         }

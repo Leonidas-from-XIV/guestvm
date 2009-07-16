@@ -57,17 +57,17 @@ public class JDK_java_io_FileDescriptor {
      * @param klass
      * @return the @see ReferenceFieldActor
      */
-    public static ReferenceFieldActor fileDescriptorFieldActor(Class<?> klass) {
-        return (ReferenceFieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
+    public static FieldActor fileDescriptorFieldActor(Class<?> klass) {
+        return (FieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
     }
 
     /**
-     * Return an @see IntFieldActor for the "fd" field in the @see FileDescriptor class.
-     * @return the @see IntFieldActor
+     * Return an @see FieldActor for the "fd" field in the @see FileDescriptor class.
+     * @return the @see FieldActor
      */
-    public static IntFieldActor fdFieldActor() {
-        //_fdFieldActor = (IntFieldActor) FieldActor.fromJava(Classes.getDeclaredField(getClass(), "fd", int.class));
-        return (IntFieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
+    public static FieldActor fdFieldActor() {
+        //_fdFieldActor = (FieldActor) FieldActor.fromJava(Classes.getDeclaredField(getClass(), "fd", int.class));
+        return (FieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
     }
 
 

@@ -8,16 +8,16 @@
  * by the Free Software Foundation; either version 2.1 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but 
+ * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public 
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
  * License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this library; If not, write to the Free Software Foundation, Inc., 
+ * along with this library; If not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 package org.jnode.fs.ext2;
 
 import java.util.Calendar;
@@ -31,7 +31,7 @@ import java.util.TimeZone;
 public class Ext2Utils {
     /**
      * ceil(a/b) if a>=0
-     * 
+     *
      * @param a
      * @param b
      * @return
@@ -42,7 +42,7 @@ public class Ext2Utils {
 
     /**
      * Gets an unsigned 8-bit byte from a given offset
-     * 
+     *
      * @param offset
      * @return int
      */
@@ -52,7 +52,7 @@ public class Ext2Utils {
 
     /**
      * Sets an unsigned 8-bit byte at a given offset
-     * 
+     *
      * @param offset
      */
     public static void set8(byte[] data, int offset, int value) {
@@ -61,7 +61,7 @@ public class Ext2Utils {
 
     /**
      * Gets an unsigned 16-bit word from a given offset
-     * 
+     *
      * @param offset
      * @return int
      */
@@ -73,7 +73,7 @@ public class Ext2Utils {
 
     /**
      * Sets an unsigned 16-bit word at a given offset
-     * 
+     *
      * @param offset
      */
     public static void set16(byte[] data, int offset, int value) {
@@ -84,7 +84,7 @@ public class Ext2Utils {
     /**
      * Gets an unsigned 32-bit word from a given offset Can't read from blocks
      * bigger in size than 2GB (32bit signed int)
-     * 
+     *
      * @param offset
      * @return long
      */
@@ -98,7 +98,7 @@ public class Ext2Utils {
 
     /**
      * Sets an unsigned 32-bit word at a given offset
-     * 
+     *
      * @param offset
      */
     public static void set32(byte[] data, int offset, long value) {
@@ -108,27 +108,32 @@ public class Ext2Utils {
         data[offset + 3] = (byte) ((value >> 24) & 0xFF);
     }
 
+    /* Creating this statically in the VM image avoids a circularity when starting up, as TimeZone otherwise
+     * wants to read information from the file system defining java.home, which is typically Ext2.
+     */
+    private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
+
     /**
-     * 
+     *
      * @param time
      * @return
      */
     public static Calendar decodeDate(long time) {
         Calendar ref = Calendar.getInstance();
-        ref.setTimeZone(TimeZone.getTimeZone("GMT"));
+        ref.setTimeZone(GMT_TIMEZONE);
         ref.set(1970, 0, 1, 0, 0, 0);
         ref.add(Calendar.SECOND, (int) time);
         return ref;
     }
 
     /**
-     * 
+     *
      * @param time
      * @return
      */
     public static long encodeDate(Date date) {
         Calendar ref = Calendar.getInstance();
-        ref.setTimeZone(TimeZone.getTimeZone("GMT"));
+        ref.setTimeZone(GMT_TIMEZONE);
         ref.setTime(date);
         return ref.getTimeInMillis() / 1000;
     }

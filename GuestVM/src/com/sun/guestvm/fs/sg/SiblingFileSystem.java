@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 package com.sun.guestvm.fs.sg;
 
@@ -38,6 +38,7 @@ import com.sun.max.unsafe.*;
 import com.sun.max.memory.Memory;
 import com.sun.max.program.*;
 import com.sun.max.util.Utf8Exception;
+import com.sun.max.vm.runtime.*;
 import com.sun.guestvm.fs.*;
 import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
 
@@ -284,24 +285,24 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public long uniqueId(int fd) {
-        Problem.unimplemented(getClass().getName() + ".uniqueId");
+        FatalError.crash(getClass().getName() + ".uniqueId");
         return -1;
     }
 
     @Override
     public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        Problem.unimplemented(getClass().getName() + "lock0");
+        FatalError.crash(getClass().getName() + "lock0");
         return 0;
     }
 
     @Override
     public void release0(int fd, long pos, long size) throws IOException {
-        Problem.unimplemented(getClass().getName() + "release0");
+        FatalError.crash(getClass().getName() + "release0");
     }
 
     @Override
     public int force0(int fd, boolean metaData) throws IOException {
-        Problem.unimplemented(getClass().getName() + "force0");
+        FatalError.crash(getClass().getName() + "force0");
         return 0;
     }
 }

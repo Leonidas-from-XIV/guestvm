@@ -39,6 +39,7 @@ import com.sun.max.program.ProgramError;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.*;
 
 /**
@@ -294,7 +295,7 @@ public final class ZZipFile {
             final long time = getInt(_cenBuf, cenIndex + CENTIM);
             // This is the one field we can't set through the ZipEntry interface because
             // setTime converts java time to DOS time and "time" is already DOS time
-            timeFieldActor().writeLong(zipEntry, time & 0xFFFFFFFFL);
+            TupleAccess.writeLong(zipEntry, timeFieldActor().offset(), time & 0xFFFFFFFFL);
             final int size = getInt(_cenBuf, cenIndex + CENLEN);
             zipEntry.setCompressedSize(mode == STORED ? size : getInt(_cenBuf, cenIndex + CENSIZ));
             zipEntry.setSize(size);
@@ -303,7 +304,7 @@ public final class ZZipFile {
             String name = zipEntry.getName();
             if (name == null) {
                 name = new String(_cenBuf, cenIndex + CENHDR, getShort(_cenBuf, cenIndex + CENNAM));
-                nameFieldActor().writeObject(zipEntry, name);
+                TupleAccess.writeObject(zipEntry, nameFieldActor().offset(), name);
             }
             final int nameLen = name.length();
             final int extraLen = getShort(_cenBuf, cenIndex + CENEXT);
@@ -320,23 +321,23 @@ public final class ZZipFile {
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static LongFieldActor _timeFieldActor;
+    private static FieldActor _timeFieldActor;
 
     @INLINE
-    private static LongFieldActor timeFieldActor() {
+    private static FieldActor timeFieldActor() {
         if (_timeFieldActor == null) {
-            _timeFieldActor = (LongFieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("time"));
+            _timeFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("time"));
         }
         return _timeFieldActor;
     }
 
     @CONSTANT_WHEN_NOT_ZERO
-    private static ReferenceFieldActor _nameFieldActor;
+    private static FieldActor _nameFieldActor;
 
     @INLINE
-    private static ReferenceFieldActor nameFieldActor() {
+    private static FieldActor nameFieldActor() {
         if (_nameFieldActor == null) {
-            _nameFieldActor = (ReferenceFieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("name"));
+            _nameFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("name"));
         }
         return _nameFieldActor;
     }
@@ -369,19 +370,19 @@ public final class ZZipFile {
      * This supports JarFile
      */
     @CONSTANT_WHEN_NOT_ZERO
-    private static LongFieldActor _jzfileFieldActor;
+    private static FieldActor _jzfileFieldActor;
 
     @INLINE
-    private static LongFieldActor jzfileFieldActor() {
+    private static FieldActor jzfileFieldActor() {
         if (_jzfileFieldActor == null) {
-            _jzfileFieldActor = (LongFieldActor) ClassActor.fromJava(ZipFile.class).findFieldActor(SymbolTable.makeSymbol("jzfile"));
+            _jzfileFieldActor = (FieldActor) ClassActor.fromJava(ZipFile.class).findFieldActor(SymbolTable.makeSymbol("jzfile"));
         }
         return _jzfileFieldActor;
     }
 
     public static String[] getMetaInfEntryNames(Object zipFileObj) {
         final ZipFile zipFile = (ZipFile) zipFileObj;
-        final ZZipFile zzipFile = get(jzfileFieldActor().readLong(zipFile));
+        final ZZipFile zzipFile = get(TupleAccess.readLong(zipFile, jzfileFieldActor().offset()));
         final int size = zzipFile._metaNames.size();
         return zzipFile._metaNames.toArray(new String[size]);
     }
