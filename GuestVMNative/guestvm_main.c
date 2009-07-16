@@ -33,6 +33,7 @@
 #include <hypervisor.h>
 #include <types.h>
 #include <sched.h>
+#include <arch_sched.h>
 #include <spinlock.h>
 #include <xenbus.h>
 #include <db.h>
@@ -126,9 +127,9 @@ int guk_app_main(struct app_main_args *args) {
 }
 
 void guestvmXen_native_props(native_props_t *native_props) {
-	native_props->user_name = "GuestVM";
-	native_props->user_home = "/guestvm/image/home";
-	native_props->user_dir = "/guestvm/image";
+	native_props->user_name = "guestvm";
+	native_props->user_home = "/tmp";
+	native_props->user_dir = "/tmp";
 }
 
 extern int image_load(char *file);
