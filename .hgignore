@@ -8,6 +8,7 @@ syntax: regexp
 syntax: glob
 GuestVMNative/guestvm-*
 GuestVMNative/zlibobjs/*
+GuestVMNative/fdlibmobjs/*
 YANFS/bin/com/sun/gssapi/dummy/*
 *.class
 

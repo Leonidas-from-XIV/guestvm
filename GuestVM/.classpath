@@ -10,5 +10,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVMBase"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/YANFS"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MaxineELF"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/GNUCP"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
