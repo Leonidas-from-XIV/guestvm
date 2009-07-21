@@ -46,33 +46,45 @@ import com.sun.guestvm.guk.*;
 
 public final class GUKBlkDevice implements BlkDevice {
 
-    private static GUKBlkDevice _device;
+    private static boolean _init;
     private static boolean _available;
-    private static Pointer _writeBuffer;
-    private static Pointer _readBuffer;
+    private static int _devices;
+    private Pointer _writeBuffer;
+    private Pointer _readBuffer;
+    private int _id;
     private static int _pageSize = 4096;
 
-    private GUKBlkDevice() {
+    private GUKBlkDevice(int id) {
+        _id = id;
         _writeBuffer = GUKPagePool.allocatePages(1, VirtualMemory.Type.DATA);
         _readBuffer = GUKPagePool.allocatePages(1, VirtualMemory.Type.DATA);
     }
 
-    public static GUKBlkDevice create() {
-        if (_device == null) {
-            _available = nativeGetDevices() > 0;
-            if (_available) {
-                _device = new GUKBlkDevice();
+    public static GUKBlkDevice create(int id) {
+        if (!_init) {
+            _devices = nativeGetDevices();
+            _available = _devices > 0;
+            _init = true;
+        }
+        if (_available) {
+            if (id < _devices) {
+                return new GUKBlkDevice(id);
             }
         }
-        return _device;
+        return null;
     }
 
-    public int getDevices() {
+    /**
+     * Return the number of devices available.
+     * Devices number from zero.
+     * @return the number of devices
+     */
+    public static int getDevices() {
         return nativeGetDevices();
     }
 
-    public int getSectors(int device) {
-        return nativeGetSectors(device);
+    public int getSectors() {
+        return nativeGetSectors(_id);
     }
 
     public int getSectorSize() {
@@ -87,13 +99,13 @@ public final class GUKBlkDevice implements BlkDevice {
  *
  * @see com.sun.guestvm.blk.device.BlkDevice#write(int, long, byte[], int, int)
  */
-    public synchronized long write(int device, long address, byte[] data, int offset, int length) {
+    public synchronized long write(long address, byte[] data, int offset, int length) {
         if (_available) {
             int left = length;
             while (left > 0) {
                 final int toDo = left > _pageSize ? _pageSize : left;
                 Memory.writeBytes(data, offset, toDo, _writeBuffer);
-                nativeWrite(device, address, _writeBuffer, toDo);
+                nativeWrite(_id, address, _writeBuffer, toDo);
                 left -= toDo;
                 offset += toDo;
             }
@@ -102,12 +114,12 @@ public final class GUKBlkDevice implements BlkDevice {
         return -1;
     }
 
-    public long read(int device, long address, byte[] data, int offset, int length) {
+    public long read(long address, byte[] data, int offset, int length) {
         if (_available) {
             int left = length;
             while (left > 0) {
                 final int toDo = left > _pageSize ? _pageSize : left;
-                nativeRead(device, address, _readBuffer, toDo);
+                nativeRead(_id, address, _readBuffer, toDo);
                 Memory.readBytes(_readBuffer, toDo, data, offset);
                 left -= toDo;
                 offset += toDo;

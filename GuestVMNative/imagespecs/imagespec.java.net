@@ -1,12 +1,10 @@
 package java.net
 package sun.net
 package sun.net.util
+package sun.net.spi
 # owing to loadlibrary in static init
 classinit java.net.Inet4Address
 classinit java.net.PlainSocketImpl
 forceconstructorstubs java.net.Inet4Address
 forceconstructorstubs java.net.NetworkInterface
 forceconstructorstubs java.net.PlainDatagramSocketImpl
-reinitclass java.net.NetworkInterface
-reinitclass java.net.PlainDatagramSocketImpl
-reinitclass java.net.PlainSocketImpl

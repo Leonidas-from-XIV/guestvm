@@ -37,12 +37,10 @@ import com.sun.guestvm.blk.guk.*;
 
 public class DeviceTest {
 
-    static BlkDevice _device;
     static boolean _verbose;
     static final int SEED = 24793;
     static int _runTime = 10;
     static boolean _done;
-    static int _sectorSize;
 
     /**
      * @param args
@@ -80,28 +78,28 @@ public class DeviceTest {
         }
         // Checkstyle: resume modified control variable check
 
-        _device = GUKBlkDevice.create();
-        final int n = _device.getDevices();
+        final int n = GUKBlkDevice.getDevices();
+        final BlkDevice[] blkDevices = new BlkDevice[n];
         System.out.println("Devices: " + n);
         final int[] sectorCount = new int[n];
         for (int i = 0; i < n; i++) {
-            sectorCount[i] = _device.getSectors(i);
+            blkDevices[i] = GUKBlkDevice.create(i);
+            sectorCount[i] = blkDevices[i].getSectors();
             System.out.println("  device " + i + " has " + sectorCount[i] + " sectors");
         }
-        _sectorSize = _device.getSectorSize();
 
         for (int j = 0; j < opCount; j++) {
             final String op = ops[j];
             final long address = Long.parseLong(sectors[j]);
             final int device = Integer.parseInt(devices[j]);
             if (op.equals("ra")) {
-                readAll(device, sectorCount[0], filler);
+                readAll(blkDevices[device], sectorCount[0], filler);
             } else if (op.equals("wa")) {
-                writeAll(device, sectorCount[0], filler);
+                writeAll(blkDevices[device], sectorCount[0], filler);
             } else if (op.equals("r")) {
-                read(device, address);
+                read(blkDevices[device], address);
             } else if (op.equals("rr")) {
-                readRandom(device, sectorCount[0], filler);
+                readRandom(blkDevices[device], sectorCount[0], filler);
             }
         }
     }
@@ -148,31 +146,32 @@ public class DeviceTest {
         }
     }
 
-    private static void writeAll(int device, int sectors, Filler filler) {
-        final int sectorSize = _device.getSectorSize();
+    private static void writeAll(BlkDevice device, int sectors, Filler filler) {
+        final int sectorSize = device.getSectorSize();
         final byte[] data = new byte[sectorSize];
         for (int i = 0; i < sectorSize; i++) {
             data[i] = (byte) (i & 0xFF);
         }
         for (int i = 0; i < sectors; i++) {
             filler.fill(data, null);
-            _device.write(device, i * sectorSize, data, 0, data.length);
+            device.write(i * sectorSize, data, 0, data.length);
             if (_verbose) {
                 System.out.println("wrote sector " + i);
             }
         }
     }
 
-    private static void readAll(int device, int sectors, Filler filler) {
-        final byte[] data = new byte[_sectorSize];
-        final byte[] checkData = new byte[_sectorSize];
+    private static void readAll(BlkDevice device, int sectors, Filler filler) {
+        final int sectorSize = device.getSectorSize();
+        final byte[] data = new byte[sectorSize];
+        final byte[] checkData = new byte[sectorSize];
         for (int i = 0; i < sectors; i++) {
             readSector(device, data, checkData, i, filler, null);
         }
     }
 
-    private static void readSector(int device, byte[] data, byte[] checkData, int sector, Filler filler, Object xtra) {
-        _device.read(device, sector * _sectorSize, data, 0, data.length);
+    private static void readSector(BlkDevice device, byte[] data, byte[] checkData, int sector, Filler filler, Object xtra) {
+        device.read(sector * device.getSectorSize(), data, 0, data.length);
         filler.fill(checkData, xtra);
         for (int j = 0; j < data.length; j++) {
             if (data[j] != checkData[j]) {
@@ -184,9 +183,10 @@ public class DeviceTest {
         }
     }
 
-    private static void readRandom(int device, int sectors, Filler filler) {
-        final byte[] data = new byte[_sectorSize];
-        final byte[] checkData = new byte[_sectorSize];
+    private static void readRandom(BlkDevice device, int sectors, Filler filler) {
+        final int sectorSize = device.getSectorSize();
+        final byte[] data = new byte[sectorSize];
+        final byte[] checkData = new byte[sectorSize];
         final Random random = new Random();
         final Timer timer = new Timer(true);
         timer.schedule(new RunTimerTask(), _runTime * 1000);
@@ -204,10 +204,10 @@ public class DeviceTest {
         }
     }
 
-    private static void read(int device, long sector) {
-        final int sectorSize = _device.getSectorSize();
+    private static void read(BlkDevice device, long sector) {
+        final int sectorSize = device.getSectorSize();
         final byte[] data = new byte[sectorSize];
-        _device.read(device, sector * sectorSize, data, 0, sectorSize);
+        device.read(sector * sectorSize, data, 0, sectorSize);
         System.out.println("Contents of sector " + sector);
         int c = 0;
         for (int j = 0; j < sectorSize; j++) {

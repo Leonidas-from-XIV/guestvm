@@ -36,8 +36,7 @@ import java.io.*;
 /**
  * Of course we have to have a virtual file system interface.
  * These are almost exactly the native methods substituted by UnixFileSystem,
- * FileInputStream/FileOutputStream, RandonAccessFile and the nio classes,
- * plus one to get the exported path.
+ * FileInputStream/FileOutputStream, RandonAccessFile and the nio classes.
  *
  * @author Mick Jordan
  *
@@ -68,12 +67,6 @@ public interface VirtualFileSystem {
     int ACCESS_READ    = 0x04;
     int ACCESS_WRITE   = 0x02;
     int ACCESS_EXECUTE = 0x01;
-
-    /**
-     * Gets the path prefix exported by this filesystem.
-     * @return path prefix
-     */
-    String getPath();
 
     /**
      * Shutdown the file system.

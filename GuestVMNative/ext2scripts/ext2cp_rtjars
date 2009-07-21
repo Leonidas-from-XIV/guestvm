@@ -29,7 +29,7 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
-# Installs the key components of a Java installation
+# Installs the key components of a Java installation in /java
 
 # Resolve location of this script
     me="${BASH_SOURCE[0]}"
@@ -40,7 +40,7 @@
 me_dir=`dirname $me`
 . $me_dir/ext2setup
 
-ext2jh=/guestvm/ext2/java
+ext2jh=/java
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/lib
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre

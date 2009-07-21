@@ -57,8 +57,9 @@ import com.sun.guestvm.fs.ErrorDecoder;
 public final class Ext2FileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
 
     private FSDirectory _root;
-    private static Ext2FileSystem _singleton;
-    private static final String ROOT_NAME = "/guestvm/ext2";
+    private String _mountPath;
+    private int _mountPathPrefixIndex;
+
     private List<FileData> _openFiles = new ArrayList<FileData>();
     private static final int BUFFER_SIZE = 4096;
     private static Logger _logger;
@@ -76,11 +77,6 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
     }
 
     @Override
-    public String getPath() {
-        return ROOT_NAME;
-    }
-
-    @Override
     public void close() {
         try {
             _root.getFileSystem().close();
@@ -95,24 +91,41 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
         return null;
     }
 
-    private Ext2FileSystem() throws FileSystemException, IOException {
-        _logger = Logger.getLogger(getClass().getName());
+    private Ext2FileSystem(FSBlockDeviceAPI blkDevice, String mountPath) throws FileSystemException, IOException {
+        if (_logger == null) {
+            _logger = Logger.getLogger(getClass().getName());
+        }
         final Device device = new Device("fileDevice");
-        device.registerAPI(FSBlockDeviceAPI.class, new JNodeFSBlockDeviceAPIBlkImpl());
+        device.registerAPI(FSBlockDeviceAPI.class, blkDevice);
         final Ext2FileSystemType fsType = new Ext2FileSystemType();
-        _root = fsType.create(device, false).getRootEntry().getDirectory();
+        final FSEntry rootEntry = fsType.create(device, false).getRootEntry();
+        _root = rootEntry.getDirectory();
+        _mountPath = mountPath;
+        _mountPathPrefixIndex = _mountPath.split(File.separator).length;
     }
 
-    public static Ext2FileSystem create() {
-        if (_singleton != null) {
-            return _singleton;
+    /**
+     * Access Ext2 file system on block device.
+     * devPath syntax: /blk/N
+     * @param devPath block device path
+     * @return
+     */
+    public static Ext2FileSystem create(String devPath, String mountPath) {
+        final int index = devPath.lastIndexOf('/');
+        if (index > 0) {
+            try {
+                final int n = Integer.parseInt(devPath.substring(index + 1));
+                final FSBlockDeviceAPI blkDevice = JNodeFSBlockDeviceAPIBlkImpl.create(n);
+                return new Ext2FileSystem(blkDevice, mountPath);
+            } catch (NumberFormatException ex) {
+                return null;
+            } catch (FileSystemException ex) {
+                return null;
+            } catch (IOException ex) {
+                return null;
+            }
         }
-        try {
-            _singleton = new Ext2FileSystem();
-        } catch (Exception ex) {
-            _logger.warning(ex.toString());
-        }
-        return _singleton;
+        return null;
     }
 
     private int addFd(FSFile fsFile, boolean isWrite) {
@@ -505,11 +518,11 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
      */
     private Match match(String name) throws IOException {
         final String[] parts = name.split(File.separator);
-        if (parts.length == 0) {
+        if (parts.length <= _mountPathPrefixIndex) {
             return new Match(_root, ".");
         }
         FSDirectory d = _root;
-        for (int i = 1; i < parts.length - 1; i++) {
+        for (int i = _mountPathPrefixIndex; i < parts.length - 1; i++) {
             final FSEntry fsEntry = d.getEntry(parts[i]);
             if (fsEntry == null || fsEntry.isFile()) {
                 return null;

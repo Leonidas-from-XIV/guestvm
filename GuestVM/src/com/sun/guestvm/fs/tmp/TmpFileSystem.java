@@ -144,8 +144,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         return _singleton;
     }
 
-    @Override
-    public String getPath() {
+    public static String getPath() {
         return "/tmp";
     }
 

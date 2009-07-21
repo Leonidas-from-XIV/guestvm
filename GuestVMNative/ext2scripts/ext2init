@@ -45,5 +45,3 @@ rm -f $dfile
 mkdir -p `dirname $dfile`
 mkfile $size $dfile
 java -classpath $cp $h $mc format -disk $dfile
-java -classpath $cp $h $mc mkdir -disk $dfile -ext2path /guestvm
-java -classpath $cp $h $mc mkdir -disk $dfile -ext2path /guestvm/ext2

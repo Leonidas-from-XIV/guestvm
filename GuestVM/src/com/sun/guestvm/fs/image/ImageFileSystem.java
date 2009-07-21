@@ -57,8 +57,7 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
 
     private static byte[][] _openFiles = new byte[64][];
 
-    @Override
-    public String getPath() {
+    public static String getPath() {
         return ExtendImageRunScheme.getImageFSPrefix();
     }
 

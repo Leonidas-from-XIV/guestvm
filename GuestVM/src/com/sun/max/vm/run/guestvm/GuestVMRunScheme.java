@@ -32,6 +32,9 @@
 package com.sun.max.vm.run.guestvm;
 
 import com.sun.max.annotate.*;
+import com.sun.max.collect.AppendableSequence;
+import com.sun.max.collect.LinkSequence;
+import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.guk.*;
@@ -53,6 +56,9 @@ import com.sun.guestvm.net.guk.*;
 
 public class GuestVMRunScheme extends ExtendImageRunScheme {
 
+    private static boolean _netInit;
+    private static AppendableSequence<ClassActor> _netReinitClasses = new LinkSequence<ClassActor>();
+
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
         super(vmConfiguration);
     }
@@ -63,6 +69,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
         if (MaxineVM.isPrototyping()) {
             forceSchedulerScheme();
+            forceNetReInit();
         }
 
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
@@ -70,8 +77,32 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         } else if (phase == MaxineVM.Phase.RUNNING) {
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
-            NetInit.init();
+            netInit();
         }
+    }
+
+    private static void netInit() {
+        if (!_netInit) {
+            for (ClassActor classActor : _netReinitClasses) {
+                classActor.callInitializer();
+            }
+            NetInit.init();
+            _netInit = true;
+        }
+    }
+
+    @PROTOTYPE_ONLY
+    private void forceNetReInit() {
+        _netReinitClasses.append(doForceInitClass("java.net.NetworkInterface", false));
+        _netReinitClasses.append(doForceInitClass("java.net.PlainDatagramSocketImpl", false));
+        _netReinitClasses.append(doForceInitClass("java.net.PlainSocketImpl", false));
+    }
+
+    @Override
+    protected void resetLauncher(ClassActor launcherClassActor) {
+        // must initialize network before the launcher reset, which accesses the file systems, potentially including NFS
+        netInit();
+        super.resetLauncher(launcherClassActor);
     }
 
     @PROTOTYPE_ONLY

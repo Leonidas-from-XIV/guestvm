@@ -50,11 +50,6 @@ import com.sun.max.program.ProgramError;
 public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
 
     @Override
-    public String getPath() {
-        return "";
-    }
-
-    @Override
     public void close() {
 
     }

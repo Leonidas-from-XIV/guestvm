@@ -36,6 +36,7 @@ import java.util.*;
 
 import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.*;
+import com.sun.max.annotate.*;
 import com.sun.max.vm.runtime.*;
 
 import com.sun.nfs.*;
@@ -53,47 +54,45 @@ import static com.sun.nfs.Nfs.*;
 
 public final class NfsFileSystem implements VirtualFileSystem {
 
-    private static final String MOUNTS_PROPERTY = "guestvm.fs.nfs.mounts";
     private static Logger _logger;
     private Nfs _nfs;
-    private String _rootPath;
-    private int _rootPathPrefixIndex;
+    private String _mountPath;
+    private int _mountPathPrefixIndex;
     private List<Nfs> _openFiles = new ArrayList<Nfs>();
     private static final int CREATE_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
     private static final int CREATE_DIR_MODE = CREATE_FILE_MODE | S_IXUSR | S_IXGRP | S_IXOTH;
 
-    private NfsFileSystem(String server, String path) throws IOException {
+    @INLINE
+    private static void initLogger() {
+        if (_logger == null) {
+            _logger = Logger.getLogger(NfsFileSystem.class.getName());
+        }
+    }
+
+    private NfsFileSystem(String server, String serverPath, String mountPath) throws IOException {
         // The Nfs classes are not in the image and we cannot resolve references to them
         // since image classes resolve through the boot image class loader.
         // So sun.boot.class.path must be set to include the classes.
-        _nfs = NfsConnect.connectToNfs(server, NfsConnect.NFS_PORT, path);
-        _rootPath = path;
-        _rootPathPrefixIndex = _rootPath.split(File.separator).length;
+        _nfs = NfsConnect.connectToNfs(server, NfsConnect.NFS_PORT, serverPath);
+        _mountPath = mountPath;
+        _mountPathPrefixIndex = _mountPath.split(File.separator).length;
     }
 
-    public static NfsFileSystem[] create() {
-        _logger = Logger.getLogger("com.sun.guestvm.fs.nfs.NfsFileSystem");
-        final String mountsProperty = System.getProperty(MOUNTS_PROPERTY);
-        if (mountsProperty == null) {
-            return null;
-        }
-        final String[] mounts = mountsProperty.split(",");
-        final List<NfsFileSystem> nfsList = new ArrayList<NfsFileSystem>();
-        for (String mount : mounts) {
-            final int ix = mount.indexOf(':');
+    public static NfsFileSystem create(String nfsPath, String mountPath) {
+        initLogger();
+        try {
+            final int ix = nfsPath.indexOf(':');
             if (ix < 0) {
                 _logger.warning("NFS mount is not of form server:path");
             } else {
-                final String server = mount.substring(0, ix);
-                final String path = mount.substring(ix + 1);
-                try {
-                    nfsList.add(new NfsFileSystem(server, path));
-                } catch (IOException ex) {
-                    _logger.warning("NFS mount " + mount + " failed");
-                }
+                final String server = nfsPath.substring(0, ix);
+                final String serverPath = nfsPath.substring(ix + 1);
+                return new NfsFileSystem(server, serverPath, mountPath);
             }
+        } catch (IOException ex) {
+            _logger.warning("NFS mount " + nfsPath + " failed");
         }
-        return nfsList.toArray(new NfsFileSystem[nfsList.size()]);
+        return null;
     }
 
     private int addFd(Nfs fe) {
@@ -106,11 +105,6 @@ public final class NfsFileSystem implements VirtualFileSystem {
         }
         _openFiles.add(fe);
         return size;
-    }
-
-    @Override
-    public String getPath() {
-        return _rootPath;
     }
 
     @Override
@@ -513,11 +507,11 @@ public final class NfsFileSystem implements VirtualFileSystem {
      */
     private Match match(String name) throws IOException {
         final String[] parts = name.split(File.separator);
-        if (parts.length == _rootPathPrefixIndex) {
+        if (parts.length == _mountPathPrefixIndex) {
             return new Match(_nfs, ".");
         }
         Nfs d = _nfs;
-        for (int i = _rootPathPrefixIndex; i < parts.length - 1; i++) {
+        for (int i = _mountPathPrefixIndex; i < parts.length - 1; i++) {
             final Nfs nfsEntry = d.lookup(parts[i]);
             if (nfsEntry == null || nfsEntry.isFile()) {
                 return null;

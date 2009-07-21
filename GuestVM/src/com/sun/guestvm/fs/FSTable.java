@@ -33,6 +33,7 @@ package com.sun.guestvm.fs;
 
 import java.util.*;
 
+import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
 import com.sun.guestvm.fs.image.ImageFileSystem;
@@ -41,134 +42,140 @@ import com.sun.guestvm.fs.sg.SiblingFileSystem;
 import com.sun.guestvm.fs.tmp.TmpFileSystem;
 
 /**
+ * Stores information on (mounted) file systems.
+ * The guestvm.fs.table property holds a list of specifications modelled on /etc/fstab
+ * N.B. we do not unify the file system tree up to the root, aka /; each file system
+ * must use a unique mount path that is not a prefix of another and path searches
+ * always start from one of these mount paths. I.e,, you cannot do the equivalent of "ls /".
+ * This could be fixed but it is not clear that it is necessary (since we are not building
+ * an operating system).
  *
  * @author Mick Jordan
  *
  */
 
 public class FSTable {
-    private enum InitState {NONE, IN_BASIC, BASIC, IN_EXT2, EXT2, IN_NFS, NFS, COMPLETE};
-    private static Map<String, VirtualFileSystem> _fileSystems = new HashMap<String, VirtualFileSystem>();
-    private static InitState _initState = InitState.NONE;
-    private static final String FS_LIST_PROPERTY = "guestvm.fs.list";
-    private static final String[] DEFAULT_FS_LIST = {"ext2"};
-    private static String[] _fsList = DEFAULT_FS_LIST;
+    private static Map<Info, VirtualFileSystem> _fsTable = new HashMap<Info, VirtualFileSystem>();
+    private static final String FS_TABLE_PROPERTY = "guestvm.fs.table";
+    private static final String FS_INFO_SEPARATOR = ",";
+    private static final String FS_TABLE_SEPARATOR = ";";
+    private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/ext2";
+    private static boolean _initFSTable;
+    private static Logger _logger;
 
-    private static boolean initFS(String xfs) {
-        for (String fs : _fsList) {
-            if (fs.equals(xfs)) {
-                return true;
-            }
+    public static class Info {
+        private String _type;
+        private String _devPath;
+        private String _mountPath;
+        private VirtualFileSystem _fs;
+
+        public static enum Parts {
+            TYPE, DEVPATH, MOUNTPATH, OPTIONS, DUMP, ORDER;
         }
-        return false;
+
+        private static final int PARTS_LENGTH = Parts.values().length;
+
+        Info(String type, String devPath, String mountPath) {
+            _type = type;
+            _devPath = devPath;
+            _mountPath = mountPath;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return _mountPath.equals((Info) other);
+        }
+
+        @Override
+        public int hashCode() {
+            return _mountPath.hashCode();
+        }
     }
 
-    @SuppressWarnings("serial")
-    static class CheckStateException extends RuntimeException {
-        CheckStateException(String msg) {
-            super(msg);
-        }
+    private static void logBadEntry(String msg) {
+        _logger.warning(msg + ", ignoring");
     }
 
-    private static void checkState(InitState initState) {
-        if (_initState == initState) {
-            throw new CheckStateException("recursion initializing file systems - state " + initState);
-        }
-        _initState = initState;
-    }
-
-    private static void initializeBasic() {
-        if (_initState == InitState.NONE) {
-
-            checkState(InitState.IN_BASIC);
+    private static void initFSTable() {
+        if (!_initFSTable) {
+            _logger = Logger.getLogger(FSTable.class.getName());
             // register shutdown hook to close file systems
             Runtime.getRuntime().addShutdownHook(new Thread(new CloseHook(), "FS_ShutdownHook"));
-
-            final String fsList = System.getProperty(FS_LIST_PROPERTY);
-            if (fsList != null) {
-                _fsList = fsList.split(",");
-            }
-
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
-            final ImageFileSystem imageFileSystem = ImageFileSystem.create();
-            _fileSystems.put(imageFileSystem.getPath(), imageFileSystem);
+            final Info imageInfo = new Info("img", ImageFileSystem.getPath(), ImageFileSystem.getPath());
+            initFS(imageInfo);
+            final Info tmpInfo = new Info("tmp", TmpFileSystem.getPath(), TmpFileSystem.getPath());
+            initFS(tmpInfo);
 
-            final  TmpFileSystem tmpFS = TmpFileSystem.create();
-            checkedPut(tmpFS.getPath(), tmpFS);
-
-            if (initFS("sg")) {
-                final  SiblingFileSystem[] siblingFileSystems = SiblingFileSystem.create();
-                for (SiblingFileSystem siblingFileSystem : siblingFileSystems) {
-                    checkedPut(siblingFileSystem.getPath(), siblingFileSystem);
+            String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
+            if (fsTableProperty == null) {
+                fsTableProperty = DEFAULT_FS_TABLE_PROPERTY;
+            }
+            final String[] entries = fsTableProperty.split(FS_TABLE_SEPARATOR);
+            for (String entry : entries) {
+                final String[] info = entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH);
+                if (info.length < 2) {
+                    logBadEntry("fs.table entry " + entry + " is malformed");
+                    continue;
                 }
-            }
-
-            _initState = InitState.BASIC;
-        }
-    }
-
-    private static void initExt2() {
-        if (_initState.ordinal() < InitState.EXT2.ordinal()) {
-            if (initFS("ext2")) {
-                checkState(InitState.IN_EXT2);
-                final  Ext2FileSystem ext2FS = Ext2FileSystem.create();
-                checkedPut(ext2FS.getPath(), ext2FS);
-            }
-            _initState = InitState.EXT2;
-        }
-    }
-
-    private static void initNfs() {
-        if (_initState.ordinal() < InitState.NFS.ordinal()) {
-            if (initFS("nfs")) {
-                checkState(InitState.IN_NFS);
-                final NfsFileSystem[] nfsFileSystems = NfsFileSystem.create();
-                for (NfsFileSystem nfsFileSystem : nfsFileSystems) {
-                    checkedPut(nfsFileSystem.getPath(), nfsFileSystem);
+                final String type = info[0];
+                final String devPath = info[1];
+                final String mountPath = (info.length <= 2 || info[2].length() == 0) ? devPath : info[2];
+                if (!mountPath.startsWith("/")) {
+                    logBadEntry("mountpath " + mountPath + " is not absolute");
+                    continue;
                 }
+                // check unique mountpaths
+                for (Info fsInfo : _fsTable.keySet()) {
+                    if (fsInfo._mountPath.startsWith(mountPath) || mountPath.startsWith(fsInfo._mountPath)) {
+                        logBadEntry("mountpath " + mountPath + " is not unique");
+                        continue;
+                    }
+                }
+                _fsTable.put(new Info(type, devPath, mountPath), null);
             }
-            _initState = InitState.NFS;
+            _initFSTable = true;
         }
     }
 
-    private static VirtualFileSystem initialize(String path) {
-        if (_initState != InitState.COMPLETE) {
-            // To avoid unpleasant recursion that might occur, e.g. in Ext2FileSystem,
-            // we initialize the file systems incrementally in order of complexity, and check for a match
-            // at each phase.
-            initializeBasic();
-            VirtualFileSystem fs = match(path);
-            if (fs != null) {
-                return fs;
-            }
-            try {
-                initExt2();
-            } catch (CheckStateException ex) {
-                // there is recursion in Ext2FileSystem regarding timezone config files
-                // we just return in this case
-                return null;
-            }
-            fs = match(path);
-            if (fs != null) {
-                return fs;
-            }
-            initNfs();
-            _initState = InitState.COMPLETE;
+    /**
+     * Create the fileystem instance.
+     *
+     * @param info fstable info
+     * @return VirtualFileSystem instance
+     */
+    private static VirtualFileSystem initFS(Info fsInfo) {
+        VirtualFileSystem  result = null;
+        if (fsInfo._type.equals("ext2")) {
+            result =  Ext2FileSystem.create(fsInfo._devPath, fsInfo._mountPath);
+        } else if (fsInfo._type.equals("nfs")) {
+            result =  NfsFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
+        } else if (fsInfo._type.equals("sg")) {
+            result = SiblingFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
+        } else if (fsInfo._type.equals("img")) {
+            result = ImageFileSystem.create();
+        } else if (fsInfo._type.equals("tmp")) {
+            result = TmpFileSystem.create();
         }
-        return match(path);
+        return checkedPut(fsInfo, result);
     }
 
-    private static void checkedPut(String path, VirtualFileSystem fs) {
+
+    private static VirtualFileSystem checkedPut(Info fsInfo, VirtualFileSystem fs) {
         if (fs != null) {
-            _fileSystems.put(path, fs);
+            fsInfo._fs = fs;
+            _fsTable.put(fsInfo, fs);
         }
+        return fs;
     }
 
     public static void close() {
-        for (VirtualFileSystem fs :  _fileSystems.values()) {
-            fs.close();
+        for (VirtualFileSystem fs :  _fsTable.values()) {
+            if (fs != null) {
+                fs.close();
+            }
         }
     }
 
@@ -178,16 +185,15 @@ public class FSTable {
      * @return
      */
     public static VirtualFileSystem exports(String path) {
-        if (_initState != InitState.COMPLETE) {
-            return initialize(path);
+        if (!_initFSTable) {
+            initFSTable();
         }
-        return match(path);
-    }
-
-    private static VirtualFileSystem match(String path) {
-        for (Map.Entry<String, VirtualFileSystem> me : _fileSystems.entrySet()) {
-            if (path.startsWith(me.getKey())) {
-                return me.getValue();
+        for (Info fsInfo : _fsTable.keySet()) {
+            if (path.startsWith(fsInfo._mountPath)) {
+                if (fsInfo._fs == null) {
+                    initFS(fsInfo);
+                }
+                return fsInfo._fs;
             }
         }
         return null;

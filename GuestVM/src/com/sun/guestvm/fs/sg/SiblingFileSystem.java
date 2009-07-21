@@ -52,31 +52,48 @@ import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
 public final class SiblingFileSystem implements VirtualFileSystem {
 
     private Word _handle;
-    private String _path;
+    private String _exportPath;
+    private String _mountPath;
+    private int _mountPathLength;
 
-    private SiblingFileSystem(Word handle, String path) {
+    private SiblingFileSystem(Word handle, String exportPath, String mountPath) {
         _handle = handle;
-        _path = path;
+        _exportPath = exportPath;
+        _mountPath = mountPath;
+        _mountPathLength = _mountPath.length();
     }
 
-    public static SiblingFileSystem[] create() {
+    /**
+     * Create the file system identified by exportPath.
+     *
+     * @param exportPath
+     * @param mountPath
+     * @return
+     */
+    public static SiblingFileSystem create(String exportPath, String mountPath) {
         final int numImports = SiblingFileSystemNatives.getNumImports();
-        final SiblingFileSystem[] result = new SiblingFileSystem[numImports];
         for (int i = 0; i < numImports; i++) {
             final Word handle = SiblingFileSystemNatives.getImport(i);
             try {
-                result[i] = new SiblingFileSystem(handle, CString.utf8ToJava(SiblingFileSystemNatives.getPath(handle)));
+                final String remotePath = CString.utf8ToJava(SiblingFileSystemNatives.getPath(handle));
+                if (exportPath.equals(remotePath)) {
+                    return new SiblingFileSystem(handle, exportPath, mountPath);
+                }
             } catch (Utf8Exception ex) {
                 ProgramError.unexpected("SiblingFileSystem.create");
             }
 
         }
-        return result;
+        return null;
     }
 
-    @Override
-    public String getPath() {
-        return _path;
+    /**
+     * Maps the given path, that is based on the mount path to the server path.
+     * @param path
+     * @return
+     */
+    private Pointer remap(String path) {
+        return CString.utf8FromJava(_exportPath + path.substring(_mountPathLength));
     }
 
     @Override
@@ -97,7 +114,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean createDirectory(String path) {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final int rc = SiblingFileSystemNatives.createDirectory(_handle, p);
         Memory.deallocate(p);
         return rc == 0;
@@ -105,7 +122,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean createFileExclusively(String path) throws IOException {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final int rc = SiblingFileSystemNatives.createFileExclusively(_handle, p);
         Memory.deallocate(p);
         if (rc == 0) {
@@ -119,7 +136,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean delete0(String path) {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final int rc = SiblingFileSystemNatives.delete(_handle, p);
         Memory.deallocate(p);
         return rc == 0;
@@ -127,7 +144,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public int getMode(String path) {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final int mode = SiblingFileSystemNatives.getMode(_handle, p);
         Memory.deallocate(p);
         return mode;
@@ -135,7 +152,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public long getLastModifiedTime(String path) {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final long mTime = SiblingFileSystemNatives.getLastModifiedTime(_handle, p);
         Memory.deallocate(p);
         return mTime < 0 ? 0 : mTime * 1000;
@@ -143,7 +160,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public long getLength(String path) {
-        final Pointer p = CString.utf8FromJava(path);
+        final Pointer p = remap(path);
         final long length = SiblingFileSystemNatives.getLength(_handle, p);
         Memory.deallocate(p);
         return length < 0 ? 0 : length;
@@ -157,7 +174,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public String[] list(String path) {
-        final Pointer dir = CString.utf8FromJava(path);
+        final Pointer dir = remap(path);
         final int[] nFiles = new int[1];
         final boolean[] hasMore = new boolean[1];
         final List<String> strings = new ArrayList<String>();
@@ -189,8 +206,8 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean rename0(String path1, String path2) {
-        final Pointer p1 = CString.utf8FromJava(path1);
-        final Pointer p2 = CString.utf8FromJava(path2);
+        final Pointer p1 = remap(path1);
+        final Pointer p2 = remap(path2);
         final int rc = SiblingFileSystemNatives.rename(_handle, p1, p2);
         Memory.deallocate(p1); Memory.deallocate(p2);
         return rc == 0;
@@ -251,7 +268,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public int open(String name, int flags) {
-        final Pointer p = CString.utf8FromJava(name);
+        final Pointer p = remap(name);
         final int fd = SiblingFileSystemNatives.open(_handle, p, flags);
         Memory.deallocate(p);
         return fd;
