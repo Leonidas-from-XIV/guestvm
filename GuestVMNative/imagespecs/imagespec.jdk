@@ -112,5 +112,4 @@ package sun.security.acl
 reinitclass sun.util.LocaleServiceProviderPool
 reinitclass java.text.SimpleDateFormat
 reinitclass java.text.DateFormatSymbols
-
-
+package gnu.java.util.zip
