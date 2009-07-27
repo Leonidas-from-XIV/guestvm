@@ -79,6 +79,7 @@ forcemethod com.sun.guestvm.spinlock.tas.TASTSpinLock.*
 forcemethod com.sun.guestvm.spinlock.guk.GUKSpinLock.*
 forcemethod com.sun.guestvm.spinlock.guk.DIGUKSpinLock.*
 forcemethod com.sun.guestvm.spinlock.tas.inline.ISpinLock.*
+forcemethod com.sun.guestvm.guk.GUKTrace.xprint
 package com.sun.guestvm.jdk
 package com.sun.guestvm.zip
 # logging

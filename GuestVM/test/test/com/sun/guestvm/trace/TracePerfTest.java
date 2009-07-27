@@ -47,8 +47,8 @@ public class TracePerfTest {
             count = Integer.parseInt(args[0]);
         }
         for (int i = 0; i < count; i++) {
-            GUKTrace.print(GUKTrace.TEST_TRACE);
-            GUKTrace.print(GUKTrace.TEST_TRACE);
+            GUKTrace.xprint(GUKTrace.TEST_TRACE);
+            GUKTrace.xprint(GUKTrace.TEST_TRACE);
         }
     }
 }
