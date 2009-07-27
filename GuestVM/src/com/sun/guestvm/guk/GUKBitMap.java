@@ -37,7 +37,7 @@ import com.sun.max.lang.Unsigned;
 
 
 public class GUKBitMap {
-    private static final int  ENTRIES_PER_MAPWORD = Word.numberOfBits();
+    private static final int  ENTRIES_PER_MAPWORD = Word.width();
     private static final int MAPWORD_MASK = ENTRIES_PER_MAPWORD - 1;
 
     @INLINE
