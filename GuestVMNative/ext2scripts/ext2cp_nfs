@@ -43,7 +43,7 @@ me_dir=`dirname $me`
 
 ext2nfs=/nfs
 
-java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $nfs/nfs
-java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $nfs/nfs/classes
+java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2nfs
+java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2nfs/classes
 
-java -classpath $cp $h $mc copyin -r -disk $dfile -from $wsroot/YANFS/bin/com -ext2path $nfs/nfs/classes
+java -classpath $cp $h $mc copyin -r -disk $dfile -from $wsroot/YANFS/bin/com -ext2path  $ext2nfs/classes
