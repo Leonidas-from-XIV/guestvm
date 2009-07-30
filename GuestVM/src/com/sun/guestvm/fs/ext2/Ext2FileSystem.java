@@ -116,6 +116,9 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
             try {
                 final int n = Integer.parseInt(devPath.substring(index + 1));
                 final FSBlockDeviceAPI blkDevice = JNodeFSBlockDeviceAPIBlkImpl.create(n);
+                if (blkDevice == null) {
+                    return null;
+                }
                 return new Ext2FileSystem(blkDevice, mountPath);
             } catch (NumberFormatException ex) {
                 return null;
