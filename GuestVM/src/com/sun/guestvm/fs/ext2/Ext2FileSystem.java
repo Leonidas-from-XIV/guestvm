@@ -430,12 +430,14 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
     }
 
     @Override
-    public void setLength(int fd, long length) {
+    public int setLength(int fd, long length) {
         try {
             final FileData fileData = _openFiles.get(fd);
             fileData._fsFile.setLength(length);
+            return 0;
         } catch (IOException ex) {
             _logger.warning(ex.toString());
+            return -1;
         }
     }
 

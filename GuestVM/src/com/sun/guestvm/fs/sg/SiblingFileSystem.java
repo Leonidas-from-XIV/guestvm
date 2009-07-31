@@ -285,8 +285,8 @@ public final class SiblingFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void setLength(int fd, long length) {
-        SiblingFileSystemNatives.setLengthFd(_handle, fd, length);
+    public int setLength(int fd, long length) {
+        return (int) SiblingFileSystemNatives.setLengthFd(_handle, fd, length);
     }
 
     @Override

@@ -412,8 +412,19 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     }
 
     @Override
-    public void setLength(int fd, long length) {
-        ProgramError.unexpected("setLength not implemented");
+    public int setLength(int fd, long length) {
+        final FileEntry fe = _openFiles.get(fd);
+        if (fe._size == length) {
+            return 0;
+        } else if (fe._size < length) {
+            while (length >= fe._maxSize) {
+                fe.addCapacity(length);
+            }
+            return 0;
+        } else {
+            fe._size = length;
+            return 0;
+        }
     }
 
     @Override

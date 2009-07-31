@@ -50,17 +50,20 @@ import com.sun.guestvm.fs.*;
 @METHOD_SUBSTITUTIONS(sun.nio.ch.FileChannelImpl.class)
 public class JDK_sun_nio_ch_FileChannelImpl {
 
+    @INLINE
+    private static int getFd(FileDescriptor fdObj) {
+        return TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+    }
     @SUBSTITUTE
     private int lock0(FileDescriptor fdObj, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = getFd(fdObj);
         return VirtualFileSystemId.getVfs(fd).lock0(fd, blocking, pos, size, shared);
     }
 
     @SUBSTITUTE
     private void release0(FileDescriptor fdObj, long pos, long size) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        vfs.release0(VirtualFileSystemId.getFd(fd), pos, size);
+        final int fd = getFd(fdObj);
+        VirtualFileSystemId.getVfs(fd).release0(VirtualFileSystemId.getFd(fd), pos, size);
     }
 
     @SUBSTITUTE
@@ -77,34 +80,45 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private int force0(FileDescriptor fdObj, boolean metaData) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        return vfs.force0(VirtualFileSystemId.getFd(fd), metaData);
-
+        final int fd = getFd(fdObj);
+        return VirtualFileSystemId.getVfs(fd).force0(VirtualFileSystemId.getFd(fd), metaData);
     }
 
     @SUBSTITUTE
-    private int truncate0(FileDescriptor fd, long size) {
-        FatalError.crash("sun.nio.FileChannelImpl.truncate0");
-        return -1;
+    private int truncate0(FileDescriptor fdObj, long size) {
+        final int fd = getFd(fdObj);
+        try {
+            VirtualFileSystemId.getVfs(fd).setLength(VirtualFileSystemId.getFd(fd), size);
+            return 0;
+        } catch (IOException ex) {
+            return -1;
+        }
     }
 
     @SUBSTITUTE
     private long transferTo0(int src, long position, long count, int dst) {
-        FatalError.crash("sun.nio.FileChannelImpl.transferTo0");
-        return -1;
+        return -2;
     }
 
     @SUBSTITUTE
-    private long position0(FileDescriptor fd, long offset) {
-        FatalError.crash("sun.nio.FileChannelImpl.position0");
-        return -1;
+    private long position0(FileDescriptor fdObj, long offset) {
+        final int fd = getFd(fdObj);
+        if (offset < 0) {
+            return VirtualFileSystemOffset.get(fd);
+        } else {
+            VirtualFileSystemOffset.set(fd, offset);
+            return offset;
+        }
     }
 
     @SUBSTITUTE
-    private long size0(FileDescriptor fd) {
-        FatalError.crash("sun.nio.FileChannelImpl.size0");
-        return -1;
+    private long size0(FileDescriptor fdObj) {
+        final int fd = getFd(fdObj);
+        try {
+            return VirtualFileSystemId.getVfs(fd).getLength(VirtualFileSystemId.getFd(fd));
+        } catch (IOException ex) {
+            return 0;
+        }
     }
 
     @SUBSTITUTE
