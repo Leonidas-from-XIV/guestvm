@@ -63,6 +63,9 @@ if os.environ.get("DISK") != None :
 if os.environ.get("DISK2") != None :
     disk.append(os.environ.get("DISK2"))
 
+if os.environ.get("DISK3") != None :
+    disk.append(os.environ.get("DISK3"))
+
 # A name for your domain. All domains must have different names.
 name = "GuestVM-" + os.environ.get("USER")
 
