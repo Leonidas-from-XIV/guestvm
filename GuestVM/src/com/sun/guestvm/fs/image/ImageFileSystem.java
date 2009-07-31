@@ -287,8 +287,8 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
     }
 
     @Override
-    public void setLength(int fd, long length) {
-        ProgramError.unexpected("setLength not implemented");
+    public int setLength(int fd, long length) {
+        return -ErrorDecoder.Code.EROFS.getCode();
     }
 
     @Override

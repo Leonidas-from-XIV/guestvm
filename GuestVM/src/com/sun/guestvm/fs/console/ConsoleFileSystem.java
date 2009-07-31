@@ -208,8 +208,9 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     }
 
     @Override
-    public void setLength(int fd, long length) {
+    public int setLength(int fd, long length) {
         unimplemented();
+        return -1;
     }
 
     @Override

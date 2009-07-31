@@ -138,7 +138,7 @@ public interface VirtualFileSystem {
 
     long getLength(int fd);
 
-    void setLength(int fd, long length);
+    int setLength(int fd, long length);
 
     /*
      * nio.* method support

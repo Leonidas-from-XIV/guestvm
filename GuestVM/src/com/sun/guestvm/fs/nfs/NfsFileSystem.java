@@ -380,12 +380,14 @@ public final class NfsFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void setLength(int fd, long length) {
+    public int setLength(int fd, long length) {
         final Nfs fsEntry = _openFiles.get(fd);
         try {
             fsEntry.length(length);
+            return 0;
         } catch (IOException ex) {
             _logger.warning(ex.toString());
+            return -1;
         }
     }
 
