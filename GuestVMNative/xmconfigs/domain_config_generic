@@ -59,6 +59,12 @@ else :
 
 if os.environ.get("DISK") != None :
     disk = [os.environ.get("DISK")]
+else :
+  if os.environ.get("DISK0") != None :
+    disk = [os.environ.get("DISK0")]
+
+if os.environ.get("DISK1") != None :
+    disk.append(os.environ.get("DISK1"))
 
 if os.environ.get("DISK2") != None :
     disk.append(os.environ.get("DISK2"))

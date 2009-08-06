@@ -179,6 +179,8 @@ public class FileTest {
                     System.out.println("getAbsolutePath of " + fileName + " returned " + file.getAbsolutePath());
                 } else if (op.equals("getCanonicalPath")) {
                     System.out.println("getCanonicalPath of " + fileName + " returned " + file.getCanonicalPath());
+                } else if (op.equals("createTempFile")) {
+                    System.out.println("createTempFile of " + fileName + " returned " + File.createTempFile(fileName, null, null));
                 } else {
                     System.out.println("unknown command: " + op);
                 }
