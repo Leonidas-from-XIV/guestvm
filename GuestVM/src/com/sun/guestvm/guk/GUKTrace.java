@@ -130,4 +130,8 @@ public class GUKTrace {
 
     public static final byte[] TEST_TRACE = "USER_TT".getBytes();
 
+    public static void xprint(byte[] fmt) {
+        print(fmt);
+    }
+
 }

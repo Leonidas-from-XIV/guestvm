@@ -46,7 +46,7 @@ import org.jnode.fs.ext2.*;
  * Tools for actions, e.g., format, copyin, copyout, mkdir, mkfile, ls, rm, on an ext2 file system stored in a disk image file.
  *
  * Usage:
- * format -disk imagefile 
+ * format -disk imagefile
  * copy[in] -disk imagefile -from file -ext2path tofile
  * copyout -disk imagefile -ext2path fromfile -to file
  * ls -disk imagefile -from file -ext2path dir
@@ -63,6 +63,7 @@ import org.jnode.fs.ext2.*;
 public class Ext2FileTool {
 
     static boolean _verbose = false;
+    static boolean _veryVerbose = false;
     static boolean _recurse = false;
     static boolean _hidden = false;
     static boolean _details = false;
@@ -93,6 +94,8 @@ public class Ext2FileTool {
                 ext2Path = args[++i];
             } else if (arg.equals("-v")) {
                 _verbose = true;
+            } else if (arg.equals("-vv")) {
+                _veryVerbose = true;
             } else if (arg.equals("-r")) {
                 _recurse = true;
             } else if (arg.equals("-a")) {
@@ -233,6 +236,9 @@ public class Ext2FileTool {
     }
 
     private static void mkdir(Match m, String ext2Path) throws IOException {
+        if (_verbose) {
+            System.out.println("creating directory " + ext2Path);
+        }
         FSEntry fsEntry = m._d.getEntry(m._tail);
         if (fsEntry == null) {
             fsEntry = m._d.addDirectory(m._tail);
@@ -242,6 +248,9 @@ public class Ext2FileTool {
     }
 
     private static void mkfile(Match m, String ext2Path) throws IOException {
+        if (_verbose) {
+            System.out.println("creating file " + ext2Path);
+        }
         FSEntry fsEntry = m._d.getEntry(m._tail);
         if (fsEntry == null) {
             fsEntry = m._d.addFile(m._tail);
@@ -289,6 +298,9 @@ public class Ext2FileTool {
     }
 
     private static void copyDir(File dir, FSDirectory ext2Dir) throws IOException {
+        if (_verbose) {
+            System.out.println("copying directory " + dir.getAbsolutePath());
+        }
         final File[] files = dir.listFiles();
         for (File file : files) {
             final String name = file.getName();
