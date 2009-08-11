@@ -125,13 +125,13 @@ fi
 JVM_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.vm
 JAR_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.jar
 
-classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin
+classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
 fi
 
-cmd="java $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx512m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
+cmd="java $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then
