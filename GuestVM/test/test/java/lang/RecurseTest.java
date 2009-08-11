@@ -54,12 +54,15 @@ public class RecurseTest {
         } catch (StackOverflowError ex) {
             System.out.println(ex);
         }
-        System.out.println("recurse depth: " + _count);
+        System.out.println("max recurse depth: " + _count);
 
     }
 
     private static void recurse() {
         if (_count++ <= _depth) {
+            if (_count % 1000 == 0) {
+                System.out.println("recurse depth: " + _count);
+            }
             recurse();
         }
     }

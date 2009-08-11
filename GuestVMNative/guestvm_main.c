@@ -53,6 +53,10 @@ static char argvc[1024];
 char * environ[1];     // environment variables - we dont have any but maxine wants this symbol
 char vmpath[1];        // path to "executable" - no meaning in this context but needed by VM
 
+char * getenv(const char *name) {
+	return NULL;
+}
+
 // TODO needs rewriting to cope with arbitrary length command lines and number of arguments
 // using malloc and not static arrays. Not important at this time because Xen cannot accept
 // a command line greater than 1024.

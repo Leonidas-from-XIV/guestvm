@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 #include <os.h>
 #include <hypervisor.h>
@@ -46,18 +46,31 @@
 typedef unsigned long Address;
 typedef unsigned long Size;
 
-/* This is a copy from maxine/threadSpecifics.h.
+/* This is a copy from maxine/threadLocals.h.
  * We can't include that header directly because it pulls in inappropriate host-dependent
  * include files. That should be fixed.
  */
-typedef struct thread_SpecificsStruct {
-    struct thread_SpecificsStruct *next; // Points to self if not on a list
-    jint id; // -1 denotes the thread specifics for the primordial thread created when a debugger is attached
+
+/*
+ * Code to handle the allocation and mapping of Java thread stacks.
+ * Stacks are high in the 64 bit virtual address space (2TB onwards)
+ * and sparsely mapped to real (physical) memory as needed.
+ * N.B. All stacks are of the same virtual size, although that size can vary
+ * with each run of the JVM. We use a global bit map to indicate that a given
+ * virtual address area is in use or not.
+ *
+ * Author: Mick Jordan
+ */
+
+/* This is a copy from maxine/threadLocals.h.
+ * We can't include that header directly because it pulls in inappropriate host-dependent
+ * include files. That should be fixed.
+ */
+typedef struct {
+    jint id; //  0: denotes the primordial thread
+             // >0: denotes a VmThread
     Address stackBase;
     Size stackSize;
-    Address triggeredVmThreadLocals;
-    Address enabledVmThreadLocals;
-    Address disabledVmThreadLocals;
     Address refMapArea;
     Address stackYellowZone; // unmapped to cause a trap on access
     Address stackRedZone;    // unmapped always - fatal exit if accessed
@@ -73,19 +86,7 @@ typedef struct thread_SpecificsStruct {
      * Place to hang miscellaneous OS dependent record keeping data.
      */
     void *osData;  //
-} ThreadSpecificsStruct, *ThreadSpecifics;
-
-/*
- * Code to handle the allocation and mapping of Java thread stacks.
- * Stacks are high in the 64 bit virtual address space (2TB onwards)
- * and sparsely mapped to real (physical) memory as needed.
- * N.B. All stacks are of the same virtual size, although that size can vary
- * with each run of the JVM. We use a global bit map to indicate that a given
- * virtual address area is in use or not.
- *
- * Author: Mick Jordan
- */
-
+} NativeThreadLocalsStruct, *NativeThreadLocals;
 
 static unsigned long *alloc_bitmap;
 static int max_threads;
@@ -130,7 +131,7 @@ void init_thread_stacks(void) {
 }
 
 
-static unsigned long allocate_page(ThreadSpecifics threadSpecifics, unsigned long addr) {
+static unsigned long allocate_page(NativeThreadLocals nativeThreadLocals, unsigned long addr) {
 	unsigned long pfn = virt_to_pfn(allocate_pages(1, STACK_VM));
 	//guk_printk("stack_allocate_page %lx %lx\n", addr, pfn);
 	return pfn;
@@ -138,29 +139,29 @@ static unsigned long allocate_page(ThreadSpecifics threadSpecifics, unsigned lon
 
 
 static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long addr) {
-	ThreadSpecifics threadSpecifics = (ThreadSpecifics) env->data;
+	NativeThreadLocals nativeThreadLocals = (NativeThreadLocals) env->data;
 	Address address = (Address) addr;
 	int map = 0;
 	/*
 	 * This is called from build_pagetable in all phases of the stack setup.
-	 * In the first phase, the initial stack allocation, the threadSpecifics struct is not filled in
+	 * In the first phase, the initial stack allocation, the NativeThreadLocals struct is not filled in
 	 * and we are just mapping the top of the stack (above blue zone) to get started.
 	 * In the second phase we are mapping the areas at the bottom of the stack.
 	 * In the third and subsequent calls we are extending the stack down from the blue zone.
 	 * Identifying the phases:
-	 *   Phase 1: threadSpecifics->stackBase == 0
-	 *   Phase 2: threadSpecifics->stackBase != 0 && threadSpecifics->stackBlueZone == 0;
-	 *   Phase 3: threadSpecifics->stackBase != 0 && threadSpecifics->stackBlueZone != 0;
+	 *   Phase 1: nativeThreadLocals->stackBase == 0
+	 *   Phase 2: nativeThreadLocals->stackBase != 0 && nativeThreadLocals->stackBlueZone == 0;
+	 *   Phase 3: nativeThreadLocals->stackBase != 0 && nativeThreadLocals->stackBlueZone != 0;
 	 */
-	if (threadSpecifics->stackBase == 0) {
+	if (nativeThreadLocals->stackBase == 0) {
 		map = 1;
 	} else {
-		if (threadSpecifics->stackBlueZone == 0) {
-			/* The area between threadSpecifics->stackBase + PAGE_SIZE and threadSpecifics->stackRedZone
-			 * and the page at threadSpecifics->stackYellowZone needs to be mapped.
+		if (nativeThreadLocals->stackBlueZone == 0) {
+			/* The area between nativeThreadLocals->stackBase + PAGE_SIZE and nativeThreadLocals->stackRedZone
+			 * and the page at nativeThreadLocals->stackYellowZone needs to be mapped.
 			 */
-			if (((address >= threadSpecifics->stackBase + PAGE_SIZE) && (address <  threadSpecifics->stackRedZone)) ||
-					(address == threadSpecifics->stackYellowZone)) {
+			if (((address >= nativeThreadLocals->stackBase + PAGE_SIZE) && (address <  nativeThreadLocals->stackRedZone)) ||
+					(address == nativeThreadLocals->stackYellowZone)) {
 			  map = 1;
 			}
    	    } else {
@@ -168,14 +169,14 @@ static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long 
    	    	map = 1;
    	    }
 	}
-	return map ? pfn_to_mfn(allocate_page(threadSpecifics, addr)) : 0;
+	return map ? pfn_to_mfn(allocate_page(nativeThreadLocals, addr)) : 0;
 }
 
 
-void extend_stack(ThreadSpecifics threadSpecifics, unsigned long start_address, unsigned long end_address);
+void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address);
 
 /* allocate the virtual memory (only) for a thread stack of size n pages */
-unsigned long allocate_thread_stack(ThreadSpecifics threadSpecifics, int n) {
+unsigned long allocate_thread_stack(NativeThreadLocals nativeThreadLocals, int n) {
   unsigned long stackbase = 0;
   unsigned long stackend = 0;
   int slot;
@@ -195,12 +196,12 @@ unsigned long allocate_thread_stack(ThreadSpecifics threadSpecifics, int n) {
    * We have to map the top of the stack because initStack does not get called
    * until the thread has actually started running.
    */
-  extend_stack(threadSpecifics, stackend - STACK_INCREMENT_SIZE, stackend);
+  extend_stack(nativeThreadLocals, stackend - STACK_INCREMENT_SIZE, stackend);
   return stackbase;
 }
 
 void guk_free_thread_stack(void *specifics, void *stack, unsigned long stack_size) {
-	ThreadSpecifics threadSpecifics = (ThreadSpecifics) specifics;
+	NativeThreadLocals nativeThreadLocals = (NativeThreadLocals) specifics;
 	unsigned long stackBase = (unsigned long) stack;
 	unsigned long stackEnd = stackBase + stack_size;
     while (stackBase < stackEnd) {
@@ -216,23 +217,23 @@ void guk_free_thread_stack(void *specifics, void *stack, unsigned long stack_siz
     spin_lock(&bitmap_lock);
     clear_map(alloc_bitmap, slot);
     spin_unlock(&bitmap_lock);
-    free(threadSpecifics);
+    free(nativeThreadLocals);
 }
 
-void extend_stack(ThreadSpecifics threadSpecifics, unsigned long start_address, unsigned long end_address) {
+void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address) {
 	  struct pfn_alloc_env pfn_frame_alloc_env = {
 	    .pfn_alloc = pfn_alloc_alloc
 	  };
 	  struct pfn_alloc_env pfn_thread_stack_env = {
 	    .pfn_alloc = pfn_alloc_thread_stack
 	  };
-	  pfn_thread_stack_env.data = threadSpecifics;
+	  pfn_thread_stack_env.data = nativeThreadLocals;
 	  build_pagetable(start_address, end_address, &pfn_thread_stack_env, &pfn_frame_alloc_env);
 }
 
 int check_stack_protectPage(unsigned long addr);
 
-void guestvmXen_initStack(ThreadSpecifics threadSpecifics) {
+void guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
 	/* At this point, only the top STACK_INCREMENT_SIZE  of the stack has been mapped.
 	 *  There are some additional areas that need mapping.
 	 */
@@ -244,12 +245,12 @@ void guestvmXen_initStack(ThreadSpecifics threadSpecifics) {
       .pfn_alloc = pfn_alloc_thread_stack
     };
 
-	pfn_thread_stack_env.data = threadSpecifics;
-    build_pagetable(threadSpecifics->stackBase, threadSpecifics->stackBase + threadSpecifics->stackSize - STACK_INCREMENT_SIZE, &pfn_thread_stack_env, &pfn_frame_alloc_env);
+	pfn_thread_stack_env.data = nativeThreadLocals;
+    build_pagetable(nativeThreadLocals->stackBase, nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE, &pfn_thread_stack_env, &pfn_frame_alloc_env);
 
-    threadSpecifics->stackBlueZone = threadSpecifics->stackBase + threadSpecifics->stackSize - STACK_INCREMENT_SIZE;
-    check_stack_protectPage(threadSpecifics->stackBlueZone);
-    check_stack_protectPage(threadSpecifics->stackYellowZone);
+    nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE;
+    check_stack_protectPage(nativeThreadLocals->stackBlueZone);
+    check_stack_protectPage(nativeThreadLocals->stackYellowZone);
 }
 
 unsigned long get_pfn_for_address(unsigned long address) {
@@ -266,33 +267,33 @@ unsigned long get_pfn_for_address(unsigned long address) {
  * Lowers the blue zone page by STACK_INCREMENT_SIZE but only if greater than
  * yellow zone page.
  */
-void lower_blue_zone(ThreadSpecifics threadSpecifics) {
-  Address nbz = threadSpecifics->stackBlueZone - STACK_INCREMENT_SIZE;
+void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
+  Address nbz = nativeThreadLocals->stackBlueZone - STACK_INCREMENT_SIZE;
   unsigned long start_address;
-  unsigned long end_address = threadSpecifics->stackBlueZone;
-  if (nbz > threadSpecifics->stackYellowZone) {
-    threadSpecifics->stackBlueZone = nbz;
+  unsigned long end_address = nativeThreadLocals->stackBlueZone;
+  if (nbz > nativeThreadLocals->stackYellowZone) {
+    nativeThreadLocals->stackBlueZone = nbz;
 	start_address = nbz;
   } else {
-    threadSpecifics->stackBlueZone = threadSpecifics->stackYellowZone;
-    start_address = threadSpecifics->stackYellowZone + PAGE_SIZE;
+    nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackYellowZone;
+    start_address = nativeThreadLocals->stackYellowZone + PAGE_SIZE;
   }
   /* Need to allocate and map new pages */
   //guk_printk(" nbz %lx\n", start_address);
   if (end_address > start_address) {
-    extend_stack(threadSpecifics, start_address, end_address);
+    extend_stack(nativeThreadLocals, start_address, end_address);
     /* There must be at least two mapped pages above the yellow zone for the stack check code to work.
      * If we are in the last increment no point in unmapping the blue zone page. */
-    if (start_address  > threadSpecifics->stackYellowZone + STACK_INCREMENT_SIZE) {
+    if (start_address  > nativeThreadLocals->stackYellowZone + STACK_INCREMENT_SIZE) {
     	guk_unmap_page_pfn(start_address, get_pfn_for_address(start_address));
     }
   }
 }
 
-void guestvmXen_blue_zone_trap(ThreadSpecifics threadSpecifics) {
-  //guk_printk("blue zone trap bz %lx, yz %lx", threadSpecifics->stackBlueZone, threadSpecifics->stackYellowZone);
-  guk_remap_page_pfn(threadSpecifics->stackBlueZone, get_pfn_for_address(threadSpecifics->stackBlueZone));
-  lower_blue_zone(threadSpecifics);
+void guestvmXen_blue_zone_trap(NativeThreadLocals nativeThreadLocals) {
+  //guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
+  guk_remap_page_pfn(nativeThreadLocals->stackBlueZone, get_pfn_for_address(nativeThreadLocals->stackBlueZone));
+  lower_blue_zone(nativeThreadLocals);
 }
 
 int check_stack_protectPage(unsigned long address) {
