@@ -67,7 +67,11 @@ public final class JDK_java_io_UnixFileSystem {
 
     @SUBSTITUTE
     private String canonicalize0(String path) throws IOException {
-        return path; // TODO: make the original method work
+        final VirtualFileSystem fs = FSTable.exports(path);
+        if (fs == null) {
+            return path;
+        }
+        return fs.canonicalize0(path);
     }
 
     @SUBSTITUTE

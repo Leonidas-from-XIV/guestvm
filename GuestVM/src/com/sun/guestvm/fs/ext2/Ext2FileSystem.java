@@ -87,8 +87,8 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
 
     @Override
     public String canonicalize0(String path) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO correct implementation
+        return path;
     }
 
     private Ext2FileSystem(FSBlockDeviceAPI blkDevice, String mountPath) throws FileSystemException, IOException {

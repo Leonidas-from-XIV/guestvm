@@ -114,8 +114,8 @@ public final class NfsFileSystem implements VirtualFileSystem {
 
     @Override
     public String canonicalize0(String path) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO correct implementation
+        return path;
     }
 
     @Override

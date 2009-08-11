@@ -283,7 +283,7 @@ public class GUKVmThread extends VmThread {
 
     @INLINE
     private static Pointer nativeThreadPointer() {
-        return VmThreadLocal.NATIVE_THREAD.getConstantWord().asPointer();
+        return VmThread.current().nativeThread().asPointer();
     }
 
     /**

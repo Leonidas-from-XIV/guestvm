@@ -103,7 +103,8 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public String canonicalize0(String path) throws IOException {
-        return path;  // TODO: make the original method work
+        // TODO correct implementation
+        return path;
     }
 
     @Override

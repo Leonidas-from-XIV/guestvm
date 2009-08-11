@@ -34,6 +34,7 @@ package com.sun.guestvm.fs.tmp;
 import java.io.*;
 import java.util.*;
 
+import com.sun.guestvm.jdk.*;
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.*;
 import com.sun.max.program.ProgramError;
@@ -46,7 +47,7 @@ import com.sun.max.program.ProgramError;
 public final class TmpFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
 
     private static TmpFileSystem _singleton;
-    private SubDirEntry _root = new SubDirEntry();
+    private SubDirEntry _root = new SubDirEntry(null);
     private List<FileEntry> _openFiles = new ArrayList<FileEntry>();
     private static final int READ_WRITE = S_IREAD | S_IWRITE;
 
@@ -115,8 +116,10 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     static class SubDirEntry extends DirEntry {
         Map<String, DirEntry> _contents = new HashMap<String, DirEntry>();
 
-        SubDirEntry() {
+        SubDirEntry(SubDirEntry parent) {
             _mode |= S_IFDIR + S_IEXEC;
+            put(".", this);
+            put("..", parent);
         }
 
         boolean isDir() {
@@ -133,7 +136,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     }
 
     private TmpFileSystem() {
-        _root.put("tmp", new SubDirEntry());
+        _root.put("tmp", new SubDirEntry(_root));
     }
 
     public static TmpFileSystem create() {
@@ -156,7 +159,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     @Override
     public synchronized String canonicalize0(String path) throws IOException {
         // TODO Auto-generated method stub
-        return null;
+        return path;
     }
 
     @Override
@@ -198,7 +201,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         if (m == null || m.matchTail() != null) {
             return false;
         }
-        m._d.put(m._tail, isFile ? new FileEntry() : new SubDirEntry());
+        m._d.put(m._tail, isFile ? new FileEntry() : new SubDirEntry(m._d));
         return true;
 
     }
@@ -269,9 +272,13 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         if (m == null) {
             return null;
         } else {
-            final Set <String> set = m._d._contents.keySet();
-            final String[] result = new String[set.size()];
-            set.toArray(result);
+            final String[] result = new String[m._d._contents.size() - 2];
+            int k = 0;
+            for (String name : m._d._contents.keySet()) {
+                if (!JDK_java_io_UnixFileSystem.currentOrParent(name)) {
+                    result[k++] = name;
+                }
+            }
             return result;
         }
     }
