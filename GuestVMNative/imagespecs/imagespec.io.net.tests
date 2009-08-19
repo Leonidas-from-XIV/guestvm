@@ -5,7 +5,6 @@ include imagespec.net
 imagefsprefix /guestvm/image
 imagefile ../GuestVM/bin/test /GuestVM/bin/test
 imagefile ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
-imagefile ../../maxine/VM/bin/util /maxine/VM/bin/util
 package test.jvmni
 forcemethod com.sun.guestvm.test.VmThreadTestHelper.*
 forcemethod com.sun.guestvm.test.VMTestHelper.*
