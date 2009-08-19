@@ -91,14 +91,14 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
         return path;
     }
 
-    private Ext2FileSystem(FSBlockDeviceAPI blkDevice, String mountPath) throws FileSystemException, IOException {
+    private Ext2FileSystem(FSBlockDeviceAPI blkDevice, String mountPath, boolean readOnly) throws FileSystemException, IOException {
         if (_logger == null) {
             _logger = Logger.getLogger(getClass().getName());
         }
         final Device device = new Device("fileDevice");
         device.registerAPI(FSBlockDeviceAPI.class, blkDevice);
         final Ext2FileSystemType fsType = new Ext2FileSystemType();
-        final FSEntry rootEntry = fsType.create(device, false).getRootEntry();
+        final FSEntry rootEntry = fsType.create(device, readOnly).getRootEntry();
         _root = rootEntry.getDirectory();
         _mountPath = mountPath;
         _mountPathPrefixIndex = _mountPath.split(File.separator).length;
@@ -110,7 +110,7 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
      * @param devPath block device path
      * @return
      */
-    public static Ext2FileSystem create(String devPath, String mountPath) {
+    public static Ext2FileSystem create(String devPath, String mountPath, boolean readOnly) {
         final int index = devPath.lastIndexOf('/');
         if (index > 0) {
             try {
@@ -119,7 +119,7 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
                 if (blkDevice == null) {
                     return null;
                 }
-                return new Ext2FileSystem(blkDevice, mountPath);
+                return new Ext2FileSystem(blkDevice, mountPath, readOnly);
             } catch (NumberFormatException ex) {
                 return null;
             } catch (FileSystemException ex) {

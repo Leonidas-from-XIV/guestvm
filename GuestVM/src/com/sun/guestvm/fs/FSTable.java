@@ -35,6 +35,7 @@ import java.util.*;
 
 import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
+import com.sun.guestvm.fs.exec.ExecFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
 import com.sun.guestvm.fs.image.ImageFileSystem;
 import com.sun.guestvm.fs.nfs.NfsFileSystem;
@@ -57,9 +58,11 @@ import com.sun.guestvm.fs.tmp.TmpFileSystem;
 public class FSTable {
     private static Map<Info, VirtualFileSystem> _fsTable = new HashMap<Info, VirtualFileSystem>();
     private static final String FS_TABLE_PROPERTY = "guestvm.fs.table";
-    private static final String FS_INFO_SEPARATOR = ",";
+    private static final String FS_INFO_SEPARATOR = ":";
     private static final String FS_TABLE_SEPARATOR = ";";
-    private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/ext2";
+    private static final String READ_ONLY = "ro";
+    private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/java" + FS_INFO_SEPARATOR + READ_ONLY;
+    private static final String FS_OPTIONS_SEPARATOR = ",";
     private static boolean _initFSTable;
     private static Logger _logger;
 
@@ -67,6 +70,7 @@ public class FSTable {
         private String _type;
         private String _devPath;
         private String _mountPath;
+        private String[] _options;
         private VirtualFileSystem _fs;
 
         public static enum Parts {
@@ -75,10 +79,20 @@ public class FSTable {
 
         private static final int PARTS_LENGTH = Parts.values().length;
 
-        Info(String type, String devPath, String mountPath) {
+        Info(String type, String devPath, String mountPath, String[] options) {
             _type = type;
             _devPath = devPath;
             _mountPath = mountPath;
+            _options = options == null ? new String[0] : options;
+        }
+
+        boolean readOnly() {
+            for (String option : _options) {
+                if (option.equals("ro")) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -104,10 +118,9 @@ public class FSTable {
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
-            final Info imageInfo = new Info("img", ImageFileSystem.getPath(), ImageFileSystem.getPath());
-            initFS(imageInfo);
-            final Info tmpInfo = new Info("tmp", TmpFileSystem.getPath(), TmpFileSystem.getPath());
-            initFS(tmpInfo);
+            initFS(new Info("img", ImageFileSystem.getPath(), ImageFileSystem.getPath(), null));
+            initFS(new Info("tmp", TmpFileSystem.getPath(), TmpFileSystem.getPath(), null));
+            initFS(new Info("exec", "exec", "exec", null));
 
             String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
             if (fsTableProperty == null) {
@@ -134,7 +147,12 @@ public class FSTable {
                         continue;
                     }
                 }
-                _fsTable.put(new Info(type, devPath, mountPath), null);
+                String[] options = null;
+                if (info.length > 2) {
+                    options = info[2].split(FS_OPTIONS_SEPARATOR);
+
+                }
+                _fsTable.put(new Info(type, devPath, mountPath, options), null);
             }
             _initFSTable = true;
         }
@@ -149,7 +167,7 @@ public class FSTable {
     private static VirtualFileSystem initFS(Info fsInfo) {
         VirtualFileSystem  result = null;
         if (fsInfo._type.equals("ext2")) {
-            result =  Ext2FileSystem.create(fsInfo._devPath, fsInfo._mountPath);
+            result =  Ext2FileSystem.create(fsInfo._devPath, fsInfo._mountPath, fsInfo.readOnly());
         } else if (fsInfo._type.equals("nfs")) {
             result =  NfsFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         } else if (fsInfo._type.equals("sg")) {
@@ -158,6 +176,8 @@ public class FSTable {
             result = ImageFileSystem.create();
         } else if (fsInfo._type.equals("tmp")) {
             result = TmpFileSystem.create();
+        } else if (fsInfo._type.equals("exec")) {
+            result = ExecFileSystem.create();
         }
         return checkedPut(fsInfo, result);
     }
@@ -189,7 +209,7 @@ public class FSTable {
             initFSTable();
         }
         for (Info fsInfo : _fsTable.keySet()) {
-            if (path.startsWith(fsInfo._mountPath)) {
+            if (path != null && path.startsWith(fsInfo._mountPath)) {
                 if (fsInfo._fs == null) {
                     initFS(fsInfo);
                 }
