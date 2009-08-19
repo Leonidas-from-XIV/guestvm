@@ -71,7 +71,55 @@ public final class JDK_java_io_UnixFileSystem {
         if (fs == null) {
             return path;
         }
-        return fs.canonicalize0(path);
+        return collapse(fs.canonicalize0(path));
+    }
+
+    /**
+     * Remove . and .. components where possible
+     * @param path
+     * @return collapsed path
+     */
+    private static String collapse(String path) {
+        assert path.charAt(0) == '/';
+        final String[] parts = path.split("/");
+        int removed = 0;
+        for (int i = 1; i < parts.length; i++) {
+            final String part = parts[i];
+            final int partLen = part.length();
+            if (partLen == 1 && part.charAt(0) == '.') {
+                parts[i] = null;
+                removed++;
+            } else if (partLen == 2 && part.charAt(0) == '.' && part.charAt(1) == '.') {
+                int j;
+                for (j = i - 1; j >= 1; j--) {
+                    if (parts[j] != null) {
+                        break;
+                    }
+                }
+                if (j <= 0) {
+                    continue;
+                }
+                parts[j] = null;
+                parts[i] = null;
+                removed += 2;
+            }
+        }
+        if (removed > 0) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append('/');
+            boolean needSep = false;
+            for (String part : parts) {
+                if (part != null && part.length() > 0) {
+                    if (needSep) {
+                        sb.append('/');
+                    }
+                    sb.append(part);
+                    needSep = true;
+                }
+            }
+            return sb.toString();
+        }
+        return path;
     }
 
     @SUBSTITUTE
@@ -131,7 +179,7 @@ public final class JDK_java_io_UnixFileSystem {
 
     @SUBSTITUTE
     private boolean createFileExclusively(String path) throws IOException {
-         final VirtualFileSystem fs = FSTable.exports(path);
+        final VirtualFileSystem fs = FSTable.exports(path);
         if (fs == null) {
             return false;
         }

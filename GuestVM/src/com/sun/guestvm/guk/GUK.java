@@ -142,6 +142,10 @@ public final class GUK {
     static native void guk_preempt_schedule();
     static native void guk_wait_completion(Pointer comp);
     static native long guk_watch_memory_target();
+    static native int guk_exec_create(Pointer prog, Pointer args, int argc, Pointer dir);
+    static native int guk_exec_wait(int pid);
+    static native int guk_exec_close(int pid);
+    static native int guk_exec_read_bytes(int pid, Pointer bytes, int length, long fileOffset);
 
     // C_FUNCTIONs
 
@@ -256,5 +260,4 @@ public final class GUK {
     static native int guk_set_trace_state(int var, int value);
     @C_FUNCTION
     static native int guk_get_trace_state(int var);
-
 }

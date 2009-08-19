@@ -60,8 +60,7 @@ public class JDK_java_io_fdActor {
     /**
      * Returns an FieldActor for the field "fd" in the FileDescriptorClass.
      */
-    @INLINE
-    static FieldActor fdFieldActor() {
+    public static FieldActor fdFieldActor() {
         if (_fdFieldActor == null) {
             _fdFieldActor = (FieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
         }

@@ -41,6 +41,7 @@ public class RuntimeTest {
      */
     public static void main(String[] args) {
         final Runtime runtime = Runtime.getRuntime();
+        File wdir = null;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -49,6 +50,8 @@ public class RuntimeTest {
             }
             if (arg.equals("ap")) {
                 System.out.println("availableProcessors=" + runtime.availableProcessors());
+            } else if (arg.equals("wdir")) {
+                wdir = new File(args[++i]);
             } else if (arg.equals("exec")) {
                 List<String> execArgsList = new ArrayList<String>();
                 i++;
@@ -62,7 +65,11 @@ public class RuntimeTest {
                 final String[] execArgs = new String[execArgsList.size()];
                 execArgsList.toArray(execArgs);
                 try {
-                    final Process p = runtime.exec(execArgs);
+                    final Process p = runtime.exec(execArgs, null, wdir);
+                    System.out.println("stdout:");
+                    readFully(new BufferedReader(new InputStreamReader(p.getInputStream())));
+                    System.out.println("stderr:");
+                    readFully(new BufferedReader(new InputStreamReader(p.getErrorStream())));
                     System.out.println("process returned " + p.waitFor());
                 } catch (IOException ex) {
                     System.err.println(ex);
@@ -73,5 +80,15 @@ public class RuntimeTest {
         }
         // Checkstyle: resume modified control variable check
 
+    }
+
+    private static void readFully(BufferedReader in) throws IOException {
+        while (true) {
+            final String line = in.readLine();
+            if (line == null) {
+                break;
+            }
+            System.out.println(line);
+        }
     }
 }

@@ -5,5 +5,6 @@ package com.sun.guestvm.fs.tmp
 package com.sun.guestvm.fs.console
 package com.sun.guestvm.fs.ext2
 package com.sun.guestvm.fs.nfs
+package com.sun.guestvm.fs.exec
 include imagespec.jnodefs
 

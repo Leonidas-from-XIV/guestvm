@@ -72,9 +72,28 @@ JNIEXPORT jlong JNICALL
 Java_com_sun_guestvm_guk_GUK_guk_1watch_1memory_1target(JNIEnv *env, jclass c) {
 	return guk_watch_memory_target();
 }
+
 JNIEXPORT jint JNICALL
 Java_java_lang_Runtime_availableProcessors(JNIEnv *env, jclass c) {
 	return guk_sched_num_cpus();
+}
+
+extern int guk_exec_create(char *prog, char *arg_block, int argc, char *dir);
+JNIEXPORT jint JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1create(JNIEnv *env, jclass c, char *prog, char *argBlock, int argc, char *dir) {
+  return guk_exec_create(prog, argBlock, argc, dir);
+}
+
+extern int guk_exec_wait(int pid);
+JNIEXPORT jint JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait(JNIEnv *env, jclass c, int pid) {
+	return guk_exec_wait(pid);
+}
+
+extern int guk_exec_read_bytes(int pid, char *buf, int length, long fileOffset);
+JNIEXPORT jint JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes(JNIEnv *env, jclass c, jint pid, char *buf, int length, jlong fileOffset) {
+	return guk_exec_read_bytes(pid, buf, length, fileOffset);
 }
 
 /* Owing the the ttprintk macro magic we have to expand these manually. */
@@ -111,6 +130,12 @@ void *guk_dlsym(const char * symbol) {
     return Java_com_sun_guestvm_guk_GUK_guk_1wait_1completion;
   else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1watch_1memory_1target") == 0)
     return Java_com_sun_guestvm_guk_GUK_guk_1watch_1memory_1target;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1create") == 0)
+    return Java_com_sun_guestvm_guk_GUK_guk_1exec_1create;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait") == 0)
+    return Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes") == 0)
+     return Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes;
 
   else if (strcmp(symbol, "guk_block") == 0) return guk_block;
   else if (strcmp(symbol, "guk_current") == 0) return guk_current;

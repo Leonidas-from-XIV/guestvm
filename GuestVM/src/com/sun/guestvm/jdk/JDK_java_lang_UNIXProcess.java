@@ -31,7 +31,12 @@
  */
 package com.sun.guestvm.jdk;
 
+import com.sun.guestvm.fs.VirtualFileSystemId;
+import com.sun.guestvm.fs.exec.ExecFileSystem;
+import com.sun.guestvm.guk.GUKExec;
 import com.sun.max.annotate.*;
+import com.sun.max.vm.object.TupleAccess;
+
 import java.io.*;
 
 /**
@@ -47,7 +52,7 @@ final class JDK_java_lang_UNIXProcess {
     @SUBSTITUTE
     private int waitForProcessExit(int pid) {
         // Nothing to wait for
-        return 0;
+        return GUKExec.waitForProcessExit(pid);
     }
 
     @SUBSTITUTE
@@ -60,7 +65,13 @@ final class JDK_java_lang_UNIXProcess {
         }
         bytePrint(prog, ' ');
         bytePrintBlock(argBlock, '\n');
-        return 0;
+        final int pid = GUKExec.forkAndExec(prog, argBlock, argc, dir);
+        if (pid >= 0) {
+            TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid));
+            TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid + 1));
+            TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid + 2));
+        }
+        return pid;
     }
 
     /**
