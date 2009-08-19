@@ -40,7 +40,13 @@
 me_dir=`dirname $me`
 . $me_dir/ext2setup
 
-ext2jh=/java
+if [ "$JAVA_HOME" = "" ] ;
+then
+  echo JAVA_HOME must be set
+  exit 1
+fi
+
+ext2jh=/${JAVA_HOME##*/}
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/lib
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre
