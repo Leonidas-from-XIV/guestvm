@@ -90,6 +90,7 @@ typedef struct {
 
 static unsigned long *alloc_bitmap;
 static int max_threads;
+static void (*specifics_destructor)(void *);
 
 static DEFINE_SPINLOCK(bitmap_lock);
 
@@ -130,6 +131,9 @@ void init_thread_stacks(void) {
   memset(alloc_bitmap, 0, bitmap_size);
 }
 
+void set_specifics_destructor(void (*destructor)(void *)) {
+  specifics_destructor = destructor;
+}
 
 static unsigned long allocate_page(NativeThreadLocals nativeThreadLocals, unsigned long addr) {
 	unsigned long pfn = virt_to_pfn(allocate_pages(1, STACK_VM));
@@ -201,9 +205,9 @@ unsigned long allocate_thread_stack(NativeThreadLocals nativeThreadLocals, int n
 }
 
 void guk_free_thread_stack(void *specifics, void *stack, unsigned long stack_size) {
-	NativeThreadLocals nativeThreadLocals = (NativeThreadLocals) specifics;
-	unsigned long stackBase = (unsigned long) stack;
-	unsigned long stackEnd = stackBase + stack_size;
+    unsigned long stackBase = (unsigned long) stack;
+    unsigned long stackEnd = stackBase + stack_size;
+    specifics_destructor(specifics);
     while (stackBase < stackEnd) {
 		unsigned long pte;
 		long pfn = guk_not11_virt_to_pfn(stackBase, &pte);
@@ -217,7 +221,6 @@ void guk_free_thread_stack(void *specifics, void *stack, unsigned long stack_siz
     spin_lock(&bitmap_lock);
     clear_map(alloc_bitmap, slot);
     spin_unlock(&bitmap_lock);
-    free(nativeThreadLocals);
 }
 
 void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address) {

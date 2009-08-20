@@ -109,7 +109,9 @@ void guestvmXen_thread_setSpecific(guestvmXen_ThreadKey key, void *value) {
     thread->specific = value;
 }
 
+extern void set_specifics_destructor(void (*destructor)(void *));
 int guestvmXen_thread_initializeSpecificsKey(guestvmXen_ThreadKey *key, void (*destructor)(void *)) {
+  set_specifics_destructor(destructor);
   return 0;
 }
 
