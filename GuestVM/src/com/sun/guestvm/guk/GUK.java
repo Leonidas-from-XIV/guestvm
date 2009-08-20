@@ -116,6 +116,11 @@ public final class GUK {
         new CriticalNativeMethod(GUK.class, "guk_ttprintk5");
         new CriticalNativeMethod(GUK.class, "guk_set_trace_state");
         new CriticalNativeMethod(GUK.class, "guk_get_trace_state");
+        new CriticalNativeMethod(GUK.class, "guk_exec_create");
+        new CriticalNativeMethod(GUK.class, "guk_exec_wait");
+        new CriticalNativeMethod(GUK.class, "guk_exec_close");
+        new CriticalNativeMethod(GUK.class, "guk_exec_read_bytes");
+        new CriticalNativeMethod(GUK.class, "guk_exec_destroy");
     }
 
     private GUK() {
@@ -146,6 +151,7 @@ public final class GUK {
     static native int guk_exec_wait(int pid);
     static native int guk_exec_close(int pid);
     static native int guk_exec_read_bytes(int pid, Pointer bytes, int length, long fileOffset);
+    static native int guk_exec_destroy(int pid);
 
     // C_FUNCTIONs
 

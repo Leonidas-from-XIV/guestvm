@@ -35,7 +35,7 @@ import com.sun.max.unsafe.*;
 import com.sun.max.memory.Memory;
 
 /**
- * An interface to creating separate processes (guests).
+ * An interface to creating separate processes (guests) via dom0.
  *
  * @author Mick Jordan
  *
@@ -78,5 +78,9 @@ public class GUKExec {
 
     public static int close(int pid) {
         return GUK.guk_exec_close(pid);
+    }
+
+    public static int destroyProcess(int pid) {
+        return GUK.guk_exec_destroy(pid);
     }
 }

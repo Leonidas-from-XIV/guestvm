@@ -90,6 +90,18 @@ Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait(JNIEnv *env, jclass c, int pid) {
 	return guk_exec_wait(pid);
 }
 
+extern void guk_exec_destroy(int pid);
+JNIEXPORT void JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1destroy(JNIEnv *env, jclass c, int pid) {
+    guk_exec_destroy(pid);
+}
+
+extern int guk_exec_close(int pid);
+JNIEXPORT int JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1close(JNIEnv *env, jclass c, int pid) {
+    return guk_exec_close(pid);
+}
+
 extern int guk_exec_read_bytes(int pid, char *buf, int length, long fileOffset);
 JNIEXPORT jint JNICALL
 Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes(JNIEnv *env, jclass c, jint pid, char *buf, int length, jlong fileOffset) {
@@ -132,8 +144,12 @@ void *guk_dlsym(const char * symbol) {
     return Java_com_sun_guestvm_guk_GUK_guk_1watch_1memory_1target;
   else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1create") == 0)
     return Java_com_sun_guestvm_guk_GUK_guk_1exec_1create;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1close") == 0)
+    return Java_com_sun_guestvm_guk_GUK_guk_1exec_1close;
   else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait") == 0)
     return Java_com_sun_guestvm_guk_GUK_guk_1exec_1wait;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1destroy") == 0)
+    return Java_com_sun_guestvm_guk_GUK_guk_1exec_1destroy;
   else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes") == 0)
      return Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes;
 

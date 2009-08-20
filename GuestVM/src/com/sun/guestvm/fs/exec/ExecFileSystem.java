@@ -159,7 +159,6 @@ public class ExecFileSystem extends DefaultFileSystemImpl implements VirtualFile
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        System.out.println("readBytes fd=" + fd + ", offset=" + offset + ", length=" + length + ", fileOffset=" + fileOffset);
         return GUKExec.readBytes(fd, bytes, offset, length, fileOffset);
     }
 

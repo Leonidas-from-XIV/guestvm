@@ -36,6 +36,9 @@ import java.util.*;
 
 public class RuntimeTest {
 
+    private static boolean _reflectImmediate = true;
+    private static List<String> _stdOutLines = new ArrayList<String>();
+    private static List<String> _stdErrLines = new ArrayList<String>();
     /**
      * @param args
      */
@@ -50,6 +53,8 @@ public class RuntimeTest {
             }
             if (arg.equals("ap")) {
                 System.out.println("availableProcessors=" + runtime.availableProcessors());
+            } else if (arg.equals("quiet")) {
+                _reflectImmediate = false;
             } else if (arg.equals("wdir")) {
                 wdir = new File(args[++i]);
             } else if (arg.equals("exec")) {
@@ -64,17 +69,34 @@ public class RuntimeTest {
                 }
                 final String[] execArgs = new String[execArgsList.size()];
                 execArgsList.toArray(execArgs);
+                Process p = null;
+                BufferedReader stdOut = null;
+                BufferedReader stdErr = null;
                 try {
-                    final Process p = runtime.exec(execArgs, null, wdir);
-                    System.out.println("stdout:");
-                    readFully(new BufferedReader(new InputStreamReader(p.getInputStream())));
-                    System.out.println("stderr:");
-                    readFully(new BufferedReader(new InputStreamReader(p.getErrorStream())));
-                    System.out.println("process returned " + p.waitFor());
+                    p = runtime.exec(execArgs, null, wdir);
+                    stdOut = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    readFully(stdOut, true);
+                    stdErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                    readFully(stdErr, false);
+                    System.out.println("waitFor returned " + p.waitFor());
+                    if (!_reflectImmediate) {
+                        delayedOutput(_stdOutLines, true);
+                        delayedOutput(_stdErrLines, false);
+                    }
                 } catch (IOException ex) {
                     System.err.println(ex);
                 } catch (InterruptedException ex) {
                     System.err.println(ex);
+                } finally {
+                    if (p != null) {
+                        try {
+                            stdOut.close();
+                            stdErr.close();
+                            p.destroy();
+                        } catch (IOException ex) {
+
+                        }
+                    }
                 }
             }
         }
@@ -82,12 +104,30 @@ public class RuntimeTest {
 
     }
 
-    private static void readFully(BufferedReader in) throws IOException {
+    private static void readFully(BufferedReader in, boolean isStdOut) throws IOException {
+        if (_reflectImmediate) {
+            System.out.println(isStdOut ? "stdout: " : "stderr: ");
+        }
         while (true) {
             final String line = in.readLine();
             if (line == null) {
                 break;
             }
+            if (_reflectImmediate) {
+                System.out.println(line);
+            } else {
+                if (isStdOut) {
+                    _stdOutLines.add(line);
+                } else {
+                    _stdErrLines.add(line);
+                }
+            }
+        }
+    }
+
+    private static void delayedOutput(List<String> lines, boolean isStdOut) {
+        System.out.println(isStdOut ? "stdout: " : "stderr: ");
+        for (String line : lines) {
             System.out.println(line);
         }
     }
