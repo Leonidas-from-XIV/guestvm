@@ -31,13 +31,14 @@
 # 
 #
 # Guest VM is a Java virtual machine, so we provide a "java" launch command.
-# However, most users will find the "run" command easier to work with.
+# However, some users may find the "run" command easier to work with.
+# TODO: Support the full set of standard options
 
 classpath="/guestvm/image/GuestVM/bin"
 vmargs=""
 xtra_args=""
 jar=""
-vmalloc="-XX:SemiSpaceGC:Virtual"
+vmalloc="-XX:+UseVirtualMemory"
 
 function vm_args() {
     shift
@@ -53,25 +54,25 @@ function vm_args() {
 while [ "$1" != "" ] ;
 do
   case "$1" in
-    "-cp" )
+    -cp | -classpath )
 	    shift
 	    classpath=$1
 	    shift
 	    ;;
-    "-jar" )
+    -jar )
 	     shift
 	     jar=$1
 	     shift
 	     ;;
-    "-D"* )
+    -D* )
 	  vm_args
 	  ;;
 	  
-    "-X"* )
+    -X* )
 	    vm_args
 	    ;;
 
-    "-XX"* )
+    -XX* )
 	     vm_args
 	     ;;
 
@@ -95,4 +96,4 @@ else
 fi
 
 extra="$vmargs $vmalloc $cp $xtra_args"
-xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM
+xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}
