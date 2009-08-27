@@ -50,7 +50,6 @@ GUESTVM_ROOT=`dirname $PWD`
 WS_ROOT=`dirname $GUESTVM_ROOT`
 
 echocmd=0
-mainclass="UNBOUND"
 d="-d"
 id=""
 run=1
@@ -60,6 +59,7 @@ commandfilearg=""
 xvm=0
 cp=""
 vmargs=""
+javacmd=`which java`
 
 while [ "$1" != "" ];
 do
@@ -101,6 +101,10 @@ do
       vmargs="$vmargs $1"
     fi
     ;;
+  "-java" )
+    shift
+    javacmd=$1
+    ;;
   * )
     ;;
   esac
@@ -131,7 +135,7 @@ then
   classpath=${classpath}:$cp
 fi
 
-cmd="java $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
+cmd="$javacmd $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then
