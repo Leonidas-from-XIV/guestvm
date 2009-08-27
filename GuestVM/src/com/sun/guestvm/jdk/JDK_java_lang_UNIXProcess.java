@@ -31,8 +31,9 @@
  */
 package com.sun.guestvm.jdk;
 
-import com.sun.guestvm.fs.exec.ExecFileSystem;
+import com.sun.guestvm.fs.exec.*;
 import com.sun.guestvm.guk.GUKExec;
+import com.sun.guestvm.process.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.object.TupleAccess;
 import com.sun.guestvm.logging.*;
@@ -50,10 +51,14 @@ import java.util.logging.Level;
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.lang.UNIXProcess")
 final class JDK_java_lang_UNIXProcess {
     private static Logger _logger;
+    private static ExecFileSystem _execFS;
+    private static FilterFileSystem _filterFS;
 
-    private static void initLogger() {
+    private static void init() {
         if (_logger == null) {
             _logger = Logger.getLogger(Process.class.getName());
+            _execFS = ExecFileSystem.create();
+            _filterFS = FilterFileSystem.create();
         }
     }
 
@@ -65,25 +70,34 @@ final class JDK_java_lang_UNIXProcess {
     @SUBSTITUTE
     private int forkAndExec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir, boolean redirectErrorStream, FileDescriptor stdinFd, FileDescriptor stdoutFd,
                     FileDescriptor stderrFd) throws IOException {
-        initLogger();
-        if (_logger.isLoggable(Level.WARNING)) {
-            System.out.print("WARNING: application is trying to start a subprocess: ");
-            if (dir != null) {
-                System.out.print("in directory: ");
-                bytePrint(dir, '\n');
-            }
-            bytePrint(prog, ' ');
-            bytePrintBlock(argBlock, '\n');
-        }
-        final int pid = GUKExec.forkAndExec(prog, argBlock, argc, dir);
-        if (pid >= 0) {
-            TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid));
-            TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid + 1));
-            TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), ExecFileSystem.getFd(pid + 2));
-            return pid;
+        int pid;
+        ExecHelperFileSystem execFS;
+        init();
+        if (GuestVMProcess.filter(prog)) {
+            pid = GuestVMProcess.exec(prog, argBlock, argc, envBlock, envc, dir);
+            execFS = _filterFS;
         } else {
-            throw new IOException("Exec failed");
+            if (_logger.isLoggable(Level.WARNING)) {
+                System.out.print("WARNING: application is trying to start a subprocess: ");
+                if (dir != null) {
+                    System.out.print("in directory: ");
+                    bytePrint(dir, '\n');
+                }
+                bytePrint(prog, ' ');
+                bytePrintBlock(argBlock, '\n');
+            }
+            pid = GUKExec.forkAndExec(prog, argBlock, argc, dir);
+            execFS = _execFS;
         }
+        if (pid < 0) {
+            throw new IOException("Exec failed");
+        } else {
+            final int[] fds = execFS.getFds(pid);
+            TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[0]);
+            TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[1]);
+            TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[2]);
+        }
+        return pid;
     }
 
     /**
@@ -119,7 +133,7 @@ final class JDK_java_lang_UNIXProcess {
 
     @SUBSTITUTE
     private static void destroyProcess(int pid) {
-        initLogger();
+        init();
         if (_logger.isLoggable(Level.WARNING)) {
             System.out.println("WARNING: application is trying to destroy process: " + pid);
         }

@@ -29,46 +29,47 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs.exec;
-
-import com.sun.guestvm.fs.VirtualFileSystem;
-import com.sun.guestvm.fs.VirtualFileSystemId;
-import com.sun.guestvm.guk.GUKExec;
+package com.sun.guestvm.process;
 
 /**
- * This is not really a file system but it supports the ability to communicate
- * with the fork/exec backend using file descriptors.
+ * A filter for whoami, which is given by the user.name property.
  *
  * @author Mick Jordan
  *
  */
 
-public class ExecFileSystem extends ExecHelperFileSystem implements VirtualFileSystem {
+public class WhoamiProcessFilter extends ProcessFilterHelper {
 
-    protected static ExecFileSystem _singleton;
+    public WhoamiProcessFilter() {
+        super("whoami");
+    }
 
-    public static ExecFileSystem create() {
-        if (_singleton == null) {
-            _singleton = new ExecFileSystem();
+    public int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir)  {
+        final String userName = System.getProperty("user.name");
+        if (userName == null) {
+            return -1;
         }
-        return (ExecFileSystem) _singleton;
+        return nextId();
     }
 
-    @Override
-    public int available(int fd, long fileOffset) {
-        // TODO implement
-        return 0;
-    }
-
-
-    @Override
-    public int close0(int fd) {
-        return GUKExec.close(fd);
-    }
-
-    @Override
-    public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        return GUKExec.readBytes(fd, bytes, offset, length, fileOffset);
+    protected int readBytes(int key, byte[] bytes, int offset, int length, long fileOffset) {
+        final int fd = keyToFd(key);
+        if (fd == StdIO.ERR.ordinal()) {
+            return 0;
+        } else if (fd == StdIO.OUT.ordinal()) {
+            final byte[] userName = System.getProperty("user.name").getBytes();
+            final int available = userName.length - (int) fileOffset;
+            if (available <= 0) {
+                return 0;
+            } else {
+                final int rlength = length < available ? length : available;
+                System.arraycopy(userName, (int) fileOffset, bytes, offset, rlength);
+                return rlength;
+            }
+        } else {
+            assert false;
+            return 0;
+        }
     }
 
 }

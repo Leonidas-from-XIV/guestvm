@@ -31,44 +31,39 @@
  */
 package com.sun.guestvm.fs.exec;
 
-import com.sun.guestvm.fs.VirtualFileSystem;
-import com.sun.guestvm.fs.VirtualFileSystemId;
-import com.sun.guestvm.guk.GUKExec;
-
+import com.sun.guestvm.fs.*;
+import com.sun.guestvm.process.*;
 /**
- * This is not really a file system but it supports the ability to communicate
- * with the fork/exec backend using file descriptors.
+ * Not really a file system. Similar to ExecFileSystem, supports the ability of Process filters to return values through file descriptors.
  *
  * @author Mick Jordan
  *
  */
 
-public class ExecFileSystem extends ExecHelperFileSystem implements VirtualFileSystem {
+public class FilterFileSystem extends ExecHelperFileSystem implements VirtualFileSystem {
 
-    protected static ExecFileSystem _singleton;
+    protected static FilterFileSystem _singleton;
 
-    public static ExecFileSystem create() {
+    public static FilterFileSystem create() {
         if (_singleton == null) {
-            _singleton = new ExecFileSystem();
+            _singleton = new FilterFileSystem();
         }
-        return (ExecFileSystem) _singleton;
+        return (FilterFileSystem) _singleton;
     }
 
     @Override
     public int available(int fd, long fileOffset) {
-        // TODO implement
+        // TODO Auto-generated method stub
         return 0;
     }
 
-
     @Override
     public int close0(int fd) {
-        return GUKExec.close(fd);
+        return ProcessFilterHelper.invokeClose0(fd);
     }
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        return GUKExec.readBytes(fd, bytes, offset, length, fileOffset);
+        return ProcessFilterHelper.invokeReadBytes(fd, bytes, offset, length, fileOffset);
     }
-
 }

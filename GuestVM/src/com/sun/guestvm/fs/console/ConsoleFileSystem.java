@@ -56,111 +56,111 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
 
     @Override
     public String canonicalize0(String path) throws IOException {
-        unimplemented();
+        unimplemented("canonicalize0");
         return null;
     }
 
     @Override
     public boolean checkAccess(String path, int access) {
-        unimplemented();
+        unimplemented("checkAccess");
         return false;
     }
 
     @Override
     public int close0(int fd) {
-        unimplemented();
+        unimplemented("close0");
         return 0;
     }
 
     @Override
     public boolean createDirectory(String path) {
-        unimplemented();
+        unimplemented("createDirectory");
         return false;
     }
 
     @Override
     public boolean createFileExclusively(String path) throws IOException {
-        unimplemented();
+        unimplemented("createFileExclusively");
         return false;
     }
 
     @Override
     public boolean delete0(String path) {
-        unimplemented();
+        unimplemented("delete0");
         return false;
     }
 
     @Override
     public long getLastModifiedTime(String path) {
-        unimplemented();
+        unimplemented("getLastModifiedTime");
         return 0;
     }
 
     @Override
     public long getLength(String path) {
-        unimplemented();
+        unimplemented("getLength");
         return 0;
     }
 
     @Override
     public int getMode(String path) {
-        unimplemented();
+        unimplemented("getMode");
         return 0;
     }
 
     @Override
     public long getSpace(String path, int t) {
-        unimplemented();
+        unimplemented("getSpace");
         return 0;
     }
 
     @Override
     public String[] list(String path) {
-        unimplemented();
+        unimplemented("list");
         return null;
     }
 
     @Override
     public int open(String name, int flags) {
-        unimplemented();
+        unimplemented("open");
         return 0;
     }
 
     @Override
     public int read(int fd, long fileOffset) {
-        unimplemented();
+        unimplemented("read");
         return 0;
     }
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length,
             long fileOffset) {
-        unimplemented();
+        unimplemented("readBytes");
         return 0;
     }
 
     @Override
     public boolean rename0(String path1, String path2) {
-        unimplemented();
+        unimplemented("rename0");
         return false;
     }
 
     @Override
     public boolean setLastModifiedTime(String path, long time) {
-        unimplemented();
+        unimplemented("setLastModifiedTime");
         return false;
     }
 
     @Override
     public boolean setPermission(String path, int access, boolean enable,
             boolean owneronly) {
-        unimplemented();
+        unimplemented("setPermission");
         return false;
     }
 
     @Override
     public boolean setReadOnly(String path) {
-        unimplemented();
+        unimplemented("setReadOnly");
         return false;
     }
 
@@ -203,13 +203,13 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
 
     @Override
     public long getLength(int fd) {
-        unimplemented();
+        unimplemented("getLength");
         return 0;
     }
 
     @Override
     public int setLength(int fd, long length) {
-        unimplemented();
+        unimplemented("setLength");
         return -1;
     }
 
@@ -228,8 +228,8 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
         return fd;
     }
 
-    private static void unimplemented() {
-        ProgramError.unexpected("ConsoleFileSystem unimplemented operation");
+    private static void unimplemented(String w) {
+        ProgramError.unexpected("ConsoleFileSystem unimplemented operation:" + w);
     }
 
     private static native int nativeWriteBytes(int fd, Pointer p, int length);

@@ -29,46 +29,35 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs.exec;
-
-import com.sun.guestvm.fs.VirtualFileSystem;
-import com.sun.guestvm.fs.VirtualFileSystemId;
-import com.sun.guestvm.guk.GUKExec;
+package com.sun.guestvm.process;
 
 /**
- * This is not really a file system but it supports the ability to communicate
- * with the fork/exec backend using file descriptors.
+ * An instance of a class that implements this interface can be registered with Guest VM to intercept @see java.lang.Process calls and implement them internally.
  *
  * @author Mick Jordan
  *
  */
 
-public class ExecFileSystem extends ExecHelperFileSystem implements VirtualFileSystem {
+public interface GuestVMProcessFilter {
+    /**
+     * Returns the names of the processes that this filter handles.
+     * @return process to filter
+     */
+    String[] names();
 
-    protected static ExecFileSystem _singleton;
-
-    public static ExecFileSystem create() {
-        if (_singleton == null) {
-            _singleton = new ExecFileSystem();
-        }
-        return (ExecFileSystem) _singleton;
-    }
-
-    @Override
-    public int available(int fd, long fileOffset) {
-        // TODO implement
-        return 0;
-    }
-
-
-    @Override
-    public int close0(int fd) {
-        return GUKExec.close(fd);
-    }
-
-    @Override
-    public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        return GUKExec.readBytes(fd, bytes, offset, length, fileOffset);
-    }
-
+    /**
+     * Execute the process that this filter handles with the given arguments.
+     * The return value is either negative, indicating a failure to exec or a
+     * positive value that will be passed to the @see FilterFileSystem when
+     * creating the file descriptors for stdin, stdout and stderr.
+     * @param prog
+     * @param argBlock
+     * @param argc
+     * @param envBlock
+     * @param envc
+     * @param dir
+     * @param stderrFd
+     * @return
+     */
+    int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir);
 }
