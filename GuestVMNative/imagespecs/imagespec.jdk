@@ -115,4 +115,6 @@ reinitclass java.text.SimpleDateFormat
 reinitclass java.text.DateFormatSymbols
 package gnu.java.util.zip
 package com.sun.guestvm.process
+# Eager initialization because of library loading
+classinit sun.management.VMManagementImpl
 
