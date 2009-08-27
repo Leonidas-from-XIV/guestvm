@@ -138,19 +138,19 @@ Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getPath(JNIEnv *env, jclass 
 JNIEXPORT int JNICALL
 Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLength(JNIEnv *env, jclass c,
 							      struct fs_import *import, char *path) {
-  struct fsif_stat_response stat;
+  struct fsif_stat stat;
   int rc = guk_fs_stat(import, path, &stat);
   if (rc < 0) return rc;
-  else return stat.stat_size;
+  else return stat.st_size;
 }
 
 JNIEXPORT int JNICALL
 Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getMode(JNIEnv *env, jclass c,
 							    struct fs_import *import, char *path) {
-  struct fsif_stat_response stat;
+  struct fsif_stat stat;
   int rc = guk_fs_stat(import, path, &stat);
   if (rc < 0) return rc;
-  else return stat.stat_mode;
+  else return stat.st_mode;
 }
 
 JNIEXPORT void * JNICALL
@@ -196,18 +196,18 @@ Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createFileExclusively(JNIEnv
 JNIEXPORT long JNICALL
 Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLastModifiedTime(JNIEnv *env, jclass c,
 									struct fs_import *import, char *path) {
-  struct fsif_stat_response stat;
+  struct fsif_stat stat;
   guk_fs_stat(import, path, &stat);
-  return stat.stat_mtime;
+  return stat.st_mtim;
 }
 
 JNIEXPORT long JNICALL
 Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLengthFd(JNIEnv *env, jclass c,
 								struct fs_import *import, int fd) {
-  struct fsif_stat_response stat;
+  struct fsif_stat stat;
   int rc = guk_fs_fstat(import, fd, &stat);
   if (rc < 0) return rc;
-  else return stat.stat_size;
+  else return stat.st_size;
 }
 
 void *fs_dlsym(const char *symbol) {
