@@ -176,6 +176,7 @@ public final class ZZipFile {
         } catch (IOException ex) {
 
         }
+        _cache.remove(_name);
         _idTable.set((int) id - 1, null);
     }
 
