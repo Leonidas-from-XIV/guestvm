@@ -43,6 +43,7 @@
 #define log1p   jlog1p
 #define expm1   jexpm1
 
+/* This isn't needed for GuestVM.
 #ifdef __linux__
 #define __ieee754_sqrt          __j__ieee754_sqrt
 #define __ieee754_acos          __j__ieee754_acos
@@ -79,4 +80,5 @@
 #define __ieee754_log1p         __j__ieee754_log1p
 #define __ieee754_expm1         __j__ieee754_expm1
 #endif
+*/
 #endif/*_JFDLIBM_H*/
