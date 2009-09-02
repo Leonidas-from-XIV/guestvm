@@ -36,9 +36,8 @@ import java.util.*;
 
 import com.sun.max.unsafe.*;
 import com.sun.max.memory.Memory;
-import com.sun.max.program.*;
 import com.sun.max.util.Utf8Exception;
-import com.sun.max.vm.runtime.*;
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
 import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
 
@@ -80,7 +79,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
                     return new SiblingFileSystem(handle, exportPath, mountPath);
                 }
             } catch (Utf8Exception ex) {
-                ProgramError.unexpected("SiblingFileSystem.create");
+                GuestVMError.unexpected("UTFException in SiblingFileSystem.create");
             }
 
         }
@@ -109,7 +108,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean checkAccess(String path, int access) {
-        // TODO Auto-generated method stub
+        unimplemented("checkAccess");
         return false;
     }
 
@@ -169,7 +168,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public long getSpace(String path, int t) {
-        // TODO Auto-generated method stub
+        unimplemented("getSPace");
         return 0;
     }
 
@@ -216,21 +215,14 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public boolean setLastModifiedTime(String path, long time) {
-        // TODO Auto-generated method stub
+        unimplemented("setLastModifiedTime");
         return false;
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable,
-            boolean owneronly) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        // TODO Auto-generated method stub
-        return false;
+    public int setMode(String path, int mode) {
+        unimplemented("setMode");
+        return -1;
     }
 
     // FileInputStream, FileOutputStream
@@ -297,30 +289,35 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public long skip(int fd, long n, long fileOffset) {
-        // TODO implement via backend
+        unimplemented("skip");
         return 0;
     }
 
     @Override
     public long uniqueId(int fd) {
-        FatalError.crash(getClass().getName() + ".uniqueId");
+        unimplemented("uniqueId");
         return -1;
     }
 
     @Override
     public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        FatalError.crash(getClass().getName() + "lock0");
+        unimplemented("lock0");
         return 0;
     }
 
     @Override
     public void release0(int fd, long pos, long size) throws IOException {
-        FatalError.crash(getClass().getName() + "release0");
+        unimplemented("release0");
     }
 
     @Override
     public int force0(int fd, boolean metaData) throws IOException {
-        FatalError.crash(getClass().getName() + "force0");
+        unimplemented("force0");
         return 0;
     }
+
+    private static void unimplemented(String w) {
+        GuestVMError.unimplemented("SiblingFileSystem operation:" + w);
+    }
+
 }

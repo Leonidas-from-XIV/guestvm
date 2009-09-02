@@ -55,9 +55,19 @@ public interface VirtualFileSystem {
     int S_IFMT = 0xF000;
     int S_IFREG = 0x8000;
     int S_IFDIR = 0x4000;
-    int S_IREAD = 0x400;
-    int S_IWRITE = 0x200;
-    int S_IEXEC = 0x100;
+    int S_IREAD = 0x100;
+    int S_IWRITE = 0x80;
+    int S_IEXEC = 0x40;
+
+    int S_IRUSR = 0x100;
+    int S_IWUSR = 0x80;
+    int S_IXUSR = 0x40;
+    int S_IRGRP = 0x20;
+    int S_IWGRP = 0x10;
+    int S_IXGRP = 0x8;
+    int S_IROTH = 0x4;
+    int S_IWOTH = 0x2;
+    int S_IXOTH = 0x1;
 
     // copied from java.io.FileSystem.java
     int BA_EXISTS    = 0x01;
@@ -83,13 +93,14 @@ public interface VirtualFileSystem {
     // This replaces getBooleanAttributes0, it returns the Unix mode
     int getMode(String path);
 
+    // This replaces setPermission, it sets the Unix mode
+    int setMode(String path, int mode);
+
     long getLastModifiedTime(String path);
 
     boolean checkAccess(String path, int access);
 
     long getLength(String path);
-
-    boolean setPermission(String path, int access, boolean enable, boolean owneronly);
 
     boolean createFileExclusively(String path) throws IOException;
 
@@ -102,8 +113,6 @@ public interface VirtualFileSystem {
     boolean rename0(String path1, String path2);
 
     boolean setLastModifiedTime(String path, long time);
-
-    boolean setReadOnly(String path);
 
     long getSpace(String path, int t);
 

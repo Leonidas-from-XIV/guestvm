@@ -31,36 +31,36 @@
  */
 package com.sun.guestvm.process;
 
+import com.sun.guestvm.fs.*;
+import com.sun.guestvm.fs.tmp.*;
+
 /**
- * An instance of a class that implements this interface can be registered with Guest VM to intercept @see java.lang.Process calls and implement them internally.
+ * A filter for for chmod for internal file systems.
  *
  * @author Mick Jordan
  *
  */
 
-public interface GuestVMProcessFilter {
-    /**
-     * Returns the names of the processes that this filter handles.
-     * @return process to filter
-     */
-    String[] names();
+public class ChmodProcessFilter extends ProcessFilterHelper {
 
-    /**
-     * Execute the process that this filter handles with the given arguments.
-     * The return value is either negative, indicating a failure to exec or a
-     * positive value that will be passed to the @see FilterFileSystem when
-     * creating the file descriptors for stdin, stdout and stderr.
-     * @param prog
-     * @param argBlock
-     * @param argc
-     * @param envBlock
-     * @param envc
-     * @param dir
-     * @return a negative value indicating error or a positive integer identifying the exec instance
-     */
-    int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir);
+    public ChmodProcessFilter() {
+        super("chmod");
+    }
 
-    void registerFds(int[] fds);
+    @Override
+    public int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir) {
+        assert argc == 2;
+        final String[] args = cmdArgs(argBlock);
+        /* this is a very partial implementation, just support "chmod octal-mode file" */
+        final int mode = Integer.parseInt(args[0], 8);
+        final String path = args[1];
+        final VirtualFileSystem vfs = FSTable.exports(path);
+        if (vfs == null) {
+            return -1;
+        } else {
+            vfs.setMode(path, mode);
+        }
+        return nextId();
+    }
 
-    // int waitForProcessExit(int key);
 }

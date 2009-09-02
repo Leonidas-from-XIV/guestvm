@@ -392,35 +392,19 @@ public final class NfsFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable, boolean owneronly) {
+    public int setMode(String path, int mode) {
         try {
             final Nfs fsEntry = matchPath(path);
             if (fsEntry != null) {
-                final int oldMode = fsEntry.mode();
-                int modeChange = 0;
-                switch (access) {
-                    case ACCESS_READ:
-                        modeChange = owneronly ? S_IRUSR : S_IRUSR | S_IRGRP | S_IROTH;
-                        break;
-                    case ACCESS_WRITE:
-                        modeChange = owneronly ? S_IWUSR : S_IWUSR | S_IWGRP | S_IWOTH;
-                        break;
-                    case ACCESS_EXECUTE:
-                        modeChange = owneronly ? S_IXUSR : S_IXUSR | S_IXGRP | S_IXOTH;
-                        break;
-                }
-                fsEntry.mode(enable ? oldMode | modeChange : oldMode & ~modeChange);
-                return true;
+                fsEntry.mode(mode);
+                return 0;
+            } else {
+                return -ErrorDecoder.Code.ENOENT.getCode();
             }
         } catch (IOException ex) {
             _logger.warning(ex.toString());
         }
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        return setPermission(path, ACCESS_WRITE, false, false);
+        return -ErrorDecoder.Code.EIO.getCode();
     }
 
     @Override

@@ -38,7 +38,7 @@ import com.sun.max.vm.*;
 import com.sun.max.vm.reference.*;
 import com.sun.max.memory.Memory;
 import com.sun.guestvm.fs.*;
-import com.sun.max.program.ProgramError;
+import com.sun.guestvm.error.*;
 
 /**
  * This is not really a file system, it just supports the standard file descriptors
@@ -152,16 +152,9 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable,
-            boolean owneronly) {
+    public int setMode(String path, int mode) {
         unimplemented("setPermission");
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        unimplemented("setReadOnly");
-        return false;
+        return -1;
     }
 
     @Override
@@ -229,7 +222,7 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     }
 
     private static void unimplemented(String w) {
-        ProgramError.unexpected("ConsoleFileSystem unimplemented operation:" + w);
+        GuestVMError.unimplemented("ConsoleFileSystem operation:" + w);
     }
 
     private static native int nativeWriteBytes(int fd, Pointer p, int length);

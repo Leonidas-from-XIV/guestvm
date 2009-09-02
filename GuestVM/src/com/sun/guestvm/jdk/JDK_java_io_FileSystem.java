@@ -34,7 +34,7 @@ package com.sun.guestvm.jdk;
 import java.lang.reflect.*;
 
 import com.sun.max.annotate.*;
-import com.sun.max.program.*;
+import com.sun.guestvm.error.*;
 
 /**
  * GuestVM also uses a UnixFileSystem object as the FileSystem.
@@ -60,7 +60,7 @@ public final class JDK_java_io_FileSystem {
                 c.setAccessible(true);
                 _singleton = c.newInstance();
             } catch (Exception ex) {
-                ProgramError.unexpected("failed to construct java.io.UnixFileSystem", ex);
+                GuestVMError.unexpected("failed to construct java.io.UnixFileSystem: " + ex);
                 return null;
             }
         }

@@ -36,8 +36,7 @@ import java.io.IOException;
 import com.sun.guestvm.fs.DefaultFileSystemImpl;
 import com.sun.guestvm.fs.VirtualFileSystem;
 import com.sun.guestvm.fs.VirtualFileSystemId;
-import com.sun.max.program.ProgramError;
-
+import com.sun.guestvm.error.*;
 /**
  * All the unimplemented methods for ExecFileSystem and FilterFileSystem.
  *
@@ -62,24 +61,25 @@ public abstract class ExecHelperFileSystem extends DefaultFileSystemImpl impleme
     }
 
     /**
-     * Default implementation encodes the fd in the key.
+     * Implementation encodes the fd in the key.
+     * E.g., 0, 0+1, 0+2, 3, 3+1, 3+2, ..., 3n, 3n+1, 3n+2
      *
      * @param key
      * @return
      */
-    protected int[] getSpecificFds(int key) {
+    final int[] getSpecificFds(int key) {
         return new int[] {key, key + 1, key + 2};
     }
 
     @Override
     public String canonicalize0(String path) throws IOException {
-        ProgramError.unexpected("canonicalize0 not implemented");
+        unimplemented("canonicalize0");
         return null;
     }
 
     @Override
     public boolean checkAccess(String path, int access) {
-        ProgramError.unexpected("checkAccess not implemented");
+        unimplemented("checkAccess");
         return false;
     }
 
@@ -89,122 +89,120 @@ public abstract class ExecHelperFileSystem extends DefaultFileSystemImpl impleme
 
     @Override
     public boolean createDirectory(String path) {
-        ProgramError.unexpected("createDirectory not implemented");
+        unimplemented("createDirectory");
         return false;
     }
 
     @Override
     public boolean createFileExclusively(String path) throws IOException {
-        ProgramError.unexpected("createFileExclusively not implemented");
+        unimplemented("createFileExclusively");
         return false;
     }
 
     @Override
     public boolean delete0(String path) {
-        ProgramError.unexpected("delete0 not implemented");
+        unimplemented("delete0");
         return false;
     }
 
     @Override
     public long getLastModifiedTime(String path) {
-        ProgramError.unexpected("getLastModifiedTime not implemented");
+        unimplemented("getLastModifiedTime");
         return 0;
     }
 
     @Override
     public long getLength(String path) {
-        ProgramError.unexpected("getLength not implemented");
+        unimplemented("getLength");
         return 0;
     }
 
     @Override
     public long getLength(int fd) {
-        ProgramError.unexpected("getLength not implemented");
+        unimplemented("getLength");
         return 0;
     }
 
     @Override
     public int getMode(String path) {
-        ProgramError.unexpected("getMode not implemented");
+        unimplemented("getMode");
         return 0;
     }
 
     @Override
     public long getSpace(String path, int t) {
-        ProgramError.unexpected("getSpace not implemented");
+        unimplemented("getSpace");
         return 0;
     }
 
     @Override
     public String[] list(String path) {
-        ProgramError.unexpected("list not implemented");
+        unimplemented("list");
         return null;
     }
 
     @Override
     public int open(String name, int flags) {
-        ProgramError.unexpected("open not implemented");
+        unimplemented("open");
         return 0;
     }
 
     @Override
     public int read(int fd, long fileOffset) {
-        ProgramError.unexpected("read not implemented");
+        unimplemented("read");
         return 0;
     }
 
     @Override
     public boolean rename0(String path1, String path2) {
-        ProgramError.unexpected("rename0 not implemented");
+        unimplemented("rename0");
         return false;
     }
 
     @Override
     public boolean setLastModifiedTime(String path, long time) {
-        ProgramError.unexpected("setLastModifiedTime not implemented");
+        unimplemented("setLastModifiedTime");
         return false;
     }
 
     @Override
     public int setLength(int fd, long length) {
-        ProgramError.unexpected("setLength not implemented");
+        unimplemented("setLength");
         return 0;
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable, boolean owneronly) {
-        ProgramError.unexpected("setPermission not implemented");
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        ProgramError.unexpected("setReadOnly not implemented");
-        return false;
+    public int setMode(String path, int mode) {
+        unimplemented("setPermission");
+        return -1;
     }
 
     @Override
     public long skip(int fd, long n, long fileOffset) {
-        ProgramError.unexpected("skip not implemented");
+        unimplemented("skip");
         return 0;
     }
 
     @Override
     public long uniqueId(int fd) {
-        ProgramError.unexpected("uniqueId not implemented");
+        unimplemented("uniqueId");
         return 0;
     }
 
     @Override
     public int write(int fd, int b, long fileOffset) {
-        ProgramError.unexpected("write not implemented");
+        unimplemented("write");
         return 0;
     }
 
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        ProgramError.unexpected("writeBytes not implemented");
+        unimplemented("writeBytes");
         return 0;
+    }
+
+    private static void unimplemented(String w) {
+        GuestVMError.unimplemented("ExecHelperFileSystem operation:" + w);
     }
 
 }

@@ -29,38 +29,31 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.process;
+package com.sun.guestvm.error;
 
-/**
- * An instance of a class that implements this interface can be registered with Guest VM to intercept @see java.lang.Process calls and implement them internally.
- *
- * @author Mick Jordan
- *
- */
 
-public interface GuestVMProcessFilter {
-    /**
-     * Returns the names of the processes that this filter handles.
-     * @return process to filter
-     */
-    String[] names();
+public class GuestVMError {
+    private static class Exception extends java.lang.Exception {
+        Exception(String msg) {
+            super(msg);
+        }
+    }
 
-    /**
-     * Execute the process that this filter handles with the given arguments.
-     * The return value is either negative, indicating a failure to exec or a
-     * positive value that will be passed to the @see FilterFileSystem when
-     * creating the file descriptors for stdin, stdout and stderr.
-     * @param prog
-     * @param argBlock
-     * @param argc
-     * @param envBlock
-     * @param envc
-     * @param dir
-     * @return a negative value indicating error or a positive integer identifying the exec instance
-     */
-    int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir);
+    public static void unimplemented(String msg) {
+        try {
+            throw new Exception("unimplemented " + msg);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
-    void registerFds(int[] fds);
-
-    // int waitForProcessExit(int key);
+    public static void unexpected(String msg) {
+        try {
+            throw new Exception("unexpected " + msg);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(-1);
+        }
+    }
 }

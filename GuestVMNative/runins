@@ -75,6 +75,7 @@ do
     echocmd=1;
     ;;
   "-trace" )
+    shift
     trace="$1"
     ;;
   "-c" )

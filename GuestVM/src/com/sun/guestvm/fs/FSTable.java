@@ -35,7 +35,6 @@ import java.util.*;
 
 import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
-import com.sun.guestvm.fs.exec.ExecFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
 import com.sun.guestvm.fs.image.ImageFileSystem;
 import com.sun.guestvm.fs.nfs.NfsFileSystem;
@@ -64,6 +63,7 @@ public class FSTable {
     private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/java" + FS_INFO_SEPARATOR + READ_ONLY;
     private static final String FS_OPTIONS_SEPARATOR = ",";
     private static boolean _initFSTable;
+    private static RootFileSystem _rootFS;
     private static Logger _logger;
 
     public static class Info {
@@ -95,6 +95,10 @@ public class FSTable {
             return false;
         }
 
+        public String mountPath() {
+            return _mountPath;
+        }
+
         @Override
         public boolean equals(Object other) {
             return _mountPath.equals((Info) other);
@@ -118,9 +122,9 @@ public class FSTable {
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
+            _rootFS = RootFileSystem.create();
             initFS(new Info("img", ImageFileSystem.getPath(), ImageFileSystem.getPath(), null));
             initFS(new Info("tmp", TmpFileSystem.getPath(), TmpFileSystem.getPath(), null));
-            initFS(new Info("exec", "exec", "exec", null));
 
             String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
             if (fsTableProperty == null) {
@@ -176,8 +180,6 @@ public class FSTable {
             result = ImageFileSystem.create();
         } else if (fsInfo._type.equals("tmp")) {
             result = TmpFileSystem.create();
-        } else if (fsInfo._type.equals("exec")) {
-            result = ExecFileSystem.create();
         }
         return checkedPut(fsInfo, result);
     }
@@ -187,6 +189,7 @@ public class FSTable {
         if (fs != null) {
             fsInfo._fs = fs;
             _fsTable.put(fsInfo, fs);
+            RootFileSystem.mount(fsInfo);
         }
         return fs;
     }
@@ -216,6 +219,10 @@ public class FSTable {
                 return fsInfo._fs;
             }
         }
+        /* We may have been given a path that is above the mount points */
+        if (_rootFS.getMode(path) > 0) {
+            return _rootFS;
+        }
         return null;
     }
 
@@ -224,5 +231,6 @@ public class FSTable {
             close();
         }
     }
+
 
 }

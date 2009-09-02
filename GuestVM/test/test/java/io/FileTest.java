@@ -140,6 +140,9 @@ public class FileTest {
                 } else if (op.equals("mkdir")) {
                     final boolean rc = file.mkdir();
                     System.out.println("mkdir of " + fileName + checkRc(rc));
+                } else if (op.equals("mkdirs")) {
+                    final boolean rc = file.mkdirs();
+                    System.out.println("mkdirs of " + fileName + checkRc(rc));
                 } else if (op.equals("rename")) {
                     final boolean rc = file.renameTo(new File(fileNames2[j]));
                     System.out.println("rename of " + fileName + " to "

@@ -34,7 +34,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 
 import com.sun.max.annotate.*;
-import com.sun.max.program.ProgramError;
+import com.sun.guestvm.error.*;
 import static com.sun.guestvm.fs.VirtualFileSystem.*;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
@@ -66,12 +66,12 @@ public class JDK_java_io_RandomAccessFile {
         } else if ((mode & RA_RDWR) != 0) {
             uMode = O_RDWR | O_CREAT;
             if ((mode & RA_SYNC) != 0) {
-                error("SYNC not implemented");
+                GuestVMError.unimplemented("RandomAccessFile SYNC mode");
             } else if ((mode & RA_DSYNC) != 0) {
-                error("DSYNC not implemented");
+                GuestVMError.unimplemented("RandomAccessFile DSYNC mode");
             }
         } else {
-            error("RandomAccessFile.open unexpected mode");
+            GuestVMError.unexpected("RandomAccessFile.open mode: " + mode);
         }
         JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, uMode);
     }
@@ -129,10 +129,6 @@ public class JDK_java_io_RandomAccessFile {
     @SUBSTITUTE
     private static void initIDs() {
 
-    }
-
-    private static void error(String m) {
-        ProgramError.unexpected(m);
     }
 
     @CONSTANT_WHEN_NOT_ZERO

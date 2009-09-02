@@ -53,6 +53,7 @@ final class JDK_java_lang_UNIXProcess {
     private static Logger _logger;
     private static ExecFileSystem _execFS;
     private static FilterFileSystem _filterFS;
+    private static final int FILTER_BIT = 0x40000000;
 
     private static void init() {
         if (_logger == null) {
@@ -62,19 +63,30 @@ final class JDK_java_lang_UNIXProcess {
         }
     }
 
+    private static boolean isFilter(int key) {
+        return (key & FILTER_BIT) != 0;
+    }
+
     @SUBSTITUTE
-    private int waitForProcessExit(int pid) {
-        return GUKExec.waitForProcessExit(pid);
+    private int waitForProcessExit(int key) {
+        if (isFilter(key)) {
+            return 0;
+        } else {
+            return GUKExec.waitForProcessExit(key);
+        }
     }
 
     @SUBSTITUTE
     private int forkAndExec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir, boolean redirectErrorStream, FileDescriptor stdinFd, FileDescriptor stdoutFd,
                     FileDescriptor stderrFd) throws IOException {
-        int pid;
+        int key;
+        int rkey;
         ExecHelperFileSystem execFS;
         init();
-        if (GuestVMProcess.filter(prog)) {
-            pid = GuestVMProcess.exec(prog, argBlock, argc, envBlock, envc, dir);
+        final GuestVMProcessFilter filter = GuestVMProcess.filter(prog);
+        if (filter != null) {
+            key = filter.exec(prog, argBlock, argc, envBlock, envc, dir);
+            rkey = key | FILTER_BIT;
             execFS = _filterFS;
         } else {
             if (_logger.isLoggable(Level.WARNING)) {
@@ -86,18 +98,23 @@ final class JDK_java_lang_UNIXProcess {
                 bytePrint(prog, ' ');
                 bytePrintBlock(argBlock, '\n');
             }
-            pid = GUKExec.forkAndExec(prog, argBlock, argc, dir);
+            key = GUKExec.forkAndExec(prog, argBlock, argc, dir);
+            rkey = key;
             execFS = _execFS;
         }
-        if (pid < 0) {
+        if (key < 0) {
             throw new IOException("Exec failed");
         } else {
-            final int[] fds = execFS.getFds(pid);
+            final int[] fds = execFS.getFds(key);
             TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[0]);
             TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[1]);
             TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[2]);
+            if (isFilter(rkey)) {
+                filter.registerFds(fds);
+            }
         }
-        return pid;
+        /* The value we return encodes whether or not the exec is a filter, which is (only) used by waitForProcess/destroyProcess */
+        return rkey;
     }
 
     /**

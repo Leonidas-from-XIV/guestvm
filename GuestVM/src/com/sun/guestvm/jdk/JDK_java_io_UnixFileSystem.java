@@ -174,7 +174,31 @@ public final class JDK_java_io_UnixFileSystem {
         if (fs == null) {
             return false;
         }
-        return fs.setPermission(absPath, access, enable, owneronly);
+        int amode = 0;
+        switch (access) {
+            case ACCESS_READ:
+                amode = owneronly ? S_IRUSR : S_IRUSR | S_IRGRP | S_IROTH;
+                break;
+            case ACCESS_WRITE:
+                amode = owneronly ? S_IWUSR : S_IWUSR | S_IWGRP | S_IWOTH;
+                break;
+            case ACCESS_EXECUTE:
+                amode = owneronly ? S_IXUSR : S_IXUSR | S_IXGRP | S_IXOTH;
+                break;
+            default:
+                assert false;
+        }
+        int mode = fs.getMode(absPath);
+        if (mode >= 0) {
+            if (enable) {
+                mode |= amode;
+            } else {
+                mode &= ~amode;
+            }
+            return fs.setMode(absPath, mode) >= 0;
+        } else {
+            return false;
+        }
     }
 
     @SUBSTITUTE
@@ -248,7 +272,8 @@ public final class JDK_java_io_UnixFileSystem {
         if (fs == null) {
             return false;
         }
-        return fs.setReadOnly(absPath);
+        final int mode = fs.getMode(absPath);
+        return fs.setMode(absPath, mode & ~(S_IWUSR | S_IWGRP | S_IWOTH)) >= 0;
     }
 
     @SUBSTITUTE

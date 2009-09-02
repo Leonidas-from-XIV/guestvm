@@ -42,8 +42,8 @@ import org.jnode.driver.block.*;
 import org.jnode.fs.*;
 import org.jnode.fs.ext2.*;
 
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
-import com.sun.guestvm.fs.ErrorDecoder;
 
 /**
  * This is the ext2 file from JNode system that GuestVM uses for the virtual disk device.
@@ -414,7 +414,7 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
 
     @Override
     public boolean rename0(String path1, String path2) {
-        // TODO Auto-generated method stub
+        GuestVMError.unimplemented("Ext2FileSystem.rename0");
         return false;
     }
 
@@ -442,15 +442,9 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable, boolean owneronly) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        // TODO Auto-generated method stub
-        return false;
+    public int setMode(String path, int mode) {
+        GuestVMError.unimplemented("Ext2FileSystem.setPermission");
+        return -1;
     }
 
     @Override
@@ -559,7 +553,7 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
 
     @Override
     public long skip(int fd, long n, long fileOffset) {
-        // TODO Implement
+        GuestVMError.unimplemented("Ext2FileSystem.skip");
         return 0;
     }
 

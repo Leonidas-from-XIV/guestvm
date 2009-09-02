@@ -52,8 +52,7 @@ public class WhoamiProcessFilter extends ProcessFilterHelper {
         return nextId();
     }
 
-    protected int readBytes(int key, byte[] bytes, int offset, int length, long fileOffset) {
-        final int fd = keyToFd(key);
+    protected int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         if (fd == StdIO.ERR.ordinal()) {
             return 0;
         } else if (fd == StdIO.OUT.ordinal()) {

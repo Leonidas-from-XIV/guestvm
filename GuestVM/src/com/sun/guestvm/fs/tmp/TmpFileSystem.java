@@ -35,9 +35,8 @@ import java.io.*;
 import java.util.*;
 
 import com.sun.guestvm.jdk.*;
-import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
-import com.sun.max.program.ProgramError;
 
 /**
  * A heap-based file system for /tmp.
@@ -257,7 +256,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         if (d != null) {
             return d._mode;
         }
-        return -1;
+        return -ErrorDecoder.Code.ENOENT.getCode();
     }
 
     @Override
@@ -346,7 +345,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
 
     @Override
     public synchronized boolean rename0(String path1, String path2) {
-        // TODO Auto-generated method stub
+        GuestVMError.unimplemented("TmpFileSystem.rename0");
         return false;
     }
 
@@ -361,36 +360,13 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     }
 
     @Override
-    public synchronized boolean setPermission(String path, int access,
-            boolean enable, boolean owneronly) {
+    public synchronized int setMode(String path, int mode) {
         final DirEntry d = matchPath(path);
         if (d != null) {
-            int mode = 0;
-            switch (access) {
-                case ACCESS_READ:
-                    mode = S_IREAD;
-                    break;
-                case ACCESS_WRITE:
-                    mode = S_IWRITE;
-                    break;
-                case ACCESS_EXECUTE:
-                    mode = S_IEXEC;
-                    break;
-            }
-            d._mode = enable ? d._mode | mode : d._mode & ~mode;
-            return true;
+            d._mode = mode;
+            return 0;
         }
-        return false;
-    }
-
-    @Override
-    public synchronized boolean setReadOnly(String path) {
-        final DirEntry d = matchPath(path);
-        if (d != null) {
-            d._mode &= ~S_IWRITE;
-            return true;
-        }
-        return false;
+        return -ErrorDecoder.Code.ENOENT.getCode();
     }
 
     @Override

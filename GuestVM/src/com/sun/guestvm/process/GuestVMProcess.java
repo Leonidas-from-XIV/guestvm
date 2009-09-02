@@ -37,7 +37,7 @@ import java.util.*;
 import com.sun.max.program.*;
 
 /**
- * A class that manages the optional filtering of Process requests.
+ * A class that manages classes that act ass filters for exec calls..
  *
  * @author Mick Jordan
  *
@@ -47,14 +47,14 @@ public class GuestVMProcess {
     private static Map<String, GuestVMProcessFilter> _filters = new HashMap<String, GuestVMProcessFilter>();
     private static boolean _init = false;
 
-    public static boolean filter(byte[] prog) {
+    public static GuestVMProcessFilter filter(byte[] prog) {
         init();
-        System.out.println("filter " + new String(prog) + " returned " + _filters.containsKey(new String(prog)));
-        return _filters.containsKey(new String(prog));
+        return _filters.get(stripNull(prog));
     }
 
-    public static int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir) {
-        return _filters.get(new String(prog)).exec(prog, argBlock, argc, envBlock, envc, dir);
+    private static String stripNull(byte[] prog) {
+        /* prog is null terminated, but String will treat the null as a character. */
+        return new String(prog, 0, prog.length - 1);
     }
 
     private static void init() {

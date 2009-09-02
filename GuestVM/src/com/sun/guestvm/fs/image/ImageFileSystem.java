@@ -35,10 +35,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import com.sun.max.program.*;
 import com.sun.max.vm.MaxineVM;
-import com.sun.max.vm.runtime.*;
 import com.sun.max.vm.run.extendimage.*;
+import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -212,14 +211,8 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
     }
 
     @Override
-    public boolean setPermission(String path, int access, boolean enable,
-            boolean owneronly) {
-        return false;
-    }
-
-    @Override
-    public boolean setReadOnly(String path) {
-        return false;
+    public int setMode(String path, int mode) {
+        return -ErrorDecoder.Code.EROFS.getCode();
     }
 
     // FileInputStream, FileOutputStream
@@ -251,15 +244,13 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
 
     @Override
     public int write(int fd, int b, long fileOffset) {
-        ProgramError.unexpected("write not implemented");
-        return 0;
+        return -ErrorDecoder.Code.EROFS.getCode();
 
     }
 
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        ProgramError.unexpected("writeBytes not implemented");
-        return 0;
+        return -ErrorDecoder.Code.EROFS.getCode();
     }
 
     @Override
@@ -308,8 +299,12 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
 
     @Override
     public long uniqueId(int fd) {
-        FatalError.crash("ImageFileSystem.uniqueId not implemented");
+        unimplemented("uniqueId");
         return -1;
+    }
+
+    private static void unimplemented(String w) {
+        GuestVMError.unimplemented("ImageFileSystem operation:" + w);
     }
 
 }
