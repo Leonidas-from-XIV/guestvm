@@ -236,7 +236,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         // This is where the native code has the edge for now. For smallish arrays it uses C stack allocation
         // for the place to read the data to.
-        final Pointer nativeBytes = Memory.allocate(length);
+        final Pointer nativeBytes = Memory.allocate(Size.fromInt(length));
         final int result = SiblingFileSystemNatives.readBytes(_handle, fd, nativeBytes, length, fileOffset);
         Memory.readBytes(nativeBytes, length, bytes, offset);
         Memory.deallocate(nativeBytes);
@@ -250,7 +250,7 @@ public final class SiblingFileSystem implements VirtualFileSystem {
 
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = Memory.allocate(length);
+        final Pointer nativeBytes = Memory.allocate(Size.fromInt(length));
         // This is where the native code has the edge for now. For smallish arrays it uses C stack allocation
         // for the place to copy the data to.
         Memory.writeBytes(bytes, offset, length, nativeBytes);

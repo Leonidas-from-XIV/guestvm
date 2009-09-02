@@ -44,13 +44,13 @@ import com.sun.max.memory.Memory;
 public class GUKExec {
 
     public static int forkAndExec(byte[] prog, byte[] argBlock, int argc, byte[] dir) {
-        final Pointer nativeProg = Memory.allocate(prog.length);
+        final Pointer nativeProg = Memory.allocate(Size.fromInt(prog.length));
         Memory.writeBytes(prog, nativeProg);
-        final Pointer nativeArgs = Memory.allocate(argBlock.length);
+        final Pointer nativeArgs = Memory.allocate(Size.fromInt(argBlock.length));
         Memory.writeBytes(argBlock, nativeArgs);
         Pointer nativeDir = Pointer.zero();
         if (dir != null) {
-            nativeDir = Memory.allocate(dir.length);
+            nativeDir = Memory.allocate(Size.fromInt(dir.length));
             Memory.writeBytes(dir, nativeDir);
         }
         final int rc = GUK.guk_exec_create(nativeProg, nativeArgs, argc, nativeDir);
@@ -67,7 +67,7 @@ public class GUKExec {
     }
 
     public static int readBytes(int pid, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = Memory.allocate(bytes.length);
+        final Pointer nativeBytes = Memory.allocate(Size.fromInt(bytes.length));
         final int result = GUK.guk_exec_read_bytes(pid, nativeBytes, length, fileOffset);
         if (result > 0) {
             Memory.readBytes(nativeBytes, result, bytes, offset);

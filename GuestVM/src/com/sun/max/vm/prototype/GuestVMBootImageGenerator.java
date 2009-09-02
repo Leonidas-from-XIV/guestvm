@@ -40,7 +40,7 @@ import com.sun.max.program.*;
 import com.sun.max.program.option.*;
 import test.com.sun.max.vm.compiler.JavaTester;
 
-public class GuestVMBinaryImageGenerator {
+public class GuestVMBootImageGenerator {
     private static final OptionSet _options = new OptionSet(true);
     private static final Option<String> IMAGESPEC_FILE = _options.newStringOption("specfile", "imagespecs/imagespec.io.net.tests",
                 "File containing the image build specification.");
@@ -145,7 +145,7 @@ public class GuestVMBinaryImageGenerator {
             }
         }
         final List<String> vmArgs = MAXINE_IMAGE_VMARGS.getValue();
-        String[] javaArgs = buildJavaArgs(BinaryImageGenerator.class, fixupClassPath(), vmArgs.toArray(new String[vmArgs.size()]), systemProperties, generatorArgs);
+        String[] javaArgs = buildJavaArgs(BootImageGenerator.class, fixupClassPath(), vmArgs.toArray(new String[vmArgs.size()]), systemProperties, generatorArgs);
         if (MONITOR.getValue() != null) {
             javaArgs = addArg(javaArgs, "-monitor=" + MONITOR.getValue());
         }

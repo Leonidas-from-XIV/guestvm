@@ -49,7 +49,7 @@ vcpus = os.environ.get("VCPUS")
 if os.environ.get("MEMORY") != None :
   memory = os.environ.get("MEMORY")
 else :
-  memory = 128
+  memory = 256
 
 # Initial memory allocation (in megabytes) for the new domain.
 if os.environ.get("MAXMEM") != None :

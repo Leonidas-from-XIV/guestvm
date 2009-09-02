@@ -105,6 +105,10 @@ unsigned long allocate_heap_region_vs(int n, int twomb) {
 	  unsigned long physaddr = 0;
 	  int slot = 0;
 	  int vsize = n * PAGE_SIZE;
+	  if (vsize < MIN_HEAP_REGION_SIZE) {
+		  vsize = MIN_HEAP_REGION_SIZE;
+		  n = vsize / PAGE_SIZE;
+	  }
 	  if (heap_regions_base == 0) {
 		  init_bitmap();
 	  }
