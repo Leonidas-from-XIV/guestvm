@@ -178,6 +178,7 @@ public final class Ext2FileSystem extends DefaultFileSystemImpl implements Virtu
         } catch (IOException ex) {
             _logger.warning(ex.toString());
         }
+        fileData._byteBuffer = null;
         _openFiles.set(fd, null);
         return 0;
     }

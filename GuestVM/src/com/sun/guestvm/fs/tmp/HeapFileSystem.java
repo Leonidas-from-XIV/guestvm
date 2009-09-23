@@ -35,7 +35,6 @@ import java.io.*;
 import java.util.*;
 
 import com.sun.guestvm.jdk.*;
-import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -43,12 +42,16 @@ import com.sun.guestvm.fs.*;
  * Single global lock protects everything accessed through public methods.
  */
 
-public final class TmpFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+public final class HeapFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
 
-    private static TmpFileSystem _singleton;
+    @SuppressWarnings("unused")
+    private String _devPath;
+    private String _mountPath;
+    private int _mountPathPrefixIndex;
     private SubDirEntry _root = new SubDirEntry(null);
     private List<FileEntry> _openFiles = new ArrayList<FileEntry>();
     private static final int READ_WRITE = S_IREAD | S_IWRITE;
+    private static int _tmpSize;
 
     abstract static  class DirEntry {
         int _mode = READ_WRITE;
@@ -90,6 +93,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         void addCapacity(long fileOffset) {
             _blocks.add(_nextIndex++, new byte[FILE_BLOCK_SIZE]);
             _maxSize += FILE_BLOCK_SIZE;
+            _tmpSize += FILE_BLOCK_SIZE;
         }
 
         void write(int b, long fileOffset) {
@@ -134,20 +138,14 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
         }
     }
 
-    private TmpFileSystem() {
-        _root.put("tmp", new SubDirEntry(_root));
+    private HeapFileSystem(String devPath, String mountPath) {
+        _devPath = devPath;
+        _mountPath = mountPath;
+        _mountPathPrefixIndex = _mountPath.split(File.separator).length;
     }
 
-    public static TmpFileSystem create() {
-        if (_singleton != null) {
-            return _singleton;
-        }
-        _singleton = new TmpFileSystem();
-        return _singleton;
-    }
-
-    public static String getPath() {
-        return "/tmp";
+    public static HeapFileSystem create(String devPath, String mountPath) {
+        return new HeapFileSystem(devPath, mountPath);
     }
 
     @Override
@@ -195,7 +193,6 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     }
 
     private synchronized boolean create(String path, boolean isFile) {
-        assert path.startsWith(getPath());
         final Match m = match(path, false);
         if (m == null || m.matchTail() != null) {
             return false;
@@ -213,7 +210,9 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
             if (dd != null) {
                 if (dd.isFile()) {
                     // TODO permissions
+                    final FileEntry fdd = (FileEntry) dd;
                     m._d._contents.remove(m._tail);
+                    _tmpSize -= fdd._maxSize;
                     return true;
                 } else {
                     // check empty
@@ -261,8 +260,17 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
 
     @Override
     public synchronized long getSpace(String path, int t) {
-        // TODO Auto-generated method stub
-        return 0;
+        switch (t) {
+            case SPACE_TOTAL:
+                return Runtime.getRuntime().freeMemory() + _tmpSize;
+            case SPACE_USABLE:
+            case SPACE_FREE:
+                return Runtime.getRuntime().freeMemory();
+            case SPACE_USED:
+                return _tmpSize;
+            default:
+                return 0;
+        }
     }
 
     @Override
@@ -345,7 +353,28 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
 
     @Override
     public synchronized boolean rename0(String path1, String path2) {
-        GuestVMError.unimplemented("TmpFileSystem.rename0");
+        final Match m1 = match(path1, false);
+        final Match m2 = match(path2, false);
+        /* At this point we should have matched up to the last component of both paths */
+        if (m1 != null && m2 != null) {
+            final DirEntry d1 = m1.matchTail();
+            if (d1 == null) {
+                /* path1 does not exist */
+                return false;
+            }
+            final DirEntry d2 = m2.matchTail();
+            if (d1 == d2) {
+                /* rename to self */
+                return true;
+            }
+            if (d2 != null) {
+                /* path2 already exists */
+                return false;
+            }
+            m1._d._contents.remove(m1._tail);
+            m2._d._contents.put(m2._tail, d1);
+            return true;
+        }
         return false;
     }
 
@@ -363,7 +392,7 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
     public synchronized int setMode(String path, int mode) {
         final DirEntry d = matchPath(path);
         if (d != null) {
-            d._mode = mode;
+            d._mode |= mode & S_IAMB;
             return 0;
         }
         return -ErrorDecoder.Code.ENOENT.getCode();
@@ -473,9 +502,12 @@ public final class TmpFileSystem extends DefaultFileSystemImpl implements Virtua
      */
     private Match match(String name, boolean complete) {
         final String[] parts = name.split(File.separator);
+        if (parts.length <= _mountPathPrefixIndex) {
+            return new Match(_root, ".");
+        }
         SubDirEntry d = _root;
         final int length = complete ? parts.length : parts.length - 1;
-        for (int i = 1; i < length; i++) {
+        for (int i = _mountPathPrefixIndex; i < length; i++) {
             final DirEntry dd = d.get(parts[i]);
             if (dd == null || dd.isFile() || (dd._mode & S_IEXEC) == 0) {
                 return null;

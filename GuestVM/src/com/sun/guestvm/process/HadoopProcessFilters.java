@@ -29,56 +29,31 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.lang;
+package com.sun.guestvm.process;
 
 import java.util.*;
 
-public class ThreadYieldTest extends Thread {
+public class HadoopProcessFilters extends GuestVMProcessFilter {
 
-    private static boolean _done;
-    private static int _runTime = 60;
-    private long _count;
+    private BashProcessFilter _bashFilter = new BashProcessFilter();
+    private ChmodProcessFilter _chmodFilter = new ChmodProcessFilter();
+    private WhoamiProcessFilter _whoamiFilter = new WhoamiProcessFilter();
+    private Map<String, GuestVMProcessFilter> _map = new HashMap<String, GuestVMProcessFilter>(5);
 
-
-    public static void main(String[] args) throws InterruptedException {
-
-        int nThreads = 2;
-        final Timer timer = new Timer(true);
-        for (int i = 0; i < args.length; i++) {
-            final String arg = args[i];
-            if (arg.equals("t")) {
-                nThreads = Integer.parseInt(args[++i]);
-            } else if (arg.equals("r")) {
-                _runTime = Integer.parseInt(args[++i]) * 1000;
-            }
-        }
-        timer.schedule(new MyTimerTask(), _runTime * 1000);
-        final ThreadYieldTest[] threads = new ThreadYieldTest[nThreads];
-        for (int t = 0; t < nThreads; t++) {
-            threads[t] = new ThreadYieldTest();
-            threads[t].setName("T" + t);
-        }
-        for (Thread thread : threads) {
-            thread.start();
-        }
-        for (Thread thread : threads) {
-            thread.join();
-        }
-        for (ThreadYieldTest thread : threads) {
-            System.out.println(thread.getName() + ": " + thread._count);
-        }
+    public HadoopProcessFilters() {
+        _map.put(_bashFilter.names()[0], _bashFilter);
+        _map.put(_chmodFilter.names()[0], _chmodFilter);
+        _map.put(_whoamiFilter.names()[0], _whoamiFilter);
     }
 
-    public void run() {
-        while (!_done) {
-            _count++;
-            Thread.yield();
-        }
+    @Override
+    public int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir) {
+        return _map.get(GuestVMProcessFilter.stripNull(prog)).exec(prog, argBlock, argc, envBlock, envc, dir);
     }
 
-    static class MyTimerTask extends TimerTask {
-        public void run() {
-            _done = true;
-        }
+    @Override
+    public String[] names() {
+        return _map.keySet().toArray(new String[_map.size()]);
     }
+
 }

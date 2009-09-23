@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 package com.sun.guestvm.net.tcp;
 //
@@ -74,8 +74,6 @@ public class TCPEndpoint implements Endpoint {
     // binding to the same port.
     // The bound port number is returned.
     public int bind(int addr, int port, boolean reuse) throws IOException {
-        Debug.println("TCPEndpoint.bind: " + port);
-
         // can't bind() an endpoint twice.
         if (tcp._localPort != 0) {
             throw new BindException("port in use");
@@ -185,7 +183,7 @@ public class TCPEndpoint implements Endpoint {
 
     public int available() {
         int n = 0;
-           n = tcp.available();
+        n = tcp.available();
         return n;
     }
 
@@ -201,16 +199,5 @@ public class TCPEndpoint implements Endpoint {
         return tcp._remotePort;
     }
 
-    private static boolean debug = false;
-
-    private static void dprint(String mess) {
-        Debug.println("TCPEndpoint: " + mess);
-    }
-
-    private static void err(String mess) {
-        Debug.println("TCPEndpoint: " + mess);
-    }
-
-    //----------------------------------------------------------------------
 }
 

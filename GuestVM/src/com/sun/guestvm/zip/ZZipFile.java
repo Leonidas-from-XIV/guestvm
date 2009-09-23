@@ -98,16 +98,16 @@ public final class ZZipFile {
                 zipFile.readCEN(-1);
                 _cache.put(name, zipFile);
             } catch (FileNotFoundException ex) {
-                throwDefaultZipException();
+                throwDefaultZipException(ex);
             } catch (IOException ex) {
-                throwDefaultZipException();
+                throwDefaultZipException(ex);
             }
         }
         return zipFile;
     }
 
-    private static void throwDefaultZipException() throws ZipException {
-        throw new ZipException("error in opening zip file");
+    private static void throwDefaultZipException(IOException ex) throws ZipException {
+        throw new ZipException("error in opening zip file: " + ex.getMessage());
     }
 
     public long getId() {
@@ -276,7 +276,7 @@ public final class ZZipFile {
             readFullyAt(b, off, len, entryPos);
             return len;
         } catch (IOException ex) {
-            throwDefaultZipException();
+            throwDefaultZipException(ex);
         }
         return -1;
     }
@@ -431,7 +431,7 @@ public final class ZZipFile {
         final byte[] endBuf = new byte[ENDHDR];
         final long endPos = findEND(endBuf);
         if (endPos == 0) {
-            throwDefaultZipException();
+            throw new ZipException("findEND returned zero");
         }
         final int cenLen = getInt(endBuf, ENDSIZ);
         if (cenLen > endPos) {
@@ -521,7 +521,7 @@ public final class ZZipFile {
         return buf[off] & 0xFF | ((buf[off + 1] & 0xFF) << 8);
     }
 
-    private void readFullyAt(byte[] buf, int offset,  long len, long fileOffset) throws IOException {
+    private synchronized void readFullyAt(byte[] buf, int offset,  long len, long fileOffset) throws IOException {
         _fd.seek(fileOffset);
         _fd.readFully(buf, offset, (int) len);
     }

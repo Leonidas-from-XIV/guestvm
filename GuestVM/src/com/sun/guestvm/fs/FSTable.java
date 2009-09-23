@@ -31,15 +31,16 @@
  */
 package com.sun.guestvm.fs;
 
+import java.io.File;
 import java.util.*;
 
-import com.sun.guestvm.logging.*;
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
 import com.sun.guestvm.fs.image.ImageFileSystem;
 import com.sun.guestvm.fs.nfs.NfsFileSystem;
 import com.sun.guestvm.fs.sg.SiblingFileSystem;
-import com.sun.guestvm.fs.tmp.TmpFileSystem;
+import com.sun.guestvm.fs.tmp.HeapFileSystem;
 
 /**
  * Stores information on (mounted) file systems.
@@ -57,14 +58,18 @@ import com.sun.guestvm.fs.tmp.TmpFileSystem;
 public class FSTable {
     private static Map<Info, VirtualFileSystem> _fsTable = new HashMap<Info, VirtualFileSystem>();
     private static final String FS_TABLE_PROPERTY = "guestvm.fs.table";
+    private static final String TMPDIR_PROPERTY = "guestvm.tmpdir";
+    private static final String DEFAULT_TMPDIR= "/tmp";
     private static final String FS_INFO_SEPARATOR = ":";
     private static final String FS_TABLE_SEPARATOR = ";";
     private static final String READ_ONLY = "ro";
+    public static final String AUTO = "auto";
     private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/java" + FS_INFO_SEPARATOR + READ_ONLY;
+    public static final String TMP_FS_INFO = "heap" + FS_INFO_SEPARATOR + "/heap/0" + FS_INFO_SEPARATOR;
+    public static final String IMG_FS_INFO = "img" + FS_INFO_SEPARATOR + "/img/0" + FS_INFO_SEPARATOR;
     private static final String FS_OPTIONS_SEPARATOR = ",";
     private static boolean _initFSTable;
     private static RootFileSystem _rootFS;
-    private static Logger _logger;
 
     public static class Info {
         private String _type;
@@ -95,6 +100,16 @@ public class FSTable {
             return false;
         }
 
+        boolean autoMount() {
+            for (String option : _options) {
+                if (option.equals("auto")) {
+                    return true;
+                }
+            }
+            return false;
+
+        }
+
         public String mountPath() {
             return _mountPath;
         }
@@ -111,25 +126,31 @@ public class FSTable {
     }
 
     private static void logBadEntry(String msg) {
-        _logger.warning(msg + ", ignoring");
+        GuestVMError.unexpected(msg);
     }
 
     private static void initFSTable() {
         if (!_initFSTable) {
-            _logger = Logger.getLogger(FSTable.class.getName());
             // register shutdown hook to close file systems
             Runtime.getRuntime().addShutdownHook(new Thread(new CloseHook(), "FS_ShutdownHook"));
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
             _rootFS = RootFileSystem.create();
-            initFS(new Info("img", ImageFileSystem.getPath(), ImageFileSystem.getPath(), null));
-            initFS(new Info("tmp", TmpFileSystem.getPath(), TmpFileSystem.getPath(), null));
 
             String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
             if (fsTableProperty == null) {
                 fsTableProperty = DEFAULT_FS_TABLE_PROPERTY;
             }
+
+            /*  prepend the image and default heap fs */
+            fsTableProperty = IMG_FS_INFO + ImageFileSystem.getPath() + FS_INFO_SEPARATOR + AUTO + FS_TABLE_SEPARATOR + fsTableProperty;
+            String tmpDir = System.getProperty(TMPDIR_PROPERTY);
+            if (tmpDir == null) {
+                tmpDir = DEFAULT_TMPDIR;
+            }
+            fsTableProperty = TMP_FS_INFO + tmpDir + FS_INFO_SEPARATOR + AUTO + FS_TABLE_SEPARATOR + fsTableProperty;
+
             final String[] entries = fsTableProperty.split(FS_TABLE_SEPARATOR);
             for (String entry : entries) {
                 final String[] info = entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH);
@@ -156,7 +177,12 @@ public class FSTable {
                     options = info[2].split(FS_OPTIONS_SEPARATOR);
 
                 }
-                _fsTable.put(new Info(type, devPath, mountPath, options), null);
+                final Info fsInfo = new Info(type, devPath, mountPath, options);
+                VirtualFileSystem vfs = null;
+                if (fsInfo.autoMount()) {
+                    vfs = initFS(fsInfo);
+                }
+                _fsTable.put(fsInfo, vfs);
             }
             _initFSTable = true;
         }
@@ -178,8 +204,8 @@ public class FSTable {
             result = SiblingFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         } else if (fsInfo._type.equals("img")) {
             result = ImageFileSystem.create();
-        } else if (fsInfo._type.equals("tmp")) {
-            result = TmpFileSystem.create();
+        } else if (fsInfo._type.equals("heap")) {
+            result = HeapFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         }
         return checkedPut(fsInfo, result);
     }
@@ -192,6 +218,15 @@ public class FSTable {
             RootFileSystem.mount(fsInfo);
         }
         return fs;
+    }
+
+    public static Info getInfo(VirtualFileSystem vfs) {
+        for (Map.Entry<Info, VirtualFileSystem> entry : _fsTable.entrySet()) {
+            if (entry.getValue() == vfs) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public static void close() {
@@ -211,8 +246,10 @@ public class FSTable {
         if (!_initFSTable) {
             initFSTable();
         }
+        assert path != null;
         for (Info fsInfo : _fsTable.keySet()) {
-            if (path != null && path.startsWith(fsInfo._mountPath)) {
+            final int mountLength = fsInfo._mountPath.length();
+            if (path.startsWith(fsInfo._mountPath) && (path.length() == mountLength || path.charAt(mountLength) == File.separatorChar)) {
                 if (fsInfo._fs == null) {
                     initFS(fsInfo);
                 }

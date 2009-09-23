@@ -315,6 +315,9 @@ public class Ext2FileTool {
     }
 
     private static void copyInFile(String fileName, FSFile ext2File) throws IOException {
+        if (_verbose) {
+            System.out.println("copying file " + fileName);
+        }
         BufferedInputStream is = null;
         try {
             final byte[] buffer = new byte[4096];

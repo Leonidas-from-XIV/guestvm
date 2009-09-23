@@ -8,6 +8,7 @@ imagefile ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
 package test.jvmni
 forcemethod com.sun.guestvm.test.VmThreadTestHelper.*
 forcemethod com.sun.guestvm.test.VMTestHelper.*
+forcemethod com.sun.guestvm.test.PreRunFileCopy.*
 package com.sun.guestvm.spinlock.tas.c
 package com.sun.guestvm.spinlock.tas.p
 package com.sun.guestvm.spinlock.tas.cp

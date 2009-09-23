@@ -57,12 +57,10 @@ do
     -cp | -classpath )
 	    shift
 	    classpath=$1
-	    shift
 	    ;;
     -jar )
 	     shift
 	     jar=$1
-	     shift
 	     ;;
     -D* )
 	  vm_args
@@ -83,9 +81,9 @@ do
 	else
 	  xtra_args="$xtra_args $1"
 	fi
-	shift
 	;;
   esac
+  shift
 done
 
 if [ "$jar" == "" ] ;

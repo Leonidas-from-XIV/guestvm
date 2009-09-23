@@ -38,7 +38,7 @@ package com.sun.guestvm.process;
  *
  */
 
-public class WhoamiProcessFilter extends ProcessFilterHelper {
+public class WhoamiProcessFilter extends GuestVMProcessFilter {
 
     public WhoamiProcessFilter() {
         super("whoami");
@@ -49,26 +49,9 @@ public class WhoamiProcessFilter extends ProcessFilterHelper {
         if (userName == null) {
             return -1;
         }
-        return nextId();
-    }
-
-    protected int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        if (fd == StdIO.ERR.ordinal()) {
-            return 0;
-        } else if (fd == StdIO.OUT.ordinal()) {
-            final byte[] userName = System.getProperty("user.name").getBytes();
-            final int available = userName.length - (int) fileOffset;
-            if (available <= 0) {
-                return 0;
-            } else {
-                final int rlength = length < available ? length : available;
-                System.arraycopy(userName, (int) fileOffset, bytes, offset, rlength);
-                return rlength;
-            }
-        } else {
-            assert false;
-            return 0;
-        }
+        final int key = nextId();
+        setData(key, StdIO.OUT, System.getProperty("user.name").getBytes());
+        return key;
     }
 
 }

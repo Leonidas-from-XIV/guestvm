@@ -49,11 +49,10 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.lang.UNIXProcess")
-final class JDK_java_lang_UNIXProcess {
+public final class JDK_java_lang_UNIXProcess {
     private static Logger _logger;
     private static ExecFileSystem _execFS;
     private static FilterFileSystem _filterFS;
-    private static final int FILTER_BIT = 0x40000000;
 
     private static void init() {
         if (_logger == null) {
@@ -63,14 +62,11 @@ final class JDK_java_lang_UNIXProcess {
         }
     }
 
-    private static boolean isFilter(int key) {
-        return (key & FILTER_BIT) != 0;
-    }
-
     @SUBSTITUTE
     private int waitForProcessExit(int key) {
-        if (isFilter(key)) {
-            return 0;
+        final GuestVMProcessFilter filter = GuestVMProcessFilter.getFilter(key);
+        if (filter != null) {
+            return filter.waitForProcessExit(key);
         } else {
             return GUKExec.waitForProcessExit(key);
         }
@@ -79,28 +75,20 @@ final class JDK_java_lang_UNIXProcess {
     @SUBSTITUTE
     private int forkAndExec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir, boolean redirectErrorStream, FileDescriptor stdinFd, FileDescriptor stdoutFd,
                     FileDescriptor stderrFd) throws IOException {
-        int key;
-        int rkey;
-        ExecHelperFileSystem execFS;
         init();
-        final GuestVMProcessFilter filter = GuestVMProcess.filter(prog);
+        ExecHelperFileSystem execFS = _execFS;
+        int key;
+
+        final GuestVMProcessFilter filter = GuestVMProcessFilter.filter(prog);
         if (filter != null) {
             key = filter.exec(prog, argBlock, argc, envBlock, envc, dir);
-            rkey = key | FILTER_BIT;
-            execFS = _filterFS;
-        } else {
-            if (_logger.isLoggable(Level.WARNING)) {
-                System.out.print("WARNING: application is trying to start a subprocess: ");
-                if (dir != null) {
-                    System.out.print("in directory: ");
-                    bytePrint(dir, '\n');
-                }
-                bytePrint(prog, ' ');
-                bytePrintBlock(argBlock, '\n');
+            /* The filter may have elected to have the call (possibly modified) handled externally. */
+            if (GuestVMProcessFilter.getFilter(key) != null) {
+                execFS = _filterFS;
             }
+        } else {
+            logExec(prog, argBlock, dir);
             key = GUKExec.forkAndExec(prog, argBlock, argc, dir);
-            rkey = key;
-            execFS = _execFS;
         }
         if (key < 0) {
             throw new IOException("Exec failed");
@@ -109,12 +97,20 @@ final class JDK_java_lang_UNIXProcess {
             TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[0]);
             TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[1]);
             TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[2]);
-            if (isFilter(rkey)) {
-                filter.registerFds(fds);
-            }
         }
-        /* The value we return encodes whether or not the exec is a filter, which is (only) used by waitForProcess/destroyProcess */
-        return rkey;
+        return key;
+    }
+
+    public static void logExec(byte[] prog, byte[] argBlock, byte[] dir) {
+        if (_logger.isLoggable(Level.WARNING)) {
+            System.out.print("WARNING: application is trying to start a subprocess: ");
+            if (dir != null) {
+                System.out.print("in directory: ");
+                bytePrint(dir, '\n');
+            }
+            bytePrint(prog, ' ');
+            bytePrintBlock(argBlock, '\n');
+        }
     }
 
     /**
@@ -122,7 +118,7 @@ final class JDK_java_lang_UNIXProcess {
      * @param data
      */
     private static void bytePrint(byte[] data, char term) {
-        for (int i = 0; i < data.length - 1; i++) {
+        for (int i = 0; i < data.length; i++) {
             final byte b = data[i];
             if (b == 0) {
                 break;
@@ -137,7 +133,7 @@ final class JDK_java_lang_UNIXProcess {
      * @param data
      */
     private static void bytePrintBlock(byte[] data, char term) {
-        for (int i = 0; i < data.length - 1; i++) {
+        for (int i = 0; i < data.length; i++) {
             final byte b = data[i];
             if (b == 0) {
                 System.out.write(' ');
@@ -149,12 +145,17 @@ final class JDK_java_lang_UNIXProcess {
     }
 
     @SUBSTITUTE
-    private static void destroyProcess(int pid) {
+    private static void destroyProcess(int key) {
         init();
-        if (_logger.isLoggable(Level.WARNING)) {
-            System.out.println("WARNING: application is trying to destroy process: " + pid);
+        final GuestVMProcessFilter filter = GuestVMProcessFilter.getFilter(key);
+        if (filter != null) {
+            filter.destroyProcess(key);
+            return;
         }
-        GUKExec.destroyProcess(pid);
+        if (_logger.isLoggable(Level.WARNING)) {
+            System.out.println("WARNING: application is trying to destroy process: " + key);
+        }
+        GUKExec.destroyProcess(key);
     }
 
     @SUBSTITUTE

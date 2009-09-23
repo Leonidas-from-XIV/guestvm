@@ -59,11 +59,11 @@ public class FilterFileSystem extends ExecHelperFileSystem implements VirtualFil
 
     @Override
     public int close0(int fd) {
-        return ProcessFilterHelper.invokeClose0(fd);
+        return GuestVMProcessFilter.invokeClose0(fd);
     }
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        return ProcessFilterHelper.invokeReadBytes(fd, bytes, offset, length, fileOffset);
+        return GuestVMProcessFilter.invokeReadBytes(fd, bytes, offset, length, fileOffset);
     }
 }

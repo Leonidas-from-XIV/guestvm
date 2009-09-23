@@ -32,7 +32,6 @@
 package com.sun.guestvm.process;
 
 import com.sun.guestvm.fs.*;
-import com.sun.guestvm.fs.tmp.*;
 
 /**
  * A filter for for chmod for internal file systems.
@@ -41,7 +40,7 @@ import com.sun.guestvm.fs.tmp.*;
  *
  */
 
-public class ChmodProcessFilter extends ProcessFilterHelper {
+public class ChmodProcessFilter extends GuestVMProcessFilter {
 
     public ChmodProcessFilter() {
         super("chmod");

@@ -36,6 +36,7 @@ import java.io.IOException;
 import com.sun.guestvm.fs.DefaultFileSystemImpl;
 import com.sun.guestvm.fs.VirtualFileSystem;
 import com.sun.guestvm.fs.VirtualFileSystemId;
+import com.sun.guestvm.process.GuestVMProcessFilter;
 import com.sun.guestvm.error.*;
 /**
  * All the unimplemented methods for ExecFileSystem and FilterFileSystem.
@@ -53,22 +54,11 @@ public abstract class ExecHelperFileSystem extends DefaultFileSystemImpl impleme
      * @return an array of length three containing the file descriptors
      */
     public int[] getFds(int key) {
-        final int[] fds = getSpecificFds(key);
+        final int[] fds = GuestVMProcessFilter.getFds(key);
         for (int i = 0; i < fds.length; i++) {
             fds[i] = VirtualFileSystemId.getUniqueFd(this, fds[i]);
         }
         return fds;
-    }
-
-    /**
-     * Implementation encodes the fd in the key.
-     * E.g., 0, 0+1, 0+2, 3, 3+1, 3+2, ..., 3n, 3n+1, 3n+2
-     *
-     * @param key
-     * @return
-     */
-    final int[] getSpecificFds(int key) {
-        return new int[] {key, key + 1, key + 2};
     }
 
     @Override

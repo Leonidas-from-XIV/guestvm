@@ -41,7 +41,7 @@ public class GuestVMError {
 
     public static void unimplemented(String msg) {
         try {
-            throw new Exception("unimplemented " + msg);
+            throw new Exception("unimplemented: " + msg);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(-1);
@@ -50,7 +50,7 @@ public class GuestVMError {
 
     public static void unexpected(String msg) {
         try {
-            throw new Exception("unexpected " + msg);
+            throw new Exception("unexpected: " + msg);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(-1);

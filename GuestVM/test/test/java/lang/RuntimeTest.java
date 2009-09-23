@@ -70,9 +70,6 @@ public class RuntimeTest {
                 i++;
                 while (i < args.length) {
                     final String execArg = args[i++];
-                    if (arg.startsWith("-")) {
-                        break;
-                    }
                     execArgsList.add(execArg);
                 }
                 final String[] execArgs = new String[execArgsList.size()];

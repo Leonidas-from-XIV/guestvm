@@ -110,6 +110,10 @@ package java.text.spi
 package sun.util
 package com.sun.security.auth
 package sun.security.acl
+class sun.security.action.GetBooleanAction
+# this has final statics that are inappropriate for the target
+omitclass java.io.File$LazyInitialization
+#
 reinitclass sun.util.LocaleServiceProviderPool
 reinitclass java.text.SimpleDateFormat
 reinitclass java.text.DateFormatSymbols

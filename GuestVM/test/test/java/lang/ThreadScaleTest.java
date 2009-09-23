@@ -41,6 +41,10 @@ import java.util.*;
  */
 public final class ThreadScaleTest extends Thread {
 
+    private static int _sleepTime = 10000;
+    private static int _runTime = 50000;
+    private static boolean _verbose;
+
     /**
      * @param args
      */
@@ -84,10 +88,6 @@ public final class ThreadScaleTest extends Thread {
         }
 
     }
-
-    private static int _sleepTime = 10000;
-    private static int _runTime = 50000;
-    private static boolean _verbose;
 
     private int _id;
     private ThreadScaleTest(int t) {

@@ -42,6 +42,7 @@ public class ZipTest {
 
     private static Map<String, ZipEntry> _zipMap = new HashMap<String, ZipEntry>();
     private static boolean _quiet = false;
+    private static int _threads = 1;
     private static int _randomSeed = 467377;
     private static boolean _traceMM;
 
@@ -111,6 +112,8 @@ public class ZipTest {
                     _quiet = true;
                 } else if (op.equals("v")) {
                     _quiet = false;
+                } else if (op.equals("t")) {
+                    _threads = Integer.parseInt(fileNames2[j]);
                 }
             } catch  (Exception ex) {
                 ex.printStackTrace();
@@ -260,39 +263,72 @@ public class ZipTest {
         if (_zipMap.size() == 0) {
             throw new Exception("entries not read");
         }
-        final int size = _zipMap.size();
-        final ZipEntry[] entries = new ZipEntry[size];
-        _zipMap.values().toArray(entries);
-        final Random random = new Random(_randomSeed);
-        final byte[] buf = new byte[128];
-        int ccount = count;
-        while (ccount-- > 0) {
-            final int entryIndex = random.nextInt(size);
-            final ZipEntry zipEntry = entries[entryIndex];
-            final long entrySize = zipEntry.getSize();
-            if (!_quiet) {
-                System.out.println("reading entry " + zipEntry.getName());
-            }
-            InputStream is = null;
+        final Thread[] threads = new Thread[_threads];
+        for (int t = 0; t < _threads; t++) {
+            threads[t] = new RandomReader(t, zipFile, count);
+        }
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
+    }
+
+    static class RandomReader extends Thread {
+        private ZipFile _zipFile;
+        private int _count;
+        private int _thread;
+
+        RandomReader(int thread, ZipFile zipFile, int count) {
+            _thread = thread;
+            _zipFile = zipFile;
+            _count = count;
+        }
+
+        public void run() {
+            final int size = _zipMap.size();
+            final ZipEntry[] entries = new ZipEntry[size];
+            _zipMap.values().toArray(entries);
+            final Random random = new Random(_randomSeed + _thread * 119);
+            final byte[] buf = new byte[128];
+            int ccount = _count;
             try {
-                is = zipFile.getInputStream(zipEntry);
-                long n = 0;
-                long totalRead = 0;
-                while ((n = is.read(buf)) > 0) {
-                    totalRead += n;
-                }
-                if (totalRead != entrySize) {
-                    throw new Exception("size mismatch, read " + totalRead + " size " + size);
-                }
-            } finally {
-                if (is != null) {
+                while (ccount-- > 0) {
+                    final int entryIndex = random.nextInt(size);
+                    final ZipEntry zipEntry = entries[entryIndex];
+                    final long entrySize = zipEntry.getSize();
+                    if (!_quiet) {
+                        tprintln("reading entry " + zipEntry.getName());
+                    }
+                    InputStream is = null;
                     try {
-                        is.close();
-                    } catch (IOException ex) {
+                        is = _zipFile.getInputStream(zipEntry);
+                        long n = 0;
+                        long totalRead = 0;
+                        while ((n = is.read(buf)) > 0) {
+                            totalRead += n;
+                        }
+                        if (totalRead != entrySize) {
+                            throw new Exception("size mismatch, read " + totalRead + " size " + size);
+                        }
+                    } finally {
+                        if (is != null) {
+                            try {
+                                is.close();
+                            } catch (IOException ex) {
+                            }
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
+            tprintln("randomRead read " + _count + " entries");
         }
-        System.out.println("randomRead read " + count + " entries");
+
+        private static void tprintln(String msg) {
+            System.out.println(Thread.currentThread() + ": " + msg);
+        }
     }
 }

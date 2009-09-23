@@ -93,8 +93,8 @@ final class RootFileSystem extends DefaultFileSystemImpl implements VirtualFileS
                 dir = subdir;
             }
         }
-//        System.out.println("Contents of root");
-//       debugList(_root, 0);
+        //System.out.println("Contents of root");
+        //debugList(_root, 0);
     }
 
     private Dir matchPath(String name) {
@@ -254,7 +254,7 @@ final class RootFileSystem extends DefaultFileSystemImpl implements VirtualFileS
         return 0;
     }
 
-    /*
+/*
     private static void debugList(Dir d, int indent) {
         for (String key : d._contents.keySet()) {
             if (!JDK_java_io_UnixFileSystem.currentOrParent(key)) {
@@ -266,7 +266,6 @@ final class RootFileSystem extends DefaultFileSystemImpl implements VirtualFileS
             }
         }
     }
-    */
-
+*/
 
 }

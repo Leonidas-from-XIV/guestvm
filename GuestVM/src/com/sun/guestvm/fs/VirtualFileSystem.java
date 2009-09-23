@@ -53,6 +53,7 @@ public interface VirtualFileSystem {
 
     // Unix file modes
     int S_IFMT = 0xF000;
+    int S_IAMB = 0x1FF;
     int S_IFREG = 0x8000;
     int S_IFDIR = 0x4000;
     int S_IREAD = 0x100;
@@ -77,6 +78,11 @@ public interface VirtualFileSystem {
     int ACCESS_READ    = 0x04;
     int ACCESS_WRITE   = 0x02;
     int ACCESS_EXECUTE = 0x01;
+
+    int SPACE_TOTAL  = 0;
+    int SPACE_FREE   = 1;
+    int SPACE_USABLE = 2;
+    int SPACE_USED = 3; // added, notionally SPACE_TOTAL-SPACE_FREE, but what if SPACE_TOTAL is fuzzy, e.g. /tmp?
 
     /**
      * Shutdown the file system.

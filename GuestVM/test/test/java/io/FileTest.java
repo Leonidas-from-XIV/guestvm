@@ -121,12 +121,9 @@ public class FileTest {
                     System.out.println("unsetExecutable " + fileName
                             + " returned " + file.setExecutable(false));
                 } else if (op.equals("list")) {
-                    final File[] files = file.listFiles();
-                    if (files == null) {
-                        System.out.println("list returned null");
-                    } else {
-                        listFiles(file.getAbsolutePath(), files);
-                    }
+                    listFiles(file, false);
+                } else if (op.equals("listr")) {
+                    listFiles(file, true);
                 } else if (op.equals("delete")) {
                     final boolean rc = file.delete();
                     System.out.println("file delete of " + fileName
@@ -147,10 +144,10 @@ public class FileTest {
                     final boolean rc = file.renameTo(new File(fileNames2[j]));
                     System.out.println("rename of " + fileName + " to "
                             + fileNames2[j] + checkRc(rc));
-                } else if (op.equals("createNewFile")) {
+                } else if (op.equals("mkfile")) {
                     try {
                         final boolean rc = file.createNewFile();
-                        System.out.println("createNewFile of " + fileName
+                        System.out.println("mkfile of " + fileName
                                 + checkRc(rc));
                     } catch (IOException ex) {
                         System.out.println(ex);
@@ -159,6 +156,8 @@ public class FileTest {
                     readFile(fileName, true);
                 } else if (op.equals("copyFile")) {
                     copyFile(fileName, fileNames2[j]);
+                } else if (op.equals("copyFiles")) {
+                    copyFiles(new File(fileName), new File(fileNames2[j]));
                 } else if (op.equals("compareFile")) {
                     compareFile(fileName, fileNames2[j]);
                 } else if (op.equals("readFileSingle")) {
@@ -197,10 +196,26 @@ public class FileTest {
         return rc ? " ok" : " not ok";
     }
 
-    private static void listFiles(String fileName, File[] files) {
-        System.out.println("Contents of " + fileName);
+
+    private static void listFiles(File dir, boolean recurse) {
+        System.out.println("Contents of " + dir.getAbsolutePath());
+        doListFiles(dir, recurse, 0);
+    }
+
+    private static void doListFiles(File dir, boolean recurse, int indent) {
+        final File[] files = dir.listFiles();
+        if (files == null) {
+            System.out.println(dir + "  not found");
+            return;
+        }
         for (File f : files) {
+            for (int i = 0; i < indent; i++) {
+                System.out.print(" ");
+            }
             System.out.println("  " + rwx(f) + f.length() + "  " + f.lastModified() + "  " + f.getName());
+            if (recurse && f.isDirectory()) {
+                doListFiles(f, true, indent + 2);
+            }
         }
     }
 
@@ -210,6 +225,33 @@ public class FileTest {
         result += file.canWrite() ? "w" : "-";
         result += file.canExecute() ? "x" : "-";
         return result + "   ";
+    }
+
+    public static void copyFiles(File dir1, File dir2) throws IOException {
+        final File[] files = dir1.listFiles();
+        if (files == null) {
+            System.out.println(dir1 + "  not found");
+            return;
+        }
+
+        for (File f : files) {
+            final File dir2File = new File(dir2, f.getName());
+            if (f.isDirectory()) {
+                if (!dir2File.exists()) {
+                    if (!dir2File.mkdir()) {
+                        throw new IOException("cannot create directory " + dir2File.getAbsolutePath());
+                    }
+                } else {
+                    if (dir2File.isFile()) {
+                        throw new IOException(dir2File.getAbsolutePath() + " exists as a file");
+                    }
+                }
+                copyFiles(f, dir2File);
+            } else {
+                copyFile(f.getAbsolutePath(), dir2File.getAbsolutePath());
+            }
+        }
+
     }
 
     private static void readFile(String fileName, boolean array) {

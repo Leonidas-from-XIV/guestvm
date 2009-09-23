@@ -41,6 +41,7 @@ import com.sun.guestvm.guk.*;
 import com.sun.guestvm.memory.HeapPool;
 import com.sun.guestvm.sched.*;
 import com.sun.guestvm.net.guk.*;
+import com.sun.guestvm.error.*;
 
 /**
  * This run scheme is used to launch a GuestVM application.
@@ -58,6 +59,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
     private static boolean _netInit;
     private static AppendableSequence<ClassActor> _netReinitClasses = new LinkSequence<ClassActor>();
+    private static final String PRE_RUN_CLASSES_PROPERTY = "guestvm.prerun.classes";
 
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
         super(vmConfiguration);
@@ -78,6 +80,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
             netInit();
+            preRunClasses();
         }
     }
 
@@ -88,6 +91,21 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             }
             NetInit.init();
             _netInit = true;
+        }
+    }
+
+    private static void preRunClasses() {
+        final String prop = System.getProperty(PRE_RUN_CLASSES_PROPERTY);
+        if (prop != null) {
+            final String[] classNames = prop.split(",");
+            for (String className : classNames) {
+                try {
+                    final Class<?> klass = Class.forName(className);
+                    klass.newInstance();
+                } catch (Exception ex) {
+                    GuestVMError.unexpected("failed to load/execute pre-run class: " + prop + " " + ex.getMessage());
+                }
+            }
         }
     }
 

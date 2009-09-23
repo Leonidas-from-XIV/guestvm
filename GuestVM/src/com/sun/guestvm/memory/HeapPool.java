@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 package com.sun.guestvm.memory;
 
@@ -36,7 +36,7 @@ import com.sun.guestvm.guk.GUKPagePool;
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.heap.Heap;
-
+import com.sun.max.vm.tele.*;
 /**
  * An interface to heap virtual memory pool and control of heap size.
  *
@@ -70,7 +70,11 @@ public final class HeapPool {
         // Unless overridden on the command line, we set the heap sizes
         // based on the current and maximum memory allocated by the hypervisor.
         final long extra = GUKPagePool.getMaximumReservation() - GUKPagePool.getCurrentReservation();
-        final long initialHeapSize = toUnit((GUKPagePool.getFreeBulkPages()) * 4096);
+        long initialHeapSize = toUnit(GUKPagePool.getFreeBulkPages() * 4096);
+        if (MaxineMessenger.isVmInspected()) {
+            /* some slop for inspectable heap info, should be provided by Inspector not guessed at */
+            initialHeapSize -= toUnit(initialHeapSize / 100);
+        }
         final long maxHeapSize = toUnit(initialHeapSize + extra * 4096);
         if (!Heap.initialSizeOptionIsPresent()) {
             Heap.setInitialSize(Size.fromLong(initialHeapSize));

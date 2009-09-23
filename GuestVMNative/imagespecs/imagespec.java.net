@@ -2,6 +2,15 @@ package java.net
 package sun.net
 package sun.net.util
 package sun.net.spi
+# reset static state  in in java.net.InetAddress
+resetfield java.net.InetAddress.nameService
+resetfield java.net.InetAddress.addressCache
+resetfield java.net.InetAddress.negativeCache
+resetfield java.net.InetAddress.addressCacheInit
+resetfield java.net.InetAddress.unknown_array
+resetfield java.net.InetAddress.impl
+resetfield java.net.InetAddress.lookupTable
+reinitclass java.net.InetAddress
 # owing to loadlibrary in static init
 classinit java.net.Inet4Address
 classinit java.net.PlainSocketImpl
