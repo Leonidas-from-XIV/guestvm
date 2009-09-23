@@ -46,6 +46,7 @@ classpath="/guestvm/image/GuestVM/bin"
 guest=""
 jar=""
 vmalloc="-XX:+UseVirtualMemory"
+guestvmdir="-Dguestvm.dir=`pwd`"
 
 function show_help() {
   echo "run the Guest VM image
@@ -142,7 +143,7 @@ do
     shift
     maxmem="maxmem=$1"
     ;;
-  -cp )
+  -cp | -classpath )
     shift
     classpath=$1
     ;;
@@ -205,11 +206,7 @@ else
   cp="-jar $jar"
 fi
 
-extra="$debug $vmalloc $upcalls $vmargs $cp $mainclass $xtra_args"
-if [ ${#extra} -ge 800 ] ; then
-  echo "Xen limitation: extra argument is too long"
-  exit 1
-fi
+extra="$debug $guestvmdir $vmalloc $upcalls $vmargs $cp $mainclass $xtra_args"
 
 if [ "$echocmd" -eq 1 ] ; then
   echo xm create -c xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
