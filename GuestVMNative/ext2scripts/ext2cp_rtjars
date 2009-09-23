@@ -46,13 +46,37 @@ then
   exit 1
 fi
 
-ext2jh=/${JAVA_HOME##*/}
+while [ "$1" != "" ];
+do
+  case $1 in
+  -javahome )
+    shift
+    javahome=$1
+    ;;
+  * )
+    break
+    ;;
+  esac
+  shift
+done
+
+if [ "$javahome" = "" ] ;
+then
+  if [ "$JAVA_HOME" = "" ] ;
+  then
+    echo JAVA_HOME must be set
+    exit 1
+  fi
+  javahome=$JAVA_HOME
+fi
+
+ext2jh=/${javahome##*/}
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/lib
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre/lib
 
-# create a fake java executable to keep certin apps happy
+# create a fake java executable to keep certain apps happy
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre/bin
 java -classpath $cp $h $mc mkfile -disk $dfile -ext2path $ext2jh/jre/bin/java
 
@@ -60,7 +84,7 @@ java -classpath $cp $h $mc mkfile -disk $dfile -ext2path $ext2jh/jre/bin/java
 java -classpath $cp $h $mc copyin -disk $dfile -from $JAVA_HOME/lib/tools.jar -ext2path $ext2jh/lib
 
 # runtime jars
-dir=$JAVA_HOME/jre/lib
+dir=$javahome/jre/lib
 todir=$ext2jh/jre/lib
 
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/rt.jar -ext2path $todir
@@ -68,4 +92,16 @@ java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/jce.jar -ext2path $t
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/jsse.jar -ext2path $todir
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/resources.jar -ext2path $todir
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/charsets.jar -ext2path $todir
-java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/logging.properties -ext2path $todir
+
+# properties
+props=`ls $javahome/jre/lib/*.properties`
+
+for prop in $props; do
+  java -classpath $cp $h $mc copyin -disk $dfile -from $prop -ext2path $todir
+  
+done
+
+# security/zi
+
+java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/security -ext2path $todir
+java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/zi -ext2path $todir
