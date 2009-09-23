@@ -59,7 +59,8 @@ void *malloc(size_t n) {
   void *result = guk_xmalloc(n, 4);
   if (result == NULL) {
     guk_xprintk("malloc: out of heap, request is %lx\n", n);
-    guk_crash_exit();
+    guk_printk("malloc: out of heap, request is %lx\n", n);
+    guk_crash_exit_backtrace();
   }
   return result;
 }
