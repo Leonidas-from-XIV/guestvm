@@ -50,7 +50,6 @@ GUESTVM_ROOT=`dirname $PWD`
 WS_ROOT=`dirname $GUESTVM_ROOT`
 
 echocmd=0
-d="-d"
 id=""
 run=1
 trace=1
@@ -66,9 +65,6 @@ do
   case $1 in
   "-echo" )
     echocmd=1
-    ;;
-  "-nod" )
-    d=""
     ;;
   "-norun" )
     run=0
@@ -136,7 +132,7 @@ then
   classpath=${classpath}:$cp
 fi
 
-cmd="$javacmd $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $d $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
+cmd="$javacmd $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then
