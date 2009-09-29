@@ -59,7 +59,7 @@ public class FSTable {
     private static Map<Info, VirtualFileSystem> _fsTable = new HashMap<Info, VirtualFileSystem>();
     private static final String FS_TABLE_PROPERTY = "guestvm.fs.table";
     private static final String TMPDIR_PROPERTY = "guestvm.tmpdir";
-    private static final String DEFAULT_TMPDIR= "/tmp";
+    private static final String DEFAULT_TMPDIR = "/tmp";
     private static final String FS_INFO_SEPARATOR = ":";
     private static final String FS_TABLE_SEPARATOR = ";";
     private static final String READ_ONLY = "ro";
@@ -68,6 +68,11 @@ public class FSTable {
     public static final String TMP_FS_INFO = "heap" + FS_INFO_SEPARATOR + "/heap/0" + FS_INFO_SEPARATOR;
     public static final String IMG_FS_INFO = "img" + FS_INFO_SEPARATOR + "/img/0" + FS_INFO_SEPARATOR;
     private static final String FS_OPTIONS_SEPARATOR = ",";
+    private static final int TYPE_INDEX = 0;
+    private static final int DEV_INDEX = 1;
+    private static final int MOUNT_INDEX = 2;
+    private static final int OPTIONS_INDEX = 3;
+
     private static boolean _initFSTable;
     private static RootFileSystem _rootFS;
 
@@ -153,14 +158,14 @@ public class FSTable {
 
             final String[] entries = fsTableProperty.split(FS_TABLE_SEPARATOR);
             for (String entry : entries) {
-                final String[] info = entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH);
-                if (info.length < 2) {
+                final String[] info = fixupNfs(entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH));
+                if (info.length < MOUNT_INDEX || info.length > OPTIONS_INDEX + 1) {
                     logBadEntry("fs.table entry " + entry + " is malformed");
                     continue;
                 }
-                final String type = info[0];
-                final String devPath = info[1];
-                final String mountPath = (info.length <= 2 || info[2].length() == 0) ? devPath : info[2];
+                final String type = info[TYPE_INDEX];
+                final String devPath = info[DEV_INDEX];
+                final String mountPath = (info.length <= MOUNT_INDEX || info[MOUNT_INDEX].length() == 0) ? devPath : info[MOUNT_INDEX];
                 if (!mountPath.startsWith("/")) {
                     logBadEntry("mountpath " + mountPath + " is not absolute");
                     continue;
@@ -173,8 +178,8 @@ public class FSTable {
                     }
                 }
                 String[] options = null;
-                if (info.length > 2) {
-                    options = info[2].split(FS_OPTIONS_SEPARATOR);
+                if (info.length > OPTIONS_INDEX) {
+                    options = info[OPTIONS_INDEX].split(FS_OPTIONS_SEPARATOR);
 
                 }
                 final Info fsInfo = new Info(type, devPath, mountPath, options);
@@ -186,6 +191,25 @@ public class FSTable {
             }
             _initFSTable = true;
         }
+    }
+
+    /*
+     * Nfs is irregular in that a ":" is used internally in the device path, so we recover from that here.
+     */
+    private static String[] fixupNfs(String[] parts) {
+        String[] result = parts;
+        if (parts[TYPE_INDEX].equals("nfs")) {
+            result = new String[parts.length - 1];
+            result[TYPE_INDEX] = parts[TYPE_INDEX];
+            result[DEV_INDEX] = parts[DEV_INDEX] + ":" + parts[DEV_INDEX + 1];
+            if (parts.length > MOUNT_INDEX + 1) {
+                result[MOUNT_INDEX] = parts[MOUNT_INDEX + 1];
+                if (parts.length > OPTIONS_INDEX + 1) {
+                    result[OPTIONS_INDEX] = parts[OPTIONS_INDEX + 1];
+                }
+            }
+        }
+        return result;
     }
 
     /**
