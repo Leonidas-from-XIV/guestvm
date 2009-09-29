@@ -1,4 +1,5 @@
 package com.sun.guestvm.fs
+forcemethod com.sun.guestvm.fs.FSTable.*
 package com.sun.guestvm.fs.sg
 package com.sun.guestvm.fs.image
 package com.sun.guestvm.fs.tmp
