@@ -37,11 +37,11 @@ import static java.net.SocketOptions.*;
 
 import com.sun.max.annotate.*;
 import com.sun.max.collect.*;
-import com.sun.max.program.ProgramError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
+import com.sun.guestvm.error.*;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.tcp.TCPEndpoint;
 import com.sun.guestvm.logging.*;
@@ -159,9 +159,10 @@ public class JDK_java_net_PlainSocketImpl {
 
     @SUBSTITUTE
     private  int socketAvailable() throws IOException {
-        ProgramError.unexpected("socketAvailable not implemented");
-        return 0;
+        final TCPEndpoint endpoint = getEndpoint(this);
+        return endpoint.available();
     }
+
     @SUBSTITUTE
     private  void socketClose0(boolean useDeferredClose) throws IOException {
         // TODO: figure out what should really be done about useDeferredClose
@@ -174,7 +175,8 @@ public class JDK_java_net_PlainSocketImpl {
     }
     @SUBSTITUTE
     private  void socketShutdown(int howto) throws IOException {
-        ProgramError.unexpected("socketShutdown not implemented");
+        final TCPEndpoint endpoint = getEndpoint(this);
+        endpoint.close();
     }
 
     @SUBSTITUTE
@@ -199,19 +201,19 @@ public class JDK_java_net_PlainSocketImpl {
 
     @SUBSTITUTE
     private  int socketGetOption(int opt, Object iaContainerObj) throws SocketException {
-        ProgramError.unexpected("socketGetOption not implemented");
+        GuestVMError.unimplemented("PlainSocketImpl.socketGetOption");
         return 0;
     }
 
     @SUBSTITUTE
     private  int socketGetOption1(int opt, Object iaContainerObj, FileDescriptor fd) throws SocketException {
-        ProgramError.unexpected("socketGetOption1 not implemented");
+        GuestVMError.unimplemented("PlainSocketImpl.socketGetOption1");
         return 0;
     }
 
     @SUBSTITUTE
     private  void socketSendUrgentData(int data) throws IOException {
-        ProgramError.unexpected("socketSendUrgentData not implemented");
+        GuestVMError.unimplemented("socketSendUrgentData");
     }
 
     @SUBSTITUTE
@@ -226,7 +228,7 @@ public class JDK_java_net_PlainSocketImpl {
             _addressFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("address"));
             _logger = Logger.getLogger("JDK_java_net_PlainSocketImpl");
         } catch (ClassNotFoundException ex) {
-            ProgramError.unexpected("JDK_java_net_PlainSocketImpl: failed to load substitutee class");
+            GuestVMError.unexpected("JDK_java_net_PlainSocketImpl: failed to load substitutee class");
         }
     }
 
