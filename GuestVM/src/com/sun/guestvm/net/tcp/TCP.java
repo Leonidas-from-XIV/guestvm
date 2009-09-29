@@ -133,8 +133,8 @@ public final class TCP extends IP {
 
     // timer management
     private static final int DELAYED_ACK_MSEC = 50;
-    private TCPTimer _retransmitTimer;
-    private TCPTimer _delayedAckTimer;
+    private RetransmitTimer _retransmitTimer;
+    private DelayedAckTimer _delayedAckTimer;
 
     private TCPRecvQueue _recvQueue;
 
@@ -280,8 +280,8 @@ public final class TCP extends IP {
         _state = State.NEW;
         _localPort = 0;
 
-        _retransmitTimer = new TCPTimer("TCP Retransmit Timer");
-        _delayedAckTimer = new TCPTimer("TCP DelayedAck Timer");
+        _retransmitTimer = new RetransmitTimer();
+        _delayedAckTimer = new DelayedAckTimer();
 
         // cache the TCP packet header length.
         _hdrLen = headerHint();
@@ -296,33 +296,33 @@ public final class TCP extends IP {
 
 
     static TCP get() {
-
         final TCP t = new TCP();
-
         // stick this new TCP object on the list of active TCP objects
-        if (tcps != null) {
-            t._next = tcps;
-            tcps._prev = t;
+        synchronized (TCP.class) {
+            if (tcps != null) {
+                t._next = tcps;
+                tcps._prev = t;
+            }
+            tcps = t;
         }
-        tcps = t;
-
         return t;
     }
 
     // Remove this TCP object from the list of active tcp objects.
     private void recycle() {
-
         // This is a simple removal from a double-linked list.
-        if (this == tcps) {
-            tcps = _next;
-        } else {
-            _prev._next = _next;
+        synchronized (TCP.class) {
+            if (this == tcps) {
+                tcps = _next;
+            } else {
+                _prev._next = _next;
+            }
+            if (_next != null) {
+                _next._prev = _prev;
+            }
+            _next = null;
+            _prev = null;
         }
-        if (_next != null) {
-            _next._prev = _prev;
-        }
-        _next = null;
-        _prev = null;
     }
 
 
@@ -876,7 +876,7 @@ public final class TCP extends IP {
         // take the initial rto timestamp for this connection.
         rttStart(tcp._iss);
 
-        tcp._retransmitTimer.schedule(new RetransmitTask(), rtx_timeout);
+        tcp._retransmitTimer.schedule(rtx_timeout);
     }
 
     private void doSynSent(Packet pkt) throws NetworkException {
@@ -1360,7 +1360,7 @@ public final class TCP extends IP {
 
         tcpRetransSegs++;
 
-        _retransmitTimer.schedule(new RetransmitTask(), rtx_timeout);
+        _retransmitTimer.schedule(rtx_timeout);
     }
 
 
@@ -1677,18 +1677,14 @@ public final class TCP extends IP {
     }
 
     // simple method to find a connection with the given local port.
-    private static TCP find(int port) {
-
+    private static synchronized TCP find(int port) {
         TCP tcp = tcps;
-
         while (tcp != null) {
             if (tcp._localPort == port) {
                 return tcp;
             }
-
             tcp = tcp._next;
         }
-
         return null;
     }
 
@@ -1729,7 +1725,7 @@ public final class TCP extends IP {
 
     // Searches through the list of TCP state objects for a match.
     // Returns the object if found, or null otherwise.
-    private static final TCP find(int local_port, int remote_ip,
+    private static synchronized  final TCP find(int local_port, int remote_ip,
                                   int remote_port) {
 
         if (_debug) {
@@ -1837,34 +1833,91 @@ public final class TCP extends IP {
                 "  " + _state;
     }
 
-    class TCPTimer extends Timer {
+    abstract class TCPTimer extends Timer {
         private TimerTask _task;
+        private String _name;
         TCPTimer(String name) {
             super(name, true);
+            _name = name;
         }
 
-        void schedule(long delay) {
-            schedule(new RetransmitTask(), delay);
+        /**
+         * Returns a task of the appropriate type for the subclass.
+         * @return
+         */
+        abstract TimerTask getTask();
+
+        /**
+         * Schedules a task of the appropriate type for the subclass iff it is not already scheduled,
+         * which is denoted by _task == null.
+         * @param delay
+         */
+        synchronized void schedule(long delay) {
+            if (_task == null) {
+                schedule(getTask(), delay);
+            }
         }
 
         @Override
-        public synchronized void schedule(TimerTask task, long delay) {
+        public void schedule(TimerTask task, long delay) {
             _task = task;
+            if (_debug) {
+                dprint("scheduling " + task + " on " + _name);
+            }
             super.schedule(task, delay);
         }
 
         synchronized void  cancelTask() {
             if (_task != null) {
-                 _task.cancel();
-                 _task = null;
+                if (_debug) {
+                    dprint("cancelling " + _task + " on " + _name);
+                }
+                _task.cancel();
+                _task = null;
             }
+        }
+
+        synchronized void resetTask() {
+            _task = null;
         }
     }
 
-    class RetransmitTask extends TimerTask {
+    class RetransmitTimer extends TCPTimer {
+        RetransmitTimer() {
+            super("TCP Retransmit Timer");
+        }
+
+        TimerTask getTask() {
+            return new RetransmitTask(this);
+        }
+    }
+
+    class DelayedAckTimer extends TCPTimer {
+        DelayedAckTimer() {
+            super("TCP DelayedAck Timer");
+        }
+
+        TimerTask getTask() {
+            return new DelayedAckTask(this);
+        }
+    }
+
+    abstract class TCPTimerTask extends TimerTask {
+        protected TCPTimer _timer;
+        TCPTimerTask(TCPTimer timer) {
+            _timer = timer;
+        }
+    }
+
+    class RetransmitTask extends TCPTimerTask {
+        RetransmitTask(TCPTimer timer) {
+            super(timer);
+        }
+
         public void run() {
             try {
-                if (_debug) dprint("retransmit()");
+                if (_debug) dprint("retransmit timer " + this + " activated");
+                _timer.resetTask();
                 retransmit();
             } catch (NetworkException ex) {
                 return;
@@ -1872,9 +1925,14 @@ public final class TCP extends IP {
         }
     }
 
-    class DelayedAckTask extends TimerTask {
+    class DelayedAckTask extends TCPTimerTask {
+        DelayedAckTask(TCPTimer timer) {
+            super(timer);
+        }
+
         public void run() {
             try {
+                _timer.resetTask();
                 delayedAck();
             } catch (NetworkException ex) {
                 return;
@@ -1889,7 +1947,7 @@ public final class TCP extends IP {
     }
 
 
-    public static void report(java.io.PrintStream out) {
+    public static synchronized void report(java.io.PrintStream out) {
 
         out.print("TCP stats\n\n");
         out.print("Local Address       Remote Address    tx wnd tx Q  rx wnd rx Q State\n");
@@ -1930,7 +1988,7 @@ public final class TCP extends IP {
     private static int tcpInErrs;
     private static int tcpOutRsts;
 
-    public static int getStatistic(int index){
+    public static synchronized int getStatistic(int index){
         switch(index){
         case 1:  // tcpRtoAlgorithm
             return 4;
@@ -1972,7 +2030,7 @@ public final class TCP extends IP {
         }
     }
 
-    static int getNumConns(){
+    static synchronized int getNumConns(){
         TCP tcp;
         int numConns;
 
@@ -1982,7 +2040,7 @@ public final class TCP extends IP {
         return numConns;
     }
 
-    static int getConns(int[][] arr){
+    static synchronized int getConns(int[][] arr){
         int localIP;
         TCP tcp;
         int i;
