@@ -43,7 +43,7 @@ import org.jnode.fs.*;
 import org.jnode.fs.ext2.*;
 
 /**
- * Tools for actions, e.g., format, copyin, copyout, mkdir, mkfile, ls, rm, on an ext2 file system stored in a disk image file.
+ * Tools for actions, e.g., format, copyin, copyout, mkdir, mkfile, ls, rm, mv, on an ext2 file system stored in a disk image file.
  *
  * Usage:
  * format -disk imagefile
@@ -52,7 +52,8 @@ import org.jnode.fs.ext2.*;
  * ls -disk imagefile -from file -ext2path dir
  * mkdir -disk imagefile -ext2path dir
  * mkfile -disk imagefile -ext2path file
- * rm disk imagefile -ext2path file
+ * rm -disk imagefile -ext2path file
+ * mv -disk imagefile -ext2path file -to file
  *
  * The keyword arguments can be in any order and, if the command is preceded by -c,
  * it can also.
@@ -68,7 +69,7 @@ public class Ext2FileTool {
     static boolean _hidden = false;
     static boolean _details = false;
     static SimpleDateFormat _dateFormat = new SimpleDateFormat();
-    static String[] _commands = {"format", "copy", "copyin", "copyout", "ls", "mkdir", "mkfile", "rm"};
+    static String[] _commands = {"format", "copy", "copyin", "copyout", "ls", "mkdir", "mkfile", "rm", "mv"};
 
     /**
      * @param args
@@ -142,8 +143,7 @@ public class Ext2FileTool {
             }
 
             fs = fsType.create(device, false);
-            final FSDirectory root = fs.getRootEntry().getDirectory();
-            final Match m = match(ext2Path, root);
+            final Match m = match(ext2Path, fs.getRootEntry());
             if (m == null) {
                 throw new IOException("path " + ext2Path + " not found");
             }
@@ -163,6 +163,8 @@ public class Ext2FileTool {
                 ls(m, ext2Path);
             } else if (command.equals("rm")) {
                 remove(m, ext2Path);
+            } else if (command.equals("mv")) {
+                rename(ext2Path, fromFile,  fs.getRootEntry());
             }
         } catch (Exception ex) {
             System.out.println(ex);
@@ -187,6 +189,7 @@ public class Ext2FileTool {
         System.out.println("  [-c] mkfile -disk diskfile -ext2path file");
         System.out.println("  [-c] ls -disk diskfile -ext2path file [-l] [-a] [-r]");
         System.out.println("  [-c] rm -disk diskfile -ext2path file");
+        System.out.println("  [-c] mv -disk diskfile -ext2path file -to ex2path2");
     }
 
     private static boolean checkCommand(String command) {
@@ -201,11 +204,18 @@ public class Ext2FileTool {
     }
 
     static class Match {
+        FSEntry _e;
         FSDirectory _d;
         String _tail;
+
         Match(FSDirectory d, String tail) {
             _d = d;
             _tail = tail;
+        }
+
+        Match(FSEntry e, FSDirectory d, String tail) {
+            this(d, tail);
+            _e = e;
         }
 
         FSEntry matchTail() throws IOException {
@@ -219,20 +229,21 @@ public class Ext2FileTool {
      * @param complete
      * @return Match object or null if no match
      */
-    private static Match match(String name, FSDirectory root) throws IOException {
+    private static Match match(String name, FSEntry root) throws IOException {
         final String[] parts = name.split(File.separator);
+        FSDirectory d = root.getDirectory();
         if (parts.length == 0) {
-            return new Match(root, ".");
+            return new Match(root, d, ".");
         }
-        FSDirectory d = root;
+        FSEntry fsEntry = root;
         for (int i = 1; i < parts.length - 1; i++) {
-            final FSEntry fsEntry = d.getEntry(parts[i]);
+            fsEntry = d.getEntry(parts[i]);
             if (fsEntry == null || fsEntry.isFile()) {
                 return null;
             }
             d = fsEntry.getDirectory();
         }
-        return new Match(d, parts[parts.length - 1]);
+        return new Match(fsEntry, d, parts[parts.length - 1]);
     }
 
     private static void mkdir(Match m, String ext2Path) throws IOException {
@@ -459,5 +470,35 @@ public class Ext2FileTool {
         result += fsa.canWrite() ? "w" : "-";
         result += fsa.canExecute() ? "x" : "-";
         return result + "   ";
+    }
+
+    private static void rename(String fromFile, String toFile, FSEntry root) throws IOException {
+        final Match m1 = match(fromFile, root);
+        final Match m2 = match(toFile, root);
+        /* At this point we should have matched up to the last component of both paths */
+        if (m1 != null && m2 != null) {
+            final FSEntry d1 = m1.matchTail();
+            if (d1 == null) {
+                /* path1 does not exist */
+                throw new IOException(fromFile + " not found");
+            }
+            final FSEntry d2 = m2.matchTail();
+            if (d1 == d2) {
+                /* rename to self */
+                return;
+            }
+            if (d2 != null) {
+                /* path2 already exists */
+                throw new IOException(toFile + " already exists");
+            }
+            if (m1._d == m2._d) {
+                // rename within same directory, this we can do easily
+                d1.setName(m2._tail);
+            } else {
+                final FileSystem<FSEntry> fs = (FileSystem<FSEntry>) d1.getFileSystem();
+                fs.rename(d1, m2._e, m2._tail);
+            }
+        }
+
     }
 }
