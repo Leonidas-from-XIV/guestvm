@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  * Modified from JNode original by Mick Jordan, May 2009.
  *
  */
@@ -77,7 +77,7 @@ public class Ext2File extends AbstractFSFile {
         this.iNode = iNode;
         //log.setLevel(Level.FINEST);
     }
-    
+
     public INode getINode() {
         return iNode;
     }
@@ -94,17 +94,6 @@ public class Ext2File extends AbstractFSFile {
         return iNode.getSizeInBlocks();
     }
 
-    private void rereadInode() throws IOException {
-        int iNodeNr = iNode.getINodeNr();
-        try {
-            iNode = ((Ext2FileSystem) getFileSystem()).getINode(iNodeNr);
-        } catch (FileSystemException ex) {
-            final IOException ioe = new IOException();
-            ioe.initCause(ex);
-            throw ioe;
-        }
-    }
-
     /**
      * @see org.jnode.fs.FSFile#setLength(long)
      */
@@ -114,32 +103,11 @@ public class Ext2File extends AbstractFSFile {
 
         long blockSize = iNode.getExt2FileSystem().getBlockSize();
 
-        //synchronize to the inode cache to make sure that the inode does not
-        // get
-        //flushed between reading it and locking it
-        synchronized (((Ext2FileSystem) getFileSystem()).getInodeCache()) {
-            //reread the inode before synchronizing to it to make sure
-            //all threads use the same instance
-            rereadInode();
 
-            //lock the inode into the cache so it is not flushed before
-            // synchronizing to it
-            //(otherwise a new instance of INode referring to the same inode
-            // could be put
-            //in the cache resulting in the possibility of two threads
-            // manipulating the same
-            //inode at the same time because they would synchronize to
-            // different INode instances)
-            iNode.incLocked();
-        }
-        //a single inode may be represented by more than one Ext2Directory
-        // instances,
-        //but each will use the same instance of the underlying inode (see
-        // Ext2FileSystem.getINode()),
-        //so synchronize to the inode
+        iNode = iNode.syncAndLock();
         synchronized (iNode) {
             try {
-                //if length<getLength(), then the file is truncated
+                 //if length<getLength(), then the file is truncated
                 if (length < getLength()) {
                     long blockNr = length / blockSize;
                     long blockOffset = length % blockSize;
@@ -151,7 +119,7 @@ public class Ext2File extends AbstractFSFile {
 
                     for (long i = iNode.getAllocatedBlockCount() - 1; i >= nextBlock; i--) {
                         if (log.isLoggable(Level.FINEST)) {
-                            log.log(Level.FINEST, "setLength(): freeing up block " + i
+                            doLog(Level.FINEST, "setLength(): freeing up block " + i
                                     + " of inode");
                         }
                         iNode.freeDataBlock(i);
@@ -200,7 +168,7 @@ public class Ext2File extends AbstractFSFile {
                 //setLength done, unlock the inode from the cache
                 iNode.decLocked();
             }
-        } // synchronized(inode)
+        }
     }
 
     /**
@@ -214,29 +182,7 @@ public class Ext2File extends AbstractFSFile {
         final ByteBufferUtils.ByteArray destBA = ByteBufferUtils.toByteArray(destBuf);
         final byte[] dest = destBA.toArray();
 
-        //synchronize to the inode cache to make sure that the inode does not
-        // get
-        //flushed between reading it and locking it
-        synchronized (((Ext2FileSystem) getFileSystem()).getInodeCache()) {
-            //reread the inode before synchronizing to it to make sure
-            //all threads use the same instance
-            rereadInode();
-
-            //lock the inode into the cache so it is not flushed before
-            // synchronizing to it
-            //(otherwise a new instance of INode referring to the same inode
-            // could be put
-            //in the cache resulting in the possibility of two threads
-            // manipulating the same
-            //inode at the same time because they would synchronize to
-            // different INode instances)
-            iNode.incLocked();
-        }
-        //a single inode may be represented by more than one Ext2Directory
-        // instances,
-        //but each will use the same instance of the underlying inode (see
-        // Ext2FileSystem.getINode()),
-        //so synchronize to the inode
+        iNode = iNode.syncAndLock();
         synchronized (iNode) {
             try {
                 if (len + off > getLength())
@@ -249,7 +195,7 @@ public class Ext2File extends AbstractFSFile {
                     long copyLength = Math.min(len - bytesRead, blockSize - blockOffset);
 
                     if (log.isLoggable(Level.FINEST)) {
-                        log.log(Level.FINEST, "blockNr: "+blockNr+", blockOffset: "+blockOffset+
+                        doLog(Level.FINEST, "blockNr: "+blockNr+", blockOffset: "+blockOffset+
                     		      ", copyLength: "+copyLength+", bytesRead: "+bytesRead);
                     }
 
@@ -289,31 +235,9 @@ public class Ext2File extends AbstractFSFile {
             throw new ReadOnlyFileSystemException("write in readonly filesystem");
         }
 
-        //synchronize to the inode cache to make sure that the inode does not
-        // get
-        //flushed between reading it and locking it
-        synchronized (((Ext2FileSystem) getFileSystem()).getInodeCache()) {
-            //reread the inode before synchronizing to it to make sure
-            //all threads use the same instance
-            rereadInode();
-
-            //lock the inode into the cache so it is not flushed before
-            // synchronizing to it
-            //(otherwise a new instance of INode referring to the same inode
-            // could be put
-            //in the cache resulting in the possibility of two threads
-            // manipulating the same
-            //inode at the same time because they would synchronize to
-            // different INode instances)
-            iNode.incLocked();
-        }
-        try {
-            //a single inode may be represented by more than one Ext2File
-            // instances,
-            //but each will use the same instance of the underlying inode (see
-            // Ext2FileSystem.getINode()),
-            //so synchronize to the inode
-            synchronized (iNode) {
+        iNode = iNode.syncAndLock();
+        synchronized (iNode) {
+            try {
                 if (fileOffset > getLength())
                     throw new IOException("Can't write beyond the end of the file! (fileOffset: " + fileOffset +
                             ", getLength()" + getLength());
@@ -321,7 +245,7 @@ public class Ext2File extends AbstractFSFile {
                     throw new IOException("src is shorter than what you want to write");
 
                 if (log.isLoggable(Level.FINEST)) {
-                    log.log(Level.FINEST, "write(fileOffset=" + fileOffset + ", src, off, len="
+                    doLog(Level.FINEST, "write(fileOffset=" + fileOffset + ", src, off, len="
                             + len + ")");
                 }
 
@@ -361,20 +285,20 @@ public class Ext2File extends AbstractFSFile {
 
                     bytesWritten += copyLength;
                 }
-                iNode.setSize(fileOffset + len);
+                // if we have extended the file then increase the size
+                if (fileOffset + len > getLength()) {
+                    iNode.setSize(fileOffset + len);
+                }
 
                 iNode.setMtime(System.currentTimeMillis() / 1000);
+            } catch (Throwable ex) {
+                final IOException ioe = new IOException();
+                ioe.initCause(ex);
+                throw ioe;
+            } finally {
+                //write done, unlock the inode from the cache
+                iNode.decLocked();
             }
-        } catch (IOException ex) {
-            // ... this avoids wrapping an IOException inside another one.
-            throw ex;
-        } catch (Throwable ex) {
-            final IOException ioe = new IOException();
-            ioe.initCause(ex);
-            throw ioe;
-        } finally {
-            //write done, unlock the inode from the cache
-            iNode.decLocked();
         }
     }
 
@@ -385,11 +309,15 @@ public class Ext2File extends AbstractFSFile {
      */
     public void flush() throws IOException {
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "Ext2File.flush()");
+            doLog(Level.FINEST, "Ext2File.flush()");
         }
         iNode.update();
         //update the group descriptors and superblock: needed if blocks have
         //been allocated or deallocated
         iNode.getExt2FileSystem().updateFS();
+    }
+
+    private void doLog(Level level, String msg) {
+        log.log(level, getFileSystem().getDevice().getId() + " " + msg);
     }
 }

@@ -93,9 +93,10 @@ public final class GUKBlkDevice implements BlkDevice {
 
 // CheckStyle: stop parameter assignment check
 
-/**
- * FIXME: 1) synchronized not necessary; GUK can handle concurrent writes
- *        2) GUK can handle more the one page of data. no limit in theory.
+/*
+ * If we changed the interface to use ByteBuffers AND the caller used "direct"
+ * (i.e. native) buffers, we could avoid both synchronization and copying, as
+ * GUK can handle concurrent writes and can handle more the one page of data.
  *
  * @see com.sun.guestvm.blk.device.BlkDevice#write(int, long, byte[], int, int)
  */
@@ -114,7 +115,7 @@ public final class GUKBlkDevice implements BlkDevice {
         return -1;
     }
 
-    public long read(long address, byte[] data, int offset, int length) {
+    public synchronized long read(long address, byte[] data, int offset, int length) {
         if (_available) {
             int left = length;
             while (left > 0) {

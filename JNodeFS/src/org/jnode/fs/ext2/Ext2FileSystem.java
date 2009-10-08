@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  * Modified from JNode original by Mick Jordan, May 2009.
  *
  */
@@ -55,7 +55,7 @@ package org.jnode.fs.ext2;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
+//import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import java.util.logging.Level;
@@ -69,7 +69,7 @@ import org.jnode.fs.ReadOnlyFileSystemException;
 import org.jnode.fs.ext2.cache.Block;
 import org.jnode.fs.ext2.cache.BlockCache;
 import org.jnode.fs.ext2.cache.INodeCache;
-import org.jnode.fs.spi.AbstractFileSystem;
+import org.jnode.fs.spi.*;
 
 /**
  * @author Andras Nagy
@@ -190,13 +190,16 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         superblock.setMTime(Ext2Utils.encodeDate(new Date()));
         superblock.setWTime(Ext2Utils.encodeDate(new Date()));
         if (log.isLoggable(Level.FINEST)) {
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
-            log.log(Level.FINEST, " superblock: " + "\n" +
+            // This causes bootstrap problems as it causes recursive initialization
+            //SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
+            log.log(Level.FINEST, getDevice().getId() + " superblock: " + "\n" +
                 "  #Mount: " + superblock.getMntCount() + "\n" +
                 "  #MaxMount: " + superblock.getMaxMntCount() + "\n" + "  Last mount time: " +
-                sdf.format(Ext2Utils.decodeDate(superblock.getMTime()).getTime()) + "\n" +
+                //sdf.format(Ext2Utils.decodeDate(superblock.getMTime()).getTime()) + "\n" +
+                superblock.getMTime() +
                 "  Last write time: " +
-                sdf.format(Ext2Utils.decodeDate(superblock.getWTime()).getTime()) + "\n" +
+                //sdf.format(Ext2Utils.decodeDate(superblock.getWTime()).getTime()) + "\n" +
+                superblock.getWTime() +
                 "  #blocks: " + superblock.getBlocksCount() + "\n" +
                 "  #blocks/group: " + superblock.getBlocksPerGroup() + "\n" +
                 "  #block groups: " + groupCount + "\n" +
@@ -229,7 +232,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             // fill the inode table with zeroes
             for (int i = 0; i < groupCount; i++) {
                 if (log.isLoggable(Level.FINEST)) {
-                    log.log(Level.FINEST, "creating group " + i);
+                    log.log(Level.FINEST, getDevice().getId() + " creating group " + i);
                 }
 
                 byte[] blockBitmap = new byte[blockSize.getSize()];
@@ -267,7 +270,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
                 writeBlock(groupDescriptors[i].getInodeBitmap(), inodeBitmap, false);
             }
 
-            log.info("superblock.getBlockSize(): " + superblock.getBlockSize());
+            log.info(getDevice().getId() + " superblock.getBlockSize(): " + superblock.getBlockSize());
 
             buildRootEntry();
 
@@ -286,12 +289,12 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
      * @throws IOException
      */
     public void flush() throws IOException {
-        log.info("Flushing the contents of the filesystem");
+        log.info(getDevice().getId() + " flushing the contents of the filesystem");
         // update the inodes
         synchronized (inodeCache) {
             try {
                 if (log.isLoggable(Level.FINEST)) {
-                    log.log(Level.FINEST, "inodecache size: " + inodeCache.size());
+                    log.log(Level.FINEST, getDevice().getId() + " inodecache size: " + inodeCache.size());
                 }
                 for (INode iNode : inodeCache.values()) {
                     iNode.flush();
@@ -313,7 +316,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             }
         }
 
-        log.info("Filesystem flushed");
+        log.info(getDevice().getId() + " filesystem flushed");
     }
 
     protected void updateFS() throws IOException {
@@ -389,7 +392,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         // synchronized block
         ByteBuffer data = ByteBuffer.allocate(blockSize);
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "Reading block " + nr + " (offset: " + nr * blockSize
+            log.log(Level.FINEST, getDevice().getId() + " reading block " + nr + " (offset: " + nr * blockSize
                            + ") from disk");
         }
         getApi().read(nr * blockSize, data);
@@ -445,7 +448,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
                     block.setDirty(false);
 
                     if (log.isLoggable(Level.FINEST)) {
-                        log.log(Level.FINEST, "writing block " + nr + " to disk");
+                        log.log(Level.FINEST, getDevice().getId() + " writing block " + nr + " to disk");
                     }
                 } else
                     block.setDirty(true);
@@ -522,7 +525,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         Integer key = new Integer(iNodeNr);
 
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "iNodeCache size: " + inodeCache.size());
+            log.log(Level.FINEST, getDevice().getId() + " iNodeCache size: " + inodeCache.size());
         }
 
         synchronized (inodeCache) {
@@ -642,7 +645,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
 
         if (log.isLoggable(Level.FINEST)) {
             log.log(Level.FINEST,
-                            "** NEW INODE ALLOCATED: inode number: " +
+                    getDevice().getId() + " ** NEW INODE ALLOCATED: inode number: " +
                             iNode.getINodeNr());
         }
 
@@ -811,10 +814,10 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
                 (int) (firstNonMetadataBlock - (superblock.getFirstDataBlock() + group *
                         superblock.getBlocksPerGroup()));
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "group[" + group + "].getInodeTable()=" + iNodeTableBlock
+            log.log(Level.FINEST, getDevice().getId() + " group[" + group + "].getInodeTable()=" + iNodeTableBlock
                            + ", iNodeTable.getSizeInBlocks()="
                            + INodeTable.getSizeInBlocks(this));
-            log.log(Level.FINEST, "metadata length for block group(" + group + "): " + metadataLength);
+            log.log(Level.FINEST, getDevice().getId() + " metadata length for block group(" + group + "): " + metadataLength);
         }
 
         BlockReservation result;
@@ -1001,4 +1004,24 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         // TODO implement me
         return -1;
     }
+
+    public FSEntry renameEntry(Ext2Entry from, Ext2Entry to, String newName) throws IOException {
+        int fromInodeNr = from.getINode().getINodeNr();
+        int toInodeNr = to.getINode().getINodeNr();
+        if (fromInodeNr == toInodeNr) {
+            // a simple rename
+            from.setName(newName);
+            return from;
+        } else {
+            // from can be a directory or file
+            // to must be a directory
+            synchronized (getInodeCache()) {
+                Ext2Directory fromParentDir = (Ext2Directory) from.getParent();
+                Ext2Directory toDir = (Ext2Directory) to.getDirectory();
+                fromParentDir.deleteEntry(from.getName(), false);
+                return toDir.addEntry(newName, from);
+            }
+        }
+    }
+
 }

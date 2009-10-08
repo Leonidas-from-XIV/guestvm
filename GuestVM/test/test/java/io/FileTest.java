@@ -33,6 +33,13 @@ package test.java.io;
 
 import java.io.*;
 
+/**
+ * A test program for the java.io.File and related classes.
+ *
+ * @author Mick Jordan
+ *
+ */
+
 public class FileTest {
 
     private static RandomAccessFile _raFile;

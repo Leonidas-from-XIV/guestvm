@@ -166,7 +166,7 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
         if (getEntry(name) != null) {
             throw new IOException("File or Directory already exists" + name);
         }
-        FSEntry newEntry = createDirectoryEntry(name);
+        FSEntry newEntry = createDirectoryEntry(name, null);
         setFreeEntry(newEntry);
         if (log.isLoggable(Level.FINEST)) {
             log.log(Level.FINEST, "<<< END addDirectory " + name + " >>>");
@@ -184,6 +184,7 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
         if (!canWrite())
             throw new IOException("Filesystem or directory is mounted read-only!");
         if (entries.remove(name) >= 0) {
+            deleteEntry(name, true);
             setDirty();
             flush();
             return;
@@ -312,7 +313,7 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
     }
 
     /**
-     * Abstract method to create a new file entry from the given name
+     * Abstract method to create a new file entry from the given name.
      *
      * @param name
      * @return the new created file
@@ -321,12 +322,35 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
     protected abstract FSEntry createFileEntry(String name) throws IOException;
 
     /**
-     * Abstract method to create a new directory entry from the given name
+     * Abstract method to create a new directory entry from the given name.
      * @param name
      * @return the new created directory
      * @throws IOException
      */
-    protected abstract FSEntry createDirectoryEntry(String name) throws IOException;
+    protected abstract FSEntry createDirectoryEntry(String name, FSEntry fsEntry) throws IOException;
+
+    /**
+     * Abstract method to rename a new directory
+     * @param oldName
+     * @param newName
+     * @throws IOException
+     */
+    protected abstract void renameEntry(String oldName, String newName) throws IOException;
+
+   /**
+     * Abstract method to delete a given directory entry.
+     * @param name
+     * @throws IOException
+     */
+    protected abstract void deleteEntry(String name, boolean deleteContents) throws IOException;
+
+    /**
+     * Abstract method to add (i.e. move) a directory entry.
+     * @param name for new entry
+     * @param fsEntry the entry being added (moved)
+     * @throws IOException
+     */
+    protected abstract FSEntry addEntry(String name, FSEntry fsEntry)  throws IOException;
 
     /**
      * Find a free entry and set it with the given entry

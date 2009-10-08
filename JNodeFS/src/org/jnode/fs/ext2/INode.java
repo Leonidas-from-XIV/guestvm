@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  * Modified from JNode original by Mick Jordan, May 2009.
  *
  */
@@ -117,7 +117,7 @@ public class INode {
     public void create(int fileFormat, int accessRights, int uid, int gid) {
         long time = System.currentTimeMillis() / 1000;
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "TIME:                " + time);
+            doLog(Level.FINEST, "TIME:                " + time);
         }
 
         setUid(uid);
@@ -150,7 +150,7 @@ public class INode {
      */
     public void flush() throws IOException, FileSystemException {
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "Flush called for inode " + getINodeNr());
+            doLog(Level.FINEST, "flush called for inode " + getINodeNr());
         }
 
         freePreallocatedBlocks();
@@ -168,7 +168,7 @@ public class INode {
         try {
             if (dirty) {
                 if (log.isLoggable(Level.FINEST)) {
-                    log.log(Level.FINEST, "  ** updating inode **");
+                    doLog(Level.FINEST, " ** updating inode **");
                 }
                 desc.getINodeTable().writeInodeData(desc.getIndex(), data);
                 dirty = false;
@@ -256,7 +256,7 @@ public class INode {
     private final void indirectWrite(long dataBlockNr, long offset, long allocatedBlocks,
             long value, int indirectionLevel) throws IOException, FileSystemException {
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "indirectWrite(blockNr=" + dataBlockNr + ", offset=" + offset + "...)");
+            doLog(Level.FINEST, "indirectWrite(blockNr=" + dataBlockNr + ", offset=" + offset + "...)");
         }
         byte[] data = fs.getBlock(dataBlockNr);
         if (indirectionLevel == 1) {
@@ -300,7 +300,7 @@ public class INode {
     private final void indirectFree(long dataBlockNr, long offset, int indirectionLevel)
         throws IOException, FileSystemException {
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "indirectFree(datablockNr=" + dataBlockNr + ", offset="
+            doLog(Level.FINEST, "indirectFree(datablockNr=" + dataBlockNr + ", offset="
                     + offset + ", ind=" + indirectionLevel + ")");
         }
         if (indirectionLevel == 0) {
@@ -353,7 +353,7 @@ public class INode {
         //get the direct blocks (0; 11)
         if (i < 12) {
             if (log.isLoggable(Level.FINEST)) {
-                log.log(Level.FINEST, "getDataBlockNr(): block nr: "
+                doLog(Level.FINEST, "getDataBlockNr(): block nr: "
                         + Ext2Utils.get32(data, 40 + (int) i * 4));
             }
             return Ext2Utils.get32(data, 40 + (int) i * 4);
@@ -406,7 +406,7 @@ public class INode {
      * means an absolute block nr (of the filesystem), while a
      * <code>...BlockIndex</code> means an index relative to the beginning of
      * a block]
-     * 
+     *
      * @param i the ith block of the inode has been reserved
      * @param blockNr the block (in the filesystem) that has been reserved
      */
@@ -421,7 +421,7 @@ public class INode {
         }
 
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "registering block #" + blockNr);
+            doLog(Level.FINEST, "registering block #" + blockNr);
         }
 
         setDirty(true);
@@ -527,11 +527,11 @@ public class INode {
         int preallocCount = desc.getPreallocCount();
         if (preallocCount > 0) {
             if (log.isLoggable(Level.FINEST)) {
-                log.log(Level.FINEST, "Freeing preallocated blocks");
+                doLog(Level.FINEST,  "freeing preallocated blocks");
             }
         } else {
             if (log.isLoggable(Level.FINEST)) {
-                log.log(Level.FINEST, "No preallocated blocks in the inode");
+                doLog(Level.FINEST, "no preallocated blocks in the inode");
             }
             return;
         }
@@ -682,7 +682,7 @@ public class INode {
         long newBlock = findFreeBlock(i);
 
         if (log.isLoggable(Level.FINEST)) {
-           log.log(Level.FINEST, "Allocated new block " + newBlock);
+           doLog(Level.FINEST, "allocated new block " + newBlock);
         }
 
         desc.setLastAllocatedBlockIndex(i);
@@ -770,7 +770,7 @@ public class INode {
                 continue;
             }
             long threshold =
-                    (getExt2FileSystem().getSuperblock().getBlocksPerGroup() * 
+                    (getExt2FileSystem().getSuperblock().getBlocksPerGroup() *
                             Ext2Constants.EXT2_BLOCK_THRESHOLD_PERCENT) / 100;
             reservation = getExt2FileSystem().findFreeBlocks(i, threshold);
             if (reservation.isSuccessful()) {
@@ -915,7 +915,7 @@ public class INode {
 
     public synchronized void setBlocks(long count) {
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "setBlocks(" + count + ")");
+            doLog(Level.FINEST, "setBlocks(" + count + ")");
         }
         Ext2Utils.set32(data, 28, count);
         setDirty(true);
@@ -1006,4 +1006,41 @@ public class INode {
             throw new RuntimeException("INode has been unlocked more than locked");
         }
     }
+
+    private INode rereadInode() throws IOException {
+        int iNodeNr = getINodeNr();
+        try {
+            return fs.getINode(iNodeNr);
+        } catch (FileSystemException ex) {
+            final IOException ioe = new IOException();
+            ioe.initCause(ex);
+            throw ioe;
+        }
+    }
+
+    /**
+     * Synchronize to the inode cache to make sure that the inode does not
+     * get flushed between reading it and locking it.
+     * @return the locked INode instance (N.B. may differ from method target but will denote the same inode)
+     */
+    public INode syncAndLock()  throws IOException{
+        synchronized (fs.getInodeCache()) {
+            //reread the inode before synchronizing to it to make sure
+            //all threads use the same instance
+
+            INode iNode = rereadInode();
+
+            //lock the inode into the cache so it is not flushed before synchronizing to it
+            //(otherwise a new instance of INode referring to the same inode could be put
+            //in the cache resulting in the possibility of two threads manipulating the same
+            //inode at the same time because they would synchronize to different INode instances)
+            iNode.incLocked();
+            return iNode;
+        }
+    }
+
+    private void doLog(Level level, String msg) {
+        log.log(level, fs.getDevice().getId() + " " + msg);
+    }
+
 }

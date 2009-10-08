@@ -39,15 +39,23 @@ public class LoadClass {
      */
     public static void main(String[] args) {
         System.out.println("java.class.path=" + System.getProperty("java.class.path"));
+        boolean instantiate = false;
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
-            try {
-                final Class<?> klass = Class.forName(arg);
-                @SuppressWarnings("unused")
-                final Object obj = klass.newInstance();
-                System.out.println("loaded " + arg);
-            } catch (Exception ex) {
-                System.out.println(ex);
+            if (arg.equals("-i")) {
+                instantiate = true;
+            } else {
+                try {
+                    final Class< ? > klass = Class.forName(arg);
+                    System.out.println("loaded " + arg);
+                    if (instantiate) {
+                        @SuppressWarnings("unused")
+                        final Object obj = klass.newInstance();
+                        System.out.println("instantiated " + arg);
+                    }
+                } catch (Exception ex) {
+                    System.out.println(ex);
+                }
             }
         }
     }

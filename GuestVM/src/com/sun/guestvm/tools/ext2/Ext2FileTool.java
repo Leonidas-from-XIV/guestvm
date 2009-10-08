@@ -404,9 +404,21 @@ public class Ext2FileTool {
         final FSEntry tailEntry = m.matchTail();
         if (tailEntry == null) {
             throw new IOException(ext2Path + " not found");
-        } else if (!tailEntry.isDirectory()) {
+        } else if (tailEntry.isFile()) {
             final FSEntry fsEntry = m._d.getEntry(m._tail);
             assert fsEntry != null;
+            m._d.remove(m._tail);
+        } else {
+            final FSEntry fsEntry = m._d.getEntry(m._tail);
+            final FSDirectory fsDir = fsEntry.getDirectory();
+            final Iterator<? extends FSEntry> iter = fsDir.iterator();
+            while (iter.hasNext()) {
+                final FSEntry childEntry = iter.next();
+                final String name = childEntry.getName();
+                if (!(name.equals(".") || name.equals(".."))) {
+                    throw new IOException("directory is not empty");
+                }
+            }
             m._d.remove(m._tail);
         }
 

@@ -104,10 +104,7 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
     private final FSAccessRights rights;
 
     /** Parent directory of the entry */
-    private FSDirectory parent; // parent is null for a root
-
-    /** Table of entries of our parent */
-    private FSEntryTable table; // table is null for a root
+    private AbstractFSDirectory parent; // parent is null for a root
 
     /** should we treat this directory entry as a file entry ? */
     private boolean treatDirectoryAsFile = false;
@@ -118,8 +115,8 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
      * @param fs
      */
     public AbstractFSEntry(AbstractFileSystem fs) {
-        // parent and table are null for a root
-        this(fs, null, null, "/", ROOT_ENTRY);
+        // parent is null for a root
+        this(fs, null, "/", ROOT_ENTRY);
     }
 
     /**
@@ -131,7 +128,7 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
      * @param name
      * @param type
      */
-    public AbstractFSEntry(AbstractFileSystem fs, FSEntryTable table, FSDirectory parent,
+    public AbstractFSEntry(AbstractFileSystem fs, AbstractFSDirectory parent,
             String name, int type) {
         super(fs);
         if ((type <= FIRST_ENTRY) || (type >= LAST_ENTRY))
@@ -140,7 +137,6 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
 
         this.type = type;
         this.name = name;
-        this.table = table;
         this.lastModified = System.currentTimeMillis();
         this.parent = parent;
         this.rights = new UnixFSAccessRights(fs);
@@ -220,12 +216,15 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
         }
 
         // It's not a root --> table != null
-        if (table.rename(name, newName) < 0) {
+        if (parent.getEntryTable().rename(name, newName) < 0) {
             if (log.isLoggable(Level.FINEST)) {
                 log.log(Level.FINEST, "<<< END setName newName=" + newName + " ERROR: table can't rename >>>");
             }
             throw new IOException("Cannot change name");
         }
+
+        // do the real work on disk
+        parent.renameEntry(name, newName);
 
         this.name = newName;
         if (log.isLoggable(Level.FINEST)) {
