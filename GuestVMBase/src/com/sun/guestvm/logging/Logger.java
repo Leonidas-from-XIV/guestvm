@@ -13,7 +13,7 @@ import java.util.logging.LogRecord;
 public class Logger {
     private static final String LEVEL_PROPERTY = "guestvm.logging.level";
     private static final String HANDLER_PROPERTY = "guestvm.logging.handler";
-    private static final String DEFAULT_HANDLER = "com.sun.guestvm.logging.DebugHandler";
+    private static final String DEFAULT_HANDLER = "com.sun.guestvm.logging.MaxineLogHandler";
     private static final int OFFVALUE = Level.OFF.intValue();
     private static Logger _singleton;
     private Level _levelObject = Level.WARNING;;

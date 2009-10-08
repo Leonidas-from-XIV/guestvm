@@ -11,7 +11,7 @@ import com.sun.max.vm.*;
  *
  */
 
-public class DebugHandler extends Handler{
+public class MaxineLogHandler extends Handler{
 
     public void println(String msg) {
         Log.println(msg);
