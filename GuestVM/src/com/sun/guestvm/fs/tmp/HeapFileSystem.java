@@ -215,9 +215,9 @@ public final class HeapFileSystem extends DefaultFileSystemImpl implements Virtu
                     _tmpSize -= fdd._maxSize;
                     return true;
                 } else {
-                    // check empty
+                    // check empty (but remember . and ..)
                     final SubDirEntry sdd = (SubDirEntry) dd;
-                    if (sdd._contents.isEmpty()) {
+                    if (sdd._contents.size() <= 2) {
                         m._d._contents.remove(m._tail);
                         return true;
                     } else {
