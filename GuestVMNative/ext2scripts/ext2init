@@ -43,8 +43,10 @@ me_dir=`dirname $me`
 rm -f $dfile
 
 mkdir -p `dirname $dfile`
-mkfile=`which mkfile 2>/dev/null`
-if [ "$mkfile" = "" ] ;
+echo trying
+mkfile=`which mkfile`
+echo $mkfile
+if [ $mkfile = "" ] ;
 then
   echo "no mkfile command found on path"
   exit 1;
