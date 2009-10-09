@@ -58,6 +58,7 @@ import com.sun.guestvm.error.*;
 public class GuestVMRunScheme extends ExtendImageRunScheme {
 
     private static boolean _netInit;
+    private static boolean _launcherReset;
     private static AppendableSequence<ClassActor> _netReinitClasses = new LinkSequence<ClassActor>();
     private static final String PRE_RUN_CLASSES_PROPERTY = "guestvm.prerun.classes";
 
@@ -121,6 +122,11 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         // must initialize network before the launcher reset, which accesses the file systems, potentially including NFS
         netInit();
         super.resetLauncher(launcherClassActor);
+        _launcherReset = true;
+    }
+
+    public static boolean launcherInit() {
+        return _launcherReset;
     }
 
     @PROTOTYPE_ONLY

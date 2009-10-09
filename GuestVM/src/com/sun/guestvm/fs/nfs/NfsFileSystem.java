@@ -38,9 +38,9 @@ import com.sun.guestvm.logging.*;
 import com.sun.guestvm.fs.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.runtime.*;
+import com.sun.max.vm.run.guestvm.*;
 
 import com.sun.nfs.*;
-import static com.sun.nfs.Nfs.*;
 
 /**
  * NFS client for GuestVM
@@ -79,18 +79,25 @@ public final class NfsFileSystem implements VirtualFileSystem {
     }
 
     public static NfsFileSystem create(String nfsPath, String mountPath) {
-        initLogger();
-        try {
-            final int ix = nfsPath.indexOf(':');
-            if (ix < 0) {
-                _logger.warning("NFS mount is not of form server:path");
-            } else {
-                final String server = nfsPath.substring(0, ix);
-                final String serverPath = nfsPath.substring(ix + 1);
-                return new NfsFileSystem(server, serverPath, mountPath);
+        // Initializing NFS requires that the launcher (and associated classloaders) are initialized.
+        // If an NFS path is on the classpath we will get here due to a canonicalize call from the
+        // launcher initialization that will cause recursion if we try to initialize. It's ok to return
+        // null here in that case as that will cause canonicalize to return the path it was given
+        // and actual initialization will be delayed until some real use of NFS.
+        if (GuestVMRunScheme.launcherInit()) {
+            initLogger();
+            try {
+                final int ix = nfsPath.indexOf(':');
+                if (ix < 0) {
+                    _logger.warning("NFS mount is not of form server:path");
+                } else {
+                    final String server = nfsPath.substring(0, ix);
+                    final String serverPath = nfsPath.substring(ix + 1);
+                    return new NfsFileSystem(server, serverPath, mountPath);
+                }
+            } catch (IOException ex) {
+                _logger.warning("NFS mount " + nfsPath + " failed");
             }
-        } catch (IOException ex) {
-            _logger.warning("NFS mount " + nfsPath + " failed");
         }
         return null;
     }
