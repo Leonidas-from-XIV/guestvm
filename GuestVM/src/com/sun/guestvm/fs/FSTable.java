@@ -186,8 +186,11 @@ public class FSTable {
                 VirtualFileSystem vfs = null;
                 if (fsInfo.autoMount()) {
                     vfs = initFS(fsInfo);
+                } else {
+                    // record the info so that a future path lookup will match,
+                    // the fs will be mounted at that point.
+                    _fsTable.put(fsInfo, vfs);
                 }
-                _fsTable.put(fsInfo, vfs);
             }
             _initFSTable = true;
         }

@@ -29,69 +29,20 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
+# Setup for ext2cp_* scripts
 #
-# Guest VM is a Java virtual machine, so we provide a "java" launch command.
-# However, some users may find the "run" command easier to work with.
 
-classpath="/guestvm/image/GuestVM/bin"
-vmargs=""
-xtra_args=""
-jar=""
-vmalloc="-XX:+UseVirtualMemory"
-guestvmdir="-Dguestvm.dir=`pwd`"
-
-function vm_args() {
-    shift
-    if [ "$vmargs" = "" ] ;
-    then
-      vmargs="$1"
-    else
-      vmargs="$vmargs $1"
-    fi
-    shift
-}
-
-while [ "$1" != "" ] ;
+dir="."
+while [ "$1" != "" ];
 do
-  case "$1" in
-    -cp | -classpath )
+  case $1 in
+    -dir )
       shift
-      classpath=$1
-      ;;
-    -jar )
-      shift
-      jar=$1
-      ;;
-    -D* | -X* | -XX* )
-      if [ "$vmargs" = "" ] ;
-      then
-        vmargs=${1}
-       else
-        vmargs="$vmargs ${1}"
-      fi
+      dir=$1
       ;;
     * )
-	if [ "$xtra_args" = "" ] ;
-	then
-	  xtra_args=$1
-	else
-	  xtra_args="$xtra_args $1"
-	fi
-	;;
+      break
+      ;;
   esac
   shift
 done
-
-if [ "$jar" == "" ] ;
-then
-  cp="-classpath $classpath"
-else
-  cp="-jar $jar"
-fi
-
-extra="$vmargs $vmalloc $guestvmdir $cp $xtra_args"
-if [ ${#extra} -ge 1023 ] ; then
-  echo "Xen limitation: extra argument is too long"
-  exit 1
-fi
-xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}

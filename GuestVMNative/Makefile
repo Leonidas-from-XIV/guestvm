@@ -170,7 +170,7 @@ fdlibmobjs/%.o: fdlibm/%.c  Makefile
 	mkdir -p fdlibmobjs
 	$(CC) -m64 -c -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(HOSTOS_LC) $< -o $@
 
-fdlibmobjs/$(FDLIBMLIBA): fdlibmobjs/%.o:
+fdlibmobjs/$(FDLIBMLIBA): $(FDLIBMOBJS)
 	(cd fdlibmobjs; $(AR) r $(FDLIBMLIBA) *.o)
 
 define all_sources

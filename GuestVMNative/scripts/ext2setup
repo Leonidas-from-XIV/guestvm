@@ -29,25 +29,36 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
-# Initializes the disk file, deleting it first if it already exists
+# Setup for other ext2 scripts
+#
 
-# Resolve location of this script
-    me="${BASH_SOURCE[0]}"
-    while [ -h "$me" ]; do
-        me=`readlink -e "$me"`
-    done
+wsroot=`dirname $PWD`
+dfile="guestvm-disk1.img"
+cp=$wsroot/GuestVM/bin:$wsroot/GuestVMBase/bin:$wsroot/JNodeFS/bin
+mc=com.sun.guestvm.tools.ext2.Ext2FileTool
+h="-Dguestvm.logging.handler=com.sun.guestvm.logging.SystemOutHandler -Dguestvm.logging.level=WARNING"
 
-me_dir=`dirname $me`
-. $me_dir/ext2setup
+while [ "$1" != "" ];
+do
+  case $1 in
+    -disk )
+      shift
+      dfile=$1
+      ;;
+    -wsroot )
+      shift
+      wsroot=$1
+      cp=$wsroot/GuestVM/bin:$wsroot/GuestVMBase/bin:$wsroot/JNodeFS/bin
+      ;;
+    * )
+      break
+      ;;
+  esac
+  shift
+done
 
-rm -f $dfile
-
-mkdir -p `dirname $dfile`
-mkfile=`which mkfile 2>/dev/null`
-if [ "$mkfile" = "" ] ;
+if [ ! -d "$wsroot/GuestVM/bin" ] ;
 then
-  echo "no mkfile command found on path"
+  echo "cannot find classes for Ext2FileTool, set -wsroot to directory containing GuestVM projects"
   exit 1;
 fi
-mkfile $size $dfile
-java -classpath $cp $h $mc format -disk $dfile

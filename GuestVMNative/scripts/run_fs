@@ -29,69 +29,26 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
+# variant of run with a configurable disk inaddition to java and scratch
 #
-# Guest VM is a Java virtual machine, so we provide a "java" launch command.
-# However, some users may find the "run" command easier to work with.
-
-classpath="/guestvm/image/GuestVM/bin"
-vmargs=""
-xtra_args=""
-jar=""
-vmalloc="-XX:+UseVirtualMemory"
-guestvmdir="-Dguestvm.dir=`pwd`"
-
-function vm_args() {
-    shift
-    if [ "$vmargs" = "" ] ;
-    then
-      vmargs="$1"
-    else
-      vmargs="$vmargs $1"
-    fi
-    shift
-}
-
+mount="/hadoop"
 while [ "$1" != "" ] ;
 do
   case "$1" in
-    -cp | -classpath )
+    "-mount")
       shift
-      classpath=$1
+      mount=$1
       ;;
-    -jar )
-      shift
-      jar=$1
+      "-"*)
+      break
       ;;
-    -D* | -X* | -XX* )
-      if [ "$vmargs" = "" ] ;
-      then
-        vmargs=${1}
-       else
-        vmargs="$vmargs ${1}"
-      fi
+      *)
+      break
       ;;
-    * )
-	if [ "$xtra_args" = "" ] ;
-	then
-	  xtra_args=$1
-	else
-	  xtra_args="$xtra_args $1"
-	fi
-	;;
   esac
   shift
 done
 
-if [ "$jar" == "" ] ;
-then
-  cp="-classpath $classpath"
-else
-  cp="-jar $jar"
-fi
+jh=${JAVA_HOME##*/}
 
-extra="$vmargs $vmalloc $guestvmdir $cp $xtra_args"
-if [ ${#extra} -ge 1023 ] ; then
-  echo "Xen limitation: extra argument is too long"
-  exit 1
-fi
-xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}
+./run -echo -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" $*

@@ -207,6 +207,10 @@ else
 fi
 
 extra="$debug $guestvmdir $vmalloc $upcalls $vmargs $cp $mainclass $xtra_args"
+if [ ${#extra} -ge 1023 ] ; then
+  echo "Xen limitation: extra argument is too long"
+  exit 1
+fi
 
 if [ "$echocmd" -eq 1 ] ; then
   echo xm create -c xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem

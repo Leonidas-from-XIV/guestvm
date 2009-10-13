@@ -29,35 +29,15 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
-# Setup for other ext2 scripts
+# Run Hadoop
 #
 
-wsroot=`dirname $PWD`
-size=256m
-dfile="guestvm-disk1.img"
-cp=$wsroot/GuestVM/bin:$wsroot/GuestVMBase/bin:$wsroot/JNodeFS/bin
-mc=com.sun.guestvm.tools.ext2.Ext2FileTool
-h="-Dguestvm.logging.handler=com.sun.guestvm.logging.SystemOutHandler -Dguestvm.logging.level=WARNING"
+if [ -z "$HADOOP_DIR" ] ;
+then
+  echo "HADOOP_DIR must be set"
+  exit 1
+fi
 
-while [ "$1" != "" ];
-do
-  case $1 in
-    -size )
-      shift
-      size=$1
-      ;;
-    -disk )
-      shift
-      dfile=$1
-      ;;
-    -wsroot )
-      shift
-      wsroot=$1
-      ;;
-    * )
-      break
-      ;;
-  esac
-  shift
-done
+jh=${JAVA_HOME##*/}
 
+./run -echo -J-Dguestvm.process.filterclasses=com.sun.guestvm.process.HadoopProcessFilters -J-Djava.home=/guestvm/java/$jh/jre -J-Duser.home=$HADOOP_DIR "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:$HADOOP_DIR;ext2:/blk/2:/scratch" -J-Dhadoop.root.logger=INFO,console -J-Duser.name=acme -J-Dhadoop.home.dir=$HADOOP_DIR -J-Duser.dir=$HADOOP_DIR -J-Dguestvm.groups=acme -cp $HADOOP_DIR/hadoop-0.18.3-all.jar $*
