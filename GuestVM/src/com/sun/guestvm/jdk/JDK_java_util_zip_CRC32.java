@@ -152,7 +152,7 @@ public class JDK_java_util_zip_CRC32 {
     }
   */
 
-    @PROTOTYPE_ONLY
+    @HOSTED_ONLY
     public static void main(String[] args) {
         final byte[] test = new byte[1023];
         for (int i = 0; i < test.length; i++) {

@@ -171,9 +171,6 @@ int guestvmXen_virtualMemory_unProtectPage(unsigned long address) {
 extern void* memory_allocate(size_t size);
 extern void* memory_deallocate(void *p);
 extern void* memory_reallocate(size_t size);
-extern void native_writeMaxMemory(long mem);
-extern void native_writeTotalMemory(long mem);
-extern void native_writeFreeMemory(long mem);
 
 void *maxine_mm_dlsym(const char *symbol) {
     if (strcmp(symbol, "memory_allocate") == 0) return memory_allocate;
@@ -186,8 +183,5 @@ void *maxine_mm_dlsym(const char *symbol) {
     else if (strcmp(symbol, "virtualMemory_pageAlign") == 0) return virtualMemory_pageAlign;
     else if (strcmp(symbol, "virtualMemory_protectPage") == 0) return virtualMemory_protectPage;
     else if (strcmp(symbol, "virtualMemory_unprotectPage") == 0) return virtualMemory_getPageSize;
-    else if (strcmp(symbol, "native_writeMaxMemory") == 0) return native_writeMaxMemory;
-    else if (strcmp(symbol, "native_writeTotalMemory") == 0) return native_writeTotalMemory;
-    else if (strcmp(symbol, "native_writeFreeMemory") == 0) return native_writeFreeMemory;
     else return 0;
 }
