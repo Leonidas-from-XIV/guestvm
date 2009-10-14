@@ -33,10 +33,9 @@
 # Guest VM is a Java virtual machine, so we provide a "java" launch command.
 # However, some users may find the "run" command easier to work with.
 
-classpath="/guestvm/image/GuestVM/bin"
 vmargs=""
-xtra_args=""
 jar=""
+cp=""
 vmalloc="-XX:+UseVirtualMemory"
 guestvmdir="-Dguestvm.dir=`pwd`"
 
@@ -71,27 +70,25 @@ do
       fi
       ;;
     * )
-	if [ "$xtra_args" = "" ] ;
-	then
-	  xtra_args=$1
-	else
-	  xtra_args="$xtra_args $1"
-	fi
-	;;
+      break
+      ;;
   esac
   shift
 done
 
 if [ "$jar" == "" ] ;
 then
-  cp="-classpath $classpath"
+  if [ $classpath != "" ] ;
+  then
+    cp="-classpath $classpath"
+  fi
 else
   cp="-jar $jar"
 fi
 
-extra="$vmargs $vmalloc $guestvmdir $cp $xtra_args"
+extra="$vmargs $vmalloc $guestvmdir $cp $*"
 if [ ${#extra} -ge 1023 ] ; then
   echo "Xen limitation: extra argument is too long"
   exit 1
 fi
-xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}
+xm create -c xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}-$$
