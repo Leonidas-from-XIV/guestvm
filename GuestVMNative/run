@@ -61,7 +61,7 @@ options:
   -main class   main class to invoke
   -mx <n>       equivalent to -J-Xmxn
   -ms <n>       equivalent to -J-Xmsn
-  -name <name>  set domain name (default GuestVM-mainclass-\$USER or GuestVM-\$USER)
+  -name <name>  set domain name (default GuestVM-mainclass-\$USER-\$\$ or GuestVM-\$USER-\$\$)
   -memory <n>   set initial domain memory to n (default: from config file)
   -maxmem <n>   set maximum domain memory to n (default: from config file)
   -jar <file>   extract main class from jar file
@@ -195,9 +195,9 @@ fi
 
 if [ "$name" == "" ] ; then
   if [ "$mainclass" != "" ] ; then
-    name=GuestVM-$mainclass-${USER}
+    name=GuestVM-$mainclass-${USER}-$$
   else
-    name=GuestVM-${USER}
+    name=GuestVM-${USER}-$$
   fi
 fi
 if [ "$jar" == "" ] ; then
