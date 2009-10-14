@@ -108,7 +108,7 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
 
     @Override
     public boolean createFileExclusively(String path) throws IOException {
-        if (MaxineVM.isPrototyping()) {
+        if (MaxineVM.isHosted()) {
             if (_fileSystem.containsKey(path)) {
                 return false;
             }

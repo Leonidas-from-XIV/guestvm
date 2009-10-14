@@ -72,7 +72,7 @@ final class StdScheduler extends GUKUpcallHandler {
     /**
      * N.B. This is called during image build time, at which point we do not know exactly how many CPUs will be available at run time.
      */
-    @PROTOTYPE_ONLY
+    @HOSTED_ONLY
     StdScheduler() {
         _ready = StaticLoophole.cast(new RunQueue[MAX_CPU]);
         _current = new GUKVmThread[MAX_CPU];

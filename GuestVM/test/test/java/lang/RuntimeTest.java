@@ -83,7 +83,7 @@ public class RuntimeTest {
                         stdOut = new BufferedReader(new InputStreamReader(p.getInputStream()));
                         readFully(stdOut, true, lines);
                         stdErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                        readFully(stdOut, true, lines);
+                        readFully(stdErr, false, lines);
                         System.out.println("waitFor returned " + p.waitFor());
                         if (!_reflectImmediate) {
                             delayedOutput(true, lines);

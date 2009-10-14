@@ -70,7 +70,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     public void initialize(MaxineVM.Phase phase) {
         super.initialize(phase);
 
-        if (MaxineVM.isPrototyping()) {
+        if (MaxineVM.isHosted()) {
             forceSchedulerScheme();
             forceNetReInit();
         }
@@ -110,7 +110,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         }
     }
 
-    @PROTOTYPE_ONLY
+    @HOSTED_ONLY
     private void forceNetReInit() {
         _netReinitClasses.append(doForceInitClass("java.net.NetworkInterface", false));
         _netReinitClasses.append(doForceInitClass("java.net.PlainDatagramSocketImpl", false));
@@ -129,7 +129,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         return _launcherReset;
     }
 
-    @PROTOTYPE_ONLY
+    @HOSTED_ONLY
     private void forceSchedulerScheme() {
         final String schedulerFactory = System.getProperty("guestvm.scheduler.factory.class");
         if (schedulerFactory != null) {

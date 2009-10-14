@@ -56,7 +56,7 @@ public final class JDK_java_lang_UNIXProcess {
 
     private static void init() {
         if (_logger == null) {
-            _logger = Logger.getLogger(Process.class.getName());
+            _logger = Logger.getLogger("UNIXProcess");
             _execFS = ExecFileSystem.create();
             _filterFS = FilterFileSystem.create();
         }
@@ -103,13 +103,14 @@ public final class JDK_java_lang_UNIXProcess {
 
     public static void logExec(byte[] prog, byte[] argBlock, byte[] dir) {
         if (_logger.isLoggable(Level.WARNING)) {
-            System.out.print("WARNING: application is trying to start a subprocess: ");
+            final StringBuilder sb = new StringBuilder("application is trying to start a subprocess: ");
             if (dir != null) {
-                System.out.print("in directory: ");
-                bytePrint(dir, '\n');
+                sb.append("in directory: ");
+                bytePrint(sb, dir, '\n');
             }
-            bytePrint(prog, ' ');
-            bytePrintBlock(argBlock, '\n');
+            bytePrint(sb, prog, ' ');
+            bytePrintBlock(sb, argBlock, '\n');
+            _logger.warning(sb.toString());
         }
     }
 
@@ -117,31 +118,31 @@ public final class JDK_java_lang_UNIXProcess {
      * Output a null-terminated byte array (@See java.lang.ProcessImpl).
      * @param data
      */
-    private static void bytePrint(byte[] data, char term) {
+    private static void bytePrint(StringBuilder sb, byte[] data, char term) {
         for (int i = 0; i < data.length; i++) {
             final byte b = data[i];
             if (b == 0) {
                 break;
             }
-            System.out.write(b);
+            sb.append((char) b);
         }
-        System.out.write(term);
+        sb.append(term);
     }
 
     /**
      * Output a null-separated, null-terminated byte array (@See java.lang.ProcessImpl).
      * @param data
      */
-    private static void bytePrintBlock(byte[] data, char term) {
+    private static void bytePrintBlock(StringBuilder sb, byte[] data, char term) {
         for (int i = 0; i < data.length; i++) {
             final byte b = data[i];
             if (b == 0) {
-                System.out.write(' ');
+                sb.append(' ');
             } else {
-                System.out.write(b);
+                sb.append((char) b);
             }
         }
-        System.out.write(term);
+        sb.append(term);
     }
 
     @SUBSTITUTE
@@ -153,7 +154,7 @@ public final class JDK_java_lang_UNIXProcess {
             return;
         }
         if (_logger.isLoggable(Level.WARNING)) {
-            System.out.println("WARNING: application is trying to destroy process: " + key);
+            _logger.warning("application is trying to destroy process: " + key);
         }
         GUKExec.destroyProcess(key);
     }

@@ -48,13 +48,20 @@ public class JavaProcessFilter extends GuestVMProcessFilter {
     private static String _guestvmDir;
     private static final byte[] _userDir = "-Duser.dir=".getBytes();
     private static final byte[] _java = "/java".getBytes();
+    private String[] _names = new String[2];
 
     public JavaProcessFilter() {
-        super(System.getProperty("java.home") + "/bin/java");
         _guestvmDir = System.getProperty("guestvm.dir");
         if (_guestvmDir == null) {
             GuestVMError.unexpected("guestvm.dir property is not set");
         }
+        _names[0] = "java";
+        _names[1] = System.getProperty("java.home") + "/bin/java";
+    }
+
+    @Override
+    public String[] names() {
+        return _names;
     }
 
     @Override

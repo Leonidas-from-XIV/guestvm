@@ -85,7 +85,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
                         pickCpuUpcall.address(), runnableUpcall.address()) == 0;
     }
 
-    @PROTOTYPE_ONLY
+    @HOSTED_ONLY
     protected GUKUpcallHandler() {
         _sched = this;
     }
