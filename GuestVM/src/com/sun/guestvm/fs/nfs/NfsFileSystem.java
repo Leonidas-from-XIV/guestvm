@@ -43,10 +43,7 @@ import com.sun.max.vm.run.guestvm.*;
 import com.sun.nfs.*;
 
 /**
- * NFS client for GuestVM
- * NFS file systems to mount are specified with the propery "guestvm.fs.nfs.mounts".
- * This should be a comma separated list of names of the form "server:path"
- * Each mount results in a separate instance of NfsFileSystem.
+ * NFS client for Guest VM.
  *
  * @author Mick Jordan
  *

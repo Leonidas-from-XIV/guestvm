@@ -37,6 +37,7 @@ import com.sun.max.collect.LinkSequence;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
+import com.sun.guestvm.*;
 import com.sun.guestvm.guk.*;
 import com.sun.guestvm.memory.HeapPool;
 import com.sun.guestvm.sched.*;
@@ -78,6 +79,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
             GUKScheduler.initialize();
         } else if (phase == MaxineVM.Phase.RUNNING) {
+            System.setProperty("guestvm.version", Version.ID);
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
             netInit();

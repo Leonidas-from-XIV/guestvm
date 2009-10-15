@@ -177,7 +177,7 @@ public final class GUKPagePool  implements Runnable {
         t.start();
     }
 
-    private static final String LOG_PROPERTY = "guestvm.ukernel.log.memset";
+    private static final String LOG_PROPERTY = "guestvm.memset.log";
     private static boolean _log;
     private long _current; // current domain memory reservation size in pages
 

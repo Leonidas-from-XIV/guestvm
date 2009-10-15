@@ -539,7 +539,7 @@ public class ICMP extends IP {
 
     // ----------------------------------------------------------------------
 
-    private static boolean _debug = System.getProperty("guestvm.net.icmp.ICMP.debug") != null;
+    private static boolean _debug = System.getProperty("guestvm.net.icmp.debug") != null;
 
     private static void dprint(String mess) {
         if (_debug) {

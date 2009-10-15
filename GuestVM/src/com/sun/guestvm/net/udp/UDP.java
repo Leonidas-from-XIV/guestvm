@@ -81,7 +81,7 @@ public class UDP extends IP {
     private static boolean _debug;
 
     public static void initialize() {
-        _debug = System.getProperty("guestvm.net.udp.UDP.debug") != null;
+        _debug = System.getProperty("guestvm.net.udp.debug") != null;
     }
 
     protected UDP() {
