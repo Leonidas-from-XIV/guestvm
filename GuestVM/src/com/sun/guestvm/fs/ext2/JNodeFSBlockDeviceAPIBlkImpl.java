@@ -40,7 +40,7 @@ import org.jnode.partitions.PartitionTableEntry;
 import com.sun.guestvm.blk.guk.*;
 
 
-public class JNodeFSBlockDeviceAPIBlkImpl implements FSBlockDeviceAPI {
+public final  class JNodeFSBlockDeviceAPIBlkImpl implements FSBlockDeviceAPI {
 
     private GUKBlkDevice _blkDevice;
     private long _length;
@@ -51,7 +51,7 @@ public class JNodeFSBlockDeviceAPIBlkImpl implements FSBlockDeviceAPI {
     }
 
     public static JNodeFSBlockDeviceAPIBlkImpl create(int id) {
-        GUKBlkDevice blkDevice = GUKBlkDevice.create(id);
+        final GUKBlkDevice blkDevice = GUKBlkDevice.create(id);
         if (blkDevice != null) {
             return new JNodeFSBlockDeviceAPIBlkImpl(blkDevice);
         }

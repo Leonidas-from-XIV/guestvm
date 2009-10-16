@@ -60,7 +60,7 @@ public class BashProcessFilter extends GuestVMProcessFilter {
             if (stripQuotes(execArgs[1]).equals("df")) {
                 final String arg2 = stripQuotes(execArgs[2]);
                 String path;
-                boolean onek = true;
+                final boolean onek = true;
                 if (arg2.equals("-k")) {
                     path = stripQuotes(execArgs[3]);
                 } else {

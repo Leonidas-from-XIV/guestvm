@@ -32,7 +32,6 @@
 package com.sun.guestvm.fs.exec;
 
 import com.sun.guestvm.fs.VirtualFileSystem;
-import com.sun.guestvm.fs.VirtualFileSystemId;
 import com.sun.guestvm.guk.GUKExec;
 
 /**
