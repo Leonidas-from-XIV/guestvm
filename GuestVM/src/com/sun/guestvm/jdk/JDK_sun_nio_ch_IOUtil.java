@@ -32,8 +32,8 @@
 package com.sun.guestvm.jdk;
 
 import java.io.*;
+import com.sun.guestvm.error.*;
 import com.sun.max.annotate.*;
-import com.sun.max.program.*;
 import com.sun.max.vm.runtime.*;
 
 /**
@@ -53,35 +53,35 @@ public class JDK_sun_nio_ch_IOUtil {
 
     @SUBSTITUTE
     static boolean randomBytes(byte[] someBytes) {
-        FatalError.crash("sun.nio.ch.IOUtil.randomBytes");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.randomBytes");
         return false;
     }
 
     @SUBSTITUTE
     static void initPipe(int[] fda, boolean blocking) {
-        FatalError.crash("sun.nio.ch.IOUtil.initPipe");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.initPipe");
     }
 
     @SUBSTITUTE
     static boolean drain(int fd) throws IOException {
-        FatalError.crash("sun.nio.ch.IOUtil.drain");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.drain");
         return false;
     }
 
     @SUBSTITUTE
     static void configureBlocking(FileDescriptor fd, boolean blocking) throws IOException {
-        FatalError.crash("sun.nio.ch.IOUtil.configureBlocking");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.configureBlocking");
     }
 
     @SUBSTITUTE
     static int fdVal(FileDescriptor fd) {
-        FatalError.crash("sun.nio.ch.IOUtil.fdVal");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.fdVal");
         return -1;
     }
 
     @SUBSTITUTE
     static void setfdVal(FileDescriptor fd, int value) {
-        FatalError.crash("sun.nio.ch.IOUtil.setfdVal");
+        GuestVMError.unimplemented("sun.nio.ch.IOUtil.setfdVal");
     }
 
 }
