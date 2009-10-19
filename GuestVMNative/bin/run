@@ -46,7 +46,20 @@ classpath="/guestvm/image/GuestVM/bin"
 guest=""
 jar=""
 vmalloc="-XX:+UseVirtualMemory"
-guestvmdir="-Dguestvm.dir=`pwd`"
+
+# Resolve location of this script
+me="${BASH_SOURCE[0]}"
+while [ -h "$me" ]; do
+    me=`readlink -e "$me"`
+done
+parent=`dirname $me`
+parent=`dirname $parent`
+if [ ! -d $parent/xmconfigs ] ; then
+  echo "no xmconfigs directory in $parent"
+  exit 1
+fi
+
+guestvmdir="-Dguestvm.dir=$parent"
 
 function show_help() {
   echo "run the Guest VM image
@@ -213,9 +226,10 @@ if [ ${#extra} -ge 1023 ] ; then
 fi
 
 if [ "$echocmd" -eq 1 ] ; then
-  echo xm create -c xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
+  echo xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
 fi
 if [ "$run" -eq 1 ] ; then
-  xm create -c xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
+  export IMAGE_DIR=$parent
+  xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
 fi
 exit 0

@@ -40,7 +40,10 @@
 
 #----------------------------------------------------------------------------
 # Kernel image file.
-kernel = "guestvm"
+if os.environ.get("IMAGE_DIR") != None :
+  kernel = os.environ.get("IMAGE_DIR") + "/guestvm"
+else :
+  kernel = "guestvm"
 
 # defaults to 1 if unset
 vcpus = os.environ.get("VCPUS")

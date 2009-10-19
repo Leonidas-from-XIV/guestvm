@@ -40,4 +40,4 @@ fi
 
 jh=${JAVA_HOME##*/}
 
-./run -echo -J-Dguestvm.process.filterclasses=com.sun.guestvm.process.HadoopProcessFilters -J-Djava.home=/guestvm/java/$jh/jre -J-Duser.home=$HADOOP_DIR "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:$HADOOP_DIR;ext2:/blk/2:/scratch" -J-Dhadoop.root.logger=INFO,console -J-Duser.name=acme -J-Dhadoop.home.dir=$HADOOP_DIR -J-Duser.dir=$HADOOP_DIR -J-Dguestvm.groups=acme -cp $HADOOP_DIR/hadoop-0.18.3-all.jar $*
+bin/run -echo -J-Dguestvm.process.filterclasses=com.sun.guestvm.process.HadoopProcessFilters -J-Djava.home=/guestvm/java/$jh/jre -J-Duser.home=$HADOOP_DIR "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:$HADOOP_DIR;ext2:/blk/2:/scratch" -J-Dhadoop.root.logger=INFO,console -J-Duser.name=acme -J-Dhadoop.home.dir=$HADOOP_DIR -J-Duser.dir=$HADOOP_DIR -J-Dguestvm.groups=acme -cp $HADOOP_DIR/hadoop-0.18.3-all.jar $*
