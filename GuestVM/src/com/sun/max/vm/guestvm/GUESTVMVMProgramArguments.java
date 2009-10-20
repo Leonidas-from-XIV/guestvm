@@ -59,6 +59,8 @@ public final class GUESTVMVMProgramArguments {
     private static final VMOption _timesliceOption = VMOptions.register(new VMIntOption("-XX:GUKTS=", 10, "Set Scheduler Time Slice (ms)"), MaxineVM.Phase.PRISTINE);
     @SuppressWarnings({"unused"})
     private static final VMOption _traceCpuOption = VMOptions.register(new VMIntOption("-XX:GUKCT=", -1, "Reserves a CPU for tracing"), MaxineVM.Phase.PRISTINE);
+    @SuppressWarnings({"unused"})
+    private static final VMOption _memPartitionOption = VMOptions.register(new VMIntOption("-XX:GUKMS=", 2, "Set percentage of memory allocated to small page partition"), MaxineVM.Phase.PRISTINE);
 
     private GUESTVMVMProgramArguments() {
     }
