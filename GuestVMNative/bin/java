@@ -43,8 +43,11 @@ me="${BASH_SOURCE[0]}"
 while [ -h "$me" ]; do
     me=`readlink -e "$me"`
 done
+# this assumes this script is in bin that is a sibling of xmconfigs
 parent=`dirname $me`
 parent=`dirname $parent`
+# ensure absolute
+parent=`cd $parent; pwd`
 if [ ! -d $parent/xmconfigs ] ; then
   echo "no xmconfigs directory in $parent"
   exit 1
