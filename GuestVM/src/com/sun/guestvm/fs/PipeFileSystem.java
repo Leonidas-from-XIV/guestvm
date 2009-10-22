@@ -110,7 +110,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
         @INLINE
         final byte consumeOne() {
             final byte result = _buffer[_readIndex];
-            _readIndex = Unsigned.imod(_readIndex + 1, _buffer.length);
+            _readIndex = Unsigned.irem(_readIndex + 1, _buffer.length);
             _available--;
             return result;
         }
@@ -118,7 +118,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
         @INLINE
         final void produceOne(byte b) {
             _buffer[_writeIndex] = b;
-            _writeIndex = Unsigned.imod(_writeIndex + 1, _buffer.length);
+            _writeIndex = Unsigned.irem(_writeIndex + 1, _buffer.length);
             _available++;
         }
     }

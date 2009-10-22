@@ -33,7 +33,10 @@
 # Guest VM is a Java virtual machine, so we provide a "java" launch command.
 # However, some users may find the "run" command easier to work with.
 
-vmargs=""
+# Version for TCK that sets up the TCK virtual disk and java.home
+
+vmargs="-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:/guestvm/tck -Djava.home=/guestvm/java/jdk1.6.0_11/jre"
+
 jar=""
 classpath=$CLASSPATH
 vmalloc="-XX:+UseVirtualMemory"
