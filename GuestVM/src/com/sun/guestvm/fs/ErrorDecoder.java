@@ -42,11 +42,14 @@ public class ErrorDecoder {
 
     public enum Code {
         ENOENT(2, "No such file or directory"),
+        EINTR(4, "Interrupted system call"),
         EIO(5, "I/O error"),
         EBADF(9, "Bad file number"),
+        EAGAIN(11, "Resource temporarily unavailable"),
         EACCES(13, "Permission denied"),
         EISDIR(21, "Is a directory"),
-        EROFS(30, "Read only file system");
+        EROFS(30, "Read only file system"),
+        EPIPE(32, "Broken pipe");
 
         private int _code;
         private String _message;

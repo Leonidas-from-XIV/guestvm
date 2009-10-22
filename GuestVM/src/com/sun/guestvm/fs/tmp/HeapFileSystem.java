@@ -42,7 +42,7 @@ import com.sun.guestvm.fs.*;
  * Single global lock protects everything accessed through public methods.
  */
 
-public final class HeapFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+public final class HeapFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     @SuppressWarnings("unused")
     private String _devPath;

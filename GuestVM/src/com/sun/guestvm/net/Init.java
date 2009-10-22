@@ -51,7 +51,7 @@ import com.sun.guestvm.net.ip.*;
 import com.sun.guestvm.net.udp.*;
 import com.sun.guestvm.net.tcp.*;
 import com.sun.guestvm.net.protocol.ether.*;
-import com.sun.max.vm.runtime.FatalError;
+import com.sun.guestvm.error.*;
 
 public class Init {
     // Interpreted at image build time
@@ -139,7 +139,7 @@ public class Init {
     private static String getDefaultProperty(Properties props, String property) {
         final String value = props.getProperty(property);
         if (value == null) {
-            FatalError.unexpected("network config property " + property + " not specified");
+            GuestVMError.unexpected("network config property " + property + " not specified");
         }
         return value;
     }
@@ -200,7 +200,7 @@ public class Init {
             final DHCP dhcp = DHCP.getDHCP(_ether.getMacAddress(), null);
             _localAddress = dhcp.sendRequest();
             if (_localAddress == null) {
-                FatalError.crash("failed to get IP address from DHCP");
+                GuestVMError.unexpected("failed to get IP address from DHCP");
             }
             _ownGateway = dhcp.gateway();
             _netMask = dhcp.netmask();
@@ -221,7 +221,7 @@ public class Init {
 
     private static void checkDefault(String property, String value) {
         if (value == null) {
-            FatalError.crash("no value for network property " + property);
+            GuestVMError.unexpected("no value for network property " + property);
         }
     }
 

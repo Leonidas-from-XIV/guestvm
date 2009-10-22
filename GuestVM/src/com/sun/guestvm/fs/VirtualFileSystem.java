@@ -169,4 +169,13 @@ public interface VirtualFileSystem {
     void release0(int fd, long pos, long size) throws IOException;
 
     int force0(int fd, boolean metaData) throws IOException;
+
+    /*
+     * Variants of readBytes/writeBytes that use direct byte buffers.
+     * Arguably these could be the primitives and the array forms could
+     * be hoisted and made fs independent.
+     */
+    int readBytes(int fd, long address, int offset, int length, long fileOffset);
+
+    int writeBytes(int fd, long address, int offset, int length, long fileOffset);
 }

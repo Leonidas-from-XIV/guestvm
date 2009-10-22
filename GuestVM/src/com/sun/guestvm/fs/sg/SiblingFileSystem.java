@@ -48,7 +48,7 @@ import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
  * @author Mick Jordan
  *
  */
-public final class SiblingFileSystem implements VirtualFileSystem {
+public final class SiblingFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     private Word _handle;
     private String _exportPath;
@@ -107,12 +107,6 @@ public final class SiblingFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public boolean checkAccess(String path, int access) {
-        unimplemented("checkAccess");
-        return false;
-    }
-
-    @Override
     public boolean createDirectory(String path) {
         final Pointer p = remap(path);
         final int rc = SiblingFileSystemNatives.createDirectory(_handle, p);
@@ -167,12 +161,6 @@ public final class SiblingFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public long getSpace(String path, int t) {
-        unimplemented("getSPace");
-        return 0;
-    }
-
-    @Override
     public String[] list(String path) {
         final Pointer dir = remap(path);
         final int[] nFiles = new int[1];
@@ -211,18 +199,6 @@ public final class SiblingFileSystem implements VirtualFileSystem {
         final int rc = SiblingFileSystemNatives.rename(_handle, p1, p2);
         Memory.deallocate(p1); Memory.deallocate(p2);
         return rc == 0;
-    }
-
-    @Override
-    public boolean setLastModifiedTime(String path, long time) {
-        unimplemented("setLastModifiedTime");
-        return false;
-    }
-
-    @Override
-    public int setMode(String path, int mode) {
-        unimplemented("setMode");
-        return -1;
     }
 
     // FileInputStream, FileOutputStream
@@ -285,39 +261,6 @@ public final class SiblingFileSystem implements VirtualFileSystem {
     @Override
     public int available(int fd, long fileOffset) {
         return 0;
-    }
-
-    @Override
-    public long skip(int fd, long n, long fileOffset) {
-        unimplemented("skip");
-        return 0;
-    }
-
-    @Override
-    public long uniqueId(int fd) {
-        unimplemented("uniqueId");
-        return -1;
-    }
-
-    @Override
-    public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        unimplemented("lock0");
-        return 0;
-    }
-
-    @Override
-    public void release0(int fd, long pos, long size) throws IOException {
-        unimplemented("release0");
-    }
-
-    @Override
-    public int force0(int fd, boolean metaData) throws IOException {
-        unimplemented("force0");
-        return 0;
-    }
-
-    private static void unimplemented(String w) {
-        GuestVMError.unimplemented("SiblingFileSystem operation:" + w);
     }
 
 }

@@ -32,9 +32,11 @@
 package com.sun.guestvm.jdk;
 
 import java.io.*;
+
 import com.sun.max.annotate.*;
-import com.sun.max.program.*;
 import com.sun.max.vm.runtime.*;
+import com.sun.guestvm.error.*;
+import com.sun.guestvm.fs.*;
 
 /**
  * Substitutions for  @see sun.nio.ch.FileDispatcher.
@@ -46,39 +48,66 @@ import com.sun.max.vm.runtime.*;
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.FileDispatcher")
 final class JDK_sun_nio_ch_FileDispatcher {
+
+    // copied from sun.nio.IOStatus (not public)
+    private static final int EOF = -1;                       // end of file
+    private static final int UNAVAILABLE = -2;      // Nothing available (non-blocking)
+    private static final int INTERRUPTED = -3;    // System call interrupted
+
     @SUBSTITUTE
-    private static int read0(FileDescriptor fd, long address, int len) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.read0");
-        return 0;
+    private static int read0(FileDescriptor fdObj, long address, int length) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int result = convertReturnValue(fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), address, 0, length, fdInfo._fileOffset), true);
+        return result;
     }
 
     @SUBSTITUTE
     private static int pread0(FileDescriptor fd, long address, int len, long position) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.pread0");
+        GuestVMError.unimplemented("sun.nio.ch.FileDispatcher.pread0");
         return 0;
     }
 
     @SUBSTITUTE
     private static long readv0(FileDescriptor fd, long address, int len) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.readv0");
+        GuestVMError.unimplemented("sun.nio.ch.FileDispatcher.readv0");
         return 0;
     }
 
+    private static int convertReturnValue(int n, boolean reading) throws IOException {
+        if (n > 0) {
+            return n;
+        } else if (n < 0) {
+            if (-n == ErrorDecoder.Code.EINTR.getCode()) {
+                return INTERRUPTED;
+            } else if (-n == ErrorDecoder.Code.EAGAIN.getCode()) {
+                return UNAVAILABLE;
+            }
+            throw new IOException("Read error: " + ErrorDecoder.getMessage(-n));
+        } else {
+            if (reading) {
+                return EOF;
+            } else {
+                return 0;
+            }
+        }
+    }
+
     @SUBSTITUTE
-    private static int write0(FileDescriptor fd, long address, int len) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.write0");
-        return 0;
+    private static int write0(FileDescriptor fdObj, long address, int length) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int result = convertReturnValue(fdInfo._vfs.writeBytes(VirtualFileSystemId.getFd(fdInfo._fd), address, 0, length, fdInfo._fileOffset), false);
+        return result;
     }
 
     @SUBSTITUTE
     private static int pwrite0(FileDescriptor fd, long address, int len, long position) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.pwrite0");
+        GuestVMError.unimplemented("sun.nio.ch.FileDispatcher.pwrite0");
         return 0;
     }
 
     @SUBSTITUTE
     private static long writev0(FileDescriptor fd, long address, int len) throws IOException {
-        FatalError.crash("sun.nio.ch.FileDispatcher.writev0");
+        GuestVMError.unimplemented("sun.nio.ch.FileDispatcher.writev0");
         return 0;
     }
 

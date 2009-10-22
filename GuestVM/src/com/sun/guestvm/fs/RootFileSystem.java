@@ -46,7 +46,7 @@ import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
  *
  */
 
-final class RootFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+final class RootFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     private static RootFileSystem _singleton;
     private static Dir _root;

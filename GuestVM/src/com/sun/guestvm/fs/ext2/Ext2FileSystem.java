@@ -54,7 +54,7 @@ import com.sun.guestvm.fs.*;
  *
  */
 
-public final class Ext2FileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     private FSEntry _rootEntry;
     private FSDirectory _root;

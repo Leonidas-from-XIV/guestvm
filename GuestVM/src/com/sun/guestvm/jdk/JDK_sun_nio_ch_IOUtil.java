@@ -33,7 +33,10 @@ package com.sun.guestvm.jdk;
 
 import java.io.*;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.fs.*;
 import com.sun.max.annotate.*;
+import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.object.*;
 import com.sun.max.vm.runtime.*;
 
 /**
@@ -46,6 +49,9 @@ import com.sun.max.vm.runtime.*;
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.IOUtil")
 public class JDK_sun_nio_ch_IOUtil {
+
+    private static PipeFileSystem _pipeFS = new PipeFileSystem();
+
     @SUBSTITUTE
     private static void initIDs() {
 
@@ -59,7 +65,7 @@ public class JDK_sun_nio_ch_IOUtil {
 
     @SUBSTITUTE
     static void initPipe(int[] fda, boolean blocking) {
-        GuestVMError.unimplemented("sun.nio.ch.IOUtil.initPipe");
+        _pipeFS.createPipe(fda, blocking);
     }
 
     @SUBSTITUTE
@@ -74,14 +80,13 @@ public class JDK_sun_nio_ch_IOUtil {
     }
 
     @SUBSTITUTE
-    static int fdVal(FileDescriptor fd) {
-        GuestVMError.unimplemented("sun.nio.ch.IOUtil.fdVal");
-        return -1;
+    static int fdVal(FileDescriptor fdObj) {
+        return TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
     }
 
     @SUBSTITUTE
-    static void setfdVal(FileDescriptor fd, int value) {
-        GuestVMError.unimplemented("sun.nio.ch.IOUtil.setfdVal");
+    static void setfdVal(FileDescriptor fdObj, int value) {
+        TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), value);
     }
 
 }

@@ -37,7 +37,6 @@ import java.util.*;
 
 import com.sun.max.vm.MaxineVM;
 import com.sun.max.vm.run.extendimage.*;
-import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -46,7 +45,7 @@ import com.sun.guestvm.fs.*;
  * @author Mick Jordan
  *
  */
-public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+public class ImageFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     private static ImageFileSystem _singleton = new ImageFileSystem();
     private static Map<String, byte[]> _fileSystem;
@@ -295,16 +294,6 @@ public class ImageFileSystem extends DefaultFileSystemImpl implements VirtualFil
     public long skip(int fd, long n, long fileOffset) {
         // spec allows skip to go past end of file
         return n;
-    }
-
-    @Override
-    public long uniqueId(int fd) {
-        unimplemented("uniqueId");
-        return -1;
-    }
-
-    private static void unimplemented(String w) {
-        GuestVMError.unimplemented("ImageFileSystem operation:" + w);
     }
 
 }

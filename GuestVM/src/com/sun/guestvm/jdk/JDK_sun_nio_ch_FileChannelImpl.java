@@ -35,8 +35,8 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.object.*;
-import com.sun.max.program.*;
 import com.sun.max.vm.runtime.*;
+import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -68,13 +68,13 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private long map0(int prot, long position, long length) throws IOException {
-        FatalError.crash("sun.nio.FileChannelImpl.map0");
+        GuestVMError.unimplemented("sun.nio.FileChannelImpl.map0");
         return -1;
     }
 
     @SUBSTITUTE
     private static int unmap0(long address, long length) {
-        FatalError.crash("sun.nio.FileChannelImpl.unmap0");
+        GuestVMError.unimplemented("sun.nio.FileChannelImpl.unmap0");
         return -1;
     }
 

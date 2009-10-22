@@ -31,14 +31,11 @@
  */
 package com.sun.guestvm.fs.console;
 
-import java.io.IOException;
-
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.*;
 import com.sun.max.vm.reference.*;
 import com.sun.max.memory.Memory;
 import com.sun.guestvm.fs.*;
-import com.sun.guestvm.error.*;
 
 /**
  * This is not really a file system, it just supports the standard file descriptors
@@ -47,114 +44,11 @@ import com.sun.guestvm.error.*;
  * @author Mick Jordan
  *
  */
-public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualFileSystem {
+public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
     @Override
     public void close() {
 
-    }
-
-    @Override
-    public String canonicalize0(String path) throws IOException {
-        unimplemented("canonicalize0");
-        return null;
-    }
-
-    @Override
-    public boolean checkAccess(String path, int access) {
-        unimplemented("checkAccess");
-        return false;
-    }
-
-    @Override
-    public int close0(int fd) {
-        unimplemented("close0");
-        return 0;
-    }
-
-    @Override
-    public boolean createDirectory(String path) {
-        unimplemented("createDirectory");
-        return false;
-    }
-
-    @Override
-    public boolean createFileExclusively(String path) throws IOException {
-        unimplemented("createFileExclusively");
-        return false;
-    }
-
-    @Override
-    public boolean delete0(String path) {
-        unimplemented("delete0");
-        return false;
-    }
-
-    @Override
-    public long getLastModifiedTime(String path) {
-        unimplemented("getLastModifiedTime");
-        return 0;
-    }
-
-    @Override
-    public long getLength(String path) {
-        unimplemented("getLength");
-        return 0;
-    }
-
-    @Override
-    public int getMode(String path) {
-        unimplemented("getMode");
-        return 0;
-    }
-
-    @Override
-    public long getSpace(String path, int t) {
-        unimplemented("getSpace");
-        return 0;
-    }
-
-    @Override
-    public String[] list(String path) {
-        unimplemented("list");
-        return null;
-    }
-
-    @Override
-    public int open(String name, int flags) {
-        unimplemented("open");
-        return 0;
-    }
-
-    @Override
-    public int read(int fd, long fileOffset) {
-        unimplemented("read");
-        return 0;
-    }
-
-    @Override
-    public int readBytes(int fd, byte[] bytes, int offset, int length,
-            long fileOffset) {
-        unimplemented("readBytes");
-        return 0;
-    }
-
-    @Override
-    public boolean rename0(String path1, String path2) {
-        unimplemented("rename0");
-        return false;
-    }
-
-    @Override
-    public boolean setLastModifiedTime(String path, long time) {
-        unimplemented("setLastModifiedTime");
-        return false;
-    }
-
-    @Override
-    public int setMode(String path, int mode) {
-        unimplemented("setPermission");
-        return -1;
     }
 
     @Override
@@ -195,18 +89,6 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     }
 
     @Override
-    public long getLength(int fd) {
-        unimplemented("getLength");
-        return 0;
-    }
-
-    @Override
-    public int setLength(int fd, long length) {
-        unimplemented("setLength");
-        return -1;
-    }
-
-    @Override
     public int available(int fd, long fileOffset) {
         return 0;
     }
@@ -219,10 +101,6 @@ public class ConsoleFileSystem extends DefaultFileSystemImpl implements VirtualF
     @Override
     public long uniqueId(int fd) {
         return fd;
-    }
-
-    private static void unimplemented(String w) {
-        GuestVMError.unimplemented("ConsoleFileSystem operation:" + w);
     }
 
     private static native int nativeWriteBytes(int fd, Pointer p, int length);

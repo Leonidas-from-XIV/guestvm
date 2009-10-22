@@ -51,12 +51,29 @@ import com.sun.max.vm.object.TupleAccess;
  */
 public class JDK_java_io_util {
 
+    /*
+     * A helper class for storing the important information extracted by getFdInfo.
+     * Instances of this class do not escape the methods that allocate them so
+     * should be implemented on-stack  without allocation.
+     */
+    static class FdInfo {
+        int _fd;
+        VirtualFileSystem _vfs;
+        long _fileOffset;
+
+        static FdInfo getFdInfo(Object fdObj) throws IOException {
+            final FdInfo result = new FdInfo();
+            result._fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+            result._vfs = VirtualFileSystemId.getVfs(result._fd);
+            result._fileOffset = VirtualFileSystemOffset.get(result._fd);
+            return result;
+        }
+    }
+
     static int read(Object fdObj)  throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        final long fileOffset = VirtualFileSystemOffset.get(fd);
-        final int b = vfs.read(VirtualFileSystemId.getFd(fd), fileOffset);
-        VirtualFileSystemOffset.inc(fd);
+        final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
+        final int b = fdInfo._vfs.read(VirtualFileSystemId.getFd(fdInfo._fd), fdInfo._fileOffset);
+        VirtualFileSystemOffset.inc(fdInfo._fd);
         return b == 0 ? -1 : b;
     }
 
@@ -70,25 +87,22 @@ public class JDK_java_io_util {
         if (length == 0) {
             return 0;
         }
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        final long fileOffset = VirtualFileSystemOffset.get(fd);
-        final int result = vfs.readBytes(VirtualFileSystemId.getFd(fd), bytes, offset, length, fileOffset);
-        VirtualFileSystemOffset.add(fd, length);
+        final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
+        final int result = fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), bytes, offset, length, fdInfo._fileOffset);
         if (result == 0) {
             return -1;
         } else if (result < 0) {
             throw new IOException("Read error: " + ErrorDecoder.getMessage(-result));
+        } else {
+            VirtualFileSystemOffset.add(fdInfo._fd, result);
         }
         return result;
     }
 
     static void write(int b, Object fdObj) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        final long fileOffset = VirtualFileSystemOffset.get(fd);
-        vfs.write(VirtualFileSystemId.getFd(fd), b, fileOffset);
-        VirtualFileSystemOffset.inc(fd);
+        final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
+        fdInfo._vfs.write(VirtualFileSystemId.getFd(fdInfo._fd), b, fdInfo._fileOffset);
+        VirtualFileSystemOffset.inc(fdInfo._fd);
     }
 
     static void writeBytes(byte[] bytes, int offset, int length, Object fdObj) throws IOException {
@@ -102,13 +116,12 @@ public class JDK_java_io_util {
         if (length == 0) {
             return;
         }
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        final  VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        final long fileOffset = VirtualFileSystemOffset.get(fd);
-        final int result = vfs.writeBytes(VirtualFileSystemId.getFd(fd), bytes, offset, length, fileOffset);
-        VirtualFileSystemOffset.add(fd, length);
+        final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
+        final int result = fdInfo._vfs.writeBytes(VirtualFileSystemId.getFd(fdInfo._fd), bytes, offset, length, fdInfo._fileOffset);
         if (result < 0) {
             throw new IOException("Write error: " + ErrorDecoder.getMessage(-result));
+        } else {
+            VirtualFileSystemOffset.add(fdInfo._fd, result);
         }
     }
 
