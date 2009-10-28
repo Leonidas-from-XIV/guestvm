@@ -81,7 +81,7 @@ public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements Vi
         while (left > 0) {
             final int toWrite = left > buffer.length ? buffer.length : left;
             Memory.writeBytes(bytes, newOffset, toWrite, nativeBytes);
-            result = nativeWriteBytes(fd, nativeBytes, toWrite);
+            result += nativeWriteBytes(fd, nativeBytes, toWrite);
             left -= toWrite;
             newOffset += toWrite;
         }

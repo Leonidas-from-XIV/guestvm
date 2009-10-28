@@ -101,8 +101,10 @@ public class JDK_java_io_util {
 
     static void write(int b, Object fdObj) throws IOException {
         final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
-        fdInfo._vfs.write(VirtualFileSystemId.getFd(fdInfo._fd), b, fdInfo._fileOffset);
-        VirtualFileSystemOffset.inc(fdInfo._fd);
+        final int result = fdInfo._vfs.write(VirtualFileSystemId.getFd(fdInfo._fd), b, fdInfo._fileOffset);
+        if (result > 0) {
+            VirtualFileSystemOffset.inc(fdInfo._fd);
+        }
     }
 
     static void writeBytes(byte[] bytes, int offset, int length, Object fdObj) throws IOException {

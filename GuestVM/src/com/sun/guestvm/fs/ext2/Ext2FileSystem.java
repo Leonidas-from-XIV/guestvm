@@ -521,7 +521,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             byteBuffer.put((byte) b);
             byteBuffer.position(0);
             fileData._fsFile.write(fileOffset, byteBuffer);
-            return 0;
+            return 1;
         } catch (IOException ex) {
             _logger.warning(ex.toString());
             return -ErrorDecoder.Code.EIO.getCode();

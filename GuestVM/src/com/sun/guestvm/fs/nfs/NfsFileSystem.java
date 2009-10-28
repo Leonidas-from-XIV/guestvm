@@ -416,7 +416,6 @@ public final class NfsFileSystem extends UnimplementedFileSystemImpl implements 
         final byte[] buf = new byte[1];
         buf[0] = (byte) b;
         return writeBytes(fd, buf, 0, 1, fileOffset);
-
     }
 
     @Override

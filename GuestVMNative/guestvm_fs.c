@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 /*
  * Shim to the GUK console I/O and sibling guest file system I/O.
@@ -46,7 +46,7 @@ JNIEXPORT int JNICALL
 Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWriteBytes(JNIEnv *env, jclass c, int fd,
 								   char *data, int length) {
     guk_printbytes(data, length);
-    return 0;
+    return length;
 }
 
 JNIEXPORT int JNICALL
@@ -55,7 +55,7 @@ Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWrite(JNIEnv *env, jclas
     char buf[1];
     buf[0] = b;
     guk_printbytes(buf, 1);
-    return 0;
+    return 1;
 }
 
 JNIEXPORT int JNICALL
@@ -78,12 +78,12 @@ Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_writeBytes(JNIEnv *env, jcla
   return guk_fs_write(import, fd, data, length, offset);
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT int JNICALL
 Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_write(JNIEnv *env, jclass c,
 							  struct fs_import *import,  int fd, int b, jlong offset) {
   char buf[1];
   buf[0] = b;
-  guk_fs_write(import, fd, &buf, 1, offset);
+  return guk_fs_write(import, fd, &buf, 1, offset);
 }
 
 JNIEXPORT int JNICALL
@@ -221,36 +221,36 @@ void *fs_dlsym(const char *symbol) {
       return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_open;
     else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_write") == 0)
       return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_write;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_close0") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_close0") == 0)
         return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_close0;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_read") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_read") == 0)
         return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_read;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_readBytes") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_readBytes") == 0)
         return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_readBytes;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getNumImports") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getNumImports") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getNumImports;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getImport") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getImport") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getImport;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getPath") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getPath") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getPath;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLength") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLength") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLength;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLengthFd") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLengthFd") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLengthFd;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getMode") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getMode") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getMode;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_list") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_list") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_list;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_delete") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_delete") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_delete;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_rename") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_rename") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_rename;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLastModifiedTime") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLastModifiedTime") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_getLastModifiedTime;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createDirectory") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createDirectory") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createDirectory;
-    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createFileExclusively") == 0) 
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createFileExclusively") == 0)
         return  Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_createFileExclusively;
-    else 
+    else
         return 0;
 }

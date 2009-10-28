@@ -405,7 +405,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
             fe.addCapacity(fileOffset);
         }
         fe.write(b, fileOffset);
-        return 0;
+        return 1;
     }
 
     @Override
@@ -414,7 +414,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
         for (int i = 0; i < length; i++) {
             write(fd, bytes[offset + i], fileOffset + i);
         }
-        return 0;
+        return length;
     }
 
     @Override
