@@ -239,4 +239,74 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
         }
         return 0;
     }
+
+    @Override
+    public int poll0(int fd, int eventOps, long timeout) {
+        final Pipe pipe = _pipes.get(fd);
+        synchronized (pipe) {
+            if ((fd & 1) == 0) {
+                // read end, anything available?
+                if (pipe.available() > 0) {
+                    return VirtualFileSystem.POLLIN;
+                }
+                if (timeout == 0) {
+                    return 0;
+                } else if (timeout < 0) {
+                    timeout = 0;
+                }
+                final long start = System.currentTimeMillis();
+                long remaining = timeout;
+                while (true) {
+                    try {
+                        pipe.wait(remaining);
+                        if (pipe.available() > 0) {
+                            return VirtualFileSystem.POLLIN;
+                        } else if (pipe.available() == 0) {
+                            if (pipe.writeClosed()) {
+                                return 0; // EOF
+                            }
+                        }
+                        // timeout expired?
+                        final long now = System.currentTimeMillis();
+                        if (now - start >= timeout) {
+                            return 0;
+                        }
+                        remaining -= now - start;
+                    } catch (InterruptedException ex) {
+                        return -ErrorDecoder.Code.EINTR.getCode();
+                    }
+                }
+            } else {
+                // write end, can we write?
+                if (!pipe.full()) {
+                    return VirtualFileSystem.POLLOUT;
+                }
+                if (timeout == 0) {
+                    return 0;
+                }
+                final long start = System.currentTimeMillis();
+                long remaining = timeout;
+                while (true) {
+                    try {
+                        pipe.wait(remaining);
+                        if (pipe.readClosed()) {
+                            return 0;
+                        }
+                        if (!pipe.full()) {
+                            return VirtualFileSystem.POLLOUT;
+                        }
+                        // timeout expired?
+                        final long now = System.currentTimeMillis();
+                        if (now - start >= timeout) {
+                            return 0;
+                        }
+                        remaining -= now - start;
+                    } catch (InterruptedException ex) {
+                        return -ErrorDecoder.Code.EINTR.getCode();
+                    }
+                }
+            }
+        }
+
+    }
 }

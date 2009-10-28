@@ -126,7 +126,7 @@ fi
 JVM_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.vm
 JAR_IMAGE=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm/maxine.jar
 
-classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/GNUCP/bin
+classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Inspector/jlfgr-1_0.jar:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp

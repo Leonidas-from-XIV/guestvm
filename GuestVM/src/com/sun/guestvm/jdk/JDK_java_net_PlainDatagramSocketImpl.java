@@ -34,7 +34,6 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import java.net.*;
 import com.sun.max.annotate.*;
-import com.sun.max.collect.*;
 import com.sun.max.program.ProgramError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
@@ -58,22 +57,6 @@ import com.sun.guestvm.net.udp.*;
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.net.PlainDatagramSocketImpl")
 public class JDK_java_net_PlainDatagramSocketImpl {
 
-    private static VariableSequence<UDPEndpoint> _endpoints = new ArrayListSequence<UDPEndpoint>(16);
-
-    private static int getFreeIndex(UDPEndpoint u) {
-        synchronized (_endpoints) {
-            final int length = _endpoints.length();
-            for (int i = 0; i < length; i++) {
-                if (_endpoints.get(i) == null) {
-                    _endpoints.set(i, u);
-                    return i;
-                }
-            }
-            _endpoints.append(u);
-            return length;
-        }
-    }
-
     private static Object checkOpen(Object self) throws SocketException {
         final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
         if (fdObj == null) {
@@ -85,7 +68,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private synchronized void bind0(int lport, InetAddress laddr) throws SocketException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         // TODO fix bind's first argument
         endpoint.bind(0, lport, false);
     }
@@ -93,7 +76,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private void send(DatagramPacket p) throws IOException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
@@ -124,7 +107,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private synchronized void receive0(DatagramPacket p) throws IOException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
@@ -182,7 +165,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private void datagramSocketCreate() throws SocketException {
         final Object fdObj = checkOpen(this);
-        final int fd = getFreeIndex(new UDPEndpoint());
+        final int fd = JDK_java_net_util.getFreeIndex(new UDPEndpoint());
         TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), fd);
     }
 
@@ -192,7 +175,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
         if (fdObj != null) {
             final int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
             if (fd != -1) {
-                _endpoints.set(fd, null);
+                JDK_java_net_util.setNull(fd);
                 TupleAccess.writeInt(fdObj, _fdFieldActor.offset(),  -1);
             }
         }
@@ -212,7 +195,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
     @SUBSTITUTE
     private void connect0(InetAddress address, int port) throws SocketException {
         final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
         endpoint.connect(IPAddress.byteToInt(address.getAddress()), port);
         TupleAccess.writeBoolean(this, _connectedFieldActor.offset(), true);
     }

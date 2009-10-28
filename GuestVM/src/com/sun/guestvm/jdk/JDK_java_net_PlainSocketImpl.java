@@ -61,36 +61,21 @@ import com.sun.guestvm.logging.*;
 @SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.net.PlainSocketImpl")
-public class JDK_java_net_PlainSocketImpl {
+final class JDK_java_net_PlainSocketImpl {
 
-    private static VariableSequence<TCPEndpoint> _endpoints = new ArrayListSequence<TCPEndpoint>(16);
     private static Logger _logger;
 
-    private static Object checkOpen(Object self) throws SocketException {
+    private static FileDescriptor checkOpen(Object self) throws SocketException {
         final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
         if (fdObj == null) {
             throw new SocketException("socket closed");
         }
-        return fdObj;
+        return (FileDescriptor) fdObj;
     }
 
     private static TCPEndpoint getEndpoint(Object self) throws SocketException {
-        final Object fdObj = checkOpen(self);
-        return _endpoints.get(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
-    }
-
-    private static int getFreeIndex(TCPEndpoint u) {
-        synchronized (_endpoints) {
-            final int length = _endpoints.length();
-            for (int i = 0; i < length; i++) {
-                if (_endpoints.get(i) == null) {
-                    _endpoints.set(i, u);
-                    return i;
-                }
-            }
-            _endpoints.append(u);
-            return length;
-        }
+        final FileDescriptor fdObj = checkOpen(self);
+        return (TCPEndpoint) JDK_java_net_util.get(fdObj);
     }
 
     /**
@@ -103,14 +88,14 @@ public class JDK_java_net_PlainSocketImpl {
         if (fd < 0) {
             throw new SocketException("socket closed");
         }
-        return  _endpoints.get(fd);
+        return  JDK_java_net_util.getT(fd);
 
     }
 
     @SUBSTITUTE
     private  void socketCreate(boolean isServer) throws IOException {
         final Object fdObj = checkOpen(this);
-        final int fd = getFreeIndex(new TCPEndpoint());
+        final int fd = JDK_java_net_util.getFreeIndex(new TCPEndpoint());
         TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), fd);
     }
 
@@ -149,7 +134,7 @@ public class JDK_java_net_PlainSocketImpl {
         if (timeout != 0) {
             endpoint.setTimeout(timeout);
         }
-        final int fd = getFreeIndex((TCPEndpoint) endpoint.accept());
+        final int fd = JDK_java_net_util.getFreeIndex((TCPEndpoint) endpoint.accept());
         // set fd field in FileDescriptor in si
         TupleAccess.writeInt(TupleAccess.readObject(si, _fileDescriptorFieldActor.offset()), _fdFieldActor.offset(), fd);
         // copy address and localport fields from this to si
@@ -169,7 +154,7 @@ public class JDK_java_net_PlainSocketImpl {
         final Object fdObj = checkOpen(this);
         final  int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
         if (fd != -1) {
-            _endpoints.get(fd).close();
+            JDK_java_net_util.getT(fd).close();
             TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), -1);
         }
     }

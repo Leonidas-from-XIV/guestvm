@@ -45,6 +45,8 @@ package com.sun.guestvm.net.tcp;
 import java.net.*;
 import java.io.*;
 
+import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.guestvm.fs.VirtualFileSystem;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 
@@ -198,6 +200,50 @@ public class TCPEndpoint implements Endpoint {
     public int getRemotePort() {
         return tcp._remotePort;
     }
+    public int getLocalAddress() {
+        // return tcp._localIp;
+        // TODO implement setting of local address
+        return 0;
+    }
 
+    public int getLocalPort() {
+        return tcp._localPort;
+    }
+
+    public void configureBlocking(boolean blocking) {
+        tcp.configureBlocking(blocking);
+    }
+
+    public int poll(int eventOps, long timeout) {
+        assert eventOps == VirtualFileSystem.POLLIN;
+        if (tcp.available() > 0) {
+            return VirtualFileSystem.POLLIN;
+        }
+        if (timeout == 0) {
+            return 0;
+        } else if (timeout < 0) {
+            timeout = 0;
+        }
+        synchronized (tcp) {
+            final long start = System.currentTimeMillis();
+            long remaining = timeout;
+            while (true) {
+                try {
+                    tcp.wait(timeout);
+                    if (tcp.available() > 0) {
+                        return VirtualFileSystem.POLLIN;
+                    }
+                    // timeout expired?
+                    final long now = System.currentTimeMillis();
+                    if (now - start >= timeout) {
+                        return 0;
+                    }
+                    remaining -= now - start;
+                } catch (InterruptedException ex) {
+                    return -ErrorDecoder.Code.EINTR.getCode();
+                }
+            }
+        }
+    }
 }
 

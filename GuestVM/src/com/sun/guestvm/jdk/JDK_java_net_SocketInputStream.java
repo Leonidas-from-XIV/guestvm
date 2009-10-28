@@ -43,7 +43,7 @@ import com.sun.guestvm.net.tcp.*;
 @SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.net.SocketInputStream")
-public class JDK_java_net_SocketInputStream {
+final class JDK_java_net_SocketInputStream {
 
     @SUBSTITUTE
     private int socketRead0(FileDescriptor fd, byte[] b, int off, int len, int timeout) throws IOException {

@@ -51,6 +51,8 @@ import java.io.*;
 import java.net.BindException;
 import java.net.SocketException;
 
+import com.sun.guestvm.error.GuestVMError;
+import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.net.*;
 
 public class UDPEndpoint implements Endpoint, UDPUpcall {
@@ -70,6 +72,9 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
     private int numPackets;
     int timeout;        // used for timing out reads and accept (in millisecs)
     private Object _lock = new Object();
+
+    // NIO support for non-blocking I/O
+    private boolean blocking;
 
     public UDPEndpoint() {
     }
@@ -198,6 +203,10 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
         Packet pkt = null;
         int n = 0;
 
+        if (!blocking && available() == 0) {
+            return ErrorDecoder.Code.EAGAIN.getCode();
+        }
+
         synchronized (_lock) {
             try {
                 pkt = readPacket();
@@ -273,6 +282,10 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
         this.timeout = timeout;
     }
 
+    public void configureBlocking(boolean blocking) {
+        this.blocking = blocking;
+    }
+
     //----------------------------------------------------------------------
 
     public int getRemoteAddress() {
@@ -282,6 +295,24 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
     public int getRemotePort() {
         return destPort;
     }
+
+    // ----------------------------------------------------------------------
+
+    public int getLocalAddress() {
+        // return localAddr;
+        // TODO implement local adress
+        return 0;
+    }
+
+    public int getLocalPort() {
+        return localPort;
+    }
+
+    public int poll(int eventOps, long timeout) {
+        GuestVMError.unimplemented("UDPEndpoint.poll");
+        return 0;
+    }
+
 
     // ----------------------------------------------------------------------
 

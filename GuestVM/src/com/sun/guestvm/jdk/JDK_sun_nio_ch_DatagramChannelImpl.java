@@ -31,23 +31,13 @@
  */
 package com.sun.guestvm.jdk;
 
-import java.io.IOException;
-import sun.nio.ch.*;
+import java.io.*;
+import java.net.*;
 import com.sun.max.annotate.*;
-import com.sun.guestvm.error.GuestVMError;
+import com.sun.guestvm.error.*;
 
 /**
- * Substitute methods for sun.nio.ch.PollArrayWrapper.
- * In an ideal world we would provide a GuestVM specific subclass of
- * PollArrayWrapper, similar to EPollArrayWrapper (for Linux epoll)
- * that avoided all the native ugliness. For now however, we stick
- * to the strategy of not changing the JDK at all and substituting the
- * native methods.
- *
- * However, in order to leverage the methods of PollArrayWrapper,
- * which is a package private class, we do delegate to a GuestVM specific class
- * declared in sun.nio.ch so that we can access the fields of the poll structure,
- * which is a struct pollfd from poll.h, using the PollArrayWrapper methods.
+ * Substitutions for native methods in sun.nio.ch.DatagramChannelImpl.
  *
  * @author Mick Jordan
  *
@@ -55,17 +45,28 @@ import com.sun.guestvm.error.GuestVMError;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.PollArrayWrapper")
-public class JDK_sun_nio_ch_PollArrayWrapper {
-
+@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.DatagramChannelImpl")
+public class JDK_sun_nio_ch_DatagramChannelImpl {
     @SUBSTITUTE
-    private int poll0(long pollAddress, int numfds, long timeout) throws IOException {
-        return GuestVMNativePollArrayWrapper.poll0(this, pollAddress, numfds, timeout);
+    private static void initIDs() {
     }
 
     @SUBSTITUTE
-    private static void interrupt(int fd) throws IOException {
-        GuestVMNativePollArrayWrapper.interrupt(fd);
+    private static void disconnect0(FileDescriptor fd) throws IOException {
+        GuestVMError.unimplemented("sun.nio.ch.Net.disconnect0");
     }
+
+    @SUBSTITUTE
+    private int receive0(FileDescriptor fd, long address, int len, boolean connected) throws IOException {
+        GuestVMError.unimplemented("sun.nio.ch.Net.receive0");
+        return 0;
+    }
+
+    @SUBSTITUTE
+    private int send0(FileDescriptor fd, long address, int len, SocketAddress sa) throws IOException {
+        GuestVMError.unimplemented("sun.nio.ch.Net.send0");
+        return 0;
+    }
+
 
 }

@@ -193,7 +193,7 @@ public class UnimplementedFileSystemImpl implements VirtualFileSystem {
     }
 
     @Override
-   public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
+    public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
         unimplemented("lock0");
         return 0;
     }
@@ -219,6 +219,17 @@ public class UnimplementedFileSystemImpl implements VirtualFileSystem {
     public int writeBytes(int fd, long address, int offset, int length, long fileOffset) {
         unimplemented("writeBytes-address");
         return 0;
+    }
+
+    @Override
+    public int poll0(int fd, int eventOps, long timeout) {
+        unimplemented("poll0");
+        return 0;
+    }
+
+    @Override
+    public void configureBlocking(int fd, boolean blocking) {
+        unimplemented("configureBlocking");
     }
 
     private void unimplemented(String w) {

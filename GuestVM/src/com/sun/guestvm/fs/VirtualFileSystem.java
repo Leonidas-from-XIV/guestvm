@@ -170,6 +170,13 @@ public interface VirtualFileSystem {
 
     int force0(int fd, boolean metaData) throws IOException;
 
+    short POLLIN = 0x0001;
+    short POLLOUT = 0x0004;
+
+    int poll0(int fd, int eventOps, long timeout);
+
+    void configureBlocking(int fd, boolean blocking);
+
     /*
      * Variants of readBytes/writeBytes that use direct byte buffers.
      * Arguably these could be the primitives and the array forms could

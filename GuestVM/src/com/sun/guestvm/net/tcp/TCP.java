@@ -74,6 +74,7 @@ package com.sun.guestvm.net.tcp;
 import java.io.*;
 import java.util.*;
 
+import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 import com.sun.guestvm.net.icmp.*;
@@ -260,6 +261,9 @@ public final class TCP extends IP {
     private String _reason;
 
     private static Random _random;
+
+    // for NIO support, if false, read will return EAGAIN if no bytes available
+    private boolean blocking;
 
     /**
      * Initialization of the TCP universe.
@@ -941,7 +945,7 @@ public final class TCP extends IP {
     }
 
     private synchronized void syncNotify() {
-        notify();
+        notifyAll();
     }
 
     private void doSynRcvd(Packet pkt) throws NetworkException {
@@ -1605,6 +1609,9 @@ public final class TCP extends IP {
         }
 
         if (_recvQueue.bytesQueued == 0) {
+            if (!blocking) {
+                return ErrorDecoder.Code.EAGAIN.getCode();
+            }
             synchronized (this) {
                 wait(timeout);
             }
@@ -2053,5 +2060,9 @@ public final class TCP extends IP {
             arr[i][4] = tcp._state.ordinal();
         }
         return i;
+    }
+
+    void configureBlocking(boolean blocking) {
+        this.blocking = blocking;
     }
 }

@@ -29,43 +29,40 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.jdk;
+package com.sun.guestvm.net;
 
-import java.io.IOException;
-import sun.nio.ch.*;
-import com.sun.max.annotate.*;
-import com.sun.guestvm.error.GuestVMError;
+import com.sun.guestvm.fs.*;
+import com.sun.guestvm.jdk.JDK_java_net_util;
 
 /**
- * Substitute methods for sun.nio.ch.PollArrayWrapper.
- * In an ideal world we would provide a GuestVM specific subclass of
- * PollArrayWrapper, similar to EPollArrayWrapper (for Linux epoll)
- * that avoided all the native ugliness. For now however, we stick
- * to the strategy of not changing the JDK at all and substituting the
- * native methods.
- *
- * However, in order to leverage the methods of PollArrayWrapper,
- * which is a package private class, we do delegate to a GuestVM specific class
- * declared in sun.nio.ch so that we can access the fields of the poll structure,
- * which is a struct pollfd from poll.h, using the PollArrayWrapper methods.
+ * Not really a file system, but ensures that network endpoints are mapped to file descriptors that
+ * follow the conventions in VirtualFileSystemId. This became a requirement when implementing
+ * parts of the java.nio package, which is heavily dependent on file descriptors and invokes
+ * generic calls that require the underlying "file system" to be determinable.
  *
  * @author Mick Jordan
  *
  */
 
-@SuppressWarnings("unused")
+public class EndpointFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
+    private static EndpointFileSystem _singleton;
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.PollArrayWrapper")
-public class JDK_sun_nio_ch_PollArrayWrapper {
-
-    @SUBSTITUTE
-    private int poll0(long pollAddress, int numfds, long timeout) throws IOException {
-        return GuestVMNativePollArrayWrapper.poll0(this, pollAddress, numfds, timeout);
+    public static EndpointFileSystem create() {
+        if (_singleton == null) {
+            _singleton = new EndpointFileSystem();
+        }
+        return _singleton;
     }
 
-    @SUBSTITUTE
-    private static void interrupt(int fd) throws IOException {
-        GuestVMNativePollArrayWrapper.interrupt(fd);
+    @Override
+    public void configureBlocking(int fd, boolean blocking) {
+        final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+        endpoint.configureBlocking(blocking);
     }
 
+    @Override
+    public int poll0(int fd, int eventOps, long timeout) {
+        final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+        return endpoint.poll(eventOps, timeout);
+    }
 }

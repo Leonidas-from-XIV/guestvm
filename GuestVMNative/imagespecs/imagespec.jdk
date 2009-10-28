@@ -47,6 +47,7 @@ classinit sun.nio.ch.IOUtil
 # if this is done lazily because it alters data in ClassLoader.NativeLibrary that has already been processed.
 class sun.nio.ch.Util
 class sun.nio.ch.FileKey
+forcemethod sun.nio.ch.GuestVMNativePollArrayWrapper.*
 package java.util.jar
 package java.util.concurrent
 package java.util.concurrent.atomic

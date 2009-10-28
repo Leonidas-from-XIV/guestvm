@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
+import static com.sun.guestvm.jdk.JDK_java_io_util.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
@@ -76,7 +77,8 @@ public class JDK_sun_nio_ch_IOUtil {
 
     @SUBSTITUTE
     static void configureBlocking(FileDescriptor fd, boolean blocking) throws IOException {
-        GuestVMError.unimplemented("sun.nio.ch.IOUtil.configureBlocking");
+        final FdInfo fdInfo = FdInfo.getFdInfo(fd);
+        fdInfo._vfs.configureBlocking(VirtualFileSystemId.getFd(fdInfo._fd), blocking);
     }
 
     @SUBSTITUTE
