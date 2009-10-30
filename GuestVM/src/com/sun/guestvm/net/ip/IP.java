@@ -188,6 +188,7 @@ public class IP implements NetDevice.Handler {
             _ether = ether;
             _arp    = a;
             _debug = System.getProperty("guestvm.net.ip.debug") != null;
+            _logErrors = System.getProperty("guestvm.net.ip.logerrors") != null;
         }
     }
 
@@ -638,14 +639,18 @@ public class IP implements NetDevice.Handler {
     //----------------------------------------------------------------------
 
     private static boolean _debug;
+    private static boolean _logErrors;
 
     private static void dprint(String mess) {
-        if (_debug)
-            err(mess);
+        if (_debug) {
+            Debug.println("IP: " + mess);
+        }
     }
 
     private static void err(String mess) {
-        Debug.println("IP: " + mess);
+        if (_logErrors) {
+            Debug.println("IP: " + mess);
+        }
     }
 }
 

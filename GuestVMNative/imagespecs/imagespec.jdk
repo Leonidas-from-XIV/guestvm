@@ -48,6 +48,7 @@ classinit sun.nio.ch.IOUtil
 class sun.nio.ch.Util
 class sun.nio.ch.FileKey
 forcemethod sun.nio.ch.GuestVMNativePollArrayWrapper.*
+class sun.nio.ch.GuestVMNativePollArrayWrapper$PollOut
 package java.util.jar
 package java.util.concurrent
 package java.util.concurrent.atomic
@@ -83,6 +84,7 @@ forcemethod com.sun.guestvm.spinlock.tas.inline.ISpinLock.*
 forcemethod com.sun.guestvm.guk.GUKTrace.xprint
 package com.sun.guestvm.jdk
 package com.sun.guestvm.zip
+package com.sun.guestvm.util
 # logging
 package java.util.logging
 # the following stuff is needed for the default

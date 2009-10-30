@@ -34,11 +34,11 @@ package sun.nio.ch;
 import java.io.IOException;
 import java.util.*;
 
-import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.reference.*;
 import com.sun.max.vm.VMConfiguration;
+import com.sun.max.annotate.*;
 
 /**
  * Implementation of the native methods of PollArrayWrapper leveraging
@@ -78,12 +78,9 @@ public class GuestVMNativePollArrayWrapper {
                 vfsArray[i] = vfs;
             }
         }
+        debug(timeout, count);
         if (timeout == 0 || count > 0) {
             return count;
-        }
-        // < 0 means infinite timeout
-        if (timeout < 0) {
-            timeout = 0;
         }
         // now wait for timeout for one event
         if (numfds == 1) {
@@ -92,7 +89,7 @@ public class GuestVMNativePollArrayWrapper {
             return checkMatch(p, 0, reventOps);
         }
         // multiple file descriptors to wait for, need a thread for each
-        final PollOut pollOut = new PollOut();
+        final PollOut pollOut = new PollOut(numfds);
         final PollThread[] pollThreads = new PollThread[numfds];
         for (int t = 0; t < numfds; t++) {
             pollThreads[t] = PollThread.getThread();
@@ -101,22 +98,37 @@ public class GuestVMNativePollArrayWrapper {
         }
         synchronized (pollOut) {
             try {
-                p.wait();
-                if (pollOut._index >= 0) {
-                    return 1;
+                while (pollOut._waiterCount > 0 && pollOut._index < 0) {
+                    pollOut.wait();
+                    if (pollOut._index >= 0) {
+                        return 1;
+                    }
                 }
+                // if all waiters return without a match we drop through and return 0
             } catch (InterruptedException ex) {
                 return -ErrorDecoder.Code.EINTR.getCode();
             } finally {
-                PollThread.cancelThreads(pollThreads);
+                if (pollOut._waiterCount > 0) {
+                    PollThread.cancelThreads(pollThreads, pollOut);
+                }
             }
         }
         return 0;
     }
 
+    @NEVER_INLINE
+    static void debug(long t, int c) {
+
+    }
+
     static class PollOut {
         int _index;
         int _reventOps;
+        int _waiterCount;
+        PollOut(int waiterCount) {
+            _waiterCount = waiterCount;
+            _index = -1;
+        }
     }
 
     private static int checkMatch(PollArrayWrapper p, int i, int reventOps) throws IOException {
@@ -142,18 +154,23 @@ public class GuestVMNativePollArrayWrapper {
 
     static class PollThread extends Thread {
         static List<PollThread> _workers = new ArrayList<PollThread>(0);
+        static int _nextWorkerId;
 
         VirtualFileSystem[] _vfsArray;
         PollArrayWrapper _p;
         int _index;
         long _timeout;
-        boolean _workToDo;
         PollOut _pollOut;
+
+        PollThread() {
+            setDaemon(true);
+            setName("PollThread-" + _nextWorkerId++);
+        }
 
         static synchronized PollThread getThread() {
             PollThread result = null;
             for (int i = 0; i < _workers.size(); i++) {
-                PollThread thread = _workers.get(i);
+                final PollThread thread = _workers.get(i);
                 if (thread.idle()) {
                     result = thread;
                     break;
@@ -167,11 +184,13 @@ public class GuestVMNativePollArrayWrapper {
             return result;
         }
 
-        static void cancelThreads(PollThread[] pollThreads) {
+        static void cancelThreads(PollThread[] pollThreads, PollOut pollOut) {
             for (PollThread pollThread : pollThreads) {
                 synchronized (pollThread) {
-                    pollThread.interrupt();
-                    pollThread._workToDo = false;
+                    // if it was working for caller, interrupt it
+                    if (pollThread._pollOut == pollOut) {
+                        pollThread.interrupt();
+                    }
                 }
             }
         }
@@ -183,37 +202,37 @@ public class GuestVMNativePollArrayWrapper {
             _index = index;
             _timeout = timeout;
             _pollOut = pollOut;
-            _workToDo = true;
             notify();
         }
 
         synchronized boolean idle() {
-            return !_workToDo;
+            return _pollOut == null;
         }
 
         public void run() {
             while (true) {
                 try {
                     synchronized (this) {
-                        while (!_workToDo) {
+                        while (_pollOut == null) {
                             wait();
                         }
                     }
                     final int reventOps = _vfsArray[_index].poll0(VirtualFileSystemId.getFd(_p.getDescriptor(_index)), _p.getEventOps(_index), _timeout);
-                    // wake up the coordinator if we got a match
                     synchronized (_pollOut) {
                         if (_pollOut._index < 0 && match(_p, _index, reventOps) > 0) {
                             _pollOut._reventOps = reventOps;
                             _pollOut._index = _index;
-                            _pollOut.notify();
                         }
+                        // wake up the coordinator - either there was a match or we are the last thread
+                        _pollOut._waiterCount--;
+                        _pollOut.notify();
                     }
                 } catch (InterruptedException ex) {
 
                 } finally {
                     // we are done whatever
                     synchronized (this) {
-                        _workToDo = false;
+                        _pollOut = null;
                     }
                 }
             }

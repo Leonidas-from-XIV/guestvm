@@ -35,6 +35,7 @@ import java.util.*;
 import com.sun.max.annotate.*;
 import com.sun.max.lang.*;
 import com.sun.max.unsafe.*;
+import com.sun.guestvm.util.*;
 
 /**
  * Not really a file system, just supports NIO pipes.
@@ -251,31 +252,21 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
                 }
                 if (timeout == 0) {
                     return 0;
-                } else if (timeout < 0) {
-                    timeout = 0;
                 }
-                final long start = System.currentTimeMillis();
-                long remaining = timeout;
-                while (true) {
-                    try {
+                final TimeLimitedProc timedProc = new TimeLimitedProc() {
+                    protected int proc(long remaining) throws InterruptedException {
                         pipe.wait(remaining);
                         if (pipe.available() > 0) {
-                            return VirtualFileSystem.POLLIN;
+                            return terminate(VirtualFileSystem.POLLIN);
                         } else if (pipe.available() == 0) {
                             if (pipe.writeClosed()) {
-                                return 0; // EOF
+                                return terminate(0); // EOF
                             }
                         }
-                        // timeout expired?
-                        final long now = System.currentTimeMillis();
-                        if (now - start >= timeout) {
-                            return 0;
-                        }
-                        remaining -= now - start;
-                    } catch (InterruptedException ex) {
-                        return -ErrorDecoder.Code.EINTR.getCode();
+                        return 0;
                     }
-                }
+                };
+                return timedProc.run(timeout);
             } else {
                 // write end, can we write?
                 if (!pipe.full()) {
@@ -284,29 +275,22 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
                 if (timeout == 0) {
                     return 0;
                 }
-                final long start = System.currentTimeMillis();
-                long remaining = timeout;
-                while (true) {
-                    try {
+                final TimeLimitedProc timedProc = new TimeLimitedProc() {
+                    protected int proc(long remaining) throws InterruptedException {
                         pipe.wait(remaining);
                         if (pipe.readClosed()) {
-                            return 0;
+                            return terminate(0);
                         }
                         if (!pipe.full()) {
-                            return VirtualFileSystem.POLLOUT;
+                            return terminate(VirtualFileSystem.POLLOUT);
                         }
-                        // timeout expired?
-                        final long now = System.currentTimeMillis();
-                        if (now - start >= timeout) {
-                            return 0;
-                        }
-                        remaining -= now - start;
-                    } catch (InterruptedException ex) {
-                        return -ErrorDecoder.Code.EINTR.getCode();
+                        return 0;
                     }
-                }
+                };
+                return timedProc.run(timeout);
             }
         }
 
     }
+
 }

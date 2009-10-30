@@ -48,7 +48,7 @@ import java.io.*;
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.VirtualFileSystem;
 import com.sun.guestvm.net.*;
-import com.sun.guestvm.net.debug.*;
+import com.sun.guestvm.util.*;
 
 
 public class TCPEndpoint implements Endpoint {
@@ -216,33 +216,24 @@ public class TCPEndpoint implements Endpoint {
 
     public int poll(int eventOps, long timeout) {
         assert eventOps == VirtualFileSystem.POLLIN;
-        if (tcp.available() > 0) {
+        // tcp.poll handles the listen state and the established state
+        if (tcp.poll()) {
             return VirtualFileSystem.POLLIN;
         }
         if (timeout == 0) {
             return 0;
-        } else if (timeout < 0) {
-            timeout = 0;
         }
         synchronized (tcp) {
-            final long start = System.currentTimeMillis();
-            long remaining = timeout;
-            while (true) {
-                try {
-                    tcp.wait(timeout);
-                    if (tcp.available() > 0) {
-                        return VirtualFileSystem.POLLIN;
+            final TimeLimitedProc timedProc = new TimeLimitedProc() {
+                protected int proc(long remaining) throws InterruptedException {
+                    tcp.wait(remaining);
+                    if (tcp.poll()) {
+                        return terminate(VirtualFileSystem.POLLIN);
                     }
-                    // timeout expired?
-                    final long now = System.currentTimeMillis();
-                    if (now - start >= timeout) {
-                        return 0;
-                    }
-                    remaining -= now - start;
-                } catch (InterruptedException ex) {
-                    return -ErrorDecoder.Code.EINTR.getCode();
+                    return 0;
                 }
-            }
+            };
+            return timedProc.run(timeout);
         }
     }
 }

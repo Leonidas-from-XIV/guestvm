@@ -37,10 +37,10 @@ import java.util.*;
 import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
+import com.sun.guestvm.fs.heap.HeapFileSystem;
 import com.sun.guestvm.fs.image.ImageFileSystem;
 import com.sun.guestvm.fs.nfs.NfsFileSystem;
 import com.sun.guestvm.fs.sg.SiblingFileSystem;
-import com.sun.guestvm.fs.tmp.HeapFileSystem;
 
 /**
  * Stores information on (mounted) file systems.

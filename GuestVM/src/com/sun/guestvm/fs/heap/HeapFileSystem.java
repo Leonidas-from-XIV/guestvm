@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs.tmp;
+package com.sun.guestvm.fs.heap;
 
 import java.io.*;
 import java.util.*;
@@ -91,9 +91,11 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
         }
 
         void addCapacity(long fileOffset) {
-            _blocks.add(_nextIndex++, new byte[FILE_BLOCK_SIZE]);
-            _maxSize += FILE_BLOCK_SIZE;
-            _tmpSize += FILE_BLOCK_SIZE;
+            while (fileOffset >= _maxSize) {
+                _blocks.add(_nextIndex++, new byte[FILE_BLOCK_SIZE]);
+                _maxSize += FILE_BLOCK_SIZE;
+                _tmpSize += FILE_BLOCK_SIZE;
+            }
         }
 
         void write(int b, long fileOffset) {
@@ -105,6 +107,21 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
             _size++;
         }
 
+        void writeBytes(byte[] bytes, int offset, int length, long fileOffset) {
+            int index = (int) fileOffset >> DIV_FILE_BLOCK_SIZE;
+            int blockoffset = (int) fileOffset & MOD_FILE_BLOCK_SIZE;
+            byte[] block = _blocks.get(index);
+            for (int i = 0; i < length; i++) {
+                if (blockoffset == FILE_BLOCK_SIZE) {
+                    blockoffset = 0;
+                    index++;
+                    block = _blocks.get(index);
+                }
+                block[blockoffset++] = bytes[offset + i];
+            }
+            _size += length;
+        }
+
         int read(long fileOffset) {
             if (fileOffset >= _size) {
                 return -1;
@@ -113,6 +130,21 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
                 final int offset = (int) fileOffset & MOD_FILE_BLOCK_SIZE;
                 return (int) _blocks.get(index)[offset] & 0xFF;
             }
+        }
+
+        int readBytes(byte[] bytes, int offset, int length, long fileOffset) {
+            int index = (int) fileOffset >> DIV_FILE_BLOCK_SIZE;
+            int blockoffset = (int) fileOffset & MOD_FILE_BLOCK_SIZE;
+            byte[] block = _blocks.get(index);
+            for (int i = 0; i < length; i++) {
+                if (blockoffset == FILE_BLOCK_SIZE) {
+                    blockoffset = 0;
+                    index++;
+                    block = _blocks.get(index);
+                }
+                bytes[offset + i] = block[blockoffset++];
+            }
+            return length;
         }
     }
 
@@ -345,9 +377,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
             length = (int) (fe._size - fileOffset);
             // CheckStyle: resume parameter assignment check
         }
-        for (int i = 0; i < length; i++) {
-            bytes[i + offset] = (byte) fe.read(i + fileOffset);
-        }
+        fe.readBytes(bytes, offset, length, fileOffset);
         return length;
     }
 
@@ -401,7 +431,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
     @Override
     public synchronized int write(int fd, int b, long fileOffset) {
         final FileEntry fe = _openFiles.get(fd);
-        while (fileOffset >= fe._maxSize) {
+        if (fileOffset >= fe._maxSize) {
             fe.addCapacity(fileOffset);
         }
         fe.write(b, fileOffset);
@@ -411,9 +441,11 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
     @Override
     public synchronized int writeBytes(int fd, byte[] bytes, int offset, int length,
             long fileOffset) {
-        for (int i = 0; i < length; i++) {
-            write(fd, bytes[offset + i], fileOffset + i);
+        final FileEntry fe = _openFiles.get(fd);
+        if (fileOffset + length > fe._maxSize) {
+            fe.addCapacity(fileOffset + length);
         }
+        fe.writeBytes(bytes, offset, length, fileOffset);
         return length;
     }
 
@@ -429,7 +461,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
         if (fe._size == length) {
             return 0;
         } else if (fe._size < length) {
-            while (length >= fe._maxSize) {
+            if (length >= fe._maxSize) {
                 fe.addCapacity(length);
             }
             return 0;
