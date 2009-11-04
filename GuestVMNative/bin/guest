@@ -42,6 +42,7 @@ extra_projects=( \
   JNodeFS:src \
   YANFS:src \
   GNUCP:src \
+  GuestVMJDK:src \
   GuestVM:src,test \
 )
 

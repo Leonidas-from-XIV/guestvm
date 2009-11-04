@@ -144,3 +144,5 @@ package com.sun.guestvm.error
 classinit sun.management.ManagementFactory
 classinit sun.management.VMManagementImpl
 
+class java.security.cert.Certificate
+

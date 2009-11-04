@@ -47,6 +47,6 @@ public class JDK_java_lang_reflect_Proxy {
 
     @SUBSTITUTE
     private static  Class<?> defineClass0(ClassLoader loader, String name, byte[] b, int off, int len) {
-        return ClassfileReader.defineClassActor(name, loader, b, off, len, null, null).toJava();
+        return ClassfileReader.defineClassActor(name, loader, b, off, len, null, null, false).toJava();
     }
 }
