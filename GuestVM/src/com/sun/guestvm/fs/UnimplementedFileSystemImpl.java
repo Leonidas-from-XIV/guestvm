@@ -32,6 +32,7 @@
 package com.sun.guestvm.fs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import com.sun.guestvm.error.GuestVMError;
 
 /**
@@ -210,13 +211,13 @@ public class UnimplementedFileSystemImpl implements VirtualFileSystem {
     }
 
     @Override
-    public int readBytes(int fd, long address, int offset, int length, long fileOffset) {
+    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
         unimplemented("readBytes-address");
         return 0;
     }
 
     @Override
-    public int writeBytes(int fd, long address, int offset, int length, long fileOffset) {
+    public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
         unimplemented("writeBytes-address");
         return 0;
     }

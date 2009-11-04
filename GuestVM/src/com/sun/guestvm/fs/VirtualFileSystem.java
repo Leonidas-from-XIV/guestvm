@@ -32,6 +32,7 @@
 package com.sun.guestvm.fs;
 
 import java.io.*;
+import java.nio.*;
 
 /**
  * Of course we have to have a virtual file system interface.
@@ -178,11 +179,11 @@ public interface VirtualFileSystem {
     void configureBlocking(int fd, boolean blocking);
 
     /*
-     * Variants of readBytes/writeBytes that use direct byte buffers.
+     * Variants of readBytes/writeBytes that use byte buffers.
      * Arguably these could be the primitives and the array forms could
      * be hoisted and made fs independent.
      */
-    int readBytes(int fd, long address, int offset, int length, long fileOffset);
+    int readBytes(int fd, ByteBuffer bb, long fileOffset);
 
-    int writeBytes(int fd, long address, int offset, int length, long fileOffset);
+    int writeBytes(int fd, ByteBuffer bb, long fileOffset);
 }

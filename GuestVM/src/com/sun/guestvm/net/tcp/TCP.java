@@ -997,7 +997,7 @@ public final class TCP extends IP {
 
         _retransmitTimer.cancelTask();
 
-        // Tell any threads blocked on accept() that a new connection
+        // Tell any threads blocked on accept() or poll() that a new connection
         // is available.
         synchronized (_listener) {
             _listener.notify();
@@ -1543,20 +1543,21 @@ public final class TCP extends IP {
         }
     }
 
-    boolean write(byte buf[], int off, int len)
+    int write(byte buf[], int off, int len)
         throws InterruptedException, NetworkException {
 
         if (_debug) tcpdprint("write length = " + len);
 
         if (_state != State.ESTABLISHED && _state != State.CLOSE_WAIT) {
-            return false;
+            return -ErrorDecoder.Code.EIO.getCode();
         }
 
+        int toDo = len;
         // loop until we have queued and transmitted all data.
-        while (len > 0) {
+        while (toDo > 0) {
 
             // this will block until room is available
-            int bytesAppended = sendQueue.append(buf, off, len);
+            int bytesAppended = sendQueue.append(buf, off, toDo);
 
             outputData(_snd_max, _snd_max + bytesAppended);
 
@@ -1565,11 +1566,11 @@ public final class TCP extends IP {
 
             _snd_max += bytesAppended;
             off += bytesAppended;
-            len -= bytesAppended;
+            toDo -= bytesAppended;
         }
 
         if (_debug) tcpdprint("done write");
-        return true;
+        return len;
     }
 
 
@@ -1656,10 +1657,10 @@ public final class TCP extends IP {
         return _recvQueue.bytesQueued;
     }
 
-    boolean poll() {
+    boolean pollInput() {
         boolean result = false;
         if (_debug) {
-            tcpdprint("poll");
+            tcpdprint("pollInput");
         }
         if (_state == State.ESTABLISHED) {
             result = _recvQueue.bytesQueued > 0;
@@ -1669,9 +1670,22 @@ public final class TCP extends IP {
             }
         }
         if (_debug) {
-            tcpdprint("poll " + _state + " " + result);
+            tcpdprint("pollInput " + _state + " " + result);
         }
         return result;
+    }
+
+    boolean pollOutput() {
+        boolean result = false;
+        if (_debug) {
+            tcpdprint("pollOutput");
+        }
+        result = _state == State.ESTABLISHED;
+        if (_debug) {
+            tcpdprint("pollOutput " + _state + " " + result);
+        }
+        return result;
+
     }
 
 
@@ -1693,10 +1707,9 @@ public final class TCP extends IP {
         return true;
     }
 
-    TCP waitForConnection(int timeout) throws InterruptedException,
-            InterruptedIOException {
-        while (_incomingConnection == null) {
-            synchronized (this) {
+    TCP waitForConnection(int timeout) throws InterruptedException, InterruptedIOException {
+        synchronized (this) {
+            while (_incomingConnection == null) {
                 wait(timeout);
             }
         }

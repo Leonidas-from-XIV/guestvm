@@ -44,6 +44,7 @@ package com.sun.guestvm.net.tcp;
 
 import java.net.*;
 import java.io.*;
+import java.nio.*;
 
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.VirtualFileSystem;
@@ -143,44 +144,40 @@ public class TCPEndpoint implements Endpoint {
         }
     }
 
-    public void write(byte buf[], int off, int len) throws IOException {
+    public int write(byte buf[], int off, int len) throws IOException {
         if (len <= 0) {
-            return;
+            return 0;
         }
-        boolean r;
         try {
-            r = tcp.write(buf, off, len);
+            return tcp.write(buf, off, len);
         } catch (InterruptedException ex) {
             throw new InterruptedIOException(ex.getMessage());
         } catch (NetworkException e) {
             throw new SocketException(e.getMessage());
-        }
-
-        if (r != true) {
-            throw new SocketException("can't write");
         }
     }
 
     public int read(byte buf[], int off, int len) throws IOException {
-        int n;
-
         try {
-            n = tcp.read(buf, off, len, timeout);
+            return tcp.read(buf, off, len, timeout);
         } catch (InterruptedException ex) {
             throw new InterruptedIOException(ex.getMessage());
         } catch (NetworkException e) {
             throw new SocketException(e.getMessage());
         }
+    }
 
-        //err("read wanted:" + len + " got: " + n);
+    public int read(ByteBuffer bb)  throws IOException {
+        // temporary limitation
+        assert bb.hasArray();
+        return read(bb.array(), bb.arrayOffset(), bb.limit() - bb.position());
+    }
 
-        if (n < 0) {
-            throw new SocketException("can't read");
-        } else if (n == 0) {
-            return -1;
-        }
-
-        return n;
+    public int write(ByteBuffer bb)  throws IOException {
+        // temporary limitation
+        assert bb.hasArray();
+        final int len = bb.limit() - bb.position();
+        return write(bb.array(), bb.arrayOffset(), len);
     }
 
     public int available() {
@@ -215,20 +212,33 @@ public class TCPEndpoint implements Endpoint {
     }
 
     public int poll(int eventOps, long timeout) {
-        assert eventOps == VirtualFileSystem.POLLIN;
-        // tcp.poll handles the listen state and the established state
-        if (tcp.poll()) {
-            return VirtualFileSystem.POLLIN;
+        final boolean input = eventOps == VirtualFileSystem.POLLIN;
+        if (input) {
+            // tcp.pollInput handles the listen state and the established state
+            if (tcp.pollInput()) {
+                return VirtualFileSystem.POLLIN;
+            }
+        } else {
+            if (tcp.pollOutput()) {
+                return VirtualFileSystem.POLLOUT;
+            }
         }
         if (timeout == 0) {
             return 0;
         }
         synchronized (tcp) {
             final TimeLimitedProc timedProc = new TimeLimitedProc() {
+
                 protected int proc(long remaining) throws InterruptedException {
                     tcp.wait(remaining);
-                    if (tcp.poll()) {
-                        return terminate(VirtualFileSystem.POLLIN);
+                    if (input) {
+                        if (tcp.pollInput()) {
+                            return terminate(VirtualFileSystem.POLLIN);
+                        }
+                    } else {
+                        if (tcp.pollOutput()) {
+                            return terminate(VirtualFileSystem.POLLOUT);
+                        }
                     }
                     return 0;
                 }

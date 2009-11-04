@@ -32,6 +32,7 @@
 package sun.nio.ch;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import com.sun.guestvm.fs.*;
@@ -144,7 +145,7 @@ public class GuestVMNativePollArrayWrapper {
             return reventOps;
         } else {
             if ((reventOps & p.getEventOps(i)) != 0) {
-                p.putEventOps(i, reventOps);
+                p.putReventOps(i, reventOps);
                 return 1;
             }
         }
@@ -239,17 +240,14 @@ public class GuestVMNativePollArrayWrapper {
         }
     }
 
-    private static final byte[] _fakeBuffer = new byte[] {1};
-    /**
-     * The offset of the byte array data from the byte array object's origin.
-     */
-    private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout.getElementOffsetFromOrigin(0);
+    private static final ByteBuffer _fakeBuffer = ByteBuffer.allocate(1);
 
     public static void interrupt(int fd) throws IOException {
         final VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         // Following the native implementation of PollArrayWrapper, we write one byte to fd.
         // This all seems a bit convoluted, there must be a better way.
-        vfs.writeBytes(VirtualFileSystemId.getFd(fd), Reference.fromJava(_fakeBuffer).toOrigin().plus(_dataOffset).toLong(), 0, 1, 0);
+        _fakeBuffer.put((byte) 1);
+        vfs.writeBytes(VirtualFileSystemId.getFd(fd), _fakeBuffer, 0);
     }
 
 }

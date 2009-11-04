@@ -47,8 +47,24 @@ classinit sun.nio.ch.IOUtil
 # if this is done lazily because it alters data in ClassLoader.NativeLibrary that has already been processed.
 class sun.nio.ch.Util
 class sun.nio.ch.FileKey
+class sun.nio.ch.IOStatus
+forcemethod sun.nio.ch.JDK_sun_nio_ch_IOUtil.*
 forcemethod sun.nio.ch.GuestVMNativePollArrayWrapper.*
 class sun.nio.ch.GuestVMNativePollArrayWrapper$PollOut
+forcemethod sun.nio.ch.BBNativeDispatcher.*
+# these get initialized to BBNativeDispatcher at run time
+# but we make sure the old host values are nulled out anyway.
+class sun.nio.ch.DatagramChannelImpl
+resetfield sun.nio.ch.DatagramChannelImpl.nd
+class sun.nio.ch.ServerSocketChannelImpl
+resetfield sun.nio.ch.ServerSocketChannelImpl.nd
+class sun.nio.ch.SocketChannelImpl
+resetfield sun.nio.ch.SocketChannelImpl.nd
+class sun.nio.ch.SinkChannelImpl
+resetfield sun.nio.ch.SinkChannelImpl.nd
+class sun.nio.ch.SourceChannelImpl
+resetfield sun.nio.ch.SourceChannelImpl.nd
+
 package java.util.jar
 package java.util.concurrent
 package java.util.concurrent.atomic

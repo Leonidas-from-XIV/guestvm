@@ -100,8 +100,12 @@ public class JDK_java_net_util {
         return _endpoints.get(VirtualFileSystemId.getFd(index));
     }
 
+    static void set(int index, Endpoint endpoint) {
+        _endpoints.set(VirtualFileSystemId.getFd(index), endpoint);
+    }
+
     static void setNull(int index) {
-        _endpoints.set(VirtualFileSystemId.getFd(index), null);
+        set(index, null);
     }
 
 }

@@ -31,10 +31,10 @@
  */
 package com.sun.guestvm.fs;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.sun.max.annotate.*;
 import com.sun.max.lang.*;
-import com.sun.max.unsafe.*;
 import com.sun.guestvm.util.*;
 
 /**
@@ -146,11 +146,10 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
     }
 
     @Override
-    public int readBytes(int fd, long address, int offset, int length, long fileOffset) {
+    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
         final Pipe pipe = _pipes.get(fd);
-        final Pointer pAddress = Pointer.fromLong(address);
         int read = 0;
-        int wOffset = offset;
+        int length = bb.limit();
         // If no data is available we check for a close write end first, which means that
         // we never wait on a closed pipe. That means that a close that happens while
         // we are waiting will terminate the wait (by the notify)
@@ -177,7 +176,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
             // read what is available up to requested length
             int toRead = available < length ? available : length;
             while (toRead > 0) {
-                pAddress.writeByte(wOffset++, pipe.consumeOne());
+                bb.put(pipe.consumeOne());
                 toRead--;
                 read++;
             }
@@ -187,11 +186,12 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
     }
 
     @Override
-    public int writeBytes(int fd, long address, int offset, int length, long fileOffset) {
+    public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
         final Pipe pipe = _pipes.get(fd);
-        final Pointer pAddress = Pointer.fromLong(address);
+        final int pos = bb.position();
+        final int lim = bb.limit();
+        final int length = (pos <= lim ? lim - pos : 0);
         int toDo = length;
-        int wOffset = offset;
         // Writer blocks until all data is written or read end of the pipe is closed.
         // As per read a blocked write will be woken up by a close of the read end.
         // We are not precisely implementing POSIX semantics here regarding blocking,
@@ -214,7 +214,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
                 // write as much as we can then notify readers and give up lock
                 int canWrite = pipe.free();
                 while (toDo > 0 && canWrite > 0) {
-                    pipe.produceOne(pAddress.readByte(wOffset++));
+                    pipe.produceOne(bb.get());
                     toDo--;
                     canWrite--;
                 }

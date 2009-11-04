@@ -31,6 +31,8 @@
  */
 package com.sun.guestvm.net;
 
+import java.io.*;
+import java.nio.*;
 import com.sun.guestvm.fs.*;
 import com.sun.guestvm.jdk.JDK_java_net_util;
 
@@ -65,4 +67,36 @@ public class EndpointFileSystem extends UnimplementedFileSystemImpl implements V
         final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
         return endpoint.poll(eventOps, timeout);
     }
+
+    @Override
+    public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
+        try {
+            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            return endpoint.write(bb);
+        } catch (IOException ex) {
+            return -ErrorDecoder.Code.EIO.getCode();
+        }
+    }
+
+    @Override
+    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
+        try {
+            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            return endpoint.read(bb);
+        } catch (IOException ex) {
+            return -ErrorDecoder.Code.EIO.getCode();
+        }
+    }
+
+    @Override
+    public int close0(int fd) {
+        try {
+            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            endpoint.close();
+            return 0;
+        } catch (IOException ex) {
+            return -ErrorDecoder.Code.EIO.getCode();
+        }
+    }
+
 }

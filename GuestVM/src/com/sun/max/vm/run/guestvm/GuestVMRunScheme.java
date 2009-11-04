@@ -31,10 +31,14 @@
  */
 package com.sun.max.vm.run.guestvm;
 
+import sun.nio.ch.BBNativeDispatcher;
+
 import com.sun.max.annotate.*;
 import com.sun.max.collect.AppendableSequence;
 import com.sun.max.collect.LinkSequence;
 import com.sun.max.vm.actor.holder.*;
+import com.sun.max.vm.object.TupleAccess;
+import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.*;
@@ -82,6 +86,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             System.setProperty("guestvm.version", Version.ID);
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
+            resetNativeDispatchers();
             netInit();
             preRunClasses();
         }
@@ -125,6 +130,25 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         netInit();
         super.resetLauncher(launcherClassActor);
         _launcherReset = true;
+    }
+
+    void resetNativeDispatchers() {
+        final BBNativeDispatcher bbnd = new BBNativeDispatcher();
+        resetNativeDispatcher("sun.nio.ch.DatagramChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.ServerSocketChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SocketChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SinkChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SourceChannelImpl", bbnd);
+    }
+
+    void resetNativeDispatcher(String name, BBNativeDispatcher nd) {
+        try {
+            final FieldActor rfa = ClassActor.fromJava(Class.forName(name)).findLocalStaticFieldActor("nd");
+            assert rfa != null;
+            TupleAccess.writeObject(rfa.holder().staticTuple(), rfa.offset(), nd);
+        } catch (ClassNotFoundException ex) {
+            GuestVMError.unexpected("problem with Class.forName: " + name);
+        }
     }
 
     public static boolean launcherInit() {

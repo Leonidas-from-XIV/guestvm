@@ -32,6 +32,7 @@
 package com.sun.guestvm.net;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Endpoint.java
@@ -61,9 +62,13 @@ public interface Endpoint {
 
     int getLocalPort();
 
-    void write(byte[] b, int off, int len) throws IOException;
+    int write(byte[] b, int off, int len) throws IOException;
 
     int read(byte[] b, int off, int len) throws IOException;
+
+    int write(ByteBuffer bb) throws IOException;
+
+    int read(ByteBuffer bb) throws IOException;
 
     int available() throws IOException;
 

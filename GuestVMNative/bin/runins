@@ -132,7 +132,7 @@ then
   classpath=${classpath}:$cp
 fi
 
-cmd="$javacmd $vmargs -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
+cmd="$javacmd $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $id -trace=$trace -i=$JVM_IMAGE -j=$JAR_IMAGE $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then

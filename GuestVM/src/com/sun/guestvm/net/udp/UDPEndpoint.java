@@ -50,6 +50,7 @@ package com.sun.guestvm.net.udp;
 import java.io.*;
 import java.net.BindException;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 
 import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.ErrorDecoder;
@@ -137,13 +138,13 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
     //----------------------------------------------------------------------
 
     // implements Endpoint.write interface
-    public void write(byte b[], int off, int len)
+    public int write(byte b[], int off, int len)
         throws InterruptedIOException {
 
-        write(destAddr, destPort, b, off, len, 0);
+        return write(destAddr, destPort, b, off, len, 0);
     }
 
-    public void write(int dst_ip, int dst_port, byte b[], int off,
+    public int write(int dst_ip, int dst_port, byte b[], int off,
                             int len, int ttl) throws InterruptedIOException {
 
         synchronized (_lock) {
@@ -159,6 +160,7 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
                 UDP.output(pkt, localPort, dst_ip, dst_port, len, ttl);
             }
         }
+        return len;
     }
 
     // ----------------------------------------------------------------------
@@ -234,6 +236,18 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
         return n;
     }
 
+    public int read(ByteBuffer bb)  throws IOException {
+        // temporary limitation
+        assert bb.hasArray();
+        return read(bb.array(), bb.arrayOffset(), bb.limit() - bb.position());
+    }
+
+    public int write(ByteBuffer bb)  throws IOException {
+        // temporary limitation
+        assert bb.hasArray();
+        final int len = bb.limit() - bb.position();
+        return write(bb.array(), bb.arrayOffset(), len);
+    }
     public static class Source {
         public int addr;
         public int port;

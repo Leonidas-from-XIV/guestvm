@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 package com.sun.guestvm.net.tcp;
 //
@@ -63,8 +63,14 @@ public class TCPSendQueue {
     // we can make the send window really small and save memory.
     private static final int maxBufSize = 8760;
 
+    private static boolean checked;
+
     TCPSendQueue(int size) {
 
+        if (!checked) {
+            debug = System.getProperty("guestvm.net.tcp.debug") != null;
+            checked = true;
+        }
         if (size > maxBufSize) {
             size = maxBufSize;
         }
@@ -78,7 +84,7 @@ public class TCPSendQueue {
 
     // Append data from the given buffer to the send queue.
     // Returns the number of bytes appended.
-    int append(byte src[], int src_off, int len)
+    synchronized int append(byte src[], int src_off, int len)
         throws NetworkException, InterruptedException {
 
         // Wait until there is room available.
@@ -90,9 +96,7 @@ public class TCPSendQueue {
             // successfully written when InterruptedIOException comes in.
             // This is the best we can do for now...
 
-            synchronized (this) {
-                wait();
-            }
+            wait();
 
             if (buf == null) {
                 // The connection has been blown away from underneath us,
@@ -130,12 +134,12 @@ public class TCPSendQueue {
         return len;
     }
 
-    void drop(int todrop) {
+    synchronized void drop(int todrop) {
 
-        //dprint("dropping:" + todrop + " start:" + start + " end:" + end);
+        if (debug) dprint("dropping:" + todrop + " start:" + start + " end:" + end);
 
         if (bytesFree == buf.length) {
-            //dprint("can't drop anything");
+            if (debug) dprint("can't drop anything");
             return;
         }
 
@@ -146,22 +150,24 @@ public class TCPSendQueue {
             start -= buf.length;
         }
 
-        synchronized (this) {
-            notify();
-        }
+        notify();
 
-        //dprint("drop() bytesFree:" + bytesFree + " start:" + start +
-        //       " end:" + end);
+        if (debug) dprint("drop() bytesFree:" + bytesFree + " start:" + start + " end:" + end);
     }
 
     Packet getPacket(int dest_ip, int pos, int hlen, int dlen) {
+
+        if (debug) dprint("getPacket() pos " + pos);
 
         Packet pkt = Packet.getTx(dest_ip, hlen, dlen);
         if (pkt == null) {
             return null;
         }
 
-        pos += start;
+        synchronized (this) {
+            pos += start;
+        }
+
         if (pos >= buf.length) {
             pos -= buf.length;
         }
@@ -171,6 +177,7 @@ public class TCPSendQueue {
             n = buf.length - pos;
         }
 
+        assert n >= 0;
         pkt.putBytes(buf, pos, 0, n);
 
         if (n < dlen) {
@@ -193,7 +200,7 @@ public class TCPSendQueue {
 
     private static void dprint(String mess) {
         if (debug == true) {
-            System.err.println("TCPSendQueue: " + mess);
+            System.err.println("TCPSendQueue: [" + Thread.currentThread().getName() + "]" + mess);
         }
     }
 

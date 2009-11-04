@@ -144,8 +144,10 @@ public class GuestVMBootImageGenerator {
                 systemProperties = addArg(systemProperties, prop);
             }
         }
+
         final List<String> vmArgs = MAXINE_IMAGE_VMARGS.getValue();
-        String[] javaArgs = buildJavaArgs(BootImageGenerator.class, fixupClassPath(), vmArgs.toArray(new String[vmArgs.size()]), systemProperties, generatorArgs);
+        final String[] vmArgsArray = addArg(vmArgs.toArray(new String[vmArgs.size()]), "-Xbootclasspath/a:" + pathToGuestVMJDK());
+        String[] javaArgs = buildJavaArgs(BootImageGenerator.class, fixupClassPath(),  vmArgsArray, systemProperties, generatorArgs);
         if (MONITOR.getValue() != null) {
             javaArgs = addArg(javaArgs, "-monitor=" + MONITOR.getValue());
         }
@@ -182,6 +184,15 @@ public class GuestVMBootImageGenerator {
             sb.append(File.pathSeparatorChar);
         }
         return sb.toString();
+    }
+
+    /**
+     * Path where the JDK override code lives, for putting on bootclasspath
+     * @return
+     */
+    private static String pathToGuestVMJDK() {
+        final File path = new File("../GuestVMJDK/bin");
+        return path.getAbsolutePath();
     }
 
     private static String[] addArg(String[] arguments, String argument) {

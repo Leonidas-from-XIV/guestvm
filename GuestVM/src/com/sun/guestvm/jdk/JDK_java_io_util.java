@@ -56,12 +56,12 @@ public class JDK_java_io_util {
      * Instances of this class do not escape the methods that allocate them so
      * should be implemented on-stack  without allocation.
      */
-    static class FdInfo {
-        int _fd;
-        VirtualFileSystem _vfs;
-        long _fileOffset;
+    public static class FdInfo {
+        public int _fd;
+        public VirtualFileSystem _vfs;
+        public long _fileOffset;
 
-        static FdInfo getFdInfo(Object fdObj) throws IOException {
+        public static FdInfo getFdInfo(Object fdObj) throws IOException {
             final FdInfo result = new FdInfo();
             result._fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
             result._vfs = VirtualFileSystemId.getVfs(result._fd);
@@ -149,7 +149,7 @@ public class JDK_java_io_util {
         }
     }
 
-    static void close0(Object fdObj) throws IOException {
+    public static void close0(Object fdObj) throws IOException {
         final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
         if (fd > 0) {
             TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), -1);
