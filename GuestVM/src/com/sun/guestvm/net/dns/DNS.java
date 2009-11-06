@@ -326,9 +326,9 @@ public class DNS implements UDPUpcall {
                     }
                 }
                 response._ipAddresses = ipAddressList.toArray(new IPAddress[ipAddressList.size()]);
-            }
-            synchronized (response) {
-                response.notify();
+                synchronized (response) {
+                    response.notify();
+                }
             }
         }
     }
