@@ -50,7 +50,7 @@ public final class GUESTVMVMProgramArguments {
     private static final VMOption _xenTraceOption = VMOptions.register(new VMOption("-XX:GUKTrace", "Enables GuestVM microkernel tracing") {
         @Override
         public void printHelp() {
-            VMOptions.printHelpForOption("-XX:GUKTrace[:subsys1:subsys2:...[:buffer][:toring]]", "", help);
+            VMOptions.printHelpForOption(Category.IMPLEMENTATION_SPECIFIC, "-XX:GUKTrace[:subsys1:subsys2:...[:buffer][:toring]]", "", help);
         }
     }, MaxineVM.Phase.PRISTINE);
 

@@ -80,7 +80,7 @@ public class MemoryBootImage {
             // Checkstyle: resume modified control variable check
             File bootImage = null;
             if (imageFileName == null) {
-                bootImage = BootImageGenerator.getDefaultBootImageFilePath();
+                bootImage = BootImageGenerator.getBootImageFile(BootImageGenerator.getDefaultVMDirectory());
             } else {
                 bootImage = new File(imageFileName);
             }
