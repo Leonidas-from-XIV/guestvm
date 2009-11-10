@@ -36,14 +36,18 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import com.sun.guestvm.fs.*;
-import com.sun.max.unsafe.*;
-import com.sun.max.vm.reference.*;
-import com.sun.max.vm.VMConfiguration;
-import com.sun.max.annotate.*;
+//import com.sun.max.vm.Log;
 
 /**
  * Implementation of the native methods of PollArrayWrapper leveraging
  * access to package private definition of PollArrayWrapper.
+ *
+ * poll0 first polls every file descriptor with a timeout of zero. If any match the
+ * required event ops, the method returns. Otherwise, if there is only one
+ * file descriptor, and the timeout is non-zero, the current thread repeats the poll
+ * with the requested timeout. If there is more than one file descriptor a set of
+ * worker threads are used to do the poll, with the current thread waiting for the
+ * first one to return a match, or all of them timing out.
  *
  * @author Mick Jordan
  *
@@ -59,11 +63,12 @@ public class GuestVMNativePollArrayWrapper {
      *                the "this" argument in the substituted method, i.e., the PollArrayWrapper instance
      * @param pollAddress
      *                native address of the actual pollfd_t instance to work with
-     * @param numfds ??
-     * @param timeout
+     * @param numfds number of channels (file descriptors) to poll for.
+     * @param timeout how long to wait for response (<0 infinite)
      * @return
      */
     public static int poll0(Object pObj, long pollAddress, int numfds, long timeout) throws IOException {
+        // slog("poll0 entered: " + numfds + ", " + timeout);
         final PollArrayWrapper p = (PollArrayWrapper) pObj;
         // pollAddress is already offset from the value of p.pollArrayAddress to the start of the pollfd array elements
         // so we must use the p.getXXX methods with index starting at 0.
@@ -79,7 +84,6 @@ public class GuestVMNativePollArrayWrapper {
                 vfsArray[i] = vfs;
             }
         }
-        debug(timeout, count);
         if (timeout == 0 || count > 0) {
             return count;
         }
@@ -93,9 +97,10 @@ public class GuestVMNativePollArrayWrapper {
         final PollOut pollOut = new PollOut(numfds);
         final PollThread[] pollThreads = new PollThread[numfds];
         for (int t = 0; t < numfds; t++) {
-            pollThreads[t] = PollThread.getThread();
-            // this sets the thread going
-            pollThreads[t].setInfo(vfsArray, p, t, timeout, pollOut);
+            pollThreads[t] = PollThread.getThread(vfsArray, p, t, timeout, pollOut);
+        }
+        for (int t = 0; t < numfds; t++) {
+            pollThreads[t].release();
         }
         synchronized (pollOut) {
             try {
@@ -114,12 +119,8 @@ public class GuestVMNativePollArrayWrapper {
                 }
             }
         }
+        // slog("poll0 returning");
         return 0;
-    }
-
-    @NEVER_INLINE
-    static void debug(long t, int c) {
-
     }
 
     static class PollOut {
@@ -168,7 +169,7 @@ public class GuestVMNativePollArrayWrapper {
             setName("PollThread-" + _nextWorkerId++);
         }
 
-        static synchronized PollThread getThread() {
+        static synchronized PollThread getThread(VirtualFileSystem[] vfsArray, PollArrayWrapper p, int index, long timeout, PollOut pollOut) {
             PollThread result = null;
             for (int i = 0; i < _workers.size(); i++) {
                 final PollThread thread = _workers.get(i);
@@ -182,14 +183,18 @@ public class GuestVMNativePollArrayWrapper {
                 _workers.add(result);
                 result.start();
             }
+            // this sets the thread going on the task
+            result.setInfo(vfsArray, p, index, timeout, pollOut);
             return result;
         }
 
         static void cancelThreads(PollThread[] pollThreads, PollOut pollOut) {
+            // assert: hold pollOut monitor
             for (PollThread pollThread : pollThreads) {
                 synchronized (pollThread) {
-                    // if it was working for caller, interrupt it
-                    if (pollThread._pollOut == pollOut) {
+                    // if it was working for caller, interrupt it, unless it was the winner
+                    if (pollThread._pollOut == pollOut && pollThread._index != pollOut._index) {
+                        // slog("cancelling " + pollThread.getName());
                         pollThread.interrupt();
                     }
                 }
@@ -197,28 +202,40 @@ public class GuestVMNativePollArrayWrapper {
         }
 
 
-        synchronized void setInfo(VirtualFileSystem[] vfsArray, PollArrayWrapper p, int index, long timeout, PollOut pollOut) {
+        private synchronized void setInfo(VirtualFileSystem[] vfsArray, PollArrayWrapper p, int index, long timeout, PollOut pollOut) {
             _vfsArray = vfsArray;
             _p = p;
             _index = index;
             _timeout = timeout;
             _pollOut = pollOut;
-            notify();
+            // slog("setInfo: [" + getName() + "]: " + index + ", I: " + isInterrupted());
         }
 
         synchronized boolean idle() {
             return _pollOut == null;
         }
 
+        private synchronized void release() {
+            // log("release: [" + getName() + "]");
+            notify();
+        }
+
         public void run() {
             while (true) {
-                try {
-                    synchronized (this) {
-                        while (_pollOut == null) {
+                synchronized (this) {
+                    while (_pollOut == null) {
+                        try {
                             wait();
+                        } catch (InterruptedException ex) {
+                            // for now we don't care; this could be used as
+                            // part of a mechanism to terminate a worker thread
                         }
                     }
+                }
+                // log("running: " + Integer.toHexString(_p.getDescriptor(_index)) + ", " + _p.getEventOps(_index) + ", " + _timeout);
+                try {
                     final int reventOps = _vfsArray[_index].poll0(VirtualFileSystemId.getFd(_p.getDescriptor(_index)), _p.getEventOps(_index), _timeout);
+                    // log("poll returned: " + reventOps);
                     synchronized (_pollOut) {
                         if (_pollOut._index < 0 && match(_p, _index, reventOps) > 0) {
                             _pollOut._reventOps = reventOps;
@@ -228,17 +245,29 @@ public class GuestVMNativePollArrayWrapper {
                         _pollOut._waiterCount--;
                         _pollOut.notify();
                     }
-                } catch (InterruptedException ex) {
-
                 } finally {
                     // we are done whatever
+                    // log("finally");
                     synchronized (this) {
                         _pollOut = null;
                     }
                 }
             }
         }
+
+        /*
+        private void log(String msg) {
+            Log.println("[" + Thread.currentThread().getName() + "]: " + msg);
+        }
+        */
     }
+
+    /*
+    private static void slog(String msg) {
+        Log.println(msg);
+    }
+    */
+
 
     private static final ByteBuffer _fakeBuffer = ByteBuffer.allocate(1);
 
@@ -246,6 +275,7 @@ public class GuestVMNativePollArrayWrapper {
         final VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
         // Following the native implementation of PollArrayWrapper, we write one byte to fd.
         // This all seems a bit convoluted, there must be a better way.
+        _fakeBuffer.position(0);
         _fakeBuffer.put((byte) 1);
         vfs.writeBytes(VirtualFileSystemId.getFd(fd), _fakeBuffer, 0);
     }

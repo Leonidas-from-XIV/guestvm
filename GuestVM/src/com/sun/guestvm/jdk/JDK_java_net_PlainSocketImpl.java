@@ -42,6 +42,7 @@ import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.net.Endpoint;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.tcp.TCPEndpoint;
 import com.sun.guestvm.logging.*;
@@ -134,12 +135,14 @@ final class JDK_java_net_PlainSocketImpl {
         if (timeout != 0) {
             endpoint.setTimeout(timeout);
         }
-        final int fd = JDK_java_net_util.getFreeIndex((TCPEndpoint) endpoint.accept());
+        final Endpoint acceptEndpoint = endpoint.accept();
+        final int fd = JDK_java_net_util.getFreeIndex(acceptEndpoint);
         // set fd field in FileDescriptor in si
         TupleAccess.writeInt(TupleAccess.readObject(si, _fileDescriptorFieldActor.offset()), _fdFieldActor.offset(), fd);
-        // copy address and localport fields from this to si
-        TupleAccess.writeObject(si, _addressFieldActor.offset(), TupleAccess.readObject(this, _addressFieldActor.offset()));
-        TupleAccess.writeInt(si, _localportFieldActor.offset(), TupleAccess.readInt(this, _localportFieldActor.offset()));
+        // populate address, port and localport fields
+        TupleAccess.writeObject(si, _addressFieldActor.offset(), JDK_java_net_Inet4AddressImpl.createInet4Address(null, acceptEndpoint.getRemoteAddress()));
+        TupleAccess.writeInt(si, _localportFieldActor.offset(), acceptEndpoint.getLocalPort());
+        TupleAccess.writeInt(si, _portFieldActor.offset(), acceptEndpoint.getRemotePort());
     }
 
     @SUBSTITUTE
@@ -154,14 +157,14 @@ final class JDK_java_net_PlainSocketImpl {
         final Object fdObj = checkOpen(this);
         final  int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
         if (fd != -1) {
-            JDK_java_net_util.getT(fd).close();
+            JDK_java_net_util.getT(fd).close(Endpoint.SHUT_RDWR);
             TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), -1);
         }
     }
     @SUBSTITUTE
     private  void socketShutdown(int howto) throws IOException {
         final TCPEndpoint endpoint = getEndpoint(this);
-        endpoint.close();
+        endpoint.close(howto);
     }
 
     @SUBSTITUTE
@@ -210,6 +213,7 @@ final class JDK_java_net_PlainSocketImpl {
             _fdFieldActor = JDK_java_io_FileDescriptor.fdFieldActor();
             _timeoutFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
             _localportFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("localport"));
+            _portFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("port"));
             _addressFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("address"));
             _logger = Logger.getLogger("JDK_java_net_PlainSocketImpl");
         } catch (ClassNotFoundException ex) {
@@ -222,6 +226,7 @@ final class JDK_java_net_PlainSocketImpl {
     private static FieldActor _fdFieldActor;
     private static FieldActor _timeoutFieldActor;
     private static FieldActor _localportFieldActor;
+    private static FieldActor _portFieldActor;
     private static FieldActor _addressFieldActor;
 
 }

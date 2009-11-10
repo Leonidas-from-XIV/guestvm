@@ -92,7 +92,7 @@ public class EndpointFileSystem extends UnimplementedFileSystemImpl implements V
     public int close0(int fd) {
         try {
             final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
-            endpoint.close();
+            endpoint.close(Endpoint.SHUT_RDWR);
             return 0;
         } catch (IOException ex) {
             return -ErrorDecoder.Code.EIO.getCode();

@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 import java.io.*;
 import com.sun.max.annotate.*;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.net.Endpoint;
 
 /**
  * Substitutions for native methods in sun.nio.ch.SocketChannelImpl.
@@ -54,8 +55,9 @@ public class JDK_sun_nio_ch_SocketChannelImpl {
 
 
     @SUBSTITUTE
-    private static void shutdown(FileDescriptor fd, int how) throws IOException {
-        GuestVMError.unimplemented("sun.nio.ch.SocketChannelImpl.shutdown");
+    private static void shutdown(FileDescriptor fdObj, int how) throws IOException {
+        final Endpoint endpoint = JDK_java_net_util.get(fdObj);
+        endpoint.close(how);
     }
 
 

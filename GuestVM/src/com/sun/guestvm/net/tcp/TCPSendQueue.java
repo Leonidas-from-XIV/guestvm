@@ -46,12 +46,18 @@ package com.sun.guestvm.net.tcp;
 // There is an issue of how much memory to allow this queue to consume.
 //
 
+/*
+ * There is no (additional) synchronization necessary in this class as all calls are made holding the
+ * lock on the associated TCP instance.
+ */
 
+import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 
 public class TCPSendQueue {
 
+    private TCP tcp;        // our connection
     private int bytesFree;
 
     private int start;          // start of data index in buf
@@ -65,7 +71,7 @@ public class TCPSendQueue {
 
     private static boolean checked;
 
-    TCPSendQueue(int size) {
+    TCPSendQueue(TCP tcp, int size) {
 
         if (!checked) {
             debug = System.getProperty("guestvm.net.tcp.debug") != null;
@@ -77,6 +83,7 @@ public class TCPSendQueue {
 
         //dprint("new size:" + size);
 
+        this.tcp = tcp;
         bytesFree = size;
         buf = new byte[size];
 
@@ -84,7 +91,7 @@ public class TCPSendQueue {
 
     // Append data from the given buffer to the send queue.
     // Returns the number of bytes appended.
-    synchronized int append(byte src[], int src_off, int len)
+    int append(byte src[], int src_off, int len)
         throws NetworkException, InterruptedException {
 
         // Wait until there is room available.
@@ -95,8 +102,10 @@ public class TCPSendQueue {
             // needs an API to tell the user how much data was
             // successfully written when InterruptedIOException comes in.
             // This is the best we can do for now...
-
-            wait();
+            if (!tcp._blocking) {
+                return -ErrorDecoder.Code.EAGAIN.getCode();
+            }
+            tcp.wait();
 
             if (buf == null) {
                 // The connection has been blown away from underneath us,
@@ -134,7 +143,7 @@ public class TCPSendQueue {
         return len;
     }
 
-    synchronized void drop(int todrop) {
+    void drop(int todrop) {
 
         if (debug) dprint("dropping:" + todrop + " start:" + start + " end:" + end);
 
@@ -150,7 +159,7 @@ public class TCPSendQueue {
             start -= buf.length;
         }
 
-        notify();
+        tcp.notify();
 
         if (debug) dprint("drop() bytesFree:" + bytesFree + " start:" + start + " end:" + end);
     }
@@ -164,9 +173,7 @@ public class TCPSendQueue {
             return null;
         }
 
-        synchronized (this) {
-            pos += start;
-        }
+        pos += start;
 
         if (pos >= buf.length) {
             pos -= buf.length;
@@ -189,9 +196,7 @@ public class TCPSendQueue {
 
     void cleanup() {
         buf = null;
-        synchronized (this) {
-            notify();
-        }
+        tcp.notify();
     }
 
     //-------------------------------------------------------------------------

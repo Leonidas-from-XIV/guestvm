@@ -52,7 +52,11 @@ public interface Endpoint {
 
     Endpoint accept() throws IOException;
 
-    void close() throws IOException;
+    final int SHUT_RD = 0;
+    final int SHUT_WR = 1;
+    final int SHUT_RDWR = 2;
+
+    void close(int how) throws IOException;
 
     int getRemoteAddress();
 

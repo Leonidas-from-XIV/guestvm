@@ -72,6 +72,7 @@
 package com.sun.guestvm.net.tcp;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 import com.sun.guestvm.fs.ErrorDecoder;
@@ -79,6 +80,7 @@ import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 import com.sun.guestvm.net.icmp.*;
 import com.sun.guestvm.net.ip.*;
+import com.sun.guestvm.util.TimeLimitedProc;
 
 
 /* Here's the big TCP state machine.  This class does lots of things.
@@ -95,6 +97,23 @@ import com.sun.guestvm.net.ip.*;
    TCPSendQueue manages bytes that are sent but not acknowledged.
    TCPRecvQueue manages bytes that are received but not delivered to
    the application.
+
+   There are at least four threads that access the state of a TCP instance:
+
+   1. The client thread that is reading or writing the connection.
+   2. The network device layer thread that delivers packets via input()
+   3. The retransmit timer task
+   4. The delayed ack timer task
+
+   All externally accessible static methods are synchronized on the class.
+   All externally accessible virtual methods are synchronized on the instance.
+   The static input() method synchronizes on the instance the packet targets.
+   The timer tasks synchronize on the instance related to the timer.
+   All other (private) methods are unsynchronized as they are always called
+   from a synchronized state.
+
+   The implementation supports blocking and non-blocking mode, the latter
+   being needed for nio channels.
 */
 
 public final class TCP extends IP {
@@ -124,9 +143,9 @@ public final class TCP extends IP {
     // Not having local_ip here means we can't support more than one
     // local IP address at a time (useful for multiple network interfaces).
     // However, we do save the cost of storing and bookkeeping the value.
-    int _localPort;
-    int _remotePort;
-    int _remoteIp;
+    private int _localPort;
+    private  int _remotePort;
+    private int _remoteIp;
 
     // these two variables control the acceptance of incoming connections.
     private TCP _listener;
@@ -262,9 +281,10 @@ public final class TCP extends IP {
 
     private static Random _random;
 
-    // for NIO support, if false, read will return EAGAIN if no bytes available
-    private boolean blocking;
+    // for NIO support, if false, read will return EAGAIN rather than block
+    boolean _blocking = true;
 
+    // a unique id to identify the connection when debug tracing
     private long _debugId;
     private static long _nextDebugId;
 
@@ -303,16 +323,14 @@ public final class TCP extends IP {
     }
 
 
-    static TCP get() {
+    static synchronized TCP get() {
         final TCP t = new TCP();
         // stick this new TCP object on the list of active TCP objects
-        synchronized (TCP.class) {
-            if (tcps != null) {
-                t._next = tcps;
-                tcps._prev = t;
-            }
-            tcps = t;
+        if (tcps != null) {
+            t._next = tcps;
+            tcps._prev = t;
         }
+        tcps = t;
         return t;
     }
 
@@ -420,8 +438,14 @@ public final class TCP extends IP {
     }
 
 
-    // General input routine for packets coming up from IP.
-    public static void input(Packet pkt, int src_ip) {
+    /**
+     * General input routine for packets coming up from IP. Entry point, hence synchronized on class and on target
+     * instance
+     *
+     * @param pkt
+     * @param src_ip
+     */
+    public static synchronized void input(Packet pkt, int src_ip) {
 
         tcpInSegs++;
 
@@ -430,10 +454,11 @@ public final class TCP extends IP {
             int length = pkt.dataLength();
 
             // Compute the checksum for the pseudo-header and data before
-            // doing anything else.  Create the pseudo header and do cksum().
+            // doing anything else. Create the pseudo header and do cksum().
             pkt.putInt((IP.IPPROTO_TCP << 16) | length, -12);
-            if (pkt.cksum(-12, length+12) != 0) {
-                if (_debug) dprint("bad checksum!");
+            if (pkt.cksum(-12, length + 12) != 0) {
+                if (_debug)
+                    dprint("bad checksum!");
                 tcpInErrs++;
                 return;
             }
@@ -441,7 +466,8 @@ public final class TCP extends IP {
             // sanity check header length
             int headerLength = (pkt.getByte(HLEN_OFFSET) & 0xf0) >> 2;
             if (headerLength < MIN_TCP_HEADER_SIZE || headerLength > length) {
-                if (_debug) dprint("bad header length: " + headerLength);
+                if (_debug)
+                    dprint("bad header length: " + headerLength);
                 tcpInErrs++;
                 return;
             }
@@ -460,11 +486,10 @@ public final class TCP extends IP {
             // increment past TCP header, ignoring any options for now.
             pkt.shiftHeader(headerLength);
 
-
             if (_debug) {
-                if (_debug) dprint("input src "+IPAddress.toString(src_ip)+":"+src_port+
-                       " dst localhost:" + dst_port +
-                       " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack + " wnd:" + inp_wnd + " len:" + inp_len);
+                if (_debug)
+                    dprint("input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
+                                    " wnd:" + inp_wnd + " len:" + inp_len);
             }
 
             // find the connection object that belongs to this src/dest tuple.
@@ -473,81 +498,88 @@ public final class TCP extends IP {
             if (tcp == null) {
 
                 // There is no connection associated with this segment.
-                if (_debug) dprint("can't find state");
+                if (_debug)
+                    dprint("can't find state");
 
                 tcp = _scratchTCP;
 
-                tcp._remoteIp = src_ip;
-                tcp._remotePort = src_port;
-                tcp._localPort = dst_port;
+                synchronized (tcp) {
+                    tcp._remoteIp = src_ip;
+                    tcp._remotePort = src_port;
+                    tcp._localPort = dst_port;
 
-                // Reply with a RST segment.
-                tcp.outputRst();
-                return;
-            }
-
-            if (_debug) {
-                if (_debug) dprint("RCVD "+ flagsToString(inp_flags) + "segment in state " + tcp._state);
-            }
-
-            switch (tcp._state) {
-
-            case LISTEN:
-                // pass the sender's endpoint addresses, but reset
-                // it to zero afterwards (tcp is the listener connection).
-                tcp._remotePort = src_port;
-                tcp._remoteIp = src_ip;
-                try {
-                    tcp.doListen();
-                } catch (Exception ex) {
-                    // finish setting up the connection state
+                    // Reply with a RST segment.
+                    tcp.outputRst();
                 }
-                tcp._remotePort = 0;
-                tcp._remoteIp = 0;
-                break;
-
-            case SYN_SENT:
-                tcp.doSynSent(pkt);
-                break;
-
-            case SYN_RCVD:
-                tcp.doSynRcvd(pkt);
-                break;
-
-            case ESTABLISHED:
-                tcp.doEstablished(pkt);
-                break;
-
-            case CLOSE_WAIT:
-                tcp.doCloseWait(pkt);
-                break;
-
-            case CLOSING:
-                tcp.doClosing(pkt);
-                break;
-
-            case TIME_WAIT:
-                tcp.doTimeWait(pkt);
-                break;
-
-            case FIN_WAIT_1:
-            case FIN_WAIT_2:
-                tcp.doFinWait(pkt);
-                break;
-
-            case LAST_ACK:
-                tcp.doLastAck(pkt);
-                break;
-
-            case CLOSED:
-                // Silently drop the segment.  Don't send RST, because this tcp
-                // is valid, but connect() or listen() has not been called yet.
-                // Let the remote re-xmit and maybe we will have done listen()
-                // or connect() by then.
                 return;
+            }
 
-            default:
-                if (_debug) dprint("unknown state");
+            synchronized (tcp) {
+                if (_debug) {
+                    if (_debug)
+                        dprint("RCVD " + flagsToString(inp_flags) + "segment in state " + tcp._state);
+                }
+
+                switch (tcp._state) {
+
+                    case LISTEN:
+                        // pass the sender's endpoint addresses, but reset
+                        // it to zero afterwards (tcp is the listener connection).
+                        tcp._remotePort = src_port;
+                        tcp._remoteIp = src_ip;
+                        try {
+                            tcp.doListen();
+                        } catch (Exception ex) {
+                            // finish setting up the connection state
+                        }
+                        tcp._remotePort = 0;
+                        tcp._remoteIp = 0;
+                        break;
+
+                    case SYN_SENT:
+                        tcp.doSynSent(pkt);
+                        break;
+
+                    case SYN_RCVD:
+                        tcp.doSynRcvd(pkt);
+                        break;
+
+                    case ESTABLISHED:
+                        tcp.doEstablished(pkt);
+                        break;
+
+                    case CLOSE_WAIT:
+                        tcp.doCloseWait(pkt);
+                        break;
+
+                    case CLOSING:
+                        tcp.doClosing(pkt);
+                        break;
+
+                    case TIME_WAIT:
+                        tcp.doTimeWait(pkt);
+                        break;
+
+                    case FIN_WAIT_1:
+                    case FIN_WAIT_2:
+                        tcp.doFinWait(pkt);
+                        break;
+
+                    case LAST_ACK:
+                        tcp.doLastAck(pkt);
+                        break;
+
+                    case CLOSED:
+                        // Silently drop the segment. Don't send RST, because this tcp
+                        // is valid, but connect() or listen() has not been called yet.
+                        // Let the remote re-xmit and maybe we will have done listen()
+                        // or connect() by then.
+                        return;
+
+                    default:
+                        if (_debug)
+                            dprint("unknown state");
+                }
             }
         } catch (NetworkException ex) {
             // our callers don't really care
@@ -874,7 +906,7 @@ public final class TCP extends IP {
         tcp._snd_wnd = inp_wnd;
         tcp.rcv_wnd = RECEIVE_WINDOW;
 
-        tcp.sendQueue = new TCPSendQueue(inp_wnd);
+        tcp.sendQueue = new TCPSendQueue(tcp, inp_wnd);
 
         tcp._state = State.SYN_RCVD;
         tcpPassiveOpens++;
@@ -926,7 +958,7 @@ public final class TCP extends IP {
             _snd_wl1 = inp_seq;
             _sndWl2 = inp_ack;
 
-            sendQueue = new TCPSendQueue(_snd_wnd);
+            sendQueue = new TCPSendQueue(this, _snd_wnd);
 
             if (_snd_una > _iss) {
                 // our SYN has been ACKed
@@ -1260,7 +1292,7 @@ public final class TCP extends IP {
                 _incomingConnection.cleanup("Connection closed");
             } else {
                 // close the pending connection gracefully.
-                _incomingConnection.close();
+                _incomingConnection.close(Endpoint.SHUT_RDWR);
             }
             _incomingConnection = null;
         }
@@ -1285,11 +1317,8 @@ public final class TCP extends IP {
             _recvQueue.cleanup();
         }
 
-        // make sure anyone blocked on read() or waitForConnection() gets
-        // woken up.
-        synchronized (this) {
-            notifyAll();
-        }
+        // make sure anyone blocked on read() or waitForConnection() gets woken up.
+        notifyAll();
 
         _listener = null;
 
@@ -1297,14 +1326,15 @@ public final class TCP extends IP {
         recycle();
     }
 
+    /**
+      * Called (only) when the retransmit timer goes off.
+      * This mainly involves figuring out what state we are in, and retransmitting the packet
+      * that is appropriate in that state.
+      *
+      * @throws NetworkException
+     */
 
-    //----------------------------------------------------------------------
-
-    // Called when the retransmit timer goes off.  This mainly involves
-    // figuring out what state we are in, and retransmitting the packet
-    // that is appropriate in that state.
-
-    void retransmit() throws NetworkException {
+    synchronized void retransmit() throws NetworkException {
 
         // Invalidate the round-trip timer.  rtt must only be calculated
         // for non-retransmitted segments.
@@ -1372,9 +1402,12 @@ public final class TCP extends IP {
     }
 
 
-    // This is called when the delayed ACK timer goes off.  Send an ACK
-    // segment.  Don't restart the delayed ACK timer.
-    void delayedAck() throws NetworkException {
+    /**
+     *  This is called (only) when the delayed ACK timer goes off.
+     *  Send an ACK segment.  Don't restart the delayed ACK timer.
+     * @throws NetworkException
+     */
+    synchronized void delayedAck() throws NetworkException {
 
         //err("delayedAck port:"+local_port);
 
@@ -1391,15 +1424,15 @@ public final class TCP extends IP {
     }
 
     /**
-     * Establish a TCP connection to a remote endpoint
-     *
+     * Establish a TCP connection to a remote endpoint.
+     * Entry point, hence synchronized
      * @param        addr IP address of remote endpoint
      * @param        p    port number
-     * @return         0    if connected
+     * @return        port number    if connected
      *                     TCP.CONN_FAIL_REFUSED if the connection is refused
      *                     TCP.CONN_FAIL_TIMEOUT if the connection request times out
      */
-    int connect(int addr, int p) throws InterruptedException, NetworkException {
+    synchronized int connect(int addr, int p) throws InterruptedException, NetworkException, IOException {
 
         if (_state != State.NEW || addr == 0 || addr == 0xffffffff) {
             return CONN_FAIL_REFUSED;
@@ -1445,19 +1478,27 @@ public final class TCP extends IP {
         rttStart(_iss);
 
         // now wait for the connection to be established
-        while (_state != State.ESTABLISHED) {
-            if (_state == State.CLOSED) {
-                return _connectFailure;
+        while (_state != State.ESTABLISHED &&  _state != State.CLOSED) {
+            if (!_blocking) {
+                return -ErrorDecoder.Code.EAGAIN.getCode();
             }
-
-            synchronized (this) {
-                wait();
-            }
-       }
-        return 0;
+            wait();
+        }
+        if (_state == State.CLOSED) {
+            return _connectFailure;
+        }
+        return _localPort;
     }
 
-    boolean close() throws NetworkException {
+    /**
+     * Close connection.
+     * Entry point, hence synchronized
+     * @param how
+     * @return
+     * @throws NetworkException
+     */
+    synchronized boolean close(int how) throws NetworkException {
+        // TODO implement half-close
         if (_state == State.ESTABLISHED) {
             _state = State.FIN_WAIT_1;
         } else if (_state == State.CLOSE_WAIT || _state == State.LAST_ACK) {
@@ -1494,7 +1535,7 @@ public final class TCP extends IP {
 
     }
 
-    static void closeAll() {
+    static synchronized void closeAll() {
         TCP nxt = null;
         TCP cur = tcps;
 
@@ -1543,7 +1584,17 @@ public final class TCP extends IP {
         }
     }
 
-    int write(byte buf[], int off, int len)
+    /**
+     * Write some data to the connection.
+     * Entry point, hence synchronized
+     * @param buf
+     * @param off
+     * @param len
+     * @return
+     * @throws InterruptedException
+     * @throws NetworkException
+     */
+    synchronized int write(byte buf[], int off, int len)
         throws InterruptedException, NetworkException {
 
         if (_debug) tcpdprint("write length = " + len);
@@ -1553,11 +1604,14 @@ public final class TCP extends IP {
         }
 
         int toDo = len;
-        // loop until we have queued and transmitted all data.
+        // loop until we have queued and transmitted all data, unless non-blocking
         while (toDo > 0) {
 
-            // this will block until room is available
             int bytesAppended = sendQueue.append(buf, off, toDo);
+            if (bytesAppended < 0) {
+                assert !_blocking;
+                return bytesAppended;
+            }
 
             outputData(_snd_max, _snd_max + bytesAppended);
 
@@ -1603,7 +1657,19 @@ public final class TCP extends IP {
         }
     }
 
-    int read(byte buf[], int off, int len, int timeout)
+    /**
+     * Read some data from the connection.
+     * Entry point, hence synchronized
+     * @param buf
+     * @param off
+     * @param len
+     * @param timeout
+     * @return
+     * @throws InterruptedException
+     * @throws InterruptedIOException
+     * @throws NetworkException
+     */
+    synchronized int read(byte buf[], int off, int len, int timeout)
             throws InterruptedException, InterruptedIOException,
             NetworkException {
 
@@ -1614,13 +1680,20 @@ public final class TCP extends IP {
         }
 
         if (_recvQueue.bytesQueued == 0) {
-            if (!blocking) {
+            if (!_blocking) {
                 return ErrorDecoder.Code.EAGAIN.getCode();
             }
-            synchronized (this) {
-                wait(timeout);
-            }
-
+            final TCP tcp = this;
+            final TimeLimitedProc timedProc = new TimeLimitedProc() {
+                protected int proc(long remaining) throws InterruptedException {
+                    tcp.wait(remaining);
+                    if (_recvQueue.bytesQueued > 0 || _state == State.CLOSED) {
+                        return terminate(1);
+                    }
+                    return 0;
+                }
+            };
+            timedProc.run(timeout);
             if (_recvQueue.bytesQueued == 0) {
                 throw new InterruptedIOException("read timeout");
             }
@@ -1643,9 +1716,12 @@ public final class TCP extends IP {
         return len;
     }
 
-    // Return the number of bytes immediately available for reading.
-    int available() {
-
+    /**
+     *  Return the number of bytes immediately available for reading.
+     *  Entry point, hence synchronized
+     * @return
+     */
+    synchronized int available() {
         // return an error Condition if the TCP is not in a state
         // for reading.
         if (_state != State.ESTABLISHED) {
@@ -1657,7 +1733,13 @@ public final class TCP extends IP {
         return _recvQueue.bytesQueued;
     }
 
-    boolean pollInput() {
+    /**
+     * Check if input is available.
+     *  Entry point, hence synchronized
+     *
+     * @return
+     */
+    synchronized boolean pollInput() {
         boolean result = false;
         if (_debug) {
             tcpdprint("pollInput");
@@ -1675,7 +1757,13 @@ public final class TCP extends IP {
         return result;
     }
 
-    boolean pollOutput() {
+    /**
+     * Check if output is possible.
+     *  Entry point, hence synchronized
+     *
+     * @return
+     */
+    synchronized boolean pollOutput() {
         boolean result = false;
         if (_debug) {
             tcpdprint("pollOutput");
@@ -1689,9 +1777,13 @@ public final class TCP extends IP {
     }
 
 
-    //----------------------------------------------------------------------
-
-    boolean listen(int count) {
+    /**
+     * Set the state of a new connection to LISTEN.
+     * Entry point, hence synchronized
+     * @param count currently ignored
+     * @return true iff state was NEW and is now LISTEN
+     */
+    synchronized boolean listen(int count) {
 
         if (_debug) {
             tcpdprint("listen: " + count);
@@ -1707,19 +1799,39 @@ public final class TCP extends IP {
         return true;
     }
 
-    TCP waitForConnection(int timeout) throws InterruptedException, InterruptedIOException {
-        synchronized (this) {
-            while (_incomingConnection == null) {
-                wait(timeout);
+    /**
+     * Wait for a new connection to arrive on this instance.
+     * Entry point, hence synchronized
+     * @param timeout
+     *                how long to wait (zero means forever)
+     * @return the new connection or null if non-blocking and no connection
+     * @throws InterruptedException
+     * @throws InterruptedIOException
+     */
+    synchronized TCP accept(int timeout) throws InterruptedException, InterruptedIOException {
+        if (_incomingConnection == null) {
+            if (!_blocking) {
+                return null;
+            }
+            final TCP tcp = this;
+            final TimeLimitedProc timedProc = new TimeLimitedProc() {
+                protected int proc(long remaining) throws InterruptedException {
+                    tcp.wait(remaining);
+                    if (_incomingConnection != null || _state == State.CLOSED) {
+                        return terminate(1);
+                    }
+                    return 0;
+                }
+            };
+            timedProc.run(timeout);
+            if (_incomingConnection == null) {
+                throw new InterruptedIOException("accept timeout");
             }
         }
-        if (_incomingConnection == null) {
-            throw new InterruptedIOException("accept timeout");
-        } else {
-            TCP t = _incomingConnection;
-            _incomingConnection = null;
-            return t;
-        }
+
+        TCP t = _incomingConnection;
+        _incomingConnection = null;
+        return t;
     }
 
     // simple method to find a connection with the given local port.
@@ -1756,16 +1868,53 @@ public final class TCP extends IP {
         return port;
     }
 
-    int setLocalPort(int port) {
-        if (port == 0) {
+    /**
+     * Bind a port to this connection.
+     * Entry point, hence synchronized.
+     * @param port value to set, zero chooses next available port
+     * @return port value
+     * @throws IOException
+     */
+    synchronized int setLocalPort(int port) throws IOException {
+        if (_localPort != 0) {
+            throw new BindException("port in use");
+        } else if (port == 0) {
             _localPort = chooseNextPort();
         } else if (find(port) == null) {
             _localPort = port;
         } else {
-            // TODO: what to do?
+            throw new BindException("port in use");
         }
         return _localPort;
     }
+
+    /**
+     * Return local port for this instance.
+     * Entry point, hence synchronized.
+     * @return the assigned local port or zero if none
+     */
+    synchronized int getLocalPort() {
+        return _localPort;
+    }
+
+    /**
+     * Return remote port for this instance.
+     * Entry point, hence synchronized.
+     * @return the assigned remote port or zero if none
+     */
+    synchronized int getRemotePort() {
+        return _remotePort;
+    }
+
+    /**
+     * Return remote address for this instance.
+     * Entry point, hence synchronized.
+     * @return the assigned remote address or zero if none
+     */
+    synchronized int getRemoteAddress() {
+        return _remoteIp;
+    }
+
 
     static TCP cache = null;
 
@@ -1775,8 +1924,7 @@ public final class TCP extends IP {
         TCP result = null;
 
         if (_debug) {
-            if (_debug)
-                dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
+              dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
         }
 
         if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
@@ -1784,27 +1932,28 @@ public final class TCP extends IP {
         } else {
 
             for (TCP tcp = tcps; tcp != null; tcp = tcp._next) {
+                synchronized (tcp) {
+                    if (tcp._localPort != local_port) {
+                        continue;
+                    }
 
-                if (tcp._localPort != local_port) {
-                    continue;
-                }
+                    if (tcp._state == State.LISTEN) {
+                        result = tcp;
+                    }
 
-                if (tcp._state == State.LISTEN) {
+                    if (tcp._remotePort != remote_port) {
+                        continue;
+                    }
+
+                    if (tcp._remoteIp != remote_ip) {
+                        continue;
+                    }
+
+                    // found an exact match
+                    cache = tcp;
                     result = tcp;
+                    break;
                 }
-
-                if (tcp._remotePort != remote_port) {
-                    continue;
-                }
-
-                if (tcp._remoteIp != remote_ip) {
-                    continue;
-                }
-
-                // found an exact match
-                cache = tcp;
-                result = tcp;
-                break;
             }
         }
 
@@ -2108,7 +2257,12 @@ public final class TCP extends IP {
         return i;
     }
 
-    void configureBlocking(boolean blocking) {
-        this.blocking = blocking;
+    /**
+     * Configure the blocking state of this connection.
+     * Entry point, hence synchronized.
+     * @param blocking
+     */
+    synchronized void configureBlocking(boolean blocking) {
+        this._blocking = blocking;
     }
 }

@@ -78,13 +78,40 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
         final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
         final int result = convertReturnValue(fdInfo._vfs.writeBytes(VirtualFileSystemId.getFd(fdInfo._fd), bb, fdInfo._fileOffset), false);
         return result;
+    }
 
+    public int write(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        int bytesWritten = 0;
+        for (int i = 0; i < bbs.length; i++) {
+            final int result = convertReturnValue(fdInfo._vfs.writeBytes(fd, bbs[i], fdInfo._fileOffset), false);
+            if (result < 0) {
+                return result;
+            }
+            bytesWritten += result;
+        }
+        return bytesWritten;
     }
 
     public int read(FileDescriptor fdObj, ByteBuffer bb) throws IOException {
         final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
         final int result = convertReturnValue(fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), bb, fdInfo._fileOffset), true);
         return result;
+    }
+
+    public int read(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        int bytesRead = 0;
+        for (int i = 0; i < bbs.length; i++) {
+            final int result = convertReturnValue(fdInfo._vfs.readBytes(fd, bbs[i], fdInfo._fileOffset), true);
+            if (result < 0) {
+                return result;
+            }
+            bytesRead += result;
+        }
+        return bytesRead;
     }
 
     @Override

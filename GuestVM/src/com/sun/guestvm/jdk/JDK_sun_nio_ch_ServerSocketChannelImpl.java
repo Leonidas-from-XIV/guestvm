@@ -67,6 +67,7 @@ import java.net.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.object.TupleAccess;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.net.Endpoint;
 
 /**
@@ -92,6 +93,9 @@ final class JDK_sun_nio_ch_ServerSocketChannelImpl {
         final Endpoint endpoint = JDK_java_net_util.get(fdObj);
         // this is the accepted endpoint
         final Endpoint acceptEndpoint = endpoint.accept();
+        if (acceptEndpoint == null) {
+            return -ErrorDecoder.Code.EAGAIN.getCode();
+        }
         int newfd = JDK_java_net_util.getFreeIndex(acceptEndpoint);
         TupleAccess.writeInt(newfdObj, JDK_java_io_FileDescriptor.fdFieldActor().offset(), newfd);
         isaa[0] = new InetSocketAddress(JDK_java_net_Inet4AddressImpl.createInet4Address(null, acceptEndpoint.getRemoteAddress()), acceptEndpoint.getRemotePort());

@@ -51,6 +51,7 @@ class sun.nio.ch.IOStatus
 forcemethod sun.nio.ch.JDK_sun_nio_ch_IOUtil.*
 forcemethod sun.nio.ch.GuestVMNativePollArrayWrapper.*
 class sun.nio.ch.GuestVMNativePollArrayWrapper$PollOut
+class sun.nio.ch.GuestVMNativePollArrayWrapper$PollThread
 forcemethod sun.nio.ch.BBNativeDispatcher.*
 # these get initialized to BBNativeDispatcher at run time
 # but we make sure the old host values are nulled out anyway.

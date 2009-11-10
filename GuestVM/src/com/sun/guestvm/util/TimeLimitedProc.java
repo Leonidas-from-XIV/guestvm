@@ -32,6 +32,7 @@
 package com.sun.guestvm.util;
 
 import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.max.vm.Log;
 
 /**
  * A class that handles timeouts while running a given procedure.
@@ -102,7 +103,7 @@ public abstract class TimeLimitedProc {
             _init = true;
         }
         if (_log) {
-            System.out.println(s);
+            Log.print(Thread.currentThread()); Log.print(' '); Log.println(s);
         }
     }
 }

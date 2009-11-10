@@ -72,10 +72,41 @@ public class JDK_sun_nio_ch_IOUtil {
 
     }
 
+    // Copied from IOUtil.java
+    /*
+     * Returns the index of first buffer in bufs with remaining,
+     * or -1 if there is nothing left
+     */
+    private static int remaining(ByteBuffer[] bufs) {
+        int numBufs = bufs.length;
+        boolean remaining = false;
+        for (int i=0; i<numBufs; i++) {
+            if (bufs[i].hasRemaining()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Copied from IOUtil.java
+    /*
+     * Returns a new ByteBuffer array with only unfinished buffers in it
+     */
+    private static ByteBuffer[] skipBufs(ByteBuffer[] bufs,
+                                         int nextWithRemaining)
+    {
+        int newSize = bufs.length - nextWithRemaining;
+        ByteBuffer[] temp = new ByteBuffer[newSize];
+        for (int i=0; i<newSize; i++) {
+            temp[i] = bufs[i + nextWithRemaining];
+        }
+        return temp;
+    }
+
     @SUBSTITUTE
     private static int write(FileDescriptor fd, ByteBuffer bb, long position, NativeDispatcher nd, Object lock)  throws IOException {
         /*
-         * This code is copied from IOUtil.java and modified to use the ByteBuffer
+         * This code is copied from IOUtil.java (writeFromNativeBuffer) and modified to use the ByteBufferNativeDispatcher interface
          */
         final ByteBufferNativeDispatcher bnd = (ByteBufferNativeDispatcher) nd;
         int pos = bb.position();
@@ -87,6 +118,7 @@ public class JDK_sun_nio_ch_IOUtil {
         if (rem == 0)
             return 0;
         if (position != -1) {
+            GuestVMError.unimplemented("sun.nio.ch.IOUtil.write wih position");
             /*
             written = nd.pwrite(fd,
                                 ((DirectBuffer)bb).address() + pos,
@@ -104,7 +136,7 @@ public class JDK_sun_nio_ch_IOUtil {
     @SUBSTITUTE
     private static int read(FileDescriptor fd, ByteBuffer bb, long position, NativeDispatcher nd, Object lock) throws IOException {
         /*
-         * This code is copied from IOUtil.java and modified to use the ByteBuffer
+         * This code is copied from IOUtil.java (readIntoNativeBuffer) and modified to use the ByteBufferNativeDispatcher interface
          */
         if (bb.isReadOnly())
             throw new IllegalArgumentException("Read-only buffer");
@@ -118,6 +150,7 @@ public class JDK_sun_nio_ch_IOUtil {
             return 0;
         int n = 0;
         if (position != -1) {
+            GuestVMError.unimplemented("sun.nio.ch.IOUtil.read wih position");
             /*
             n = nd.pread(fd, ((DirectBuffer)bb).address() + pos,
                          rem, position, lock);
@@ -128,6 +161,50 @@ public class JDK_sun_nio_ch_IOUtil {
         if (n > 0)
             bb.position(pos + n);
         return n;
+    }
+
+    @SUBSTITUTE
+    static long write(FileDescriptor fd, ByteBuffer[] bufs, NativeDispatcher nd)  throws IOException {
+        // This code is copied from IOUtil.java and modified to use the ByteBufferNativeDispatcher interface.
+        // The middle section if the method setting up the shadow array of direct buffers is omitted.
+        int nextWithRemaining = remaining(bufs);
+        // if all bufs are empty we should return immediately
+        if (nextWithRemaining < 0)
+            return 0;
+        // If some bufs are empty we should skip them
+        if (nextWithRemaining > 0)
+            bufs = skipBufs(bufs, nextWithRemaining);
+
+        int numBufs = bufs.length;
+
+        long bytesWritten = 0;
+        // Invoke native call to fill the buffers
+
+        final ByteBufferNativeDispatcher bnd = (ByteBufferNativeDispatcher) nd;
+        bytesWritten = bnd.write(fd, bufs);
+        long returnVal = bytesWritten;
+
+        // Notify the buffers how many bytes were taken
+        for (int i=0; i<numBufs; i++) {
+            ByteBuffer nextBuffer = bufs[i];
+            int pos = nextBuffer.position();
+            int lim = nextBuffer.limit();
+            assert (pos <= lim);
+            int len = (pos <= lim ? lim - pos : lim);
+            if (bytesWritten >= len) {
+                bytesWritten -= len;
+                int newPosition = pos + len;
+                nextBuffer.position(newPosition);
+            } else { // Buffers not completely filled
+                if (bytesWritten > 0) {
+                    assert(pos + bytesWritten < (long)Integer.MAX_VALUE);
+                    int newPosition = (int)(pos + bytesWritten);
+                    nextBuffer.position(newPosition);
+                }
+                break;
+            }
+        }
+        return returnVal;
     }
 
     @SUBSTITUTE
@@ -146,7 +223,7 @@ public class JDK_sun_nio_ch_IOUtil {
     static boolean drain(int fd) throws IOException {
         final FdInfo fdInfo = FdInfo.getFdInfo(fd);
         // throw it all away!
-        // a StackByteBuffer is what we ned here really!
+        // a StackByteBuffer is what we need here really!
         // final Pointer buf = StackAllocate.stackAllocate(BUFSIZE);
         final ByteBuffer bb = java.nio.ByteBuffer.allocate(BUFSIZE);
         int tn = 0;

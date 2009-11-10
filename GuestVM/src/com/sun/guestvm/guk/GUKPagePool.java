@@ -32,6 +32,7 @@
 package com.sun.guestvm.guk;
 
 import com.sun.guestvm.memory.HeapPool;
+import com.sun.guestvm.guk.x64.*;
 import com.sun.max.annotate.*;
 import com.sun.max.memory.VirtualMemory;
 import com.sun.max.unsafe.*;
@@ -56,6 +57,8 @@ import com.sun.max.lang.Unsigned;
  */
 
 public final class GUKPagePool  implements Runnable {
+
+    public static final int PAGE_SIZE = X64VM.PAGE_SIZE;
 
     @INLINE
     public static Pointer allocatePages(int n, VirtualMemory.Type type) {

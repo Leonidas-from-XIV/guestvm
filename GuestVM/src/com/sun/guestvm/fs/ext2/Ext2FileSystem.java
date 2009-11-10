@@ -624,8 +624,14 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     @Override
     public long skip(int fd, long n, long fileOffset) {
-        GuestVMError.unimplemented("Ext2FileSystem.skip");
-        return 0;
+        final long length = _openFiles.get(fd)._fsFile.getLength();
+        if (fileOffset >= length) {
+            return 0;
+        } else if (fileOffset + n <= length) {
+            return n;
+        } else {
+            return length - fileOffset;
+        }
     }
 
     @Override

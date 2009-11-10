@@ -34,10 +34,15 @@ package com.sun.guestvm.jdk;
 
 import java.io.*;
 import com.sun.max.annotate.*;
+import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
 import com.sun.max.vm.runtime.*;
+import com.sun.max.unsafe.*;
+import com.sun.max.memory.Memory;
+import com.sun.max.memory.VirtualMemory;
 import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
+import com.sun.guestvm.guk.*;
 
 /**
  * Substitutions for  @see sun.nio.ch.FileChannelImpl.
@@ -50,10 +55,23 @@ import com.sun.guestvm.fs.*;
 @METHOD_SUBSTITUTIONS(sun.nio.ch.FileChannelImpl.class)
 public class JDK_sun_nio_ch_FileChannelImpl {
 
+    @CONSTANT_WHEN_NOT_ZERO
+    private static FieldActor _fileDescriptorFileActor;
+
     @INLINE
-    private static int getFd(FileDescriptor fdObj) {
+    static FieldActor fileDescriptorFieldActor() {
+        if (_fileDescriptorFileActor == null) {
+            _fileDescriptorFileActor = JDK_java_io_fdActor.fileDescriptorFieldActor(sun.nio.ch.FileChannelImpl.class);
+        }
+        return  _fileDescriptorFileActor;
+    }
+
+
+    @INLINE
+    private static int getFd(Object fdObj) {
         return TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
     }
+
     @SUBSTITUTE
     private int lock0(FileDescriptor fdObj, boolean blocking, long pos, long size, boolean shared) throws IOException {
         final int fd = getFd(fdObj);
@@ -68,8 +86,24 @@ public class JDK_sun_nio_ch_FileChannelImpl {
 
     @SUBSTITUTE
     private long map0(int prot, long position, long length) throws IOException {
-        GuestVMError.unimplemented("sun.nio.FileChannelImpl.map0");
-        return -1;
+        /* Unfortunately the notion of a MappedByteBuffer that is is inherently "direct" is
+         * embedded in the FileChannel API. So we have choice but to go with that.
+         * A more efficient implementation would be required for large files
+         * (which is what this is supposed to be used for actually).
+         */
+        assert length <= Integer.MAX_VALUE;
+        final int len = (int) length;
+        final int numPages = len / GUKPagePool.PAGE_SIZE + 1;
+        final Pointer p = GUKPagePool.allocatePages(numPages, VirtualMemory.Type.DATA);
+        final int fd = getFd(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        // this is not optimal, should work with a direct byte buffer, and find a way to give it to caller.
+        final byte[] buf = new byte[(int) length];
+        final int result = VirtualFileSystemId.getVfs(fd).readBytes(VirtualFileSystemId.getFd(fd), buf, 0, len, position);
+        if (result < 0) {
+            throw new IOException("Map failed: " + ErrorDecoder.getMessage(-result));
+        }
+        Memory.writeBytes(buf, 0, result, p);
+        return p.toLong();
     }
 
     @SUBSTITUTE

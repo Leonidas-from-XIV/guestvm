@@ -75,7 +75,7 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
     private Object _lock = new Object();
 
     // NIO support for non-blocking I/O
-    private boolean blocking;
+    private boolean blocking = true;
 
     public UDPEndpoint() {
     }
@@ -120,7 +120,7 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
 
     //----------------------------------------------------------------------
 
-    public void close() {
+    public void close(int how) {
 
         synchronized (_lock) {
 

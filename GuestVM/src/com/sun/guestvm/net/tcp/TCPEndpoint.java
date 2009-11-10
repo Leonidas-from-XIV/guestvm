@@ -77,17 +77,7 @@ public class TCPEndpoint implements Endpoint {
     // binding to the same port.
     // The bound port number is returned.
     public int bind(int addr, int port, boolean reuse) throws IOException {
-        // can't bind() an endpoint twice.
-        if (tcp._localPort != 0) {
-            throw new BindException("port in use");
-        }
-
-        port = tcp.setLocalPort(port);
-
-        if (port == 0) {
-            throw new BindException("port in use");
-        }
-        return port;
+        return tcp.setLocalPort(port);
     }
 
     public void listen(int count) throws IOException {
@@ -105,7 +95,10 @@ public class TCPEndpoint implements Endpoint {
 
         TCP t = null;
         try {
-            t = tcp.waitForConnection(timeout);
+            t = tcp.accept(timeout);
+            if (t == null) {
+                return null;
+            }
         } catch (InterruptedException ex) {
             throw new InterruptedIOException(ex.getMessage());
         }
@@ -123,19 +116,18 @@ public class TCPEndpoint implements Endpoint {
             if (result == TCP.CONN_FAIL_TIMEOUT) {
                 throw new NoRouteToHostException("Connect timed out");
             }
-            p = tcp._localPort;
+            return result;
         } catch (InterruptedException ex) {
             throw new InterruptedIOException(ex.getMessage());
         } catch (NetworkException e) {
             throw new SocketException(e.getMessage());
         }
-        return p;
     }
 
-    public void close() throws IOException {
+    public void close(int how) throws IOException {
         try {
             if (tcp != null) {
-                tcp.close();
+                tcp.close(how);
             }
         } catch (NetworkException e) {
             throw new SocketException(e.getMessage());
@@ -168,16 +160,32 @@ public class TCPEndpoint implements Endpoint {
     }
 
     public int read(ByteBuffer bb)  throws IOException {
-        // temporary limitation
-        assert bb.hasArray();
-        return read(bb.array(), bb.arrayOffset(), bb.limit() - bb.position());
+        final int len = bb.limit() - bb.position();
+        if (bb.hasArray()) {
+            return read(bb.array(), bb.arrayOffset(), bb.limit() - bb.position());
+        } else {
+            // TODO make a TCP.read(ByteBuffer) method
+            byte[] buf = new byte[len];
+            final int ppos = bb.position();
+            final int result = read(buf, 0, len);
+            bb.put(buf);
+            bb.position(ppos);
+            return result;
+        }
     }
 
     public int write(ByteBuffer bb)  throws IOException {
-        // temporary limitation
-        assert bb.hasArray();
         final int len = bb.limit() - bb.position();
-        return write(bb.array(), bb.arrayOffset(), len);
+        if (bb.hasArray()) {
+            return write(bb.array(), bb.arrayOffset(), len);
+        } else {
+            // TODO make a TCP.write(ByteBuffer) method
+            byte[] buf = new byte[len];
+            final int ppos = bb.position();
+            bb.get(buf);
+            bb.position(ppos);
+            return write(buf, 0, len);
+        }
     }
 
     public int available() {
@@ -191,12 +199,13 @@ public class TCPEndpoint implements Endpoint {
     }
 
     public int getRemoteAddress() {
-        return tcp._remoteIp;
+        return tcp.getRemoteAddress();
     }
 
     public int getRemotePort() {
-        return tcp._remotePort;
+        return tcp.getRemotePort();
     }
+
     public int getLocalAddress() {
         // return tcp._localIp;
         // TODO implement setting of local address
@@ -204,7 +213,7 @@ public class TCPEndpoint implements Endpoint {
     }
 
     public int getLocalPort() {
-        return tcp._localPort;
+        return tcp.getLocalPort();
     }
 
     public void configureBlocking(boolean blocking) {
