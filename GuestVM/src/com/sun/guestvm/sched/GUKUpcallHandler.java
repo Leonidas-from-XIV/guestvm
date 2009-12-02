@@ -120,7 +120,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
      */
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static Word schedule_upcall(int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         final Word result = _sched.scheduleUpcall(cpu);
@@ -129,7 +129,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static void deschedule_upcall(int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         _sched.descheduleUpcall(cpu);
@@ -137,7 +137,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static void wake_upcall(int id, int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         _sched.wakeUpcall(id, cpu);
@@ -145,7 +145,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static void block_upcall(int id, int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         _sched.blockUpcall(id, cpu);
@@ -153,7 +153,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static void attach_upcall(int id, int tcpu, int xcpu) {
         final boolean safepointsDisabled = disableSafepoints();
         _sched.attachUpcall(id, tcpu, xcpu);
@@ -161,7 +161,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static void detach_upcall(int id, int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         _sched.detachUpcall(id, cpu);
@@ -169,7 +169,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static int pick_cpu_upcall() {
         final boolean safepointsDisabled = disableSafepoints();
         final int result = _sched.pickCpuUpcall();
@@ -178,7 +178,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     }
 
     @SuppressWarnings({ "unused"})
-    @C_FUNCTION
+    @VM_ENTRY_POINT
     private static int runnable_upcall(int cpu) {
         final boolean safepointsDisabled = disableSafepoints();
         final int result = _sched.runnableUpcall(cpu);

@@ -86,22 +86,15 @@ void *calloc(int nelems, size_t n) {
   return result;
 }
 
-extern void *allocate_thread_stack(void *threadSpecifics, int n);
+void *guestvmXen_virtualMemory_allocate(size_t size, int type);
+void *valloc(size_t size) {
+	return guestvmXen_virtualMemory_allocate(size, DATA_VM);
+}
+
 extern void *allocate_heap_region(int n);
 extern void *extend_allocate_heap_region(unsigned long vaddr, int n);
 extern void *deallocate_heap_region(unsigned long vaddr, size_t size);
 extern void *allocate_code_region(int n, unsigned long vaddr);
-
-void *guestvmXen_allocate_stack(void *threadSpecifics, size_t size) {
-     int pages = PAGE_ALIGN(size) / PAGE_SIZE;
-     /*
-      * Maxine allocates large (virtual) stacks that limits scaling the number of threads
-      * if we actually allocated physical memory for the entire stack.
-      * Instead we just allocate virtual memory at this point and do the physical
-      * allocation incrementally.
-      */
-     return (void*) allocate_thread_stack(threadSpecifics, pages);
-}
 
 void *guestvmXen_virtualMemory_allocate(size_t size, int type) {
    int pages = PAGE_ALIGN(size) / PAGE_SIZE;
@@ -158,14 +151,14 @@ int guestvmXen_virtualMemory_pageSize(void) {
   return PAGE_SIZE;
 }
 
-extern int check_stack_protectPage(unsigned long address);
-int guestvmXen_virtualMemory_protectPage(unsigned long address) {
-  return check_stack_protectPage(address);
+extern void check_stack_protectPages(unsigned long address, int count);
+void guestvmXen_virtualMemory_protectPages(unsigned long address, int count) {
+  check_stack_protectPages(address, count);
 }
 
-extern int check_stack_unProtectPage(unsigned long address);
-int guestvmXen_virtualMemory_unProtectPage(unsigned long address) {
-  return check_stack_unProtectPage(address);
+extern void check_stack_unProtectPages(unsigned long address, int count);
+void guestvmXen_virtualMemory_unProtectPages(unsigned long address, int count) {
+  check_stack_unProtectPages(address, count);
 }
 
 extern void* memory_allocate(size_t size);
@@ -181,7 +174,7 @@ void *maxine_mm_dlsym(const char *symbol) {
     else if (strcmp(symbol, "virtualMemory_allocateIn31BitSpace") == 0) return virtualMemory_allocateIn31BitSpace;
     else if (strcmp(symbol, "virtualMemory_allocateAtFixedAddress") == 0) return virtualMemory_allocateAtFixedAddress;
     else if (strcmp(symbol, "virtualMemory_pageAlign") == 0) return virtualMemory_pageAlign;
-    else if (strcmp(symbol, "virtualMemory_protectPage") == 0) return virtualMemory_protectPage;
-    else if (strcmp(symbol, "virtualMemory_unprotectPage") == 0) return virtualMemory_getPageSize;
+    else if (strcmp(symbol, "virtualMemory_protectPages") == 0) return virtualMemory_protectPages;
+    else if (strcmp(symbol, "virtualMemory_unprotectPages") == 0) return virtualMemory_unprotectPages;
     else return 0;
 }
