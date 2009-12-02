@@ -90,7 +90,7 @@ import com.sun.guestvm.util.TimeLimitedProc;
    packet after input().
 
    read(), write(), connect() and close() are implemented here.  A receive
-   queue buffers packets until they are read by users
+   queue buffers packets until they are read by clients.
 
    The method output() handles packet formatting and output to the IP layer.
 
@@ -114,6 +114,8 @@ import com.sun.guestvm.util.TimeLimitedProc;
 
    The implementation supports blocking and non-blocking mode, the latter
    being needed for nio channels.
+
+   The backlog queue for incoming connections is currently of length 1.
 */
 
 public final class TCP extends IP {
@@ -350,6 +352,15 @@ public final class TCP extends IP {
             _prev = null;
         }
     }
+
+    /**
+     *  Choose and advance the initial sequence number.
+     *  This computation has the effect of incrementing the iss
+     *  by 128000 every second, which is good according to BSD.
+     */
+    private static int chooseISS() {
+        return (int) (System.currentTimeMillis() - _startTime) * 128;
+     }
 
 
     //----------------------------------------------------------------------
@@ -897,9 +908,7 @@ public final class TCP extends IP {
         tcp.rcv_nxt = inp_seq;
         tcp._irs = inp_seq;
 
-        // choose and advance the initial sequence number.
-        // tcp.iss = ((int) System.currentTimeMillis() - startTime) * 128;
-        tcp._iss = ((int) _random.nextLong() - _startTime) * 128;
+        tcp._iss = chooseISS();
 
         tcp._snd_una = tcp._iss;
         tcp._snd_max = tcp._iss+1;
@@ -1453,11 +1462,7 @@ public final class TCP extends IP {
         _remotePort = p;
         _remoteIp = addr;
 
-        // choose and advance the initial sequence number.
-        // This computation has the effect of incrementing the iss
-        // by 128000 every second, which is good according to BSD.
-        _iss = ((int) System.currentTimeMillis() - _startTime) * 128;
-        // iss = ((int) random.nextLong() - startTime) * 128;
+        _iss = chooseISS();
 
         if (_debug) tcpdprint("connect: ISS: " + _iss);
 
