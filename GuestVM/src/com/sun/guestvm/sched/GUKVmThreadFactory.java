@@ -69,8 +69,12 @@ public class GUKVmThreadFactory extends VmThreadFactory {
         if (_vmThreadCacheSize >= MAX_THREADS) {
             GuestVMError.unexpected("thread limit exceeded");
         }
+        final VmThread vmThread = _vmThreadCache.remove(0);
         _vmThreadCacheSize++;
-        return _vmThreadCache.remove(0).setJavaThread(javaThread);
+        if (javaThread != null) {
+            vmThread.setJavaThread(javaThread, javaThread.getName());
+        }
+        return vmThread;
     }
 
 }

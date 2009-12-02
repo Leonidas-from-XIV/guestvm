@@ -245,7 +245,7 @@ public final class GUKNetDevice implements NetDevice {
      * is in IRQ mode.
      */
     @SuppressWarnings({"unused"})
-    @C_FUNCTION(isInterruptHandler = true)
+    @VM_ENTRY_POINT
     private static void copyPacket(Pointer p, int pktLength) {
         int length = pktLength;
 

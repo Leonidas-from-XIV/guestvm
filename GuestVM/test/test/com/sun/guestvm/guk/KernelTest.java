@@ -163,13 +163,6 @@ public class KernelTest {
                 pageFramesForIndex(l4, l3, l2, l1);
             } else if (op.equals("unmappedFrames")) {
                 frameState(parseInt(opArg1), parseInt(opArg2));
-            } else if (op.equals("guardPageInfo")) {
-                final Address gp = VmThread.fromJava(Thread.currentThread()).guardPage();
-                System.out.println("gp " + Long.toHexString(VMTestHelper.toLong(gp)) + " pfn " + GUKPageTables.getPfnForAddress(gp) + " mfn " + GUKPageTables.getMfnForAddress(gp));
-                getPTInfo(gp);
-                final Address gpe = VmThread.fromJava(Thread.currentThread()).guardPageEnd();
-                System.out.println("gpe " + Long.toHexString(VMTestHelper.toLong(gpe)) + " pfn " + GUKPageTables.getPfnForAddress(gpe) + " mfn " + GUKPageTables.getMfnForAddress(gpe));
-                getPTInfo(gpe);
             } else if (op.equals("getCurrent")) {
                 System.out.println("current memory reservation: " + GUKPagePool.getCurrentReservation());
             } else if (op.equals("getMaximum")) {

@@ -46,11 +46,6 @@
 typedef unsigned long Address;
 typedef unsigned long Size;
 
-/* This is a copy from maxine/threadLocals.h.
- * We can't include that header directly because it pulls in inappropriate host-dependent
- * include files. That should be fixed.
- */
-
 /*
  * Code to handle the allocation and mapping of Java thread stacks.
  * Stacks are high in the 64 bit virtual address space (2TB onwards)
@@ -67,11 +62,11 @@ typedef unsigned long Size;
  * include files. That should be fixed.
  */
 typedef struct {
-    jint id; //  0: denotes the primordial thread
-             // >0: denotes a VmThread
     Address stackBase;
     Size stackSize;
-    Address refMapArea;
+    Address handle;    // e.g. pthread_self()
+    Address tlBlock;
+    Address tlBlockSize;
     Address stackYellowZone; // unmapped to cause a trap on access
     Address stackRedZone;    // unmapped always - fatal exit if accessed
 
@@ -135,7 +130,7 @@ void set_specifics_destructor(void (*destructor)(void *)) {
   specifics_destructor = destructor;
 }
 
-static unsigned long allocate_page(NativeThreadLocals nativeThreadLocals, unsigned long addr) {
+static unsigned long allocate_page(unsigned long addr) {
 	unsigned long pfn = virt_to_pfn(allocate_pages(1, STACK_VM));
 	//guk_printk("stack_allocate_page %lx %lx\n", addr, pfn);
 	return pfn;
@@ -148,16 +143,16 @@ static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long 
 	int map = 0;
 	/*
 	 * This is called from build_pagetable in all phases of the stack setup.
-	 * In the first phase, the initial stack allocation, the NativeThreadLocals struct is not filled in
+	 * In the first phase, the initial stack allocation, the NativeThreadLocals is not assigned
 	 * and we are just mapping the top of the stack (above blue zone) to get started.
 	 * In the second phase we are mapping the areas at the bottom of the stack.
 	 * In the third and subsequent calls we are extending the stack down from the blue zone.
 	 * Identifying the phases:
-	 *   Phase 1: nativeThreadLocals->stackBase == 0
+	 *   Phase 1: nativeThreadLocals == NULL
 	 *   Phase 2: nativeThreadLocals->stackBase != 0 && nativeThreadLocals->stackBlueZone == 0;
 	 *   Phase 3: nativeThreadLocals->stackBase != 0 && nativeThreadLocals->stackBlueZone != 0;
 	 */
-	if (nativeThreadLocals->stackBase == 0) {
+	if (nativeThreadLocals == NULL) {
 		map = 1;
 	} else {
 		if (nativeThreadLocals->stackBlueZone == 0) {
@@ -173,18 +168,23 @@ static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long 
    	    	map = 1;
    	    }
 	}
-	return map ? pfn_to_mfn(allocate_page(nativeThreadLocals, addr)) : 0;
+	return map ? pfn_to_mfn(allocate_page(addr)) : 0;
 }
 
 
 void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address);
 
 /* allocate the virtual memory (only) for a thread stack of size n pages */
-unsigned long allocate_thread_stack(NativeThreadLocals nativeThreadLocals, int n) {
+unsigned long allocate_thread_stack(unsigned long vsize) {
+    /*
+     * Maxine allocates large (virtual) stacks that limits scaling the number of threads
+     * if we actually allocated physical memory for the entire stack.
+     * Instead we just allocate virtual memory at this point and do the physical
+     * allocation incrementally.
+     */
   unsigned long stackbase = 0;
   unsigned long stackend = 0;
   int slot;
-  int vsize = n * PAGE_SIZE;
   spin_lock(&bitmap_lock);
   thread_stack_size = vsize;
   for (slot = 0; slot < max_threads; slot++) {
@@ -200,14 +200,20 @@ unsigned long allocate_thread_stack(NativeThreadLocals nativeThreadLocals, int n
    * We have to map the top of the stack because initStack does not get called
    * until the thread has actually started running.
    */
-  extend_stack(nativeThreadLocals, stackend - STACK_INCREMENT_SIZE, stackend);
+  extend_stack(NULL, stackend - STACK_INCREMENT_SIZE, stackend);
   return stackbase;
 }
 
-void guk_free_thread_stack(void *specifics, void *stack, unsigned long stack_size) {
+void guk_invoke_destroy(void *specifics) {
+	struct thread *thread = current;
+	// Maxine assumes thread->specific has been reset (other thread libraries do this)
+	thread->specific = NULL;
+    specifics_destructor(specifics);
+}
+
+void guk_free_thread_stack(void *stack, unsigned long stack_size) {
     unsigned long stackBase = (unsigned long) stack;
     unsigned long stackEnd = stackBase + stack_size;
-    specifics_destructor(specifics);
     while (stackBase < stackEnd) {
 		unsigned long pte;
 		long pfn = guk_not11_virt_to_pfn(stackBase, &pte);
@@ -234,7 +240,7 @@ void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_add
 	  build_pagetable(start_address, end_address, &pfn_thread_stack_env, &pfn_frame_alloc_env);
 }
 
-int check_stack_protectPage(unsigned long addr);
+void check_stack_protectPages(unsigned long addr, int count);
 
 void guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
 	/* At this point, only the top STACK_INCREMENT_SIZE  of the stack has been mapped.
@@ -252,8 +258,8 @@ void guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
     build_pagetable(nativeThreadLocals->stackBase, nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE, &pfn_thread_stack_env, &pfn_frame_alloc_env);
 
     nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE;
-    check_stack_protectPage(nativeThreadLocals->stackBlueZone);
-    check_stack_protectPage(nativeThreadLocals->stackYellowZone);
+    check_stack_protectPages(nativeThreadLocals->stackBlueZone, 1);
+    check_stack_protectPages(nativeThreadLocals->stackYellowZone, 1);
 }
 
 unsigned long get_pfn_for_address(unsigned long address) {
@@ -282,7 +288,7 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
     start_address = nativeThreadLocals->stackYellowZone + PAGE_SIZE;
   }
   /* Need to allocate and map new pages */
-  //guk_printk(" nbz %lx\n", start_address);
+  guk_printk(" nbz %lx\n", start_address);
   if (end_address > start_address) {
     extend_stack(nativeThreadLocals, start_address, end_address);
     /* There must be at least two mapped pages above the yellow zone for the stack check code to work.
@@ -294,26 +300,33 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
 }
 
 void guestvmXen_blue_zone_trap(NativeThreadLocals nativeThreadLocals) {
-  //guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
+  guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
   guk_remap_page_pfn(nativeThreadLocals->stackBlueZone, get_pfn_for_address(nativeThreadLocals->stackBlueZone));
   lower_blue_zone(nativeThreadLocals);
 }
 
-int check_stack_protectPage(unsigned long address) {
-	if (address > thread_stack_base) {
-		return guk_unmap_page_pfn(address, get_pfn_for_address(address));;
-	} else {
-		return guk_unmap_page(address);
+void check_stack_protectPages(unsigned long address, int count) {
+	while (count > 0) {
+	    if (address > thread_stack_base) {
+		    guk_unmap_page_pfn(address, get_pfn_for_address(address));;
+	    } else {
+		    guk_unmap_page(address);
+	    }
+	    address += PAGE_SIZE;
+	    count--;
 	}
 }
 
-int check_stack_unProtectPage(unsigned long address) {
-	if (address > thread_stack_base) {
-		return guk_remap_page_pfn(address, get_pfn_for_address(address));
-	} else {
-		return guk_remap_page(address);
+void check_stack_unProtectPages(unsigned long address, int count) {
+	while (count > 0) {
+	    if (address > thread_stack_base) {
+		    guk_remap_page_pfn(address, get_pfn_for_address(address));
+	    } else {
+		    guk_remap_page(address);
+	    }
+        address += PAGE_SIZE;
+        count--;
 	}
-
 }
 
 void *thread_stack_pool_dlsym(const char * symbol) {

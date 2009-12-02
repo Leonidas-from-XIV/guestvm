@@ -122,7 +122,7 @@ final class StdScheduler extends GUKUpcallHandler {
     private static final AnalyzeThreadsProcedure _analyzeThreadsProcedure = new AnalyzeThreadsProcedure();
 
     public void starting() {
-        VmThreadMap.ACTIVE.forAllVmThreads(null, _analyzeThreadsProcedure);
+        VmThreadMap.ACTIVE.forAllThreads(null, _analyzeThreadsProcedure);
     }
 
     private static final byte[] BK = "BK".getBytes();

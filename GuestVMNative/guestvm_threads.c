@@ -52,15 +52,17 @@ struct thread* guestvmXen_get_current(void) {
   return thread;
 }
 
-typedef struct {
-  void * ss_sp;
-  unsigned long ss_size;
-} stackinfo_t;
+// this should be included from maxine/guestvmXen.h but host headers cause problems
+typedef	struct {
+	unsigned long ss_base;
+	size_t	ss_size;
+} guestvmXen_stackinfo_t;
 
-void guestvmXen_get_stack_info(stackinfo_t *info) {
+void guestvmXen_get_stack_info(guestvmXen_stackinfo_t *info) {
   struct thread* thread = current;
-  info->ss_sp = thread->stack + thread->stack_size;
-  info->ss_size = thread->stack_size;
+  // Maxine requires that we allocate a guard page for the red-zone below the actual stack.
+  info->ss_base = (unsigned long) thread->stack + PAGE_SIZE;
+  info->ss_size = thread->stack_size - PAGE_SIZE;
 }
 
 int guestvmXen_thread_join(struct thread *joinee) {
@@ -87,14 +89,17 @@ int guestvmXen_sleep(long nanosecs) {
   return nanosleep(nanosecs);
 }
 
-struct thread* guestvmXen_create_thread_with_stack(char *name,
-                                              void (*function)(void *),
-                                              void *stack,
+extern unsigned long allocate_thread_stack(size_t size);
+
+struct thread* guestvmXen_create_thread(
+                void (*function)(void *),
                 unsigned long stacksize,
                 int priority,
-                void *data) {
-  // priority is not supported by the ukernel scheduler, handled by the Java scheduler
-    return guk_create_thread_with_stack(name, function, 0, stack, stacksize, data);
+                void *runArg) {
+    // N.B. priority is not supported by the ukernel scheduler, only by the Java scheduler;
+	// stacksize is guaranteed by caller  to be a multiple of page size
+	unsigned long stackbase = allocate_thread_stack(stacksize);
+    return guk_create_thread_with_stack("java_thread", function, 0, (void*) stackbase, stacksize, runArg);
 }
 
 typedef unsigned int guestvmXen_ThreadKey;
@@ -123,7 +128,7 @@ extern void Java_com_sun_max_vm_thread_VmThread_nativeSetPriority(void *env,  vo
 extern void Java_com_sun_max_vm_thread_VmThread_nativeYield(void *env,  void *c);
 extern void Java_com_sun_max_vm_thread_VmThread_nativeInterrupt(void *env,  void *c, void *thread);
 extern int nonJniNativeSleep(long numberOfMilliSeconds);
-extern void nativeRegisterVmThreadMapMutex(void *mutex);
+extern void nativeSetGlobalThreadAndGCLock(void  *mutex);
 
 void *maxine_threads_dlsym(const char * symbol) {
     if (strcmp(symbol, "nativeThreadCreate") == 0) return nativeThreadCreate;
@@ -139,6 +144,6 @@ void *maxine_threads_dlsym(const char * symbol) {
       return Java_com_sun_max_vm_thread_VmThread_nativeInterrupt;
     else if (strcmp(symbol, "nonJniNativeSleep") == 0) return nonJniNativeSleep;
     else if (strcmp(symbol, "nonJniNativeJoin") == 0) return nonJniNativeJoin;
-    else if (strcmp(symbol, "nativeRegisterVmThreadMapMutex") == 0) return nativeRegisterVmThreadMapMutex;
+    else if (strcmp(symbol, "nativeSetGlobalThreadAndGCLock") == 0) return nativeSetGlobalThreadAndGCLock;
     else return 0;
 }
