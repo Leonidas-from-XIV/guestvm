@@ -53,7 +53,7 @@ public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements Vi
 
     @Override
     public int write(int fd, int b, long fileOffset) {
-        return nativeWrite(fd, b);
+        return nativeWrite(b);
     }
 
     /*
@@ -63,7 +63,8 @@ public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements Vi
      * and synchronize console output
      */
 
-    private static final byte[] buffer = new byte[1024];
+    private static final byte[] writeBuffer = new byte[1024];
+    private static final byte[] readBuffer = new byte[1024];
     /**
      * The offset of the byte array data from the byte array object's origin.
      */
@@ -74,18 +75,32 @@ public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements Vi
      */
     @Override
     public synchronized int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = Reference.fromJava(buffer).toOrigin().plus(_dataOffset);
+        final Pointer nativeBytes = Reference.fromJava(writeBuffer).toOrigin().plus(_dataOffset);
         int result = 0;
         int left = length;
         int newOffset = offset;
         while (left > 0) {
-            final int toWrite = left > buffer.length ? buffer.length : left;
+            final int toWrite = left > writeBuffer.length ? writeBuffer.length : left;
             Memory.writeBytes(bytes, newOffset, toWrite, nativeBytes);
-            result += nativeWriteBytes(fd, nativeBytes, toWrite);
+            result += nativeWriteBytes(nativeBytes, toWrite);
             left -= toWrite;
             newOffset += toWrite;
         }
         return result;
+    }
+
+    @Override
+    public int read(int fd, long fileOffset) {
+        return nativeRead();
+    }
+
+    @Override
+    public synchronized int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
+        final Pointer nativeBytes = Reference.fromJava(readBuffer).toOrigin().plus(_dataOffset);
+        assert length >= readBuffer.length;
+        final int n = nativeReadBytes(nativeBytes, readBuffer.length);
+        Memory.readBytes(nativeBytes, n, bytes, offset);
+        return n;
     }
 
     @Override
@@ -103,7 +118,9 @@ public class ConsoleFileSystem extends UnimplementedFileSystemImpl implements Vi
         return fd;
     }
 
-    private static native int nativeWriteBytes(int fd, Pointer p, int length);
-    private static native int nativeWrite(int fd, int b);;
+    private static native int nativeWriteBytes(Pointer p, int length);
+    private static native int nativeWrite(int b);
+    private static native int nativeReadBytes(Pointer p, int length);
+    private static native int nativeRead();
 
 }

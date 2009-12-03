@@ -36,21 +36,48 @@ import java.io.*;
 public class StdInTest {
     public static void main(String[] args) throws IOException {
         boolean echo = false;
+        boolean lineReader = false;
+        String prompt = null;
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (arg.equals("e")) {
                 echo = true;
+            } else if (arg.equals("l")) {
+                lineReader = true;
+            } else if (arg.equals("p")) {
+                prompt = args[++i];
             }
         }
-        final BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
-        while (true) {
-            final String line = r.readLine();
-            if (line == null) {
-                break;
+        if (lineReader) {
+            final BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+            while (true) {
+                if (prompt != null) {
+                    System.out.print(prompt);
+                }
+                final String line = r.readLine();
+                if (line == null || (line.length() > 0 && line.charAt(0) == 'q')) {
+                    break;
+                }
+                if (echo) {
+                    System.out.println(line);
+                }
             }
-            if (echo) {
-                System.out.println(line);
+        } else {
+            boolean needPrompt = true;
+            while (true) {
+                if (prompt != null && needPrompt) {
+                    System.out.print(prompt);
+                }
+                final int b = (char) System.in.read();
+                if (b < 0 || b == 'q') {
+                    break;
+                }
+                needPrompt = b == '\n';
+                if (echo) {
+                    System.out.write(b);
+                }
             }
         }
     }
+
 }

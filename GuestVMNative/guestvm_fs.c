@@ -43,19 +43,29 @@
 #include <jni.h>
 
 JNIEXPORT int JNICALL
-Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWriteBytes(JNIEnv *env, jclass c, int fd,
-								   char *data, int length) {
+Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWriteBytes(JNIEnv *env, jclass c, char *data, int length) {
     guk_printbytes(data, length);
     return length;
 }
 
 JNIEXPORT int JNICALL
-Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWrite(JNIEnv *env, jclass c, int fd,
-							      int b) {
+Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWrite(JNIEnv *env, jclass c, int b) {
     char buf[1];
     buf[0] = b;
     guk_printbytes(buf, 1);
     return 1;
+}
+
+JNIEXPORT int JNICALL
+Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeReadBytes(JNIEnv *env, jclass c, char *data, int length) {
+    return guk_console_readbytes(data, length);
+}
+
+JNIEXPORT int JNICALL
+Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeRead(JNIEnv *env, jclass c) {
+    char buf[1];
+    int n = guk_console_readbytes(buf, 1);
+    return n == 1 ? buf[0] : 0;
 }
 
 JNIEXPORT int JNICALL
@@ -215,6 +225,10 @@ void *fs_dlsym(const char *symbol) {
       return Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWriteBytes;
     else if (strcmp(symbol, "Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWrite") == 0)
       return Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeWrite;
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeReadBytes") == 0)
+      return Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeReadBytes;
+    else if (strcmp(symbol, "Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeRead") == 0)
+      return Java_com_sun_guestvm_fs_console_ConsoleFileSystem_nativeRead;
     else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_writeBytes") == 0)
       return Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_writeBytes;
     else if (strcmp(symbol, "Java_com_sun_guestvm_fs_sg_SiblingFileSystemNatives_open") == 0)
