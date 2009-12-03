@@ -288,7 +288,7 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
     start_address = nativeThreadLocals->stackYellowZone + PAGE_SIZE;
   }
   /* Need to allocate and map new pages */
-  guk_printk(" nbz %lx\n", start_address);
+  //guk_printk(" nbz %lx\n", start_address);
   if (end_address > start_address) {
     extend_stack(nativeThreadLocals, start_address, end_address);
     /* There must be at least two mapped pages above the yellow zone for the stack check code to work.
@@ -300,7 +300,7 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
 }
 
 void guestvmXen_blue_zone_trap(NativeThreadLocals nativeThreadLocals) {
-  guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
+  //guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
   guk_remap_page_pfn(nativeThreadLocals->stackBlueZone, get_pfn_for_address(nativeThreadLocals->stackBlueZone));
   lower_blue_zone(nativeThreadLocals);
 }
