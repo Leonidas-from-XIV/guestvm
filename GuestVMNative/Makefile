@@ -79,6 +79,7 @@ endif
 
 ifeq ($(XEN_OS),Linux)
 GCC_INCLUDE:=${GCC_BASE}include
+GCC_INCLUDE+=-I${GCC_BASE}include-fixed
 endif
 
 # NB. '-Wcast-qual' is nasty, so I omitted it.
