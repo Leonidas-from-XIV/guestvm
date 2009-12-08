@@ -47,8 +47,6 @@ import com.sun.guestvm.fs.*;
 
 /**
  * This is the ext2 file from JNode system that GuestVM uses for the virtual disk device.
- * Note that file locking is unnecessary since the filesystem is not shared with any other
- * "processes".
  *
  * @author Mick Jordan
  *
@@ -645,5 +643,18 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         final Ext2File ext2File = (Ext2File) _openFiles.get(fd)._fsFile;
         ext2File.flush();
         return 0;
+    }
+
+    /* Note that "inter-process" file locking is unnecessary since the filesystem is not shared with any other
+     * "processes". However, the JDK assumes intra-process file locking and generally treats an IOException
+     * as a sign that locking is not available and proceeds without it.
+     */
+
+    public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
+        throw new IOException("Ext2FileSystem: locking not available");
+    }
+
+    public void release0(int fd, long pos, long size) throws IOException {
+
     }
 }
