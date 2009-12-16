@@ -35,9 +35,11 @@ java_launcher_compat=1
 config="generic"
 echocmd=0
 mainclass=""
-debug=""
+debug="-XX:GUKDebug"
+upcalls="-XX:GUKAS"
 upcalls=""
 xtra_args=""
+gukargs=""
 vmargs=""
 run=1
 help=0
@@ -46,6 +48,7 @@ classpath="/guestvm/image/GuestVM/bin"
 guest=""
 jar=""
 vmalloc="-XX:+UseVirtualMemory"
+ramdisk=""
 
 # Resolve location of this script
 me="${BASH_SOURCE[0]}"
@@ -102,7 +105,12 @@ do
     config=$1
     ;;
   -d )
-    debug="-XX:GUKDebug"
+    if [ "$gukargs" = "" ] ;
+    then
+      gukargs=$debug
+    else
+      gukargs="$gukargs $debug"
+    fi
     ;;
   -a )
     shift
@@ -116,6 +124,14 @@ do
   -n )
     echocmd=1
     run=0
+    ;;
+  -J-XX:GUK* )
+    if [ "$gukargs" = "" ] ;
+    then
+      gukargs=${1/-J/}
+    else
+      gukargs="$gukargs ${1/-J/}"
+    fi
     ;;
   -J* )
     if [ "$vmargs" = "" ] ;
@@ -177,7 +193,12 @@ do
     guest=$1
     ;;
   -js )
-    upcalls="-XX:GUKAS"
+    if [ "$gukargs" = "" ] ;
+    then
+      gukargs=$upcalls
+    else
+      gukargs="$gukargs $upcalls"
+    fi
     ;;
   -* )
     echo "unknown option $1"
@@ -222,17 +243,21 @@ else
   cp="-jar $jar"
 fi
 
-extra="$debug $guestvmdir $vmalloc $upcalls $vmargs $cp $mainclass $xtra_args"
+javaxtra="$guestvmdir $vmalloc $vmargs $cp $mainclass $xtra_args"
+extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
-  echo "Xen limitation: extra argument is too long"
-  exit 1
+  argsfile=".$name-args"
+  echo "${#javaxtra}" > $argsfile
+  echo $javaxtra >> $argsfile
+  extra="$gukargs -XX:GVMRamArgs"
+  ramdisk="ramdisk=$argsfile"
 fi
 
 if [ "$echocmd" -eq 1 ] ; then
-  echo xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
+  echo xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
 fi
 if [ "$run" -eq 1 ] ; then
   export IMAGE_DIR=$parent
-  xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem
+  xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
 fi
 exit 0

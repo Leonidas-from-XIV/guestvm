@@ -114,6 +114,10 @@ public final class JDK_java_lang_UNIXProcess {
         }
     }
 
+    public static Logger getLogger() {
+        return _logger;
+    }
+
     /**
      * Output a null-terminated byte array (@See java.lang.ProcessImpl).
      * @param data

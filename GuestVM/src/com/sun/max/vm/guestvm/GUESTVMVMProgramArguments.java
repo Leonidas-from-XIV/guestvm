@@ -61,6 +61,18 @@ public final class GUESTVMVMProgramArguments {
     private static final VMOption _traceCpuOption = VMOptions.register(new VMIntOption("-XX:GUKCT=", -1, "Reserves a CPU for tracing"), MaxineVM.Phase.PRISTINE);
     @SuppressWarnings({"unused"})
     private static final VMOption _memPartitionOption = VMOptions.register(new VMIntOption("-XX:GUKMS=", 2, "Set percentage of memory allocated to small page partition"), MaxineVM.Phase.PRISTINE);
+    /*
+    @SuppressWarnings({"unused"})
+    private static final VMStringOption _argVarOption = VMOptions.register(new VMStringOption("-XX:GVMArgVar", false, "", "Define a command line variable for use in other arguments") {
+        @Override
+        public void printHelp() {
+            VMOptions.printHelpForOption(Category.IMPLEMENTATION_SPECIFIC, "-XX:GVMArgVar:name=value", "", help);
+        }
+    }, MaxineVM.Phase.PRISTINE);
+    */
+
+    @SuppressWarnings({"unused"})
+    private static final VMStringOption _ramArgsOption = VMOptions.register(new VMStringOption("-XX:GVMRamArgs", false, "", "Command line arguments are in ramdisk"), MaxineVM.Phase.PRISTINE);
 
     private GUESTVMVMProgramArguments() {
     }

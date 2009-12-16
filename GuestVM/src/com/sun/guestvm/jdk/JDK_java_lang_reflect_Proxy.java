@@ -34,6 +34,7 @@ package com.sun.guestvm.jdk;
 import java.lang.reflect.Proxy;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.classfile.*;
+import com.sun.max.vm.type.BootClassLoader;
 
 /**
  * Substitutions for @see java.lang.reflect.Proxy.
@@ -47,6 +48,6 @@ public class JDK_java_lang_reflect_Proxy {
 
     @SUBSTITUTE
     private static  Class<?> defineClass0(ClassLoader loader, String name, byte[] b, int off, int len) {
-        return ClassfileReader.defineClassActor(name, loader, b, off, len, null, null, false).toJava();
+        return ClassfileReader.defineClassActor(name, loader == null ? BootClassLoader.BOOT_CLASS_LOADER : loader, b, off, len, null, null, false).toJava();
     }
 }

@@ -148,9 +148,10 @@ public class GuestVMProcessFilter {
     /**
      * Converts a null-separated, null-terminated byte array into an array of Strings.
      * @param data
+     * @param optional working directory that, if present, is pre-pended to the resulting array
      * @return
      */
-    public static String[] cmdArgs(byte[] data) {
+    public static String[] cmdArgs(byte[] data, byte[] wdir) {
         String[] result;
         int numArgs = 0;
         for (int i = 0; i < data.length; i++) {
@@ -158,19 +159,30 @@ public class GuestVMProcessFilter {
                 numArgs++;
             }
         }
+        if (wdir != null) {
+            numArgs++;
+        }
         result = new String[numArgs];
         if (numArgs > 0) {
+            final int x = wdir == null ? 0 : 1;
+            if (x > 0) {
+                result[0] = new String(wdir);
+            }
             int k = 0;
             int j = 0;
             for (int i = 0; i < data.length; i++) {
                 if (data[i] == 0) {
-                    result[k] = new String(data, j, i - j);
+                    result[k + x] = new String(data, j, i - j);
                     j = i + 1;
                     k++;
                 }
             }
         }
         return result;
+    }
+
+    public static String[] cmdArgs(byte[] data) {
+        return cmdArgs(data, null);
     }
 
     public static int invokeClose0(int key) {

@@ -35,11 +35,15 @@
 
 # Version for TCK that sets up the TCK virtual disk and java.home
 
-vmargs="-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:/guestvm/tck -Djava.home=/guestvm/java/jdk1.6.0_11/jre"
+echo PATH=$PATH
+
+vmargs="-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:/guestvm/tck;ext2:/blk/2:/scratch -Djava.home=/guestvm/java/jdk1.6.0_11/jre"
 
 jar=""
 classpath=$CLASSPATH
 vmalloc="-XX:+UseVirtualMemory"
+gukargs=""
+ramdisk=""
 
 # Resolve location of this script
 me="${BASH_SOURCE[0]}"
@@ -80,6 +84,14 @@ do
       shift
       jar=$1
       ;;
+    -J-XX:GUK* )
+      if [ "$gukargs" = "" ] ;
+      then
+        gukargs=${1/-J/}
+      else
+        gukargs="$gukargs ${1/-J/}"
+      fi
+      ;;
     -D* | -X* | -XX* )
       if [ "$vmargs" = "" ] ;
       then
@@ -105,10 +117,16 @@ else
   cp="-jar $jar"
 fi
 
-extra="$vmargs $vmalloc $guestvmdir $cp $*"
+name=GuestVM-${USER}-$$
+javaxtra="$vmargs $vmalloc $guestvmdir $cp $*"
+extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
-  echo "Xen limitation: extra argument is too long"
-  exit 1
+  argsfile=".$name-args"
+  echo "${#javaxtra}" > $argsfile
+  echo $javaxtra >> $argsfile
+  extra="$gukargs -XX:GVMRamArgs"
+  ramdisk="ramdisk=$argsfile"
 fi
 export IMAGE_DIR=$parent
-xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=GuestVM-${USER}-$$
+echo /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
+/usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
