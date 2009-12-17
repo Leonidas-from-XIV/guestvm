@@ -72,9 +72,15 @@ public class JDK_java_io_util {
 
     static int read(Object fdObj)  throws IOException {
         final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
-        final int b = fdInfo._vfs.read(VirtualFileSystemId.getFd(fdInfo._fd), fdInfo._fileOffset);
-        VirtualFileSystemOffset.inc(fdInfo._fd);
-        return b == 0 ? -1 : b;
+        final int result = fdInfo._vfs.read(VirtualFileSystemId.getFd(fdInfo._fd), fdInfo._fileOffset);
+        if (result >= 0) {
+            VirtualFileSystemOffset.inc(fdInfo._fd);
+            return result;
+        }
+        if (result != -1) {
+            throw new IOException("Read error: " + ErrorDecoder.getMessage(-result));
+        }
+        return result;
     }
 
     static int readBytes(byte[] bytes, int offset, int length, Object fdObj) throws IOException {
@@ -89,12 +95,11 @@ public class JDK_java_io_util {
         }
         final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
         final int result = fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), bytes, offset, length, fdInfo._fileOffset);
-        if (result == 0) {
-            return -1;
-        } else if (result < 0) {
-            throw new IOException("Read error: " + ErrorDecoder.getMessage(-result));
-        } else {
+        if (result > 0) {
             VirtualFileSystemOffset.add(fdInfo._fd, result);
+            return result;
+        } else if (result != -1) {
+            throw new IOException("Read error: " + ErrorDecoder.getMessage(-result));
         }
         return result;
     }

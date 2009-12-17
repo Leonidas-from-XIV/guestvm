@@ -375,7 +375,8 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             byteBuffer.limit(1);
             fileData._fsFile.read(fileOffset, byteBuffer);
             byteBuffer.position(0);
-            return byteBuffer.get();
+            final int result = byteBuffer.get();
+            return result & 0xFF;
         } catch (IOException ex) {
             _logger.warning(ex.toString());
             return -1;
@@ -390,7 +391,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             final java.nio.ByteBuffer byteBuffer = fileData._byteBuffer;
             final long fsLength = fileData._fsFile.getLength();
             if (fileOffset >= fsLength) {
-                return 0;
+                return -1;
             }
             if (length > (fsLength - fileOffset)) {
                 length = (int) (fsLength - fileOffset);

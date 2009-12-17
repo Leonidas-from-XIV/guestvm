@@ -44,6 +44,7 @@ public class FileTest {
 
     private static RandomAccessFile _raFile;
     private static int _bufSize = 128;
+    private static boolean _binary;
 
     public static void main(String[] args) {
         final String[] fileNames = new String[10];
@@ -67,6 +68,8 @@ public class FileTest {
                 echo = true;
             } else if (arg.equals("bs")) {
                 _bufSize = Integer.parseInt(args[++i]);
+            } else if (arg.equals("b")) {
+                _binary = true;
             } else if (arg.equals("a")) {
                 append = true;
             }
@@ -274,8 +277,18 @@ public class FileTest {
                 }
             } else {
                 int b;
+                int i = 0;
                 while ((b = fs.read()) != -1) {
-                    System.out.write(b);
+                    if (_binary) {
+                        System.out.print(b);
+                        if ((i++ % 32) == 0) {
+                            System.out.println();
+                        } else {
+                            System.out.write(' ');
+                        }
+                    } else {
+                        System.out.write(b);
+                    }
                 }
             }
         } catch (IOException ex) {
@@ -415,13 +428,24 @@ public class FileTest {
                 }
             } else {
                 int b;
+                int i = 0;
                 while ((b = _raFile.read()) != -1) {
-                    System.out.write(b);
+                    if (_binary) {
+                        System.out.print(b);
+                        if ((i++ % 32) == 0) {
+                            System.out.println();
+                        } else {
+                            System.out.write(' ');
+                        }
+                    } else {
+                        System.out.write(b);
+                    }
                 }
             }
         } catch (IOException ex) {
             System.out.println(ex);
         }
     }
+
 
 }

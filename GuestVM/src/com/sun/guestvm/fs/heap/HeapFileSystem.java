@@ -370,7 +370,7 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
             long fileOffset) {
         final FileEntry fe = _openFiles.get(fd);
         if ((int) fileOffset >= fe._size) {
-            return 0;
+            return -1;
         }
         if (length > (int) (fe._size - fileOffset)) {
             // CheckStyle: stop parameter assignment check

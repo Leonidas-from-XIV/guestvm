@@ -216,7 +216,7 @@ public final class SiblingFileSystem extends UnimplementedFileSystemImpl impleme
         final int result = SiblingFileSystemNatives.readBytes(_handle, fd, nativeBytes, length, fileOffset);
         Memory.readBytes(nativeBytes, length, bytes, offset);
         Memory.deallocate(nativeBytes);
-        return result;
+        return result == 0 ? -1 : result;
     }
 
     @Override

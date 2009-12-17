@@ -327,9 +327,9 @@ public final class NfsFileSystem extends UnimplementedFileSystemImpl implements 
         final byte[] buf = new byte[1];
         final int result = readBytes(fd, buf, 0, 1, fileOffset);
         if (result == 0) {
-            return 0;
+            return -1;
         } else {
-            return buf[0];
+            return buf[0] & 0xFF;
         }
     }
 
@@ -338,10 +338,6 @@ public final class NfsFileSystem extends UnimplementedFileSystemImpl implements 
         final Nfs fsEntry = _openFiles.get(fd);
         try {
             final int result =  fsEntry.read(bytes, offset, length, fileOffset);
-            // Nfs.read returns -1 on EOF, we return 0
-            if (result == -1) {
-                return 0;
-            }
             return result;
         } catch (IOException ex) {
             _logger.warning(ex.toString());

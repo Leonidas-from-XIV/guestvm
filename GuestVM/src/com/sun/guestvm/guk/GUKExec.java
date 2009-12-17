@@ -73,7 +73,7 @@ public class GUKExec {
             Memory.readBytes(nativeBytes, result, bytes, offset);
         }
         Memory.deallocate(nativeBytes);
-        return result;
+        return result == 0 ? -1 : result;
     }
 
     public static int close(int pid) {

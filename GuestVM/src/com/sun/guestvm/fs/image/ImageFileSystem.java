@@ -222,14 +222,14 @@ public class ImageFileSystem extends UnimplementedFileSystemImpl implements Virt
         if ((int) fileOffset >= data.length) {
             return -1;
         }
-        return data[(int) fileOffset];
+        return data[(int) fileOffset] & 0xFF;
     }
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         final byte[] data = _openFiles[fd];
         if ((int) fileOffset >= data.length) {
-            return 0;
+            return -1;
         }
         if (length > data.length - (int) fileOffset) {
             // CheckStyle: stop parameter assignment check

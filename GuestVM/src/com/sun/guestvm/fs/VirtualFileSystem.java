@@ -128,7 +128,6 @@ public interface VirtualFileSystem {
      *
      *  These functions enode the traditional C errno value in their results.
      *  A negative return is to be interpreted as an error and equals to -errno.
-     *  A zero return from read/readBytes means EOF.
      *
      */
 
@@ -136,8 +135,26 @@ public interface VirtualFileSystem {
 
     long skip(int fd, long n, long fileOffset);
 
+    /**
+     * Reads one byte from given offset in file.
+     * Result is -1 for EOF, < 0 for error, 0-255 otherwise
+     * @param fd
+     * @param fileOffset
+     * @return
+     */
     int read(int fd, long fileOffset);
 
+    /**
+     * Reads up to length bytes from given offset in file.
+     * Result is -1 for EOF, < 0 for error, number of bytes read otherwise
+     * N.B. Returning -1 for EOF is for consistency with read but differs from OS conventions
+     * @param fd
+     * @param bytes
+     * @param offset
+     * @param length
+     * @param fileOffset
+     * @return
+     */
     int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset);
 
     int write(int fd, int b, long fileOffset);
