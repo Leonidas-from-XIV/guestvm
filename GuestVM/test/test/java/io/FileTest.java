@@ -162,6 +162,8 @@ public class FileTest {
                     } catch (IOException ex) {
                         System.out.println(ex);
                     }
+                } else if (op.equals("readStdin")) {
+                    readStdin();
                 } else if (op.equals("readFile")) {
                     readFile(fileName, true);
                 } else if (op.equals("copyFile")) {
@@ -269,28 +271,7 @@ public class FileTest {
         FileInputStream fs = null;
         try {
             fs = new FileInputStream(fileName);
-            if (array) {
-                int n;
-                final byte[] buf = new byte[_bufSize];
-                while ((n = fs.read(buf)) != -1) {
-                    System.out.write(buf, 0, n);
-                }
-            } else {
-                int b;
-                int i = 0;
-                while ((b = fs.read()) != -1) {
-                    if (_binary) {
-                        System.out.print(b);
-                        if ((i++ % 32) == 0) {
-                            System.out.println();
-                        } else {
-                            System.out.write(' ');
-                        }
-                    } else {
-                        System.out.write(b);
-                    }
-                }
-            }
+            readStream(fs, array);
         } catch (IOException ex) {
             System.out.println(ex);
         } finally {
@@ -298,6 +279,39 @@ public class FileTest {
                 try {
                     fs.close();
                 } catch (Exception ex) {
+                }
+            }
+        }
+    }
+
+    private static void readStdin() {
+        try {
+            readStream(System.in, false);
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
+    }
+
+    private static void readStream(InputStream fs, boolean array) throws IOException {
+        if (array) {
+            int n;
+            final byte[] buf = new byte[_bufSize];
+            while ((n = fs.read(buf)) != -1) {
+                System.out.write(buf, 0, n);
+            }
+        } else {
+            int b;
+            int i = 0;
+            while ((b = fs.read()) != -1) {
+                if (_binary) {
+                    System.out.print(b);
+                    if ((i++ % 32) == 0) {
+                        System.out.println();
+                    } else {
+                        System.out.write(' ');
+                    }
+                } else {
+                    System.out.write(b);
                 }
             }
         }

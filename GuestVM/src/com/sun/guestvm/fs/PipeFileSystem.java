@@ -43,7 +43,7 @@ import com.sun.guestvm.util.*;
  *
  */
 
-public class PipeFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
+public class PipeFileSystem extends DefaultReadWriteFileSystemImpl implements VirtualFileSystem {
     private static PipeFileSystem _singleton;
     private static int _nextFd;
     private static Map<Integer, Pipe> _pipes = Collections.synchronizedMap(new HashMap<Integer, Pipe>());
@@ -149,7 +149,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
     public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
         final Pipe pipe = _pipes.get(fd);
         int read = 0;
-        int length = bb.limit();
+        final int length = bb.limit();
         // If no data is available we check for a close write end first, which means that
         // we never wait on a closed pipe. That means that a close that happens while
         // we are waiting will terminate the wait (by the notify)
@@ -190,7 +190,7 @@ public class PipeFileSystem extends UnimplementedFileSystemImpl implements Virtu
         final Pipe pipe = _pipes.get(fd);
         final int pos = bb.position();
         final int lim = bb.limit();
-        final int length = (pos <= lim ? lim - pos : 0);
+        final int length = pos <= lim ? lim - pos : 0;
         int toDo = length;
         // Writer blocks until all data is written or read end of the pipe is closed.
         // As per read a blocked write will be woken up by a close of the read end.

@@ -102,20 +102,13 @@ forcemethod com.sun.guestvm.guk.GUKTrace.xprint
 package com.sun.guestvm.jdk
 package com.sun.guestvm.zip
 package com.sun.guestvm.util
-# logging
-package java.util.logging
-# the following stuff is needed for the default
-# logger but it is (a) a lot of code and (b)
-# sun.util.resources breaks the Maxine compiler
-# as of 7/15/08
-#package java.beans
-#reinitclass java.util.logging.LogManager
-#resetfield java.util.logging.LogManager.manager
-#package sun.util.resources
-#imagefile ../GuestVMNative/jre/lib/logging.properties /guestvm/image/jre/lib/logging.properties
-#imagefile ../GuestVMNative/jre/lib/logging.properties /guestvm/image/lib/logging.properties
-#
-# so we use our very simple logging handler
+# java.util.logging has bootstrap issues for the low levels
+# of the system, e.g. it likes to open files, read properties
+# so the kernel  uses a very simple logging handler.
+# The Level class is the only thing we need in the image,
+# standard logging is loaded at run-time (there are tricky
+# re-initialization issues if it is included in the image)
+class java.util.logging.Level
 package com.sun.guestvm.logging
 resetfield com.sun.guestvm.logging.Logger._singleton
 # we don't want these fields in the image - and they cause the build to fail

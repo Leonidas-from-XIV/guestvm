@@ -48,7 +48,7 @@ import com.sun.nfs.*;
  *
  */
 
-public final class NfsFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
+public final class NfsFileSystem extends DefaultReadWriteFileSystemImpl implements VirtualFileSystem {
 
     private static Logger _logger;
     private Nfs _nfs;
@@ -322,18 +322,6 @@ public final class NfsFileSystem extends UnimplementedFileSystemImpl implements 
     }
 
     @Override
-    public int read(int fd, long fileOffset) {
-        // TODO once per fd buffer
-        final byte[] buf = new byte[1];
-        final int result = readBytes(fd, buf, 0, 1, fileOffset);
-        if (result == 0) {
-            return -1;
-        } else {
-            return buf[0] & 0xFF;
-        }
-    }
-
-    @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         final Nfs fsEntry = _openFiles.get(fd);
         try {
@@ -404,14 +392,6 @@ public final class NfsFileSystem extends UnimplementedFileSystemImpl implements 
             _logger.warning(ex.toString());
         }
         return -ErrorDecoder.Code.EIO.getCode();
-    }
-
-    @Override
-    public int write(int fd, int b, long fileOffset) {
-        // TODO once per fd buffer
-        final byte[] buf = new byte[1];
-        buf[0] = (byte) b;
-        return writeBytes(fd, buf, 0, 1, fileOffset);
     }
 
     @Override

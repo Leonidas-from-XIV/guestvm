@@ -33,14 +33,16 @@ package com.sun.guestvm.jdk;
 
 import java.io.*;
 import java.net.*;
+import static java.net.SocketOptions.*;
 import com.sun.max.annotate.*;
-import com.sun.max.program.ProgramError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.SymbolTable;
+import com.sun.guestvm.error.*;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.udp.*;
+import com.sun.guestvm.logging.*;
 
 /**
  * This class implements the native methods in @see java.net.PlainDatagramSocketImpl in terms
@@ -56,6 +58,8 @@ import com.sun.guestvm.net.udp.*;
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "java.net.PlainDatagramSocketImpl")
 public class JDK_java_net_PlainDatagramSocketImpl {
+
+    private static Logger _logger;
 
     private static Object checkOpen(Object self) throws SocketException {
         final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
@@ -94,13 +98,13 @@ public class JDK_java_net_PlainDatagramSocketImpl {
 
     @SUBSTITUTE
     private synchronized int peek(InetAddress i) throws IOException {
-        ProgramError.unexpected("peek not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.peek");
         return 0;
     }
 
     @SUBSTITUTE
     private synchronized int peekData(DatagramPacket p) throws IOException {
-        ProgramError.unexpected("peekData not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.peekData");
         return 0;
     }
 
@@ -132,34 +136,34 @@ public class JDK_java_net_PlainDatagramSocketImpl {
 
     @SUBSTITUTE
     private void setTimeToLive(int ttl) throws IOException {
-        ProgramError.unexpected("setTimeToLive not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.setTimeToLive");
     }
 
     @SUBSTITUTE
     private int getTimeToLive() throws IOException {
-        ProgramError.unexpected("getTimeToLive not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.getTimeToLive");
         return 0;
     }
 
     @SUBSTITUTE
     private void setTTL(byte ttl) throws IOException {
-        ProgramError.unexpected("setTTL not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.setTTL");
     }
 
     @SUBSTITUTE
     private byte getTTL() throws IOException {
-        ProgramError.unexpected("getTTL not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.getTTL");
         return 0;
     }
 
     @SUBSTITUTE
     private void join(InetAddress inetaddr, NetworkInterface netIf) throws IOException {
-        ProgramError.unexpected("join not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.join");
     }
 
     @SUBSTITUTE
     private void leave(InetAddress inetaddr, NetworkInterface netIf) throws IOException {
-        ProgramError.unexpected("leave not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.leave");
     }
 
     @SUBSTITUTE
@@ -183,13 +187,34 @@ public class JDK_java_net_PlainDatagramSocketImpl {
 
     @SUBSTITUTE
     private void socketSetOption(int opt, Object val) throws SocketException {
-        ProgramError.unexpected("socketSetOption not implemented");
+        final Object fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final int size = (Integer) val;
+        switch (opt) {
+            case SO_RCVBUF:
+                endpoint.setRecvBufferSize(size);
+                break;
+            case SO_SNDBUF:
+                endpoint.setSendBufferSize(size);
+                break;
+            default:
+                _logger.warning("PlainDatagramSocket.socketGetOption " + Integer.toHexString(opt) + " not implemented");
+        }
     }
 
     @SUBSTITUTE
     private Object socketGetOption(int opt) throws SocketException {
-        ProgramError.unexpected("socketGetOption not implemented");
-        return null;
+        final Object fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        switch (opt) {
+            case SO_RCVBUF:
+                return endpoint.getRecvBufferSize();
+            case SO_SNDBUF:
+                return endpoint.getSendBufferSize();
+            default:
+                _logger.warning("PlainDatagramSocket.socketGetOption " + Integer.toHexString(opt) + " not implemented");
+                return null;
+        }
     }
 
     @SUBSTITUTE
@@ -202,7 +227,7 @@ public class JDK_java_net_PlainDatagramSocketImpl {
 
     @SUBSTITUTE
     private void disconnect0(int family) {
-        ProgramError.unexpected("disconnect0 not implemented");
+        GuestVMError.unimplemented("PlainDatagramSocket.disconnect0");
     }
 
     @SUBSTITUTE
@@ -214,8 +239,9 @@ public class JDK_java_net_PlainDatagramSocketImpl {
             _fdFieldActor = JDK_java_io_FileDescriptor.fdFieldActor();
             _connectedFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("connected"));
             _timeoutFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
+            _logger = Logger.getLogger("JDK_java_net_PlainDatagramSocketImpl");
         } catch (ClassNotFoundException ex) {
-            ProgramError.unexpected("JDK_java_net_PlainDatagramSocketImpl: failed to load substitutee class");
+            GuestVMError.unexpected("JDK_java_net_PlainDatagramSocketImpl: failed to load substitutee class");
         }
     }
 

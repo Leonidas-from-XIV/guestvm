@@ -182,15 +182,31 @@ final class JDK_java_net_PlainSocketImpl {
                 // passes this explicitly to socketRead0, so nothing needs to be done here.
                 break;
 
+            case SO_RCVBUF:
+                endpoint.setRecvBufferSize((Integer) value);
+                break;
+
+            case SO_SNDBUF:
+                endpoint.setSendBufferSize((Integer) value);
+                break;
+
             default:
-                _logger.warning("setSocketOption " + Integer.toHexString(cmd) + " not implemented");
+                _logger.warning("socketSetOption " + Integer.toHexString(cmd) + " not implemented");
         }
     }
 
     @SUBSTITUTE
-    private  int socketGetOption(int opt, Object iaContainerObj) throws SocketException {
-        GuestVMError.unimplemented("PlainSocketImpl.socketGetOption");
-        return 0;
+    private int socketGetOption(int opt, Object iaContainerObj) throws SocketException {
+        final TCPEndpoint endpoint = getEndpoint(this);
+        switch (opt) {
+            case SO_RCVBUF:
+                return endpoint.getRecvBufferSize();
+            case SO_SNDBUF:
+                return endpoint.getSendBufferSize();
+            default:
+                _logger.warning("PlainSocketImpl.socketGetOption " + Integer.toHexString(opt) + " not implemented");
+                return 0;
+        }
     }
 
     @SUBSTITUTE
@@ -201,7 +217,7 @@ final class JDK_java_net_PlainSocketImpl {
 
     @SUBSTITUTE
     private  void socketSendUrgentData(int data) throws IOException {
-        GuestVMError.unimplemented("socketSendUrgentData");
+        GuestVMError.unimplemented("PlainSocketImpl.socketSendUrgentData");
     }
 
     @SUBSTITUTE

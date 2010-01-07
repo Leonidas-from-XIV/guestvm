@@ -108,6 +108,12 @@ Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes(JNIEnv *env, jclass c, jint 
 	return guk_exec_read_bytes(pid, buf, length, fileOffset);
 }
 
+extern int guk_exec_write_bytes(int pid, char *buf, int length, long fileOffset);
+JNIEXPORT jint JNICALL
+Java_com_sun_guestvm_guk_GUK_guk_1exec_1write_1bytes(JNIEnv *env, jclass c, jint pid, char *buf, int length, jlong fileOffset) {
+	return guk_exec_write_bytes(pid, buf, length, fileOffset);
+}
+
 /* Owing the the ttprintk macro magic we have to expand these manually. */
 void guk_ttprintk0(char * fmt) {
 	guk_ttprintk("%s\n", fmt);
@@ -152,6 +158,8 @@ void *guk_dlsym(const char * symbol) {
     return Java_com_sun_guestvm_guk_GUK_guk_1exec_1destroy;
   else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes") == 0)
      return Java_com_sun_guestvm_guk_GUK_guk_1exec_1read_1bytes;
+  else if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1exec_1write_1bytes") == 0)
+     return Java_com_sun_guestvm_guk_GUK_guk_1exec_1write_1bytes;
 
   else if (strcmp(symbol, "guk_block") == 0) return guk_block;
   else if (strcmp(symbol, "guk_current") == 0) return guk_current;

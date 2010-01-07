@@ -70,4 +70,8 @@ public class ExecFileSystem extends ExecHelperFileSystem implements VirtualFileS
         return GUKExec.readBytes(fd, bytes, offset, length, fileOffset);
     }
 
+    @Override
+    public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
+        return GUKExec.writeBytes(fd, bytes, offset, length, fileOffset);
+    }
 }

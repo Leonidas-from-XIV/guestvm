@@ -33,17 +33,15 @@
 # Guest VM is a Java virtual machine, so we provide a "java" launch command.
 # However, some users may find the "run" command easier to work with.
 
-# Version for TCK that sets up the TCK virtual disk and java.home
+# This script sets up java.home to the ext2 disk0 directory implied by JAVA_HOME
 
-echo PATH=$PATH
-
-vmargs="-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:/guestvm/tck;ext2:/blk/2:/scratch -Djava.home=/guestvm/java/jdk1.6.0_11/jre"
-
+jh=${JAVA_HOME##*/}
 jar=""
 classpath=$CLASSPATH
 vmalloc="-XX:+UseVirtualMemory"
 gukargs=""
 ramdisk=""
+javahome="-Djava.home=/guestvm/java/$jh/jre"
 
 # Resolve location of this script
 me="${BASH_SOURCE[0]}"
@@ -62,17 +60,6 @@ fi
 
 guestvmdir="-Dguestvm.dir=$parent"
 
-function vm_args() {
-    shift
-    if [ "$vmargs" = "" ] ;
-    then
-      vmargs="$1"
-    else
-      vmargs="$vmargs $1"
-    fi
-    shift
-}
-
 while [ "$1" != "" ] ;
 do
   case "$1" in
@@ -84,12 +71,12 @@ do
       shift
       jar=$1
       ;;
-    -J-XX:GUK* )
+    -XX:GUK* )
       if [ "$gukargs" = "" ] ;
       then
-        gukargs=${1/-J/}
+        gukargs=${1}
       else
-        gukargs="$gukargs ${1/-J/}"
+        gukargs="$gukargs ${1}"
       fi
       ;;
     -D* | -X* | -XX* )
@@ -118,7 +105,7 @@ else
 fi
 
 name=GuestVM-${USER}-$$
-javaxtra="$vmargs $vmalloc $guestvmdir $cp $*"
+javaxtra="$javahome $vmargs $vmalloc $guestvmdir $cp $*"
 extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
   argsfile=".$name-args"
@@ -128,5 +115,5 @@ if [ ${#extra} -ge 1023 ] ; then
   ramdisk="ramdisk=$argsfile"
 fi
 export IMAGE_DIR=$parent
-echo /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
+#echo /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
 /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk

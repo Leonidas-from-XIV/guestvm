@@ -29,35 +29,32 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs.exec;
+package com.sun.guestvm.fs;
 
-import com.sun.guestvm.fs.*;
-import com.sun.guestvm.process.GuestVMProcessFilter;
 /**
- * Helper class for ExecFileSystem and FilterFileSystem.
+ * Provides default implementations of read/write in terms of readBytes/writeBytes.
  *
  * @author Mick Jordan
  *
  */
 
-public abstract class ExecHelperFileSystem extends DefaultReadWriteFileSystemImpl implements VirtualFileSystem {
-
-    /**
-     * This method is called to generate the stdin, stdout and stderr file descriptors, respectively.
-    *
-     * @param key that identifies the exec call
-     * @return an array of length three containing the file descriptors
-     */
-    public int[] getFds(int key) {
-        final int[] fds = GuestVMProcessFilter.getFds(key);
-        for (int i = 0; i < fds.length; i++) {
-            fds[i] = VirtualFileSystemId.getUniqueFd(this, fds[i]);
+public class DefaultReadWriteFileSystemImpl extends UnimplementedFileSystemImpl implements VirtualFileSystem {
+    @Override
+    public int read(int fd, long fileOffset) {
+        final byte[] buf = new byte[1];
+        final int result = readBytes(fd, buf, 0, 1, fileOffset);
+        if (result == 0) {
+            return -1;
+        } else {
+            return buf[0] & 0xFF;
         }
-        return fds;
     }
 
     @Override
-    public void close() {
-
+    public int write(int fd, int b, long fileOffset) {
+        final byte[] buf = new byte[1];
+        buf[0] = (byte) b;
+        return writeBytes(fd, buf, 0, 1, fileOffset);
     }
+
 }

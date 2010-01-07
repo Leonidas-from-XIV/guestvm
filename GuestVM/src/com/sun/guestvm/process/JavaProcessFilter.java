@@ -87,7 +87,8 @@ public class JavaProcessFilter extends GuestVMProcessFilter {
             if (arg.equals("-XX:+UnlockDiagnosticVMOptions") ||
                             arg.equals("-XX:NewRatio=2") ||
                             arg.equals("-XX:+LogVMOutput") ||
-                            arg.equals("-client")) {
+                            arg.equals("-client") |
+                            arg.startsWith("-javaagent")) {
                 args[i] = null;
                 newLength--;
             }
@@ -98,7 +99,7 @@ public class JavaProcessFilter extends GuestVMProcessFilter {
         final byte[] newArgBlock = toBytes(args, newLength);
         final byte[] newProg = concatBytes(_guestvmDirBytes, _javaBytes);
         JDK_java_lang_UNIXProcess.logExec(newProg, newArgBlock, _guestvmDirBytes);
-        return GUKExec.forkAndExec(newProg, newArgBlock, argc, _guestvmDirBytes);
+        return GUKExec.forkAndExec(newProg, newArgBlock, newLength, _guestvmDirBytes);
     }
 
     private static byte[] concatBytes(byte[] a, byte[] b) {

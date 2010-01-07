@@ -246,6 +246,7 @@ public final class GUKNetDevice implements NetDevice {
      */
     @SuppressWarnings({"unused"})
     @VM_ENTRY_POINT
+    @NO_SAFEPOINTS("network packet copy must be atomic")
     private static void copyPacket(Pointer p, int pktLength) {
         int length = pktLength;
 

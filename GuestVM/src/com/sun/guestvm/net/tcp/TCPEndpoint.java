@@ -216,6 +216,22 @@ public class TCPEndpoint implements Endpoint {
         return tcp.getLocalPort();
     }
 
+    public int getRecvBufferSize() {
+        return 0;
+    }
+
+    public int getSendBufferSize() {
+        return 0;
+    }
+
+    public void setRecvBufferSize(int size) {
+
+    }
+
+    public void setSendBufferSize(int size) {
+
+    }
+
     public void configureBlocking(boolean blocking) {
         tcp.configureBlocking(blocking);
     }

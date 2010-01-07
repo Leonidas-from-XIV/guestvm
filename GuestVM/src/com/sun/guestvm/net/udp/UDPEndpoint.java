@@ -310,6 +310,28 @@ public class UDPEndpoint implements Endpoint, UDPUpcall {
         return destPort;
     }
 
+    // There are no actual limits beyond the maximum packet that can be
+    // allocated from the heap (which is unknown).
+    private static final int NOMINAL_BUFFER_SIZE = 256 * 1024;
+    private int _recvBufferSize = NOMINAL_BUFFER_SIZE;
+    private int _sendBufferSize = NOMINAL_BUFFER_SIZE;
+
+    public int getRecvBufferSize() {
+        return _recvBufferSize;
+    }
+
+    public int getSendBufferSize() {
+        return _sendBufferSize;
+    }
+
+    public void setRecvBufferSize(int size) {
+        _recvBufferSize = size;
+    }
+
+    public void setSendBufferSize(int size) {
+        _sendBufferSize = size;
+    }
+
     // ----------------------------------------------------------------------
 
     public int getLocalAddress() {

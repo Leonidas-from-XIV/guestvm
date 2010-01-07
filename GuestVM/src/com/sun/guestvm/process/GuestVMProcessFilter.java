@@ -166,7 +166,7 @@ public class GuestVMProcessFilter {
         if (numArgs > 0) {
             final int x = wdir == null ? 0 : 1;
             if (x > 0) {
-                result[0] = new String(wdir);
+                result[0] = new String(wdir, 0, wdir.length - 1);
             }
             int k = 0;
             int j = 0;

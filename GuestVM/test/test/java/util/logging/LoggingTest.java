@@ -29,35 +29,24 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs.exec;
+package test.java.util.logging;
 
-import com.sun.guestvm.fs.*;
-import com.sun.guestvm.process.GuestVMProcessFilter;
-/**
- * Helper class for ExecFileSystem and FilterFileSystem.
- *
- * @author Mick Jordan
- *
- */
+import java.util.logging.*;
 
-public abstract class ExecHelperFileSystem extends DefaultReadWriteFileSystemImpl implements VirtualFileSystem {
+public class LoggingTest {
 
     /**
-     * This method is called to generate the stdin, stdout and stderr file descriptors, respectively.
-    *
-     * @param key that identifies the exec call
-     * @return an array of length three containing the file descriptors
+     * @param args
      */
-    public int[] getFds(int key) {
-        final int[] fds = GuestVMProcessFilter.getFds(key);
-        for (int i = 0; i < fds.length; i++) {
-            fds[i] = VirtualFileSystemId.getUniqueFd(this, fds[i]);
-        }
-        return fds;
+    public static void main(String[] args) {
+        final Logger globalLogger = globalLogger();
+        final Logger myLogger = Logger.getLogger("LoggingTest");
+        globalLogger.log(Level.INFO, "global logger");
+        myLogger.log(Level.INFO, "local logger");
     }
 
-    @Override
-    public void close() {
-
+    private static Logger globalLogger() {
+        return Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     }
+
 }

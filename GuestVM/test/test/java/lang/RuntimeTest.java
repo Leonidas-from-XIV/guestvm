@@ -49,6 +49,7 @@ public class RuntimeTest {
         File wdir = null;
         boolean lines = true;
         int execCount = 1;
+        String execInput = null;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -65,7 +66,9 @@ public class RuntimeTest {
                 wdir = new File(args[++i]);
             } else if (arg.equals("ec")) {
                 execCount = Integer.parseInt(args[++i]);
-            } else if (arg.equals("exec")) {
+            } else if (arg.equals("input")) {
+                execInput = args[++i];
+           } else if (arg.equals("exec")) {
                 List<String> execArgsList = new ArrayList<String>();
                 i++;
                 while (i < args.length) {
@@ -78,8 +81,17 @@ public class RuntimeTest {
                     Process p = null;
                     BufferedReader stdOut = null;
                     BufferedReader stdErr = null;
+                    BufferedWriter stdIn = null;
                     try {
                         p = runtime.exec(execArgs, null, wdir);
+                        if (execInput != null) {
+                            stdIn = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+                            stdIn.write(execInput);
+                            stdIn.newLine();
+                            stdIn.flush();
+                            stdIn.close();
+                            stdIn = null;
+                        }
                         stdOut = new BufferedReader(new InputStreamReader(p.getInputStream()));
                         readFully(stdOut, true, lines);
                         stdErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -98,6 +110,9 @@ public class RuntimeTest {
                             try {
                                 stdOut.close();
                                 stdErr.close();
+                                if (stdIn != null) {
+                                    stdIn.close();
+                                }
                                 p.destroy();
                             } catch (IOException ex) {
 

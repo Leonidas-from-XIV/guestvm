@@ -151,6 +151,7 @@ public final class GUK {
     static native int guk_exec_wait(int pid);
     static native int guk_exec_close(int pid);
     static native int guk_exec_read_bytes(int pid, Pointer bytes, int length, long fileOffset);
+    static native int guk_exec_write_bytes(int pid, Pointer bytes, int length, long fileOffset);
     static native int guk_exec_destroy(int pid);
 
     // C_FUNCTIONs

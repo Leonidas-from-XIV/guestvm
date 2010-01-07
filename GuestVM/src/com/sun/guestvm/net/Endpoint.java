@@ -52,9 +52,9 @@ public interface Endpoint {
 
     Endpoint accept() throws IOException;
 
-    final int SHUT_RD = 0;
-    final int SHUT_WR = 1;
-    final int SHUT_RDWR = 2;
+    int SHUT_RD = 0;
+    int SHUT_WR = 1;
+    int SHUT_RDWR = 2;
 
     void close(int how) throws IOException;
 
@@ -65,6 +65,14 @@ public interface Endpoint {
     int getLocalAddress();
 
     int getLocalPort();
+
+    int getRecvBufferSize();
+
+    int getSendBufferSize();
+
+    void setRecvBufferSize(int size);
+
+    void setSendBufferSize(int size);
 
     int write(byte[] b, int off, int len) throws IOException;
 

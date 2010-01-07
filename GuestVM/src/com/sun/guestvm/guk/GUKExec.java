@@ -76,6 +76,14 @@ public class GUKExec {
         return result == 0 ? -1 : result;
     }
 
+    public static int writeBytes(int pid, byte[] bytes, int offset, int length, long fileOffset) {
+        final Pointer nativeBytes = Memory.allocate(Size.fromInt(bytes.length));
+        Memory.writeBytes(bytes, offset, length, nativeBytes);
+        final int result = GUK.guk_exec_write_bytes(pid, nativeBytes, length, fileOffset);
+        Memory.deallocate(nativeBytes);
+        return result;
+    }
+
     public static int close(int pid) {
         return GUK.guk_exec_close(pid);
     }
