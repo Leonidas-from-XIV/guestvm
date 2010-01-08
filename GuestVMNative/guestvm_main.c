@@ -59,8 +59,9 @@ char * getenv(const char *name) {
 static char *process_arg(char *arg, int len) {
 //	char *result = check_varocc(arg, len);
 //	check_vardef(result);
-	char *result = malloc(len);
-	strcpy(result, arg);
+	char *result = malloc(len + 1);
+	strncpy(result, arg, len);
+	result[len] = '\0';
 	return result;
 }
 
@@ -71,17 +72,15 @@ static char *process_arg(char *arg, int len) {
   } else {
     while (cmd_line[cmdx] != 0) {
       /* process an argument */
-      char argvc[1024];
-      int vcx = 0;
-      int vcxs = vcx;
-      /* skip spaces */
+      int scmdx;
+      /* skip leading spaces */
       while (cmd_line[cmdx] == ' ' && cmd_line[cmdx] != 0) cmdx++;
+      scmdx = cmdx;
       while (cmd_line[cmdx] != ' ' && cmd_line[cmdx] != 0) {
-	      argvc[vcx++] = cmd_line[cmdx++];
+    	  cmdx++;
       }
-      if (vcx > vcxs) {
-    	argvc[vcx++] = 0;
-    	argv[argc++] = process_arg(argvc, vcx - vcxs);
+      if (cmdx > scmdx) {
+    	argv[argc++] = process_arg(cmd_line + scmdx, cmdx - scmdx);
       } else break;
     }
   }
