@@ -200,7 +200,7 @@ public class GuestVMProcessFilter {
         }
         final State state = _stateMap.get(key);
         if (state._data == null) {
-            return 0;
+            return -1;
         }
         return state._filter.readBytes(state, bytes, offset, length, fileOffset);
     }
@@ -214,11 +214,11 @@ public class GuestVMProcessFilter {
      */
     protected int readBytes(State state, byte[] bytes, int offset, int length, long fileOffset) {
         if (state._fd == StdIO.ERR.ordinal()) {
-            return 0;
+            return -1;
         } else if (state._fd == StdIO.OUT.ordinal()) {
             final int available = state._data == null ? 0 : state._data.length - (int) fileOffset;
             if (available <= 0) {
-                return 0;
+                return -1;
             } else {
                 final int rlength = length < available ? length : available;
                 System.arraycopy(state._data, (int) fileOffset, bytes, offset, rlength);
@@ -226,7 +226,7 @@ public class GuestVMProcessFilter {
             }
         } else {
             assert false;
-            return 0;
+            return -1;
         }
     }
 

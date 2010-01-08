@@ -46,10 +46,10 @@ public class WhoamiProcessFilter extends GuestVMProcessFilter {
 
     public int exec(byte[] prog, byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dir)  {
         final String userName = System.getProperty("user.name");
+        final int key = nextId();
         if (userName == null) {
             return -1;
         }
-        final int key = nextId();
         setData(key, StdIO.OUT, System.getProperty("user.name").getBytes());
         return key;
     }
