@@ -32,7 +32,7 @@
 package com.sun.guestvm.jdk;
 
 import com.sun.max.annotate.*;
-import com.sun.max.program.*;
+import com.sun.guestvm.error.*;
 
 /**
  * Substitutions for the native methods in @see sun.management.VMManagementImpl.
@@ -46,7 +46,7 @@ import com.sun.max.program.*;
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.VMManagementImpl")
 
-public class JDK_sun_management_VMManagementImpl {
+final class JDK_sun_management_VMManagementImpl {
     @SUBSTITUTE
     private String getVersion0() {
         return "0.0";
@@ -105,13 +105,7 @@ public class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private long getStartupTime() {
-        unimplemented("getStartupTime");
-        return 0;
-    }
-
-    @SUBSTITUTE
-    private int getAvailableProcessors() {
-        unimplemented("getAvailableProcessors");
+        //TODO implement
         return 0;
     }
 
@@ -212,6 +206,6 @@ public class JDK_sun_management_VMManagementImpl {
     }
 
     private static void unimplemented(String name) {
-        ProgramError.unexpected("unimplemented sun.management.VMManagementImpl." + name);
+        GuestVMError.unimplemented("unimplemented sun.management.VMManagementImpl." + name);
     }
 }
