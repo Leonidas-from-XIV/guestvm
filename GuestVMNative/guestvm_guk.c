@@ -51,6 +51,17 @@
 #include <trace.h>
 #include <netfront.h>
 
+/* This is where we hook into GUK's interface for getting to the Inspector after a crash */
+
+typedef void (*GUKIsCrashingMethod)(void);
+GUKIsCrashingMethod is_crashing_method;
+void guk_is_crashing(void) {
+	(*is_crashing_method)();
+}
+
+void guk_register_is_crashing_method(void *addr) {
+	is_crashing_method = addr;
+}
 
 JNIEXPORT void JNICALL
 Java_com_sun_guestvm_guk_GUK_guk_1schedule(JNIEnv *env, jclass c) {
@@ -139,6 +150,8 @@ void guk_ttprintk5(char * fmt, int arg1, int arg2, int arg3, int arg4, int arg5)
 	guk_ttprintk("%s %d %d %d %d %d\n", fmt, arg1, arg2, arg3, arg4, arg5);
 }
 
+extern int guk_domain_id(void);
+
 void *guk_dlsym(const char * symbol) {
   if (strcmp(symbol, "Java_com_sun_guestvm_guk_GUK_guk_1schedule") == 0)
     return Java_com_sun_guestvm_guk_GUK_guk_1schedule;
@@ -207,6 +220,8 @@ void *guk_dlsym(const char * symbol) {
   else if (strcmp(symbol, "guk_dump_page_pool_state") == 0) return guk_dump_page_pool_state;
   else if (strcmp(symbol, "guk_allocate_2mb_machine_pages") == 0) return guk_allocate_2mb_machine_pages;
   else if (strcmp(symbol, "guk_netfront_xmit")  == 0) return guk_netfront_xmit;
+  else if (strcmp(symbol, "guk_register_is_crashing_method")  == 0) return guk_register_is_crashing_method;
+  else if (strcmp(symbol, "guk_domain_id")  == 0) return guk_domain_id;
 
   else if  (strcmp(symbol, "guk_ttprintk0") == 0) return guk_ttprintk0;
   else if  (strcmp(symbol, "guk_ttprintk1") == 0) return guk_ttprintk1;

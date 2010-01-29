@@ -34,8 +34,11 @@ package com.sun.guestvm.guk;
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.*;
+import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.compiler.*;
 import com.sun.max.vm.reference.*;
 import com.sun.max.vm.runtime.*;
+import com.sun.max.vm.type.SignatureDescriptor;
 
 /**
  * Interface to Guest VM microkernel (GUK).
@@ -58,6 +61,9 @@ import com.sun.max.vm.runtime.*;
 public final class GUK {
 
     static {
+        new CriticalMethod(GUK.class, "initialize", SignatureDescriptor.create(void.class));
+        new CriticalMethod(GUK.class, "is_crashing", SignatureDescriptor.create(void.class));
+        new CriticalNativeMethod(GUK.class, "guk_register_is_crashing_method");
         new CriticalNativeMethod(GUK.class, "guk_schedule");
         new CriticalNativeMethod(GUK.class, "guk_preempt_schedule");
         new CriticalNativeMethod(GUK.class, "guk_wait_completion");
@@ -121,6 +127,7 @@ public final class GUK {
         new CriticalNativeMethod(GUK.class, "guk_exec_close");
         new CriticalNativeMethod(GUK.class, "guk_exec_read_bytes");
         new CriticalNativeMethod(GUK.class, "guk_exec_destroy");
+        new CriticalNativeMethod(GUK.class, "guk_domain_id");
     }
 
     private GUK() {
@@ -136,6 +143,22 @@ public final class GUK {
     public static void crash(byte[] msg) {
         guk_crash_exit_msg(Reference.fromJava(msg).toOrigin().plus(_dataOffset));
     }
+
+    public static void initialize() {
+        final Address isCrashingMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(ClassActor.fromJava(GUK.class).findLocalStaticMethodActor("is_crashing"), CallEntryPoint.C_ENTRY_POINT);
+        guk_register_is_crashing_method(isCrashingMethodAddress);
+    }
+
+    /**
+     * This function is called when GUK is crashing; it's main purpose is to permit a breakpoint
+     * to be set here and catch the crash when running under the Inspector.
+     */
+    @SuppressWarnings("unused")
+    @VM_ENTRY_POINT
+    private static void is_crashing() {
+
+    }
+
 
     /*
      * The actual native methods exported by GUK
@@ -156,6 +179,8 @@ public final class GUK {
 
     // C_FUNCTIONs
 
+    @C_FUNCTION
+    static native void guk_register_is_crashing_method(Address method);
     @C_FUNCTION
     static native Pointer guk_current();
     @C_FUNCTION
@@ -247,6 +272,8 @@ public final class GUK {
     static native long guk_pagetable_base();
     @C_FUNCTION
     static native long guk_allocate_2mb_machine_pages(int n, int type);
+    @C_FUNCTION
+    public static native int guk_domain_id();
 
     @C_FUNCTION
     public static native void guk_netfront_xmit(Address buffer, int len);
