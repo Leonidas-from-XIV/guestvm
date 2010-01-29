@@ -36,19 +36,25 @@ import java.io.*;
 
 public class PreRunFileCopy {
 
-    private static final String FROM_PROPERTY = "filecopy.from";
-    private static final String TO_PROPERTY = "filecopy.to";
-    private static final String VB_PROPERTY = "filecopy.verbose";
     private static boolean _verbose;
 
-    public PreRunFileCopy() throws IOException {
-        final String from = System.getProperty(FROM_PROPERTY);
-        final String to = System.getProperty(TO_PROPERTY);
-        if (from == null || to == null) {
-            throw new IOException("filecopy.from or filecopy.to missing");
+    public PreRunFileCopy() {
+
+    }
+
+    public static void premain(String agentArgs) throws IOException {
+        final String[] args = agentArgs.split(",");
+        if (args.length < 2) {
+            usage();
         }
-        _verbose = System.getProperty(VB_PROPERTY) != null;
+        final String from = args[0];
+        final String to = args[1];
+        _verbose = args.length > 2 && args[2].equals("verbose");
         copyFiles(new File(from), new File(to));
+    }
+
+    private static void usage() throws IOException {
+        throw new IOException("usage: from,to[,verbose]");
     }
 
     private static void copyFiles(File dir1, File dir2) throws IOException {

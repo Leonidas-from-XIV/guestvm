@@ -32,6 +32,7 @@
 package com.sun.max.vm.run.guestvm;
 
 import sun.nio.ch.BBNativeDispatcher;
+import sun.rmi.registry.RegistryImpl;
 
 import com.sun.max.annotate.*;
 import com.sun.max.collect.AppendableSequence;
@@ -46,6 +47,7 @@ import com.sun.guestvm.guk.*;
 import com.sun.guestvm.memory.HeapPool;
 import com.sun.guestvm.sched.*;
 import com.sun.guestvm.net.guk.*;
+import com.sun.guestvm.attach.AttachListener;
 import com.sun.guestvm.error.*;
 
 /**
@@ -65,7 +67,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     private static boolean _netInit;
     private static boolean _launcherReset;
     private static AppendableSequence<ClassActor> _netReinitClasses = new LinkSequence<ClassActor>();
-    private static final String PRE_RUN_CLASSES_PROPERTY = "guestvm.prerun.classes";
+    private static final String RMIREGISTRY_PROPERTY = "guestvm.rmiregistry";
 
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
         super(vmConfiguration);
@@ -81,6 +83,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         }
 
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
+            GUK.initialize();
             GUKScheduler.initialize();
         } else if (phase == MaxineVM.Phase.RUNNING) {
             System.setProperty("guestvm.version", Version.ID);
@@ -88,7 +91,8 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
             resetNativeDispatchers();
             netInit();
-            preRunClasses();
+            checkRmiRegistry();
+            AttachListener.create();
         }
     }
 
@@ -99,21 +103,6 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             }
             NetInit.init();
             _netInit = true;
-        }
-    }
-
-    private static void preRunClasses() {
-        final String prop = System.getProperty(PRE_RUN_CLASSES_PROPERTY);
-        if (prop != null) {
-            final String[] classNames = prop.split(",");
-            for (String className : classNames) {
-                try {
-                    final Class<?> klass = Class.forName(className);
-                    klass.newInstance();
-                } catch (Exception ex) {
-                    GuestVMError.unexpected("failed to load/execute pre-run class: " + prop + " " + ex.getMessage());
-                }
-            }
         }
     }
 
@@ -170,5 +159,30 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         HeapPool.setInitialHeapSize();
         super.run();
     }
+
+    private static void checkRmiRegistry() {
+        final String rmiRegistryProperty = System.getProperty(RMIREGISTRY_PROPERTY);
+        String portArg = null;
+        if (rmiRegistryProperty != null) {
+            if (rmiRegistryProperty.length() > 0) {
+                portArg = rmiRegistryProperty;
+            }
+            final String[] args = portArg == null ? new String[0] : new String[] {portArg};
+            final Thread registry = new Thread() {
+                public void run() {
+                    try {
+                        RegistryImpl.main(args);
+                    } catch (Throwable ex) {
+                        ex.printStackTrace();
+                        GuestVMError.unexpected("rmiregistry failed");
+                    }
+                }
+            };
+            registry.setName("RMIRegistry");
+            registry.setDaemon(true);
+            registry.start();
+        }
+    }
+
 
 }
