@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.tools.attach;
+package test.sun.attach;
 
 import java.util.*;
 
