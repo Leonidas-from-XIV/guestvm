@@ -32,30 +32,30 @@
 package test.java.net;
 
 import java.net.*;
+import test.util.*;
 
-public class ConnectTest {
+public class URLTest {
 
-    private static String _host;
     /**
      * @param args
      */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
+    public static void main(String[] args) {
+        final ArgsHandler h = ArgsHandler.process(args);
+        for (int j = 0; j < h._opCount; j++) {
+            final String opArg1 = h._opArgs1[j];
+            final String opArg2 = h._opArgs2[j];
+            final String op = h._ops[j];
+
+            try {
+                if (op.equals("url")) {
+                    final URL url = new URL(opArg1);
+                    System.out.println("pr: " + url.getProtocol() + " p: " + url.getPath());
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
-        // Checkstyle: resume modified control variable check
-        connectTest();
+
     }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
-    }
 }

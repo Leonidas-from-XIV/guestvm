@@ -29,33 +29,22 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package com.sun.guestvm.jdk;
 
-import java.net.*;
+import com.sun.max.annotate.*;
+import com.sun.max.vm.jni.*;
 
-public class ConnectTest {
+/**
+ * GuestVM specific substitutions for @see sun.rmi.server.MarshalInputStream.
+ *
+ * @author Mick Jordan
+*/
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
-            }
-        }
-        // Checkstyle: resume modified control variable check
-        connectTest();
-    }
-
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
+@METHOD_SUBSTITUTIONS(sun.rmi.server.MarshalInputStream.class)
+final class JDK_sun_rmi_server_MarshalInputStream {
+    @SuppressWarnings("unused")
+    @SUBSTITUTE
+    private static ClassLoader latestUserDefinedLoader() {
+        return JVMFunctions.LatestUserDefinedLoader();
     }
 }

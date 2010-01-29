@@ -37,6 +37,7 @@ import java.util.*;
 
 public class MXTest {
     private static Map<String, Info> _commands = new HashMap<String, Info>();
+    private static boolean _verbose;
     /**
      * @param args
      */
@@ -44,37 +45,58 @@ public class MXTest {
         final String[] ops = new String[10];
         final String[] opArgs1 = new String[10];
         final String[] opArgs2 = new String[10];
+        final String[] type1 = new String[10];
+        final String[] type2 = new String[10];
         int opCount = 0;
+        for (int i = 0; i < ops.length; i++) {
+            type1[i] = "s";
+            type2[i] = "s";
+        }
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
-            if (arg.equals("a") || arg.equals("a1")) {
+            if (arg.equals("a1")) {
                 opArgs1[opCount] = args[++i];
             } else if (arg.equals("a2")) {
                 opArgs2[opCount] = args[++i];
             } else if (arg.equals("op")) {
                 ops[opCount++] = args[++i];
-                opArgs1[opCount] = opArgs1[opCount - 1];
-                opArgs2[opCount] = opArgs2[opCount - 1];
+            } else if (arg.equals("t1")) {
+                type1[opCount] = args[++i];
+            } else if (arg.equals("t2")) {
+                type2[opCount] = args[++i];
+            } else if (arg.equals("v")) {
+                _verbose = true;
             }
         }
         // Checkstyle: resume modified control variable check
 
-        if (opCount == 0) {
+        if (opCount == 0 && !_verbose) {
             System.out.println("no operations given");
             return;
         }
 
         try {
+            // the singletons
             enterMXBeanCommands("R", RuntimeMXBean.class, ManagementFactory.getRuntimeMXBean());
             enterMXBeanCommands("T", ThreadMXBean.class, ManagementFactory.getThreadMXBean());
             enterMXBeanCommands("OS", OperatingSystemMXBean.class, ManagementFactory.getOperatingSystemMXBean());
             enterMXBeanCommands("M", MemoryMXBean.class, ManagementFactory.getMemoryMXBean());
-            enterMXBeanCommands("MP", MemoryPoolMXBean.class, ManagementFactory.getMemoryPoolMXBeans().get(0));
-            enterMXBeanCommands("MM", MemoryManagerMXBean.class, ManagementFactory.getMemoryManagerMXBeans().get(0));
-            enterMXBeanCommands("GC", GarbageCollectorMXBean.class, ManagementFactory.getGarbageCollectorMXBeans().get(0));
             enterMXBeanCommands("CC", CompilationMXBean.class, ManagementFactory.getCompilationMXBean());
             enterMXBeanCommands("CL", ClassLoadingMXBean.class, ManagementFactory.getClassLoadingMXBean());
+            // these calls can all return multiple instances
+            final List<MemoryManagerMXBean> theMemoryManagerMXBeans = ManagementFactory.getMemoryManagerMXBeans();
+            for (int i = 0; i < theMemoryManagerMXBeans.size(); i++) {
+                enterMXBeanCommands("MM", MemoryManagerMXBean.class, i, theMemoryManagerMXBeans.get(i));
+            }
+            final List<GarbageCollectorMXBean> theGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
+            for (int i = 0; i < theGarbageCollectorMXBeans.size(); i++) {
+                enterMXBeanCommands("GC", GarbageCollectorMXBean.class, i, theGarbageCollectorMXBeans.get(i));
+            }
+            final List<MemoryPoolMXBean> theMemoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+            for (int i = 0; i < theMemoryPoolMXBeans.size(); i++) {
+                enterMXBeanCommands("MP", MemoryPoolMXBean.class, i, theMemoryPoolMXBeans.get(i));;
+            }
 
             for (int j = 0; j < opCount; j++) {
                 final String opArg1 = opArgs1[j];
@@ -82,12 +104,48 @@ public class MXTest {
                 final String op = ops[j];
 
                 final Info info = _commands.get(op);
-                if (info == null) {
-                    throw new Exception("method " + op + "  not found");
+                if (info != null) {
+                    System.out.println("invoking " + op);
+                    try {
+                        final Object[] opArgs = opArg1 == null ? null : (opArg2 == null ? new Object[1] : new Object[2]);
+                        if (opArg1 != null) {
+                            opArgs[0] = processType(opArg1, type1[j]);
+                        }
+                        if (opArg2 != null) {
+                            opArgs[1] = processType(opArg2, type2[j]);
+                        }
+                        final Object result = info._m.invoke(info._bean, opArgs);
+                        if (result instanceof String[]) {
+                            final String[] resultArray = (String[]) result;
+                            for (String r : resultArray) {
+                                System.out.print(r); System.out.print(" ");
+                            }
+                            System.out.println();
+                        } else if (result instanceof long[]) {
+                            final long[] resultArray = (long[]) result;
+                            for (long l : resultArray) {
+                                System.out.print(l); System.out.print(" ");
+                            }
+                            System.out.println();
+                        } else {
+                            System.out.println(result);
+                        }
+                    } catch (InvocationTargetException ex) {
+                        System.out.println(ex);
+                        final Throwable cause = ex.getCause();
+                        System.out.println(cause);
+                        cause.printStackTrace();
+                    } catch (Throwable t) {
+                        System.out.println(t);
+                        t.printStackTrace();
+                    }
+                } else {
+                    if (op.equals("GC")) {
+                        System.gc();
+                    } else {
+                        throw new Exception("method " + op + "  not found");
+                    }
                 }
-                System.out.println("invoking " + op);
-                final Object result = info._m.invoke(info._bean);
-                System.out.println(result);
             }
         } catch (Exception ex) {
             System.out.println(ex);
@@ -105,16 +163,35 @@ public class MXTest {
 
     }
 
+    private static Object processType(String arg, String type) throws Exception {
+        if (type.equals("s")) {
+            return arg;
+        } else if (type.equals("l")) {
+            return Long.parseLong(arg);
+        } else if (type.equals("i")) {
+            return Integer.parseInt(arg);
+        } else {
+            throw new Exception("uninterpreted type  " + type);
+        }
+    }
+
     private static void enterMXBeanCommands(String prefix, Class<?> klass, Object mxbean) {
+        enterMXBeanCommands(prefix, klass, -1, mxbean);
+    }
+
+    private static void enterMXBeanCommands(String prefix, Class<?> klass, int x, Object mxbean) {
         final Method[] methods = klass.getDeclaredMethods();
+        String prefixNum = x < 0 ? prefix : prefix + "." + x ;
         for (int i = 0; i < methods.length; i++) {
-            final String defaultCommandName = prefix + "." + methods[i].getName();
+            final String defaultCommandName = prefixNum + "." + methods[i].getName();
             String commandName = defaultCommandName;
             int suffix = 1;
             while (_commands.get(commandName) != null) {
                 commandName = defaultCommandName + "_" + suffix++;
             }
-            System.out.println("entering " + commandName);
+            if (_verbose) {
+                System.out.println("entering " + commandName + " for " + methods[i].toGenericString());
+            }
             _commands.put(commandName, new Info(mxbean, methods[i]));
         }
     }

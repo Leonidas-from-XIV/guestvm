@@ -32,12 +32,12 @@
 package com.sun.guestvm.jdk;
 
 import java.lang.management.*;
+
 import com.sun.max.annotate.*;
-import com.sun.guestvm.error.*;
+import com.sun.max.vm.management.MemoryManagement;
 
 /**
- * Substitutions for the native methods in @see sun.management.VMManagementImpl.
- * Most of these are unimplemented as yet.
+ * Substitutions for the native methods in @see sun.management.MemoryImpl.
  *
  * @author Mick Jordan
  *
@@ -47,31 +47,25 @@ import com.sun.guestvm.error.*;
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.MemoryImpl")
 final class JDK_sun_management_MemoryImpl {
+
     @SUBSTITUTE
     private MemoryPoolMXBean[] getMemoryPools0() {
-        // TODO implement
-        return new MemoryPoolMXBean[0];
+        return MemoryManagement.getMemoryPools();
     }
 
     @SUBSTITUTE
     private MemoryManagerMXBean[] getMemoryManagers0() {
-        // TODO implement
-        return new MemoryManagerMXBean[0];
+        return MemoryManagement.getMemoryManagers();
     }
 
     @SUBSTITUTE
     private MemoryUsage getMemoryUsage0(boolean heap) {
-        unimplemented("getMemoryUsage0");
-        return null;
+        return MemoryManagement.getMemoryUsage(heap);
     }
 
     @SUBSTITUTE
     private void setVerboseGC(boolean value) {
-        unimplemented("setVerboseGC");
-    }
-
-    private static void unimplemented(String name) {
-        GuestVMError.unimplemented("unimplemented sun.management.MemoryImpl." + name);
+        MemoryManagement.setVerboseGC(value);
     }
 
 }

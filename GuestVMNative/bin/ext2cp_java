@@ -92,6 +92,7 @@ java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/jce.jar -ext2path $t
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/jsse.jar -ext2path $todir
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/resources.jar -ext2path $todir
 java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/charsets.jar -ext2path $todir
+java -classpath $cp $h $mc copyin -disk $dfile -from ${dir}/management-agent.jar -ext2path $todir
 
 # properties
 props=`ls $javahome/jre/lib/*.properties`
@@ -105,3 +106,6 @@ done
 
 java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/security -ext2path $todir
 java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/zi -ext2path $todir
+
+# management
+java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/management -ext2path $todir

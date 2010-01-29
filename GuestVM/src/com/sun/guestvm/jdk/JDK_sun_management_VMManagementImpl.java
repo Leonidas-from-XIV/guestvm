@@ -32,6 +32,8 @@
 package com.sun.guestvm.jdk;
 
 import com.sun.max.annotate.*;
+import com.sun.max.vm.heap.*;
+import com.sun.max.vm.management.*;
 import com.sun.guestvm.error.*;
 
 /**
@@ -87,20 +89,18 @@ final class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private boolean getVerboseGC() {
-        unimplemented("getVerboseGC");
-        return false;
+        return Heap.verbose();
     }
 
     @SUBSTITUTE
     private int getProcessId() {
-        unimplemented("getProcessId");
-        return 0;
+        final String pid = System.getProperty("guestvm.pid");
+        return pid == null ? 0 : Integer.parseInt(pid);
     }
 
     @SUBSTITUTE
     private String getVmArguments0() {
-        unimplemented("getVmArguments0");
-        return null;
+        return RuntimeManagement.getVmArguments();
     }
 
     @SUBSTITUTE

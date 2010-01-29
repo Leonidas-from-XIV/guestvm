@@ -29,33 +29,32 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package sun.tools.attach;
 
-import java.net.*;
+import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.sun.tools.attach.spi.AttachProvider;
 
-public class ConnectTest {
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
-            }
-        }
-        // Checkstyle: resume modified control variable check
-        connectTest();
+class GuestVMVirtualMachineDescriptor extends VirtualMachineDescriptor {
+
+    private String _host;
+    private int _domainId;
+
+    GuestVMVirtualMachineDescriptor(AttachProvider provider, String idString, String displayName, String host, int id) {
+        super(provider, idString, displayName);
+        _domainId = id;
+        _host = host;
     }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
+    public boolean isAttachable() {
+        return true;
+    }
+
+    String host() {
+        return _host;
+    }
+
+    int domainId() {
+        return _domainId;
     }
 }

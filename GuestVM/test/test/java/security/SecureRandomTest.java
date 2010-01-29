@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+ * Copyright (c) 2010 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
  *
  * U.S. Government Rights - Commercial software. Government users are
@@ -29,33 +29,16 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package test.java.security;
+import java.security.SecureRandom;
 
-import java.net.*;
 
-public class ConnectTest {
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
-            }
-        }
-        // Checkstyle: resume modified control variable check
-        connectTest();
+public class SecureRandomTest {
+
+    public static void main(String[] args) {
+        final SecureRandom r = new SecureRandom();
+        System.out.println(r.nextInt());
     }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
-    }
 }

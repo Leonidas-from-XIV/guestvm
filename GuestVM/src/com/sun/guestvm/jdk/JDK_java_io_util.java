@@ -135,7 +135,7 @@ public class JDK_java_io_util {
     static int open(Object fdObj, String name, int flags) throws FileNotFoundException {
         // You might think that at this point, name would be absolute (or canonical) but not so.
         // We, obviously, assume Unix conventions here.
-        if (name.charAt(0) != '/') {
+        if (name.length() > 0 && name.charAt(0) != '/') {
             // Checkstyle: stop parameter assignment check
             name = new File(name).getAbsolutePath();
             // Checkstyle: resume parameter assignment check

@@ -140,3 +140,6 @@ classinit sun.management.VMManagementImpl
 
 class java.security.cert.Certificate
 
+package com.sun.guestvm.attach
+
+

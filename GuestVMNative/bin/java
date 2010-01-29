@@ -58,7 +58,7 @@ if [ ! -d $parent/xmconfigs ] ; then
   exit 1
 fi
 
-guestvmdir="-Dguestvm.dir=$parent"
+vmargs="$vmalloc $javahome -Dguestvm.dir=$parent -Dguestvm.pid=$$"
 
 while [ "$1" != "" ] ;
 do
@@ -105,7 +105,7 @@ else
 fi
 
 name=GuestVM-${USER}-$$
-javaxtra="$javahome $vmargs $vmalloc $guestvmdir $cp $*"
+javaxtra=$vmargs $cp $*"
 extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
   argsfile=".$name-args"

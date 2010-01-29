@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+ * Copyright (c) 2010 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
  *
  * U.S. Government Rights - Commercial software. Government users are
@@ -29,33 +29,46 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package test.java.security;
 
-import java.net.*;
+import java.security.AccessController;
+import java.security.*;
 
-public class ConnectTest {
 
-    private static String _host;
+public class AccessControlTest {
+
     /**
      * @param args
      */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
+    public static void main(String[] args) {
+        boolean doPrivileged = false;
+        String property = "java.home";
         for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
+            final String arg = args[i];
+            if (arg.equals("p")) {
+                property = args[++i];
+            } else if (arg.equals("d")) {
+                doPrivileged = true;
             }
         }
-        // Checkstyle: resume modified control variable check
-        connectTest();
+        System.setSecurityManager(new SecurityManager());
+        final String fProperty = property;
+        if (doPrivileged) {
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+
+                public Void run() {
+                    System.out.println(getProperty(fProperty));
+                    return null;
+                }
+            });
+        } else {
+            System.out.println(getProperty(fProperty));
+        }
     }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
+    private static String getProperty(String property) {
+        return System.getProperty(property);
     }
+
+
 }

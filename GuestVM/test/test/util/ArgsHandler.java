@@ -29,33 +29,43 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package test.util;
 
-import java.net.*;
+/**
+ * Utterly trivial argument processing for simple test programs.
+ *
+ * @author Mick Jordan
+ *
+ */
+public final class ArgsHandler {
 
-public class ConnectTest {
+    public final String[] _ops = new String[10];
+    public final String[] _opArgs1 = new String[10];
+    public final String[] _opArgs2 = new String[10];
+    public int _opCount = 0;
+    public boolean _verbose;
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
+    public static ArgsHandler process(String[] args) {
+        return new ArgsHandler(args);
+    }
+
+    private ArgsHandler(String[] args) {
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
+            final String arg = args[i];
+            if (arg.equals("a") || arg.equals("a1")) {
+                _opArgs1[_opCount] = args[++i];
+            } else if (arg.equals("a2")) {
+                _opArgs2[_opCount] = args[++i];
+            } else if (arg.equals("op")) {
+                _ops[_opCount++] = args[++i];
+                _opArgs1[_opCount] = _opArgs1[_opCount - 1];
+                _opArgs2[_opCount] = _opArgs2[_opCount - 1];
+            } else if (arg.equals("v")) {
+                _verbose = true;
             }
         }
         // Checkstyle: resume modified control variable check
-        connectTest();
-    }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
     }
 }

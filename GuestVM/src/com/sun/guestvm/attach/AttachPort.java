@@ -29,33 +29,27 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package com.sun.guestvm.attach;
 
-import java.net.*;
 
-public class ConnectTest {
+public class AttachPort {
+    public static final String ATTACH_PORT_PROPERTY = "guestvm.attach.port";
+    private static final int DEFAULT_VALUE = 2010;
+    private static int _port = DEFAULT_VALUE;
+    private static boolean _init;
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
-            }
+    private static void init() {
+        final String portProperty = System.getProperty(ATTACH_PORT_PROPERTY);
+        if (portProperty != null) {
+            _port = Integer.parseInt(portProperty);
         }
-        // Checkstyle: resume modified control variable check
-        connectTest();
     }
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
+    public static int getPort() {
+        if (!_init) {
+            init();
+        }
+        return _port;
     }
+
 }

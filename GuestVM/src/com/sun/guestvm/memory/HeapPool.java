@@ -71,7 +71,7 @@ public final class HeapPool {
         // based on the current and maximum memory allocated by the hypervisor.
         final long extra = GUKPagePool.getMaximumReservation() - GUKPagePool.getCurrentReservation();
         long initialHeapSize = toUnit(GUKPagePool.getFreeBulkPages() * 4096);
-        if (MaxineMessenger.isVmInspected()) {
+        if (Inspectable.isVmInspected()) {
             /* some slop for inspectable heap info, should be provided by Inspector not guessed at */
             initialHeapSize -= toUnit(initialHeapSize / 100);
         }

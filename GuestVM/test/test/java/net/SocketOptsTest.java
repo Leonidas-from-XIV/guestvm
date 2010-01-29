@@ -33,6 +33,8 @@ package test.java.net;
 
 import java.net.*;
 
+import test.util.ArgsHandler;
+
 public class SocketOptsTest {
 
     private static Socket _socket = null;
@@ -42,33 +44,16 @@ public class SocketOptsTest {
      * @param args
      */
     public static void main(String[] args) {
-        final String[] ops = new String[10];
-        final String[] opArgs1 = new String[10];
-        final String[] opArgs2 = new String[10];
-        int opCount = 0;
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            final String arg = args[i];
-            if (arg.equals("a") || arg.equals("a1")) {
-                opArgs1[opCount] = args[++i];
-            } else if (arg.equals("a2")) {
-                opArgs2[opCount] = args[++i];
-            } else if (arg.equals("op")) {
-                ops[opCount++] = args[++i];
-                opArgs1[opCount] = opArgs1[opCount - 1];
-                opArgs2[opCount] = opArgs2[opCount - 1];
-                            }
-        }
-        // Checkstyle: resume modified control variable check
 
-        if (opCount == 0) {
+        final ArgsHandler h = ArgsHandler.process(args);
+        if (h._opCount == 0) {
             System.out.println("no operations given");
             return;
         }
-        for (int j = 0; j < opCount; j++) {
-            final String opArg1 = opArgs1[j];
-            final String opArg2 = opArgs2[j];
-            final String op = ops[j];
+        for (int j = 0; j < h._opCount; j++) {
+            final String opArg1 = h._opArgs1[j];
+            final String opArg2 = h._opArgs2[j];
+            final String op = h._ops[j];
 
             try {
                 if (op.equals("css")) {

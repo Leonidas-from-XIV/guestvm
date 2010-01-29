@@ -40,7 +40,6 @@ upcalls="-XX:GUKAS"
 upcalls=""
 xtra_args=""
 gukargs=""
-vmargs=""
 run=1
 help=0
 name=""
@@ -65,7 +64,7 @@ if [ ! -d $parent/xmconfigs ] ; then
   exit 1
 fi
 
-guestvmdir="-Dguestvm.dir=$parent"
+vmargs="$vmalloc $javahome -Dguestvm.dir=$parent -Dguestvm.pid=$$"
 
 function show_help() {
   echo "run the Guest VM image
@@ -243,7 +242,7 @@ else
   cp="-jar $jar"
 fi
 
-javaxtra="$guestvmdir $vmalloc $vmargs $cp $mainclass $xtra_args"
+javaxtra="$vmargs $cp $mainclass $xtra_args"
 extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
   argsfile=".$name-args"

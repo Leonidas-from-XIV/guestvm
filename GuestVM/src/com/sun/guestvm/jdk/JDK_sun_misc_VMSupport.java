@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+ * Copyright (c) 2010 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
  *
  * U.S. Government Rights - Commercial software. Government users are
@@ -29,33 +29,28 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.net;
+package com.sun.guestvm.jdk;
 
-import java.net.*;
+import java.util.Properties;
 
-public class ConnectTest {
+import com.sun.max.annotate.*;
+import com.sun.max.vm.jni.*;
 
-    private static String _host;
-    /**
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
-            if (arg.equals("host")) {
-                _host = args[++i];
-            }
-        }
-        // Checkstyle: resume modified control variable check
-        connectTest();
-    }
+/**
+ * Substitutions for the @see sun.misc.VMSupport class.
+ *
+ * @author Mick Jordan
+ *
+ */
 
-    private static void connectTest() throws Exception {
-        final DatagramSocket s = new DatagramSocket();
-        final byte[] ackBytes = new byte[1024];
-        final DatagramPacket packet = new DatagramPacket(ackBytes,
-                ackBytes.length, InetAddress.getByName(_host), 10000);
-        s.send(packet);
+@SuppressWarnings("unused")
+
+@METHOD_SUBSTITUTIONS(sun.misc.VMSupport.class)
+
+
+final class JDK_sun_misc_VMSupport {
+    @SUBSTITUTE
+    private static Properties initAgentProperties(Properties props) {
+        return JVMFunctions.InitAgentProperties(props);
     }
 }
