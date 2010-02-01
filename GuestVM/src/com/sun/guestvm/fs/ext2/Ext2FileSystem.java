@@ -42,7 +42,6 @@ import org.jnode.driver.block.*;
 import org.jnode.fs.*;
 import org.jnode.fs.ext2.*;
 
-import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -617,8 +616,16 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     @Override
     public int available(int fd, long fileOffset) {
-        // TODO implement
-        return 0;
+        final long length = _openFiles.get(fd)._fsFile.getLength();
+        if (fileOffset >= length) {
+            return 0;
+        } else {
+            final long avail = length - fileOffset;
+            if (avail > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            }
+            return (int) avail;
+        }
     }
 
     @Override

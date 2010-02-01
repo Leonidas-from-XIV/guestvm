@@ -83,7 +83,7 @@ public class FileTest {
         for (int j = 0; j < opCount; j++) {
             try {
                 final String fileName = fileNames[j];
-                final File file = new File(fileName);
+                final File file = fileName == null ? null : new File(fileName);
                 final String op = ops[j];
                 if (echo) {
                     System.out.println("command: " + op + " " + fileName);
@@ -195,11 +195,14 @@ public class FileTest {
                     System.out.println("getCanonicalPath of " + fileName + " returned " + file.getCanonicalPath());
                 } else if (op.equals("createTempFile")) {
                     System.out.println("createTempFile of " + fileName + " returned " + File.createTempFile(fileName, null, null));
+                } else if (op.equals("available")) {
+                    System.out.println("available returned " + available(file));
                 } else {
                     System.out.println("unknown command: " + op);
                 }
             } catch (Exception ex) {
                 System.out.println(ex);
+                ex.printStackTrace();
             }
         }
     }
@@ -289,6 +292,25 @@ public class FileTest {
             readStream(System.in, false);
         } catch (IOException ex) {
             System.out.println(ex);
+        }
+    }
+
+    private static int available(File file) throws IOException {
+        if (file == null) {
+            return System.in.available();
+        } else {
+            FileInputStream fs = null;
+            try {
+                fs = new FileInputStream(file);
+                return fs.available();
+            } finally {
+                if (fs != null) {
+                    try {
+                        fs.close();
+                    } catch (Exception ex) {
+                    }
+                }
+            }
         }
     }
 

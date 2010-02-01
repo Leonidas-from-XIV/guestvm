@@ -408,13 +408,28 @@ public final class NfsFileSystem extends DefaultReadWriteFileSystemImpl implemen
 
     @Override
     public int available(int fd, long fileOffset) {
-        return 0;
+        final long length = getLength(fd);
+        if (fileOffset >= length) {
+            return 0;
+        } else {
+            final long avail = length - fileOffset;
+            if (avail > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            }
+            return (int) avail;
+        }
     }
 
     @Override
     public long skip(int fd, long n, long fileOffset) {
-        // TODO Auto-generated method stub
-        return 0;
+        final long length = getLength(fd);
+        if (fileOffset >= length) {
+            return 0;
+        } else if (fileOffset + n <= length) {
+            return n;
+        } else {
+            return length - fileOffset;
+        }
     }
 
     @Override
