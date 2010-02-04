@@ -308,6 +308,7 @@ public final class TCP extends IP {
 
         _state = State.NEW;
         _localPort = 0;
+        _debugId = _nextDebugId++;
 
         _retransmitTimer = new RetransmitTimer();
         _delayedAckTimer = new DelayedAckTimer();
@@ -321,7 +322,6 @@ public final class TCP extends IP {
         rtt_start = 0;
         srtt = 0;
         rttvar = RTTVAR_INIT;
-        _debugId = _nextDebugId++;
     }
 
 
@@ -2038,7 +2038,7 @@ public final class TCP extends IP {
         private TimerTask _task;
         private String _name;
         TCPTimer(String name) {
-            super(name, true);
+            super(name + "-"  + _debugId, true);
             _name = name;
         }
 
