@@ -65,9 +65,15 @@ public class GUKTrace {
      */
     private static final Offset _dataOffset = VMConfiguration.target().layoutScheme().byteArrayLayout.getElementOffsetFromOrigin(0);
 
+    private static final Name[] _values = Name.values();
+
     public static boolean setTraceState(Name name, boolean value) {
-        final int previous = GUK.guk_set_trace_state(name.ordinal(), value ? 1 : 0);
-        name._value = value;
+        return setTraceState(name.ordinal(), value);
+    }
+
+    public static boolean setTraceState(int ordinal, boolean value) {
+        final int previous = GUK.guk_set_trace_state(ordinal, value ? 1 : 0);
+        _values[ordinal]._value = value;
         return previous != 0;
     }
 

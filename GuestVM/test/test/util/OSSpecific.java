@@ -43,6 +43,7 @@ public final class OSSpecific implements Runnable {
     private static boolean _initialized;
     private static Method _threadStatsMethod;
     private static Method _setTimeSliceMethod;
+    private static Method _setTraceStateMethod;
     private static Object[] _nullArgs = new Object[0];
     private int _period;
 
@@ -70,6 +71,21 @@ public final class OSSpecific implements Runnable {
 
             }
         }
+    }
+
+    public static boolean setTraceState(int ordinal, boolean value) {
+        if (!_initialized) {
+            initialize();
+        }
+        if (_setTraceStateMethod != null) {
+            try {
+                final Boolean result = (Boolean) _setTraceStateMethod.invoke(null, new Object[] {ordinal, value});
+                return result.booleanValue();
+            } catch (Throwable t) {
+
+            }
+        }
+        return false;
     }
 
     private OSSpecific(int period) {
@@ -109,9 +125,11 @@ public final class OSSpecific implements Runnable {
         if (os.equals("GuestVM")) {
             try {
                 final Class<?> schedClass = Class.forName("com.sun.guestvm.guk.GUKScheduler");
+                final Class<?> traceClass = Class.forName("com.sun.guestvm.guk.GUKTrace");
                 final Class<?> vmThreadClass = Class.forName("com.sun.max.vm.thread.VmThread");
                 _threadStatsMethod = schedClass.getMethod("printRunQueue", (Class<?>[]) null);
                 _setTimeSliceMethod = schedClass.getMethod("setThreadTimeSlice", new Class<?>[] {vmThreadClass, int.class});
+                _setTraceStateMethod = traceClass.getMethod("setTraceState", new Class<?>[] {int.class, boolean.class});
 
             } catch (Throwable t) {
                 System.err.println("OSSpecific: error finding GUK methods: " + t);
