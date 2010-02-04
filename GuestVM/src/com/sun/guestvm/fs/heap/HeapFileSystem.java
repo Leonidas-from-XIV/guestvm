@@ -135,11 +135,17 @@ public final class HeapFileSystem extends UnimplementedFileSystemImpl implements
         int readBytes(byte[] bytes, int offset, int length, long fileOffset) {
             int index = (int) fileOffset >> DIV_FILE_BLOCK_SIZE;
             int blockoffset = (int) fileOffset & MOD_FILE_BLOCK_SIZE;
+            if (index >= _blocks.size()) {
+                return 0;
+            }
             byte[] block = _blocks.get(index);
             for (int i = 0; i < length; i++) {
                 if (blockoffset == FILE_BLOCK_SIZE) {
                     blockoffset = 0;
                     index++;
+                    if (index == _blocks.size()) {
+                        return i;
+                    }
                     block = _blocks.get(index);
                 }
                 bytes[offset + i] = block[blockoffset++];
