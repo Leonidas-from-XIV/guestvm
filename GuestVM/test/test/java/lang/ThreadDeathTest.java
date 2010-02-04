@@ -31,6 +31,8 @@
  */
 package test.java.lang;
 
+import test.util.OSSpecific;
+
 public class ThreadDeathTest implements Runnable {
 
     /**
@@ -39,6 +41,9 @@ public class ThreadDeathTest implements Runnable {
     public static void main(String[] args) throws InterruptedException {
         int numThreads = 10;
         int lifeTime = 5;
+        long sleep = 0;
+        int interval = 1;
+        boolean trace = false;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -46,18 +51,34 @@ public class ThreadDeathTest implements Runnable {
                 numThreads = Integer.parseInt(args[++i]);
             } else if (arg.equals("t")) {
                 lifeTime = Integer.parseInt(args[++i]);
+            } else if (arg.equals("s")) {
+                sleep = Long.parseLong(args[++i]);
+            } else if (arg.equals("r")) {
+                trace = true;
+            } else if (arg.equals("i")) {
+                interval = Integer.parseInt(args[++i]);
             }
         }
         // Checkstyle: resume modified control variable check
+
+        if (sleep > 0) {
+            Thread.sleep(sleep * 1000);
+        }
+
+        if (trace) {
+            OSSpecific.setTraceState(0, true);
+        }
         final Thread[] threads = new Thread[numThreads];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(new ThreadDeathTest(i, lifeTime));
+            threads[i].setName("AppThread-" + i);
             threads[i].start();
-            Thread.sleep(1000);
+            Thread.sleep(interval * 1000);
         }
         for (int i = 0; i < threads.length; i++) {
             threads[i].join();
         }
+        Thread.sleep(sleep * 1000);
     }
 
     private int _id;
