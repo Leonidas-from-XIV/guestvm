@@ -92,13 +92,12 @@ final class JDK_sun_management_ThreadImpl {
 
     @SUBSTITUTE
     private static void resetPeakThreadCount0() {
-        unimplemented("resetPeakThreadCount0");
+        ThreadManagement.resetPeakThreadCount();
     }
 
     @SUBSTITUTE
     private static ThreadInfo[] dumpThreads0(long[] ids, boolean lockedMonitors, boolean lockedSynchronizers) {
-        unimplemented("dumpThreads0");
-        return null;
+        return ThreadManagement.dumpThreads(ids, lockedMonitors, lockedSynchronizers);
     }
 
     @SUBSTITUTE

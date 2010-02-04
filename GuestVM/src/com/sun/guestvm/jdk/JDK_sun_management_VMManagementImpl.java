@@ -32,6 +32,7 @@
 package com.sun.guestvm.jdk;
 
 import com.sun.max.annotate.*;
+import com.sun.max.vm.*;
 import com.sun.max.vm.heap.*;
 import com.sun.max.vm.management.*;
 import com.sun.guestvm.error.*;
@@ -71,20 +72,17 @@ final class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private long getTotalClassCount() {
-        unimplemented("getTotalClassCount");
-        return 0;
+        return ClassLoadingManagement.getTotalClassCount();
     }
 
     @SUBSTITUTE
     private long getUnloadedClassCount() {
-        unimplemented("getUnloadedClassCount");
-        return 0;
+        return ClassLoadingManagement.getUnloadedClassCount();
     }
 
     @SUBSTITUTE
     private boolean getVerboseClass() {
-        unimplemented("getVerboseClass");
-        return false;
+        return VMOptions.verboseOption.verboseClass;
     }
 
     @SUBSTITUTE
@@ -105,8 +103,12 @@ final class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private long getStartupTime() {
-        //TODO implement
-        return 0;
+        return RuntimeManagement.getStartupTime();
+    }
+
+    @SUBSTITUTE
+    private int getAvailableProcessors() {
+        return Runtime.getRuntime().availableProcessors();
     }
 
     @SUBSTITUTE
@@ -117,26 +119,22 @@ final class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private long getTotalThreadCount() {
-        unimplemented("getTotalThreadCount");
-        return 0;
+        return ThreadManagement.getTotalThreadCount();
     }
 
     @SUBSTITUTE
     private int  getLiveThreadCount() {
-        unimplemented("getLiveThreadCount");
-        return 0;
+        return ThreadManagement.getThreads().length;
     }
 
     @SUBSTITUTE
     private int  getPeakThreadCount() {
-        unimplemented("getPeakThreadCount");
-        return 0;
+        return ThreadManagement.getPeakThreadCount();
     }
 
     @SUBSTITUTE
     private int  getDaemonThreadCount() {
-        unimplemented(" getDaemonThreadCount");
-        return 0;
+        return ThreadManagement.getDaemonThreadCount();
     }
 
     @SUBSTITUTE
