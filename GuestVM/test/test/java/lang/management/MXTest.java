@@ -170,6 +170,8 @@ public class MXTest {
             return Long.parseLong(arg);
         } else if (type.equals("i")) {
             return Integer.parseInt(arg);
+        } else if (type.equals("b")) {
+            return Boolean.parseBoolean(arg);
         } else {
             throw new Exception("uninterpreted type  " + type);
         }
