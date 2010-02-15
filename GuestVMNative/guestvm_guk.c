@@ -222,6 +222,7 @@ void *guk_dlsym(const char * symbol) {
   else if (strcmp(symbol, "guk_netfront_xmit")  == 0) return guk_netfront_xmit;
   else if (strcmp(symbol, "guk_register_is_crashing_method")  == 0) return guk_register_is_crashing_method;
   else if (strcmp(symbol, "guk_domain_id")  == 0) return guk_domain_id;
+  else if (strcmp(symbol, "guk_get_cpu_running_time")  == 0) return guk_get_cpu_running_time;
 
   else if  (strcmp(symbol, "guk_ttprintk0") == 0) return guk_ttprintk0;
   else if  (strcmp(symbol, "guk_ttprintk1") == 0) return guk_ttprintk1;

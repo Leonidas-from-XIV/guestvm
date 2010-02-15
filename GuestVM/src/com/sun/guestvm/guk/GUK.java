@@ -128,6 +128,7 @@ public final class GUK {
         new CriticalNativeMethod(GUK.class, "guk_exec_read_bytes");
         new CriticalNativeMethod(GUK.class, "guk_exec_destroy");
         new CriticalNativeMethod(GUK.class, "guk_domain_id");
+        new CriticalNativeMethod(GUK.class, "guk_get_cpu_running_time");
     }
 
     private GUK() {
@@ -294,4 +295,6 @@ public final class GUK {
     static native int guk_set_trace_state(int var, int value);
     @C_FUNCTION
     static native int guk_get_trace_state(int var);
+    @C_FUNCTION
+    static native int guk_get_cpu_running_time(int cpu);
 }

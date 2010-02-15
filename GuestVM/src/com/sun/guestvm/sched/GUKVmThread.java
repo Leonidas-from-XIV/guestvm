@@ -69,9 +69,11 @@ public class GUKVmThread extends VmThread {
      */
     private static final int PREEMPT_COUNT_OFFSET = 0;
     private static final int FLAGS_OFFSET = 4;
-    private static final int ID_OFFSET = 16;
-    // private static final int JAVA_ID_OFFSET = 18;
-    private static final int CPU_OFFSET = 72;
+    private static final int ID_OFFSET = 24;
+    // private static final int JAVA_ID_OFFSET = 26;
+    private static final int CPU_OFFSET = 96;
+    private static final int CUM_RUNNING_TIME_OFFSET = 88;
+    private static final int CUM_RUNNING_TIME_OFFSET_AS_LONG = CUM_RUNNING_TIME_OFFSET / 8;
     private static final int FLAGS_OFFSET_ASINT = FLAGS_OFFSET / 4;
     private static final int CPU_OFFSET_ASINT = CPU_OFFSET / 4;
     private static final int ID_OFFSET_AS_SHORT = ID_OFFSET / 2;
@@ -98,6 +100,12 @@ public class GUKVmThread extends VmThread {
     @INLINE
     public final int nativeId() {
         return nativeThread.asPointer().getShort(ID_OFFSET_AS_SHORT);
+    }
+
+    public final long getRunningTime() {
+        // to get an current reading we need to enter the scheduler
+        GUKScheduler.schedule();
+        return nativeThread.asPointer().getLong(CUM_RUNNING_TIME_OFFSET_AS_LONG);
     }
 
     public int compareTo(GUKVmThread sthread) {
