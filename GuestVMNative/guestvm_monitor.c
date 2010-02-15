@@ -127,7 +127,7 @@ static int release_any_waiter(guestvmXen_monitor_t *monitor, struct thread *thre
 	/* FIXME: no loop necessary; just release first thread? */
       wthread = list_entry(it, struct thread, aux_thread_list);
       //TRACE guk_tprintk("mexit releasing: m %lx, ct %s, r %s, c %d\n", monitor, tid(tb1, thread), tid(tb2, wthread), monitor->rcount);
-      list_del(&wthread->aux_thread_list);
+      list_del_init(&wthread->aux_thread_list);
       break;
     }
     //print_waitqueue(monitor);
@@ -234,7 +234,7 @@ int guestvmXen_condition_wait(guestvmXen_condition_t *condition, guestvmXen_moni
 	      list_for_each_safe(iterator, tmp, &condition->waiters) {
 		  t = list_entry(iterator, struct thread, aux_thread_list);
 		  if (t == thread) {
-		      list_del(&thread->aux_thread_list);
+		      list_del_init(&thread->aux_thread_list);
 		      break;
 		  }
 	      }
@@ -282,7 +282,7 @@ int guestvmXen_condition_notify(guestvmXen_condition_t *condition, int all) {
       list_for_each_safe(iterator, tmp, &condition->waiters) {
 	thread = list_entry(iterator, struct thread, aux_thread_list);
 	//TRACE guk_tprintk("cnotify wakeup: c %lx, nt %s\n", condition, tid(tb, thread));
-        list_del(&thread->aux_thread_list);
+        list_del_init(&thread->aux_thread_list);
 	wake(thread);
 	sched = 1;
 	if (!all) break;
