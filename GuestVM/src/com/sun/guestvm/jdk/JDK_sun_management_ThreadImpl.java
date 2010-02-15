@@ -34,15 +34,19 @@ package com.sun.guestvm.jdk;
 import java.lang.management.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.management.ThreadManagement;
+import com.sun.max.vm.thread.VmThread;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.sched.*;
 
 /**
  * Substitutions for the native methods in @see sun.management.ThreadImpl.
- * Most of these are unimplemented as yet.
+ * Many of these are unimplemented as yet.
  *
  * @author Mick Jordan
  *
  */
+
+@SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.ThreadImpl")
 final class JDK_sun_management_ThreadImpl {
@@ -58,14 +62,13 @@ final class JDK_sun_management_ThreadImpl {
 
     @SUBSTITUTE
     private static long getThreadTotalCpuTime0(long id) {
-        unimplemented("getThreadTotalCpuTime0");
-        return 0;
+        final GUKVmThread gvmThread = (GUKVmThread)  (id == 0 ? VmThread.current() : VmThread.fromJava(ThreadManagement.findThread(id)));
+        return gvmThread.getRunningTime();
     }
 
     @SUBSTITUTE
     private static long getThreadUserCpuTime0(long id) {
-        unimplemented("getThreadUserCpuTime0");
-        return 0;
+        return getThreadTotalCpuTime0(id);
     }
 
     @SUBSTITUTE

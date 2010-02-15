@@ -31,10 +31,14 @@
  */
 package com.sun.guestvm.jdk;
 
+import java.lang.reflect.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.*;
+import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.actor.member.FieldActor;
 import com.sun.max.vm.heap.*;
 import com.sun.max.vm.management.*;
+import com.sun.max.vm.object.TupleAccess;
 import com.sun.guestvm.error.*;
 
 /**
@@ -50,14 +54,39 @@ import com.sun.guestvm.error.*;
 @METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.VMManagementImpl")
 
 final class JDK_sun_management_VMManagementImpl {
+
+    private static String[] _supportedOptions = {"currentThreadCpuTimeSupport", "otherThreadCpuTimeSupport"};
+
+    private static boolean isSupported(String name) {
+        for (String s : _supportedOptions) {
+            if (s.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @SUBSTITUTE
-    private String getVersion0() {
+    private static String getVersion0() {
         return "0.0";
     }
 
     @SUBSTITUTE
-    private void initOptionalSupportFields() {
-        unimplemented("initOptionalSupportFields");
+    private static void initOptionalSupportFields() {
+        try {
+            final Class<?> klass = Class.forName("sun.management.VMManagementImpl");
+            final Object staticTuple = ClassActor.fromJava(klass).staticTuple();
+            final Field[] fields = klass.getDeclaredFields();
+            for (int i = 0; i < fields.length; i++) {
+                final Field field = fields[i];
+                final String fieldName = field.getName();
+                if (fieldName.endsWith("Support")) {
+                    TupleAccess.writeBoolean(staticTuple, FieldActor.fromJava(field).offset(), isSupported(fieldName));
+                }
+            }
+        } catch (Exception ex) {
+            GuestVMError.unexpected("problem initializing sun.management.VMManagementImpl " + ex);
+        }
     }
 
     @SUBSTITUTE
@@ -67,7 +96,7 @@ final class JDK_sun_management_VMManagementImpl {
 
     @SUBSTITUTE
     private boolean isThreadCpuTimeEnabled() {
-        return false;
+        return true;
     }
 
     @SUBSTITUTE

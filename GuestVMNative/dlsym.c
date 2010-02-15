@@ -84,6 +84,9 @@ void *dlsym(void *a1, const char *symbol) {
       (result = code_pool_dlsym(symbol)) ||
       (result = StrictMath_dlsym(symbol))) {
     return result;
+  } else if (strcmp(symbol, "JNI_OnLoad") == 0) {
+	  // special case, allows library loading to appear to work but avoids invoking JNI_OnLoad
+	  return 0;
   } else {
     guk_printk("Guest VM: symbol %s not found, exiting\n", symbol);
     crash_exit();
@@ -97,6 +100,7 @@ struct dlhandle {
 
 void *dlopen(char *path, int flags) {
   struct dlhandle * handle = xmalloc(struct dlhandle);
+  //printk("dlopen: %s\n", path);
   handle->path = path;
   return handle;
 }

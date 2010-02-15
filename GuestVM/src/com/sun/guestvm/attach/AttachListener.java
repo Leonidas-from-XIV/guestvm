@@ -51,8 +51,11 @@ import com.sun.max.vm.run.java.JavaRunScheme;
  */
 public final class AttachListener implements Runnable {
     private static AttachListener _attachListener;
+    private static final String DEBUG_PROPERTY = "guestvm.attach.debug";
+    private static boolean _debug;
 
     private AttachListener() {
+        _debug = System.getProperty(DEBUG_PROPERTY) != null;
         final Thread attachListenerThread = new Thread(this, "Attach Listener");
         attachListenerThread.setDaemon(true);
         attachListenerThread.start();
@@ -87,7 +90,6 @@ public final class AttachListener implements Runnable {
                     if (cmd.equals("properties")) {
                         final Map<String, String> sysProps = ManagementFactory.getRuntimeMXBean().getSystemProperties();
                         for (Map.Entry<String, String> entry : sysProps.entrySet()) {
-                            System.out.println("writing " + entry.getKey() + "=" + entry.getValue());
                             writeString(out, entry.getKey());
                             out.write('=');
                             writeString(out, entry.getValue());
@@ -106,8 +108,9 @@ public final class AttachListener implements Runnable {
                             if (agentClassName == null) {
                                 error = '1';
                             } else {
-                                Launcher.addURLToAppClassLoader(new URL("file://" + jarPath));
-                                JavaRunScheme.invokeAgentMethod(agentClassName, "agentmain", options);
+                                final URL url = new URL("file://" + jarPath);
+                                Launcher.addURLToAppClassLoader(url);
+                                JavaRunScheme.invokeAgentMethod(url, agentClassName, "agentmain", options);
                             }
                         } catch (Exception ex) {
                             System.out.println(ex);
@@ -152,12 +155,13 @@ public final class AttachListener implements Runnable {
     }
 
     private static void debug(String[] args) {
-        System.out.print("execute:");
-        for (Object arg : args) {
-            System.out.print(" ");
-            System.out.print(arg);
+        if (_debug) {
+            System.out.print("execute:");
+            for (Object arg : args) {
+                System.out.print(" ");
+                System.out.print(arg);
+            }
+            System.out.println();
         }
-        System.out.println();
-
     }
 }

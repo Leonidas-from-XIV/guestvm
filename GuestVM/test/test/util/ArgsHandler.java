@@ -42,6 +42,8 @@ public final class ArgsHandler {
     public final String[] _ops = new String[10];
     public final String[] _opArgs1 = new String[10];
     public final String[] _opArgs2 = new String[10];
+    public final String[] _opArgs3 = new String[10];
+    public final String[] _opArgs4 = new String[10];
     public int _opCount = 0;
     public boolean _verbose;
 
@@ -61,6 +63,8 @@ public final class ArgsHandler {
                 _ops[_opCount++] = args[++i];
                 _opArgs1[_opCount] = _opArgs1[_opCount - 1];
                 _opArgs2[_opCount] = _opArgs2[_opCount - 1];
+                _opArgs3[_opCount] = _opArgs3[_opCount - 1];
+                _opArgs4[_opCount] = _opArgs4[_opCount - 1];
             } else if (arg.equals("v")) {
                 _verbose = true;
             }

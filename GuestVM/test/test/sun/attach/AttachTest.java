@@ -80,7 +80,7 @@ public class AttachTest {
         }
     }
 
-    private static VirtualMachineDescriptor findGuestVMVMD() {
+    static VirtualMachineDescriptor findGuestVMVMD() {
         final List<VirtualMachineDescriptor> list = VirtualMachine.list();
         for (VirtualMachineDescriptor vmd : list) {
             if (_verbose) {

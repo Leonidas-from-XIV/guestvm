@@ -137,6 +137,7 @@ package com.sun.guestvm.error
 # Eager initialization because of library loading
 classinit sun.management.ManagementFactory
 classinit sun.management.VMManagementImpl
+reinitclass sun.management.VMManagementImpl
 
 class java.security.cert.Certificate
 

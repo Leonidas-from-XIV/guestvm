@@ -37,9 +37,12 @@ import com.sun.max.unsafe.*;
 import com.sun.max.vm.VMConfiguration;
 import com.sun.max.vm.thread.*;
 import com.sun.guestvm.guk.*;
+import com.sun.guestvm.sched.*;
 import com.sun.guestvm.guk.x64.*;
 import com.sun.guestvm.memory.*;
 import com.sun.guestvm.test.VMTestHelper;
+import com.sun.guestvm.test.VmThreadTestHelper;
+import test.util.*;
 
 public class KernelTest {
 
@@ -47,50 +50,19 @@ public class KernelTest {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        final String[] opArgs = new String[10];
-        final String[] opArgs2 = new String[10];
-        final String[] opArgs3 = new String[10];
-        final String[] opArgs4 = new String[10];
-        final String[] ops = new String[10];
-        int opCount = 0;
-        boolean echo = false;
-        // Checkstyle: stop modified control variable check
-        for (int i = 0; i < args.length; i++) {
-            final String arg = args[i];
-            if (arg.equals("op")) {
-                ops[opCount++] = args[++i];
-                opArgs[opCount] = opArgs[opCount - 1];
-                opArgs2[opCount] = opArgs2[opCount - 1];
-                opArgs3[opCount] = opArgs3[opCount - 1];
-                opArgs4[opCount] = opArgs4[opCount - 1];
-            } else if (arg.equals("a") || arg.equals("a1")) {
-                opArgs[opCount] = args[++i];
-            } else if (arg.equals("a2")) {
-                opArgs2[opCount] = args[++i];
-            } else if (arg.equals("a3")) {
-                opArgs3[opCount] = args[++i];
-            } else if (arg.equals("a4")) {
-                opArgs4[opCount] = args[++i];
-            } else if (arg.equals("echo")) {
-                echo = true;
-            }
-        }
-        // Checkstyle: resume modified control variable check
-
-        Thread.sleep(1000);
-        if (opCount == 0) {
+        final ArgsHandler h = ArgsHandler.process(args);
+        if (h._opCount == 0) {
             System.out.println("no operations given");
             return;
         }
-        for (int j = 0; j < opCount; j++) {
-            final String op = ops[j];
-            final String opArg1 = opArgs[j];
-            final String opArg2 = opArgs2[j];
-            final String opArg3 = opArgs3[j];
-            final String opArg4 = opArgs4[j];
-            if (echo) {
-                System.out.println("command: " + op + " a1 " + opArg1 + " a2 " + opArg2 + " a3 " + opArg3 + " a4 " + opArg4);
-            }
+
+        Thread.sleep(1000);
+        for (int j = 0; j < h._opCount; j++) {
+            final String op = h._ops[j];
+            final String opArg1 = h._opArgs1[j];
+            final String opArg2 = h._opArgs2[j];
+            final String opArg3 = h._opArgs3[j];
+            final String opArg4 = h._opArgs4[j];
             if (op.equals("getNumPages")) {
                 System.out.println("NumPages: " + GUKPagePool.getCurrentReservation());
             } else if (op.equals("getPTBase")) {
@@ -215,6 +187,11 @@ public class KernelTest {
             } else if (op.equals("allocate2MBPages")) {
                 final long page = GUKPageTables.allocate_2mb_machine_pages(parseInt(opArg1), VirtualMemory.Type.HEAP.ordinal());
                 System.out.println("page: " + page);
+            } else if (op.equals("cpuRunningTime")) {
+                System.out.println("CPU " + opArg1 + " running time: " + GUKScheduler.getCPURunningTime(Integer.parseInt(opArg1)));
+            } else if (op.equals("threadRunningTime")) {
+                final GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
+                System.out.println("Current Thread running time: " + vmThread.getRunningTime());
             } else {
                 System.out.println("command " + op + " not recognized");
             }
