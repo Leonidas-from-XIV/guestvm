@@ -125,6 +125,7 @@ package com.sun.security.auth
 package sun.security.acl
 class sun.security.action.GetBooleanAction
 class sun.security.provider.PolicyFile
+reinitclass sun.security.util.Debug
 # this has final statics that are inappropriate for the target
 omitclass java.io.File$LazyInitialization
 #
