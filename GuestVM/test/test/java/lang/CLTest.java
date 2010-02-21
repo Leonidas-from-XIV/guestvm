@@ -29,40 +29,54 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package test.java.util.logging;
+package test.java.lang;
 
-import java.util.logging.*;
+import java.net.URL;
+import java.util.*;
 
-public class LoggingTest {
+import test.util.*;
+/**
+ * ClassLoader tests.
+ * 
+ * @author Mick Jordan
+ *
+ */
 
-    private static Level[] _levels = new Level[] {Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER, Level.FINEST};
+public class CLTest {
+
     /**
      * @param args
      */
     public static void main(String[] args) {
-        final Logger globalLogger = globalLogger();
-        showLevel(globalLogger);
-        final Logger myLoggerA = Logger.getLogger("LoggingTest.A");
-        showLevel(myLoggerA);
-        final Logger myLoggerB = Logger.getLogger("LoggingTest.B");
-        showLevel(myLoggerB);
-        iterate(globalLogger);
-        iterate(myLoggerA);
-        iterate(myLoggerB);
-    }
-
-    private static Logger globalLogger() {
-        return Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+        new CLTest().run(args);
     }
     
-    private static void iterate(Logger logger) {
-        for (Level level : _levels) {
-            logger.log(level, "Logger \"" + logger.getName() + "\" logging at level " + level);
+    private void run(String[] args) {
+        final ArgsHandler h = ArgsHandler.process(args);
+        if (h._opCount == 0) {
+            System.out.println("no operations given");
+            return;
         }
-    }
-    
-    private static void showLevel(Logger logger) {
-        System.out.println("Logger \"" + logger.getName() +  "\" level is " + logger.getLevel());
+        for (int j = 0; j < h._opCount; j++) {
+            final String opArg1 = h._opArgs1[j];
+            final String opArg2 = h._opArgs2[j];
+            final String op = h._ops[j];
+
+            try {
+                if (op.equals("getResources")) {
+                    final Enumeration<URL> r  = this.getClass().getClassLoader().getResources(opArg1);
+                    System.out.println("getResources(" + opArg1 + ")");
+                    while (r.hasMoreElements()) {
+                        final URL url = r.nextElement();
+                        System.out.println(url);
+                    }
+                    System.out.println("done");;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        
     }
 
 }
