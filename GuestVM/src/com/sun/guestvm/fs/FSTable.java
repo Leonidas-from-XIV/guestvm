@@ -31,6 +31,7 @@
  */
 package com.sun.guestvm.fs;
 
+import java.lang.reflect.*;
 import java.io.File;
 import java.util.*;
 
@@ -137,7 +138,7 @@ public class FSTable {
     private static void initFSTable() {
         if (!_initFSTable) {
             // register shutdown hook to close file systems
-            Runtime.getRuntime().addShutdownHook(new Thread(new CloseHook(), "FS_ShutdownHook"));
+            CloseHook.addShutdownHook();
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
@@ -291,8 +292,28 @@ public class FSTable {
     }
 
     static class CloseHook implements Runnable {
+
         public void run() {
+            // since we may not run last we sleep to give the others time to finish
             close();
+        }
+
+        private static void addShutdownHook() {
+            /*
+             * WARNING: This code depends on intimate knowledge of the implementation of java.lang.Shutdown There is no
+             * public interface for adding a "system" hook. Since typical application hooks do things like close/delete
+             * files, this hook must run after those and so can't be added as a regular application hook.
+             *
+             * N.B. java.lang.Shutdown hooks are Runnable's not Thread's and are run in order in the context of the
+             * thread invoking Shutdown.shutdown. At the time of writing the JDK defines hooks for slots 0,1, 2.
+             */
+            try {
+                final Method addMethod = Class.forName("java.lang.Shutdown").getDeclaredMethod("add", int.class, Runnable.class);
+                addMethod.setAccessible(true);
+                addMethod.invoke(null, 3, new CloseHook());
+            } catch (Exception ex) {
+                GuestVMError.unexpected("failed to add file system close hook:" + ex);
+            }
         }
     }
 
