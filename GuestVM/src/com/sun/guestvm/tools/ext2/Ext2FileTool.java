@@ -69,7 +69,7 @@ public class Ext2FileTool {
     static boolean _hidden = false;
     static boolean _details = false;
     static SimpleDateFormat _dateFormat = new SimpleDateFormat();
-    static String[] _commands = {"format", "copy", "copyin", "copyout", "ls", "mkdir", "mkfile", "rm", "mv"};
+    static String[] _commands = {"format", "copy", "copyin", "copyout", "ls", "mkdir", "mkfile", "rm", "mv", "cat"};
 
     /**
      * @param args
@@ -165,6 +165,8 @@ public class Ext2FileTool {
                 remove(m, ext2Path);
             } else if (command.equals("mv")) {
                 rename(ext2Path, fromFile,  fs.getRootEntry());
+            } else if (command.equals("cat")) {
+                copyOut(m, null, ext2Path);
             }
         } catch (Exception ex) {
             System.out.println(ex);
@@ -359,12 +361,16 @@ public class Ext2FileTool {
             if (fsEntry.isDirectory()) {
                 throw new IOException("cannot copy a directory");
             } else {
-                final File toFile = new File(toFileName);
-                String copyFileName = toFileName;
-                if (toFile.isDirectory()) {
-                    copyFileName = toFileName + File.separator + m._tail;
+                if (toFileName != null) {
+                    final File toFile = new File(toFileName);
+                    String copyFileName = toFileName;
+                    if (toFile.isDirectory()) {
+                        copyFileName = toFileName + File.separator + m._tail;
+                    }
+                    copyOutFile(copyFileName, fsEntry.getFile());
+                } else {
+                    copyOutFile(null, fsEntry.getFile());
                 }
-                copyOutFile(copyFileName, fsEntry.getFile());
             }
         } else {
             throw new IOException(ext2Path + " not found");
@@ -372,31 +378,39 @@ public class Ext2FileTool {
     }
 
     private static void copyOutFile(String fileName, FSFile fsFile) throws IOException {
-        BufferedOutputStream os = null;
-        try {
-            final byte[] buffer = new byte[4096];
-            final java.nio.ByteBuffer ext2Buffer = ByteBuffer.allocateDirect(4096);
-            os = new BufferedOutputStream(new FileOutputStream(fileName));
-            long fileOffset = 0;
-            long length = fsFile.getLength();
-            while (length > 0) {
-                int n = buffer.length;
-                if (length < n) {
-                    n = (int) length;
+        if (fileName != null) {
+            BufferedOutputStream os = null;
+            try {
+                os = new BufferedOutputStream(new FileOutputStream(fileName));
+                copyOutFileToStream(fsFile, os);
+            } finally {
+                if (os != null) {
+                    os.close();
                 }
-                ext2Buffer.limit(n);
-                fsFile.read(fileOffset, ext2Buffer);
-                length -= n;
-                fileOffset += n;
-                ext2Buffer.position(0);
-                ext2Buffer.get(buffer, 0, n);
-                os.write(buffer, 0, n);
-                ext2Buffer.position(0);
             }
-        } finally {
-            if (os != null) {
-                os.close();
+        } else {
+            copyOutFileToStream(fsFile, System.out);
+        }
+    }
+    
+    private static void copyOutFileToStream(FSFile fsFile, OutputStream os) throws IOException {
+        final byte[] buffer = new byte[4096];
+        final java.nio.ByteBuffer ext2Buffer = ByteBuffer.allocateDirect(4096);
+        long fileOffset = 0;
+        long length = fsFile.getLength();
+        while (length > 0) {
+            int n = buffer.length;
+            if (length < n) {
+                n = (int) length;
             }
+            ext2Buffer.limit(n);
+            fsFile.read(fileOffset, ext2Buffer);
+            length -= n;
+            fileOffset += n;
+            ext2Buffer.position(0);
+            ext2Buffer.get(buffer, 0, n);
+            os.write(buffer, 0, n);
+            ext2Buffer.position(0);
         }
     }
 
