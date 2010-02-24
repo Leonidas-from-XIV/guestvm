@@ -117,9 +117,9 @@ public final class DHCP implements UDPUpcall {
     protected static final byte[] DHCP_SERVER_IDENTIFIER_BYTES = {(byte) SERVER_IDENTIFIER_OPTION, (byte) 4};
     protected static final byte[] DHCP_REQUESTED_IPADDRESS_BYTES = {(byte) REQUESTED_IPADDRESS_OPTION, (byte) 4};
 
-    private static IPAddress _gateway = new IPAddress(0, 0, 0, 0);
-    private static IPAddress _netmask = new IPAddress(0, 0, 0, 0);
-    private static IPAddress _resolver = new IPAddress(0, 0, 0, 0);
+    private static IPAddress _gateway;
+    private static IPAddress _netmask;
+    private static IPAddress _resolver;
 //    private static IPAddress _source;
     private static IPAddress _yours;
     @SuppressWarnings("unused")
@@ -137,6 +137,9 @@ public final class DHCP implements UDPUpcall {
     }
     private DHCP(byte[] hwaddr, IPAddress previous) {
         _debug = System.getProperty("guestvm.net.dhcp.debug") != null;
+        _gateway = new IPAddress(0, 0, 0, 0);
+        _netmask = new IPAddress(0, 0, 0, 0);
+        _resolver = new IPAddress(0, 0, 0, 0);
         _random = new Random();
         _myHWaddr = hwaddr;
         _xid = _random.nextInt();
