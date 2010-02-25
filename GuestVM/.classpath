@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/MaxineELF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GNUCP"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVMJDK"/>
+	<classpathentry kind="lib" path="/usr/jdk/instances/jdk1.6.0_11/lib/tools.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

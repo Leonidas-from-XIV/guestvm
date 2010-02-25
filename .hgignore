@@ -11,4 +11,7 @@ GuestVMNative/zlibobjs/*
 GuestVMNative/fdlibmobjs/*
 YANFS/bin/com/sun/gssapi/dummy/*
 *.class
+GuestVM/bin
+GuestVMBase/bin
+TraceAspect/bin
 

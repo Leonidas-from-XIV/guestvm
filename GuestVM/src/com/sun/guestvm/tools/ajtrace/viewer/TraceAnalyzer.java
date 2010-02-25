@@ -1,68 +1,57 @@
+/*
+ * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+ * Clara, California 95054, U.S.A. All rights reserved.
+ *
+ * U.S. Government Rights - Commercial software. Government users are
+ * subject to the Sun Microsystems, Inc. standard license agreement and
+ * applicable provisions of the FAR and its supplements.
+ *
+ * Use is subject to license terms.
+ *
+ * This distribution may include materials developed by third parties.
+ *
+ * Parts of the product may be derived from Berkeley BSD systems,
+ * licensed from the University of California. UNIX is a registered
+ * trademark in the U.S.  and in other countries, exclusively licensed
+ * through X/Open Company, Ltd.
+ *
+ * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
+ * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
+ * countries.
+ *
+ * This product is covered and controlled by U.S. Export Control laws and
+ * may be subject to the export or import laws in other
+ * countries. Nuclear, missile, chemical biological weapons or nuclear
+ * maritime end uses or end users, whether direct or indirect, are
+ * strictly prohibited. Export or reexport to countries subject to
+ * U.S. embargo or to entities identified on U.S. export exclusion lists,
+ * including, but not limited to, the denied persons and specially
+ * designated nationals lists is strictly prohibited.
+ *
+ */
 package com.sun.guestvm.tools.ajtrace.viewer;
 /**
- * A tool to display method traces, hacked from Swing Tree tutorial
+
  */
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.JMenuItem;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.JLabel;
-import javax.swing.JViewport;
-import javax.swing.JFileChooser;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.ButtonGroup;
-import javax.swing.UIManager;
-import javax.swing.ToolTipManager;
-
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
+import javax.swing.*;
+import javax.swing.tree.*;
+import javax.swing.event.*;
 import javax.swing.SpringLayout;
 
 import java.net.URL;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Enumeration;
-import java.util.Comparator;
-import java.util.Arrays;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.BorderLayout;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.util.*;
+import java.util.regex.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.text.DecimalFormat;
+
+/**
+ * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial
+ * 
+ * @author Mick Jordan
+ *
+ */
 
 public class TraceAnalyzer extends JPanel {
     private URL helpURL;
@@ -762,14 +751,36 @@ public class TraceAnalyzer extends JPanel {
                 System.out.println("processed " + lineCount + " lines in " +
                         (System.currentTimeMillis() -startTime));
             }
-            if (DEBUG) System.out.println("line " + lineCount +
-                    ", " + md.ttype +
-                    ", d " + md.depth +
-                    ", t " + md.entryTimeInfo.wallTime + ", " +  md.exitTimeInfo.wallTime + ", " +
-                    ", u " + md.entryTimeInfo.userUsage + ", " +  md.exitTimeInfo.userUsage + ", " +
-                    ", s " + md.entryTimeInfo.sysUsage + ", " +  md.exitTimeInfo.sysUsage + ", " +
-                    md.thread + ", " +
-                    md.methodName + (md.params==null ? "" : ("(" + md.params + ")")));
+            if (DEBUG) {
+                System.out.print("line " + lineCount + ", " + md.ttype + " ");
+                switch (md.ttype){
+                    case StartTime:
+                        System.out.println(traceStartTime);
+                        break;
+                    case Entry:
+                        System.out.println(", d " + md.depth +
+                                        ", [t " + md.entryTimeInfo.wallTime +
+                                        ", u " + md.entryTimeInfo.userUsage +
+                                        ", s " + md.entryTimeInfo.sysUsage + "] " + 
+                                        md.thread + ", " +
+                                        md.methodName + 
+                                        (md.params==null ? "" : ("(" + md.params + ")")));
+                        break;
+                    case Return:
+                        System.out.println(", d " + md.depth +
+                                        ", [t " +  md.exitTimeInfo.wallTime + ", " +
+                                        ", u " +  md.exitTimeInfo.userUsage + ", " +
+                                        ", s " +  md.exitTimeInfo.sysUsage + "], " +
+                                        md.thread + ", " +
+                                        md.methodName + 
+                                        (md.params==null ? "" : ("(" + md.params + ")")));
+                        break;
+                    case DefineThread:
+                    case DefineMethod:
+                         System.out.println(md.methodName + " " + md.thread);
+                         break;
+                }
+            }
 
             NodeStack ns = forest.get(md.thread);
             switch (md.ttype) {
@@ -836,6 +847,8 @@ public class TraceAnalyzer extends JPanel {
     Map<String,String> threadMap = new HashMap<String,String>();
     Map<String,String> methodMap = new HashMap<String,String>();
     Map<String,String> paramMap = new HashMap<String,String>();
+    
+    ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
 
     class MethodData {
         TraceType ttype;
@@ -852,6 +865,11 @@ public class TraceAnalyzer extends JPanel {
             this.ttype = ttype; this.thread = threadMap.get(thread);
             this.depth = depth;
             this.methodName = methodMap.get(methodName);
+            if (this.methodName == null) {
+                // forward reference in case where we have per-thread output
+                this.methodName = methodName;
+                forwardRefs.add(this);
+            }
             this.params = params;
             // params includes the this arg, possible null for a static method call
             // separate it out here
@@ -874,7 +892,7 @@ public class TraceAnalyzer extends JPanel {
 
         /**
          * This variant is used for the DefineXXX variants.
-         * N.B. definitions always precede uses!
+         * N.B. definitions do NOT always precede uses!
          * @param ttype DefineXXX
          * @param realName the real (full) name of the thread, method, param
          * @param shortForm the short form that is used in the rest of the trace
@@ -883,7 +901,14 @@ public class TraceAnalyzer extends JPanel {
             this.ttype = ttype; this.thread = realName; this.methodName = shortForm;
             if (ttype == TraceType.DefineThread) threadMap.put(shortForm, realName);
             else if (ttype == TraceType.DefineParam) paramMap.put(shortForm, realName);
-            else if (ttype == TraceType.DefineMethod) methodMap.put(shortForm, realName);
+            else if (ttype == TraceType.DefineMethod) {
+                methodMap.put(shortForm, realName);
+                for (MethodData m : forwardRefs) {
+                    if (shortForm.equals(m.methodName)) {
+                        m.methodName = realName;
+                    }
+                }
+            }
         }
 
         public String toString() {
@@ -1065,13 +1090,13 @@ public class TraceAnalyzer extends JPanel {
     private MethodData parseLine(String line) throws Exception {
         // Format, four cases, [] optional
         // 0 S S t                  start time
-        // 0 D TX XXX               define short name SX for thread XXX
-        // 0 M MX XXX               define short name MX for method XXX
-        // 0 P AX XXX               define short name AX for arg/result XXX
+        // 0 D TX name               define short name SX for thread name
+        // 0 M MX name               define short name MX for method name
+        // 0 P AX name               define short name AX for arg/result name
         // d E[t] T M[( ... )]      method M entry [at time t,u,s] in thread T, optional args
         // d R[t] M [ (result) ]  method M return [at time t,u,s] with optional result
-        // N.B. if u/s are 0, previous value is still in effect
-
+        // wall time is relative to start time
+ 
         int s1 = line.indexOf(' ');        // before E/R
         int s2 = line.indexOf(' ', s1+1);  // before T
         int s3 = line.indexOf(' ', s2+1);  // before M
@@ -1090,11 +1115,6 @@ public class TraceAnalyzer extends JPanel {
         } else {
             methodName = line.substring(s3+1);
         }
-
-        long entryTime = 0;
-        long exitTime = 0;
-        long userUsage = 0;
-        long sysUsage = 0;
 
         if (depth == 0) {
             if (ttype.equals("D")) {
@@ -1130,7 +1150,7 @@ public class TraceAnalyzer extends JPanel {
             int t1 = t.indexOf(',');
             int t2 = t.indexOf(',', t1+1);
             if (t1 > 0) {
-                result.wallTime = Long.parseLong(t.substring(1,t1));
+                result.wallTime = Long.parseLong(t.substring(1,t1)) + traceStartTime;
                 result.userUsage = Long.parseLong(t.substring(t1+1, t2));
                 result.sysUsage = Long.parseLong(t.substring(t2+1));
             } else {
