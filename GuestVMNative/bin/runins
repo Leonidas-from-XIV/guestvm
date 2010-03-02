@@ -123,13 +123,15 @@ else
   cd $INS_WS_ROOT
 fi
 
-classpath=$INS_WS_ROOT/maxine/Inspector/bin:$INS_WS_ROOT/maxine/Inspector/jlfgr-1_0.jar:$INS_WS_ROOT/maxine/Tele/bin:$INS_WS_ROOT/maxine/VMDI/bin:$INS_WS_ROOT/maxine/VM/bin:$INS_WS_ROOT/maxine/Base/bin:$INS_WS_ROOT/maxine/Assembler/bin:$INS_WS_ROOT/maxine/CPS/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/GNUCP/bin
+MAX=$INS_WS_ROOT/maxine
+
+classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/C1X/bin:$MAX/C0X/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
 fi
 
-cmd="$javacmd $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Xss4m com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
+cmd="$javacmd $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then
