@@ -100,9 +100,11 @@ public class UDP extends IP {
                        int dst_port, int length, int ttl) {
 
 
-        dprint("output src_port:" + src_port + " dst_ip:"+IPAddress.toString(dst_ip)+
-               " dst_port:" + dst_port + " len:" + length + " off:" +
-               pkt.getHeaderOffset());
+        if (_debug) {
+            dprint("output src_port:" + src_port + " dst_ip:"+IPAddress.toString(dst_ip)+
+                   " dst_port:" + dst_port + " len:" + length + " off:" +
+                   pkt.getHeaderOffset());
+        }
 
         pkt.shiftHeader(-UDP_HDR_LEN);   // make room for our UDP header.
         length += UDP_HDR_LEN;           // add header length to packet len
@@ -160,8 +162,10 @@ public class UDP extends IP {
         int dest_port = pkt.getShort(DSTPORT_OFFSET);
         int src_port = pkt.getShort(SRCPORT_OFFSET);
         int udp_length = pkt.getShort(LEN_OFFSET);
-       dprint("input: src " + IPAddress.toString(src_ip) + ":" + src_port + " dst " +
-               IPAddress.toString(dst_ip) + ":" + dest_port + " len " + udp_length);
+        if (_debug) {
+           dprint("input: src " + IPAddress.toString(src_ip) + ":" + src_port + " dst " +
+                   IPAddress.toString(dst_ip) + ":" + dest_port + " len " + udp_length);
+        }
 
         // Before we do anything else, see if this destination
         // port exists.  If it doesn't exist, we can throw
@@ -181,7 +185,7 @@ public class UDP extends IP {
             return;
         }
 
-        dprint("found port " + dest_port);
+        if (_debug) dprint("found port " + dest_port);
 
         pkt.setPortAndIPs(src_port, src_ip, dst_ip);
 
@@ -253,9 +257,9 @@ public class UDP extends IP {
 
         UpcallLink link = head;
 
-        dprint("find " + port );
+        if (_debug) dprint("find " + port );
         while (link != null) {
-            dprint("matching against " + link.port);
+            if (_debug) dprint("matching against " + link.port);
             if (link.port == port) {
                 return link;
             }
@@ -263,7 +267,7 @@ public class UDP extends IP {
             link = link.next;
         }
 
-        dprint("port " + port + " not found");
+        if (_debug) dprint("port " + port + " not found");
         return null;
     }
 
@@ -281,7 +285,7 @@ public class UDP extends IP {
      */
     public static int register(UDPUpcall udp, int port, boolean reuse) {
 
-        dprint("register: " + port);
+        if (_debug) dprint("register: " + port);
         if (port == 0) {
             //
             // Pick an unused port for the client
