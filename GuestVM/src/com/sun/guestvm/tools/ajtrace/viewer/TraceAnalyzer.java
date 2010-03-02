@@ -59,9 +59,9 @@ public class TraceAnalyzer extends JPanel {
     private static boolean PROGRESS = false;
 
     enum TimeFormat { Nano, Micro, Milli, Sec };
-    private static TimeFormat timeFormat = TimeFormat.Milli;
+    private static TimeFormat timeFormat = TimeFormat.Micro;
     enum TimeDisplay { WallRel, WallAbs, Duration };
-    private static TimeDisplay timeDisplay = TimeDisplay.WallRel;
+    private static TimeDisplay timeDisplay = TimeDisplay.Duration;
     private long traceStartTime;  // used for WallRel time display
 
     //Optionally play with line styles.  Possible values are
