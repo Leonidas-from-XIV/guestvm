@@ -33,6 +33,7 @@
 #
 mount="/hadoop"
 debug=""
+echo=""
 while [ "$1" != "" ] ;
 do
   case "$1" in
@@ -43,10 +44,10 @@ do
       shift
       mount=$1
       ;;
-      "-"*)
-      break
+    "-echo" )
+      echo="-echo"
       ;;
-      *)
+    *)
       break
       ;;
   esac
@@ -55,4 +56,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" $*
+bin/run $echo $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" $*
