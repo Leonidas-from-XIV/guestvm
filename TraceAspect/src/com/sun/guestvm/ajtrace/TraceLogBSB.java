@@ -77,18 +77,18 @@ public class TraceLogBSB extends TraceLogSB {
 	}
 
 	@Override
-	public synchronized void defineThread(int id, String fullName) {
+	public synchronized void defineThread(long id, String fullName) {
 		defineThreadLog(id, fullName, _sb);
 	}
 
 	@Override
-	public synchronized void enter(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public synchronized void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		enterLog(depth, tod, user, sys, threadId, methodId, _sb);
 
 	}
 
 	@Override
-	public synchronized void exit(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		exitLog(depth, tod, user, sys, threadId, methodId, _sb);
 	}
 

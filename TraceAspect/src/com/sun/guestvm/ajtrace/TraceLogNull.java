@@ -45,16 +45,16 @@ public class TraceLogNull extends TraceLog {
 	}
 
 	@Override
-	public void defineThread(int id, String fullName) {
+	public void defineThread(long id, String fullName) {
 	}
 
 	@Override
-	public void enter(int depth, long tod, long user, long sys, int threadId,
+	public void enter(int depth, long tod, long user, long sys, long threadId,
 			int methodId) {
 	}
 
 	@Override
-	public void exit(int depth, long tod, long user, long sys, int threadId,
+	public void exit(int depth, long tod, long user, long sys, long threadId,
 			int methodId) {
 	}
 

@@ -90,13 +90,13 @@ public class TraceLogSB extends TraceLog {
 	}
 
 	@Override
-	public void defineThread(int id, String fullName) {
+	public void defineThread(long id, String fullName) {
 		final StringBuilder sb = new StringBuilder();
 		defineThreadLog(id, fullName, sb);
 		_ps.print(sb);
 	}
 	
-	protected void defineThreadLog(int id, String fullName, StringBuilder sb) {
+	protected void defineThreadLog(long id, String fullName, StringBuilder sb) {
 		sb.append("0 D T");
 		sb.append(id);
 		sb.append(' ');
@@ -120,13 +120,13 @@ public class TraceLogSB extends TraceLog {
 	}
 	
 	@Override
-	public void enter(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		final StringBuilder sb = new StringBuilder();
 		enterLog(depth, tod, user, sys, threadId, methodId, sb);
 		_ps.print(sb);
 	}
 	
-	protected void enterLog(int depth, long tod, long user, long sys, int threadId, int methodId, StringBuilder sb) {
+	protected void enterLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
 		sb.append(depth);
 		sb.append(' ');
 		sb.append('E');
@@ -139,13 +139,13 @@ public class TraceLogSB extends TraceLog {
 	}
 	
 	@Override
-	public void exit(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		final StringBuilder sb = new StringBuilder();
 		exitLog(depth, tod, user, sys, threadId, methodId, sb);
 		_ps.print(sb);
 	}
 	
-	protected void exitLog(int depth, long tod, long user, long sys, int threadId, int methodId, StringBuilder sb) {
+	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
 		sb.append(depth);
 		sb.append(' ');
 		sb.append('R');

@@ -48,8 +48,8 @@ package com.sun.guestvm.ajtrace;
 public abstract class TraceLog {
 	public abstract void init(long startTime);
 	public abstract void fini(long endTime);
-	public abstract void defineThread(int id, String fullName);
+	public abstract void defineThread(long id, String fullName);
 	public abstract void defineMethod(int id, String fullName);
-	public abstract void enter(int depth, long tod, long user, long sys, int threadId, int methodId);
-	public abstract void exit(int depth, long tod, long user, long sys, int threadId, int methodId);
+	public abstract void enter(int depth, long tod, long user, long sys, long threadId, int methodId);
+	public abstract void exit(int depth, long tod, long user, long sys, long threadId, int methodId);
 }

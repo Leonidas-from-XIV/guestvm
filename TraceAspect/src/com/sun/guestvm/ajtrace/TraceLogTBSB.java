@@ -77,18 +77,18 @@ public class TraceLogTBSB extends TraceLogBSB {
 	}
 
 	@Override
-	public void defineThread(int id, String fullName) {
+	public void defineThread(long id, String fullName) {
 		defineThreadLog(id, fullName, _sbtl.get());
 	}
 
 	@Override
-	public void enter(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		enterLog(depth, tod, user, sys, threadId, methodId, _sbtl.get());
 
 	}
 
 	@Override
-	public void exit(int depth, long tod, long user, long sys, int threadId, int methodId) {
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		exitLog(depth, tod, user, sys, threadId, methodId, _sbtl.get());
 	}
 

@@ -48,17 +48,18 @@ public abstract aspect Trace {
 	public static final String TIME_PROPERTY = "guestvm.ajtrace.timing";
 	public static final String CPUTIME_PROPERTY = "guestvm.ajtrace.cputime";
 	public static final String SYSTIME_PROPERTY = "guestvm.ajtrace.systime";
+	public static final String OFF_PROPERTY = "guestvm.ajtrace.off";
 
 	private static boolean recordTime = false;
 	private static boolean recordCputime = false;
 	private static boolean recordSystime = false;
+	private static boolean off;
 	
 	private static boolean init;
 	private static ThreadMXBean threadMXBean;
 	private static StateThreadLocal state;
 
-	private static Map<Thread, Integer> threadMap = new HashMap<Thread, Integer>();
-	private static int nextThreadId = 1;
+	private static Map<Long, Long> threadMap = new HashMap<Long, Long>();
 	private static Map<String, Integer> methodNameMap = new HashMap<String, Integer>();
 	private static int nextMethodId = 1;
 	
@@ -67,11 +68,13 @@ public abstract aspect Trace {
 	public static synchronized void initialize() {
 		if (!init) {
 			initProperties();
-			threadMXBean = ManagementFactory.getThreadMXBean();
-			state = new StateThreadLocal();
-			traceLog = TraceLogFactory.create();
-			traceLog.init(time());
-			Runtime.getRuntime().addShutdownHook(new FiniHook());
+			if (!off) {
+				threadMXBean = ManagementFactory.getThreadMXBean();
+				state = new StateThreadLocal();
+				traceLog = TraceLogFactory.create();
+				traceLog.init(time());
+				Runtime.getRuntime().addShutdownHook(new FiniHook());
+			}
 			init = true;
 		}
 	}
@@ -80,6 +83,7 @@ public abstract aspect Trace {
 		recordTime = System.getProperty(TIME_PROPERTY) != null;
 		recordCputime = System.getProperty(CPUTIME_PROPERTY) != null;
 		recordSystime = System.getProperty(SYSTIME_PROPERTY) != null;
+		off = System.getProperty(OFF_PROPERTY) != null;
 	}
 	
 	static class FiniHook extends Thread {
@@ -128,6 +132,7 @@ public abstract aspect Trace {
 		if (!init) {
 			initialize();
 		}
+		if (off) return;
 		final State s = state.get();
 		if (!s.inAdvice) {
 			s.inAdvice = true;
@@ -138,7 +143,7 @@ public abstract aspect Trace {
 				userTime = s.userTime;
 				sysTime = s.sysTime;
 			}
-			final int threadId = getCurrentThreadName();
+			final long threadId = getCurrentThreadName();
 			final int methodId = getMethodName(jp);
 			traceLog.enter(s.depth++, recordTime ? time() : 0, userTime, sysTime,
 					threadId, methodId);
@@ -168,10 +173,11 @@ public abstract aspect Trace {
     }
 
 	protected void doAfter(JoinPoint jp, Object result, boolean normalReturn) {
+		if (off) return;
 		final State s = state.get();
 		if (!s.inAdvice) {
 			s.depth--;
-			final int threadId = getCurrentThreadName();
+			final long threadId = getCurrentThreadName();
 			final int methodId = getMethodName(jp);
 			long userTime = 0;
 			long sysTime = 0;
@@ -189,15 +195,14 @@ public abstract aspect Trace {
         return System.nanoTime();
 	}
 
-	private synchronized int getCurrentThreadName() {
-		Thread ct = Thread.currentThread();
-		Integer shortForm = threadMap.get(ct);
-		if (shortForm == null) {
-			shortForm = new Integer(nextThreadId++);
-			traceLog.defineThread(shortForm, ct.getName());
-			threadMap.put(ct, shortForm);
+	private synchronized long getCurrentThreadName() {
+		final Thread ct = Thread.currentThread();
+		final long id = ct.getId();
+		if (threadMap.get(id) ==null) {
+			traceLog.defineThread(id, ct.getName());
+			threadMap.put(id, id);
 		}
-		return shortForm;
+		return id;
 	}
 
 	private int getMethodName(JoinPoint jp) {
