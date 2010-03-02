@@ -482,7 +482,7 @@ public class IP implements NetDevice.Handler {
         // inc for each packet will dec later if datagram is fragment
         ipInReceives++;
 
-        printPacket("input: ", pkt);
+        if (_debug) printPacket("input: ", pkt);
 
         // check for an Packet too small to contain an IP header
         int len = pkt.dataLength();
