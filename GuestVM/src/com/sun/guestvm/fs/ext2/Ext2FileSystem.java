@@ -79,7 +79,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         try {
             _root.getFileSystem().close();
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
     }
 
@@ -163,7 +163,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                     return fsRights.canExecute();
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return false;
         }
         return false;
@@ -177,7 +177,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 fileData._fsFile.flush();
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         fileData._byteBuffer = null;
         _openFiles.set(fd, null);
@@ -207,7 +207,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             }
             return true;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return false;
         }
     }
@@ -225,7 +225,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 }
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return false;
         }
         return false;
@@ -240,7 +240,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 result = fsEntry.getLastModified();
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return result;
     }
@@ -254,7 +254,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 result = fsEntry.getFile().getLength();
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return result;
     }
@@ -284,7 +284,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 }
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return result;
     }
@@ -313,7 +313,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 return strings.toArray(new String[strings.size()]);
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return null;
     }
@@ -356,7 +356,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             }
             return addFd(fsFile, isWrite);
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -ErrorDecoder.Code.EIO.getCode();
         }
     }
@@ -377,7 +377,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             final int result = byteBuffer.get();
             return result & 0xFF;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -1;
         }
     }
@@ -409,7 +409,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             }
             return length;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -ErrorDecoder.Code.EIO.getCode();
         }
         // CheckStyle: resume parameter assignment check
@@ -446,7 +446,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 return true;
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return false;
     }
@@ -469,7 +469,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             fileData._fsFile.setLength(length);
             return 0;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -1;
         }
     }
@@ -504,7 +504,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 }
             }
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
         }
         return result;
     }
@@ -521,7 +521,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             fileData._fsFile.write(fileOffset, byteBuffer);
             return 1;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -ErrorDecoder.Code.EIO.getCode();
         }
     }
@@ -546,7 +546,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             }
             return length;
         } catch (IOException ex) {
-            _logger.warning(ex.toString());
+            logWarning(ex);
             return -ErrorDecoder.Code.EIO.getCode();
         }
         // CheckStyle: stop parameter assignment check
@@ -664,5 +664,13 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     public void release0(int fd, long pos, long size) throws IOException {
 
+    }
+    
+    private void logWarning(IOException ex) {
+        String m = ex.toString();
+        if (ex.getCause() != null) {
+            m += " (" + ex.getCause().toString() + ")";
+        }
+        _logger.warning(m);
     }
 }
