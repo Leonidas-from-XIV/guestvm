@@ -33,7 +33,7 @@ package com.sun.guestvm.ajtrace;
 
 /**
  * This version buffers the trace logs in a single pre-allocated buffer, and hence must synchronize
- * between threads, and flushes it on fini.
+ * between threads, It flushes when it reaches the log buffer size and also on fini.
  * 
  * @author Mick Jordan
  *
@@ -69,6 +69,10 @@ public class TraceLogBSB extends TraceLogSB {
 			_ps.print(_sb);
 		}
 		super.fini(endTime);
+	}
+	
+	protected int flushSize() {
+		return _logSize;
 	}
 
 	@Override

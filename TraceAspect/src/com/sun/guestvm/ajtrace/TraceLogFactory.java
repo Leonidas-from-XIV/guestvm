@@ -41,22 +41,19 @@ package com.sun.guestvm.ajtrace;
 public class TraceLogFactory {
 	private static final String TRACELOG_CLASS_PROPERTY = "guestvm.ajtrace.logclass";
 	
-	protected TraceLog newTraceLog() {
-		return new TraceLogNull();
-	}
-	
 	public static TraceLog create() {
-		final String logClass = System.getProperty(TRACELOG_CLASS_PROPERTY);
 		TraceLog result = null;
-		try {
-			result = (TraceLog) Class.forName(logClass).newInstance();
-		} catch (Exception exception) {
-			System.err.println("Error instantiating " + logClass + ": "
-					+ exception);
-			result = new TraceLogSB();
-		}
+		final String logClass = System.getProperty(TRACELOG_CLASS_PROPERTY);
 		if (logClass == null) {
 			result = new TraceLogSB();
+		} else {
+			try {
+				result = (TraceLog) Class.forName(logClass).newInstance();
+			} catch (Exception exception) {
+				System.err.println("Error instantiating " + logClass + ": "
+						+ exception);
+				result = new TraceLogSB();
+			}
 		}
 		return result;
 	}

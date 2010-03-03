@@ -57,11 +57,13 @@ dialog=""
 commandfilearg=""
 xvm=0
 cp=""
+cpb=""
 vmargs=""
 javacmd=`which java`
 
 while [ "$1" != "" ];
 do
+#  echo $1
   case $1 in
   "-echo" )
     echocmd=1
@@ -89,13 +91,16 @@ do
     shift
     cp="$1"
     ;;
-  "-J" )
+  "-cpb" )
     shift
+    cpb=$1
+    ;;
+  -J* )
     if [ "$vmargs" = "" ] ;
     then
-      vmargs=$1
+      vmargs=${1/-J/}
     else
-      vmargs="$vmargs $1"
+      vmargs="$vmargs ${1/-J/}"
     fi
     ;;
   "-java" )
@@ -129,6 +134,10 @@ classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMD
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
+fi
+if [ "$cpb" != "" ] ;
+then
+  classpath=${cpb}:${classpath}
 fi
 
 cmd="$javacmd $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
