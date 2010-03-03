@@ -79,6 +79,7 @@ public class TraceLogSB extends TraceLog {
 		sb.append("0 S S ");
 		sb.append(startTime);
 		sb.append('\n');
+		checkFlush(sb);
 	}
 	
 	@Override
@@ -88,12 +89,30 @@ public class TraceLogSB extends TraceLog {
 			_ps.close();
 		}
 	}
+	
+	/**
+	 * Determines the size at which checkFlush will flush the StringBuilder.
+	 * Subclasses that buffer should override this method.
+	 * @return size at which to flush the buffer
+	 */
+	protected int flushSize() {
+		return 0;
+	}
+	
+	protected boolean checkFlush(StringBuilder sb) {
+		// conservative check that will (usually) flush before StringBuilder increases capacity
+		if (sb.length() >= flushSize() - 64) {
+			_ps.print(sb);
+			sb.setLength(0);
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	public void defineThread(long id, String fullName) {
 		final StringBuilder sb = new StringBuilder();
 		defineThreadLog(id, fullName, sb);
-		_ps.print(sb);
 	}
 	
 	protected void defineThreadLog(long id, String fullName, StringBuilder sb) {
@@ -102,13 +121,13 @@ public class TraceLogSB extends TraceLog {
 		sb.append(' ');
 		sb.append(fullName);
 		sb.append('\n');
+		checkFlush(sb);
 	}
 	
 	@Override
 	public void defineMethod(int id, String fullName) {
 		final StringBuilder sb = new StringBuilder();
 		defineMethodLog(id, fullName, sb);
-		_ps.print(sb);
 	}
 	
 	protected void defineMethodLog(int id, String fullName, StringBuilder sb) {
@@ -117,13 +136,13 @@ public class TraceLogSB extends TraceLog {
 		sb.append(' ');
 		sb.append(fullName);
 		sb.append('\n');
+		checkFlush(sb);
 	}
 	
 	@Override
 	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		final StringBuilder sb = new StringBuilder();
 		enterLog(depth, tod, user, sys, threadId, methodId, sb);
-		_ps.print(sb);
 	}
 	
 	protected void enterLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
@@ -136,13 +155,13 @@ public class TraceLogSB extends TraceLog {
 		sb.append(" M");
 		sb.append(methodId);
 		sb.append('\n');
+		checkFlush(sb);
 	}
 	
 	@Override
 	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
 		final StringBuilder sb = new StringBuilder();
 		exitLog(depth, tod, user, sys, threadId, methodId, sb);
-		_ps.print(sb);
 	}
 	
 	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
@@ -155,6 +174,7 @@ public class TraceLogSB extends TraceLog {
 		sb.append(" M");
 		sb.append(methodId);
 		sb.append('\n');
+		checkFlush(sb);
 	}
 	
 	private void appendTime(long tod, long user, long sys,
