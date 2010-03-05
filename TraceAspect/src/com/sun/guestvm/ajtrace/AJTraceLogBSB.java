@@ -39,7 +39,7 @@ package com.sun.guestvm.ajtrace;
  *
  */
 
-public class TraceLogBSB extends TraceLogSB {
+public class AJTraceLogBSB extends AJTraceLogSB {
 
 	private StringBuilder _sb;
 	protected int _logSize;

@@ -31,28 +31,38 @@
  */
 package com.sun.guestvm.ajtrace;
 
-import java.io.*;
-
 /**
- * Manages creation of log file.
+ * The null logger.
  * 
  * @author Mick Jordan
  *
  */
 
-public class TraceLogFile {
-	public static final String LOGFILE_PROPERTY = "guestvm.ajtrace.logfile";
-	
-	public static OutputStream create() {
-		final String tracelogfile = System.getProperty(LOGFILE_PROPERTY);
-		if (tracelogfile != null) {
-			try {
-				return new FileOutputStream(tracelogfile);
-			} catch (IOException ex) {
-				System.err.println("unable to open ajtrace logfile " + tracelogfile + ": " + ex);
-			}
-		}
-		return null;
+public class AJTraceLogNull extends AJTraceLog {
+
+	@Override
+	public void defineMethod(int id, String fullName) {
 	}
 
+	@Override
+	public void defineThread(long id, String fullName) {
+	}
+
+	@Override
+	public void enter(int depth, long tod, long user, long sys, long threadId,
+			int methodId) {
+	}
+
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId,
+			int methodId) {
+	}
+
+	@Override
+	public void init(long startTime) {
+	}
+
+	@Override
+	public void fini(long endTime) {
+	}
 }

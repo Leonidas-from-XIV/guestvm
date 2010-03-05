@@ -39,7 +39,7 @@ import java.util.*;
  * @author Mick Jordan
  *
  */
-public class TraceLogTBSB extends TraceLogBSB {
+public class AJTraceLogTBSB extends AJTraceLogBSB {
 
 	private static StringBuilderThreadLocal _sbtl;
 	private static ArrayList<StringBuilder> _sbList = new ArrayList<StringBuilder>(64);

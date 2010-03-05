@@ -2,21 +2,21 @@ package test.com.sun.guestvm.ajtrace;
 
 import com.sun.guestvm.ajtrace.*;
 
-public class TraceLogTest {
+public class AJTraceLogTest {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		try {
-			TraceLog log = TraceLogFactory.create();
+			AJTraceLog log = AJTraceLogFactory.create();
 			exercise(log);
 		} catch (Exception ex) {
 			System.err.println(ex);
 		}
 	}
 	
-	private static void exercise(TraceLog log) {
+	private static void exercise(AJTraceLog log) {
 		log.init(System.nanoTime());
 		log.defineThread(1, "myThread");
 		log.defineThread(1, "methodName");

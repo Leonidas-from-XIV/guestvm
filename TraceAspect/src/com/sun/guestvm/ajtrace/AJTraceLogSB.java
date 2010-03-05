@@ -52,7 +52,7 @@ import java.io.*;
  * @author Mick Jordan
 */ 
 
-public class TraceLogSB extends TraceLog {
+public class AJTraceLogSB extends AJTraceLog {
 
 	protected PrintStream _ps;
 	private long _startTime;
@@ -66,7 +66,7 @@ public class TraceLogSB extends TraceLog {
 	}
 	
 	protected void initPS() {
-		final OutputStream logStream = TraceLogFile.create();
+		final OutputStream logStream = AJTraceLogFile.create();
 		if (logStream == null) {
 			_ps = System.out;
 		} else {

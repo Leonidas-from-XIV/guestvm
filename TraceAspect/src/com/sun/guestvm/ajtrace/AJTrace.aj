@@ -44,7 +44,7 @@ import org.aspectj.lang.Signature;
  */
 
 //@Aspect
-public abstract aspect Trace {
+public abstract aspect AJTrace {
 	public static final String TIME_PROPERTY = "guestvm.ajtrace.timing";
 	public static final String CPUTIME_PROPERTY = "guestvm.ajtrace.cputime";
 	public static final String SYSTIME_PROPERTY = "guestvm.ajtrace.systime";
@@ -63,15 +63,17 @@ public abstract aspect Trace {
 	private static Map<String, Integer> methodNameMap = new HashMap<String, Integer>();
 	private static int nextMethodId = 1;
 	
-	protected static TraceLog traceLog;
+	protected static AJTraceLog traceLog;
 
 	public static synchronized void initialize() {
 		if (!init) {
 			initProperties();
 			if (!off) {
+				threadMap.clear();
+				methodNameMap.clear();			
 				threadMXBean = ManagementFactory.getThreadMXBean();
 				state = new StateThreadLocal();
-				traceLog = TraceLogFactory.create();
+				traceLog = AJTraceLogFactory.create();
 				traceLog.init(time());
 				Runtime.getRuntime().addShutdownHook(new FiniHook());
 			}
@@ -115,7 +117,7 @@ public abstract aspect Trace {
 		}
 	}
 
-	protected Trace() {
+	protected AJTrace() {
 	}
 
 	//@Pointcut("")
@@ -164,15 +166,15 @@ public abstract aspect Trace {
 	}
 	*/
 
-    after() returning(Object result) : execAll() {
-		doAfter(thisJoinPoint, result, true);
+    after() returning() : execAll() {
+		doAfter(thisJoinPoint, true);
     }
 
     after() throwing(Throwable t) : execAll() {
-		doAfter(thisJoinPoint, t, false);
+		doAfter(thisJoinPoint, false);
     }
 
-	protected void doAfter(JoinPoint jp, Object result, boolean normalReturn) {
+	protected void doAfter(JoinPoint jp,  boolean normalReturn) {
 		if (off) return;
 		final State s = state.get();
 		if (!s.inAdvice) {
