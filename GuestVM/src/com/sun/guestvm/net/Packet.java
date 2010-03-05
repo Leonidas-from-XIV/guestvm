@@ -69,6 +69,37 @@ public class Packet {
     }
 
     // CheckStyle: stop parameter assignment check
+    
+    /*
+     * The following four methods exists for the benefit of the network device interrupt handler, com.sun.guestvm.net.guk.GUKNetDevice.
+     * They must be inlined. We name them specially to indicate that fact.
+     */
+    
+    @INLINE
+    public final void inlineReset() {
+        _length = _buf.length;
+        _hdrOffset = 0;
+    }
+
+    @INLINE
+    public final int inlineLength() {
+        return _length;
+    }
+
+    @INLINE
+    public final void inlineSetLength(int len) {
+        _length = len;
+    }
+
+    @INLINE
+    public final void inlinePutByteIgnoringHdrOffset(byte b, int off) {
+        _buf[off] = b;
+    }
+
+    @INLINE
+    public final byte inlineGetByteIgnoringHeaderOffset(int off) {
+        return _buf[off];
+    }
 
     protected Packet(int hlen, int dlen, byte[] buf) {
         _length = hlen + dlen;
@@ -123,7 +154,6 @@ public class Packet {
         return sp;
     }
 
-    @INLINE
     public final void reset() {
         _length = _buf.length;
         _hdrOffset = 0;
@@ -174,7 +204,6 @@ public class Packet {
         _hdrOffset = off;
     }
 
-    @INLINE
     public final int length() {
         return _length;
     }
@@ -187,7 +216,7 @@ public class Packet {
         _length = _hdrOffset + len;
     }
 
-    public void setLength(int len) {
+    public final void setLength(int len) {
         _length = len;
     }
 
@@ -291,12 +320,7 @@ public class Packet {
     /**
      * Call that is used in GUKNetDevice and must be inlined.
      */
-    @INLINE
-    public final void inlinePutByteIgnoringHdrOffset(byte b, int off) {
-        _buf[off] = b;
-    }
-
-    public void putByte(int d, int off) {
+  public void putByte(int d, int off) {
         _buf[_hdrOffset + off] = (byte) (d & 0xff);
     }
 

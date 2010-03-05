@@ -176,7 +176,7 @@ public final class GUKNetDevice implements NetDevice {
             }
             return;
         }
-        int length = pkt.length();
+        int length = pkt.inlineLength();
         if (_debug) {
             dprintln("transmit " + length);
         }
@@ -184,7 +184,7 @@ public final class GUKNetDevice implements NetDevice {
             length = MTU;
         }
         for (int i = 0; i < length; i++) {
-            _transmitBuffer.writeByte(i, pkt.getByteIgnoringHeaderOffset(i));
+            _transmitBuffer.writeByte(i, pkt.inlineGetByteIgnoringHeaderOffset(i));
         }
         GUK.guk_netfront_xmit(_transmitBuffer, length);
     }
@@ -253,15 +253,15 @@ public final class GUKNetDevice implements NetDevice {
         // All Packet calls are inlined
         if (_entryCount != _ring.length) {
             final Packet pkt = _ring[_writeIndex];
-            pkt.reset();
-            if (length > pkt.length()) {
-                length = pkt.length();
+            pkt.inlineReset();
+            if (length > pkt.inlineLength()) {
+                length = pkt.inlineLength();
                 _truncateCount++;
             }
             for (int i = 0; i < length; i++) {
                 pkt.inlinePutByteIgnoringHdrOffset(p.readByte(i), i);
             }
-            _ring[_writeIndex].setLength(length);
+            _ring[_writeIndex].inlineSetLength(length);
             _writeIndex = (_writeIndex + 1) % _ringSize;
 
             _pktCount++;
