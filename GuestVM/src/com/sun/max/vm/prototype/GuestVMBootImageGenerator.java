@@ -86,6 +86,8 @@ public class GuestVMBootImageGenerator {
                   "Suffix to append to guestvm image name, i.e., giving guestvm-imagesuffix");
     private static final Option<String> BUILD_TYPE = _options.newStringOption("buildtype", "PRODUCT",
                    "Build type: DEBUG or PRODUCT (default)");
+    private static final Option<String> PREFIX_CLASSPATH = _options.newStringOption("prefixclasspath", null,
+                    "classpath to prefix");
 
     public static void main(String[] args)  throws IOException, InterruptedException {
         Trace.addTo(_options);
@@ -147,7 +149,7 @@ public class GuestVMBootImageGenerator {
 
         final List<String> vmArgs = MAXINE_IMAGE_VMARGS.getValue();
         final String[] vmArgsArray = addArg(vmArgs.toArray(new String[vmArgs.size()]), "-Xbootclasspath/a:" + pathToGuestVMJDK());
-        String[] javaArgs = buildJavaArgs(BootImageGenerator.class, fixupClassPath(),  vmArgsArray, systemProperties, generatorArgs);
+        String[] javaArgs = buildJavaArgs(BootImageGenerator.class, prefixClassPath(fixupClassPath()),  vmArgsArray, systemProperties, generatorArgs);
         if (MONITOR.getValue() != null) {
             javaArgs = addArg(javaArgs, "-monitor=" + MONITOR.getValue());
         }
@@ -163,6 +165,9 @@ public class GuestVMBootImageGenerator {
         }
     }
 
+    private static final String COM_SUN_MAX = ".com.sun.max".replace('.', File.separatorChar);
+    private static final int OFFSET_TO_MAXINE = 3;
+    
     private static String fixupClassPath() {
         /* The way that BinaryImageGenerator determines where the "prototype" native library
            is to be found is by taking the first element of the classpath that contains a com.sun.max package,
@@ -174,16 +179,43 @@ public class GuestVMBootImageGenerator {
          */
         final String cp = System.getProperty("java.class.path");
         final String[] parts = cp.split(File.pathSeparator);
+        final boolean[] defer = new boolean[parts.length];
         final StringBuilder sb = new StringBuilder();
-        for (int i = 1; i < parts.length; i++) {
-            if (parts[i].contains("GuestVM")) {
-                sb.append(parts[0]);
-                sb.append(File.pathSeparatorChar);
+        boolean needSep = false;
+        for (int i = 0; i < parts.length; i++) {
+            defer[i] = false;
+            final File file = new File(parts[i] + COM_SUN_MAX);
+            if (file.exists()) {
+                final String[] nameParts = parts[i].split(File.separator);
+                if (!nameParts[nameParts.length - OFFSET_TO_MAXINE].equals("maxine")) {
+                    // some directory not a sibling of maxine and with a com.sun.max package
+                    defer[i] = true;
+                }
             }
-            sb.append(parts[i]);
-            sb.append(File.pathSeparatorChar);
+            if (!defer[i]) {
+                if (needSep) {
+                    sb.append(File.pathSeparatorChar);
+                }
+                sb.append(parts[i]);
+                needSep = true;
+            }
+        }
+        for (int i = 0; i < parts.length; i++) {
+            if (defer[i]) {
+                if (needSep) {
+                    sb.append(File.pathSeparatorChar);
+                }
+                sb.append(parts[i]);
+            }
         }
         return sb.toString();
+    }
+    
+    private static String prefixClassPath(String classPath) {
+        if (PREFIX_CLASSPATH.getValue() != null) {
+            return PREFIX_CLASSPATH.getValue() + File.pathSeparator + classPath;
+        }
+        return classPath;
     }
 
     /**
