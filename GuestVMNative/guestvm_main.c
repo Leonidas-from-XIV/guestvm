@@ -114,7 +114,8 @@ static void maxine_start(void *p) {
 	  while ((ch = *p++) != '\n') {
 		  count = count * 10 + (ch - '0');
 	  }
-	  p[count] = 0; // ensure null terminated
+	  /*the count in the file counts the trailing newline character also. so do -1*/
+	  p[count - 1] = 0; // ensure null terminated
 	  argc = create_argv(p, argc);
   }
 
