@@ -69,7 +69,7 @@ do
       logtype="Null"
       ;;
     "-agent")
-      agent="-J-javaagent:/guestvm/aspectj/aspectj-1.6.8/lib/aspectjweaver.jar"
+      agent="-J-javaagent:/guestvm/aspectj/${aspectj_ver}/lib/aspectjweaver.jar"
       ;;
     "-cp")
       shift

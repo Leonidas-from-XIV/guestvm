@@ -57,4 +57,4 @@ if [ "$trace_project" == "" ]; then
   exit 1
 fi
 
-bin/runins -cp ../$trace_project/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar -java /import/javaguest/linux/jdk1.6.0_17/bin/java $*
+sudo bin/runins -cp ../$trace_project/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar -java $JAVA_HOME/bin/java $*
