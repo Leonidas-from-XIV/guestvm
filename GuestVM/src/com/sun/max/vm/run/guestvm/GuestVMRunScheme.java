@@ -76,6 +76,10 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
     @Override
     public void initialize(MaxineVM.Phase phase) {
+        if (phase == MaxineVM.Phase.STARTING) {
+            // make sure we have console output in case of exceptions
+            FSTable.basicInit();
+        }
         super.initialize(phase);
 
         if (MaxineVM.isHosted()) {
@@ -86,9 +90,6 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
             GUK.initialize();
             GUKScheduler.initialize();
-        }  else if (phase == MaxineVM.Phase.STARTING) {
-            // make sure we have console output in case of exceptions
-            FSTable.basicInit();
         } else if (phase == MaxineVM.Phase.RUNNING) {
             System.setProperty("guestvm.version", Version.ID);
             SchedulerFactory.scheduler().starting();
