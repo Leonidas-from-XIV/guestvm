@@ -43,6 +43,7 @@ import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.*;
+import com.sun.guestvm.fs.FSTable;
 import com.sun.guestvm.guk.*;
 import com.sun.guestvm.memory.HeapPool;
 import com.sun.guestvm.sched.*;
@@ -85,6 +86,9 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
             GUK.initialize();
             GUKScheduler.initialize();
+        }  else if (phase == MaxineVM.Phase.STARTING) {
+            // make sure we have console output in case of exceptions
+            FSTable.basicInit();
         } else if (phase == MaxineVM.Phase.RUNNING) {
             System.setProperty("guestvm.version", Version.ID);
             SchedulerFactory.scheduler().starting();

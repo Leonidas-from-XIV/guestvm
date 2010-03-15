@@ -75,6 +75,7 @@ public class FSTable {
     private static final int OPTIONS_INDEX = 3;
 
     private static boolean _initFSTable;
+    private static boolean _basicInit;
     private static RootFileSystem _rootFS;
 
     public static class Info {
@@ -135,15 +136,24 @@ public class FSTable {
         GuestVMError.unexpected(msg);
     }
 
-    private static void initFSTable() {
-        if (!_initFSTable) {
+    /**
+     * Basic initialization, ensures that console output is set up and the RootFileSystem.
+     */
+    public static void basicInit() {
+        if (!_basicInit) {
             // register shutdown hook to close file systems
             CloseHook.addShutdownHook();
             // This call guarantees that file descriptors 0,1,2 map to the ConsoleFileSystem
             VirtualFileSystemId.getUniqueFd(new ConsoleFileSystem(), 0);
 
             _rootFS = RootFileSystem.create();
+            _basicInit = true;
+        }
+    }
 
+    private static void initFSTable() {
+        if (!_initFSTable) {
+            basicInit();
             String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
             if (fsTableProperty == null) {
                 fsTableProperty = DEFAULT_FS_TABLE_PROPERTY;
