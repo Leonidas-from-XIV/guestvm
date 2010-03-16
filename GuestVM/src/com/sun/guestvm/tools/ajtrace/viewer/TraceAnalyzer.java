@@ -48,7 +48,7 @@ import java.text.DecimalFormat;
 
 /**
  * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial
- * 
+ *
  * @author Mick Jordan
  *
  */
@@ -359,7 +359,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         class FindHelper {
-            static final String DEFAULT_SEARCH_TEXT = "org.apache.derby[\\.\\w]*";
+            static final String DEFAULT_SEARCH_TEXT = "com.sun.guestvm[\\.\\w]*";
             String searchText = DEFAULT_SEARCH_TEXT;
             TreePath startTp = null;
             TreePath[] matches = null;
@@ -761,9 +761,9 @@ public class TraceAnalyzer extends JPanel {
                         System.out.println(", d " + md.depth +
                                         ", [t " + md.entryTimeInfo.wallTime +
                                         ", u " + md.entryTimeInfo.userUsage +
-                                        ", s " + md.entryTimeInfo.sysUsage + "] " + 
+                                        ", s " + md.entryTimeInfo.sysUsage + "] " +
                                         md.thread + ", " +
-                                        md.methodName + 
+                                        md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
                         break;
                     case Return:
@@ -772,7 +772,7 @@ public class TraceAnalyzer extends JPanel {
                                         ", u " +  md.exitTimeInfo.userUsage + ", " +
                                         ", s " +  md.exitTimeInfo.sysUsage + "], " +
                                         md.thread + ", " +
-                                        md.methodName + 
+                                        md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
                         break;
                     case DefineThread:
@@ -847,7 +847,7 @@ public class TraceAnalyzer extends JPanel {
     Map<String,String> threadMap = new HashMap<String,String>();
     Map<String,String> methodMap = new HashMap<String,String>();
     Map<String,String> paramMap = new HashMap<String,String>();
-    
+
     ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
 
     class MethodData {
@@ -1096,7 +1096,7 @@ public class TraceAnalyzer extends JPanel {
         // d E[t] T M[( ... )]      method M entry [at time t,u,s] in thread T, optional args
         // d R[t] M [ (result) ]  method M return [at time t,u,s] with optional result
         // wall time is relative to start time
- 
+
         int s1 = line.indexOf(' ');        // before E/R
         int s2 = line.indexOf(' ', s1+1);  // before T
         int s3 = line.indexOf(' ', s2+1);  // before M
@@ -1213,7 +1213,7 @@ public class TraceAnalyzer extends JPanel {
         showGroup.add(etaItem);
         showGroup.add(absetaItem);
         showGroup.add(durItem);
-        etaItem.setSelected(true);
+        durItem.setSelected(true);
         JMenu showTimeSubMenu = new JMenu("Time");
         showTimeSubMenu.add(etaItem);
         showTimeSubMenu.add(absetaItem);
@@ -1231,7 +1231,13 @@ public class TraceAnalyzer extends JPanel {
         JRadioButtonMenuItem microItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Micro));
         JRadioButtonMenuItem milliItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Milli));
         JRadioButtonMenuItem secItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Sec));
-        milliItem.setSelected(true);
+        switch (timeFormat) {
+            case Nano: nanoItem.setSelected(true); break;
+            case Micro: microItem.setSelected(true); break;
+            case Milli: milliItem.setSelected(true); break;
+            case Sec: secItem.setSelected(true); break;
+        }
+
         timeGroup.add(nanoItem); timeGroup.add(microItem);
         timeGroup.add(milliItem); timeGroup.add(secItem);
         timeSubMenu.add(nanoItem); timeSubMenu.add(microItem);
