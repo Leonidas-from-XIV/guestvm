@@ -38,5 +38,5 @@ package com.sun.guestvm;
  *
  */
 public final class Version {
-    public static final String ID = "0.2.4";
+    public static final String ID = "0.2.5";
 }

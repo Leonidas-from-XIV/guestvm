@@ -92,6 +92,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             GUKScheduler.initialize();
         } else if (phase == MaxineVM.Phase.RUNNING) {
             System.setProperty("guestvm.version", Version.ID);
+            System.setProperty("os.version", Version.ID);
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
             resetNativeDispatchers();
