@@ -36,18 +36,19 @@
     <property environment="env"/>
     <property name="src" location="src"/>
     <property name="aspectjlib" location="${env.ASPECTJ_HOME}/lib"/>
+	<property name="ajtrace" location="../AJTrace/bin"/>
     <property name="classes" location="bin"/>
 
     <!-- Classpath required for building -->
     <path id="classpath">
     	<pathelement location="${classes}"/>
+    	<pathelement location="${ajtrace}"/>
         <pathelement location="${aspectjlib}/aspectjrt.jar"/>
     </path>
 
-    <target name="all" depends="compile"/>
+    <target name="all" depends="compile, copyaop"/>
 
     <target name="init">
-        <mkdir dir="${lib}"/>
         <mkdir dir="${classes}"/>
     </target>
 
@@ -60,8 +61,14 @@
         </aspectj:iajc>
     </target>
 
+	 <target name="copyaop">
+	      <copy todir="${classes}">
+	        <fileset dir="META-INF"/>
+	      </copy>
+	  </target>
+
     <target name="clean">
         <delete dir="${classes}"/>
-      </target>
+     </target>
 
 </project>
