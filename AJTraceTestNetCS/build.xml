@@ -62,9 +62,10 @@
     </target>
 
 	 <target name="copyaop">
-	      <copy todir="${classes}">
-	        <fileset dir="META-INF"/>
-	      </copy>
+	 	<mkdir dir="${classes}/META-INF"/>
+	     <copy todir="${classes}/META-INF">
+	        <fileset dir="${src}/META-INF"/>
+	     </copy>
 	  </target>
 
     <target name="clean">
