@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="all"
+    xmlns:aspectj="antlib:org.aspectj"
+>
+    <property environment="env"/>
+    <property name="src" location="src"/>
+    <property name="aspectjlib" location="${env.ASPECTJ_HOME}/lib"/>
+	<property name="ajtrace" location="../AJTrace/bin"/>
+	<property name="inpath" location="../GuestVM/bin/com/sun/guestvm/net"/>
+    <property name="classes" location="bin"/>
+    <property name="lib" location="lib"/>
+
+    <!-- Classpath required for building -->
+    <path id="classpath">
+    	<pathelement location="${classes}"/>
+    	<pathelement location="${ajtrace}"/>
+        <pathelement location="${aspectjlib}/aspectjrt.jar"/>
+    </path>
+
+    <target name="all" depends="jars"/>
+
+    <target name="init">
+        <mkdir dir="${lib}"/>
+        <mkdir dir="${classes}"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <aspectj:iajc
+            destdir="${classes}"
+            sourceroots="${src}"
+        	inpath="${inpath}"
+        	source="1.5">
+            <classpath refid="classpath"/>
+        </aspectj:iajc>
+    </target>
+
+    <target name="jars" depends="compile">
+        <jar jarfile="${lib}/ajtrace_guestvm_netall.jar"
+             basedir="${classes}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${classes}"/>
+        <delete dir="${lib}"/>
+     </target>
+
+</project>
