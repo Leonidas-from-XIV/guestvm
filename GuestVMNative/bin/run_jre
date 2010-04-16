@@ -46,4 +46,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro" $*
+bin/run -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro,auto" $*
