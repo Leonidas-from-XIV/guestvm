@@ -130,10 +130,22 @@ public class FSTable {
         public int hashCode() {
             return _mountPath.hashCode();
         }
+
+        @Override
+        public String toString() {
+            String result =  _type + FS_INFO_SEPARATOR + _devPath + FS_INFO_SEPARATOR + _mountPath + FS_INFO_SEPARATOR;
+            for (int i = 0; i < _options.length; i++) {
+                result += _options[i];
+                if (i != _options.length - 1) {
+                    result += FS_OPTIONS_SEPARATOR;
+                }
+            }
+            return result;
+        }
     }
 
     private static void logBadEntry(String msg) {
-        GuestVMError.unexpected(msg);
+        GuestVMError.exit(msg);
     }
 
     /**
@@ -197,6 +209,10 @@ public class FSTable {
                 VirtualFileSystem vfs = null;
                 if (fsInfo.autoMount()) {
                     vfs = initFS(fsInfo);
+                    // this is considered fatal
+                    if (vfs == null) {
+                        logBadEntry("file system " + fsInfo + " cannot be mounted");
+                    }
                 } else {
                     // record the info so that a future path lookup will match,
                     // the fs will be mounted at that point.
