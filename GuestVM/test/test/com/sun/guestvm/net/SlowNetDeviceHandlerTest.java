@@ -32,108 +32,110 @@
 package test.com.sun.guestvm.net;
 
 /**
- * A test to demonstrate the impact of unresponsive network packet handlers.
- * Usage: [s s] [h h] [w w]
- * The test registers a network packet handler which, by default, sleeps for
- * s seconds (default 5) before returning. The main thread reports the dropped
- * packet count every second.
- * If h is set to 2 the handler blocks until the a waiting thread notifies it after w seconds (default 5).
- * Both of these scenarios will typically result in dropped packets.
+ * A test to demonstrate the impact of slow response network packet handlers.
+ * Usage: [d runtime] [s sleeptime] [r] [c] [t]
+ * The test, which runs for "runtime" seconds (default 30), registers a network packet handler which, by default, sleeps for
+ * "sleeptime" milliseconds (default 5000) before returning.  This scenario will typically result in dropped packets by
+ * the network driver as not enough handlers will be available for all incoming packets.
+ * If r is set, the sleep is for a random time up to sleeptime.
+ * If c is set a compute-bound thread is run in parallel, which can be used to see the handler thread schedule latency.
+ * If t is set, scheduler tracing is turned on (also requires -XX:GUKTrace to be set on guest launch).
+ *
+ * The main thread reports the dropped packet count every second.
  *
  * @author Mick Jordan
  */
 
+import java.util.*;
+
+import com.sun.guestvm.guk.GUKTrace;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.device.*;
 import com.sun.guestvm.net.guk.*;
 
 public class SlowNetDeviceHandlerTest implements NetDevice.Handler, Runnable {
     static int _sleepTime = 5000;
-    static int _waitTime = 5000;
-    static int _handler = 1;
-    static long _now;
+    static long _startTime;
     static Object _lock = new Object();
     static boolean _waiting = true;
+    static boolean _randomSleep = false;
+    static Random _random = new Random();
+    static long _endTime;
+    static boolean _done;
+    private static final long SEC_TO_NANO = 1000 * 1000 * 1000;
 
     public static void main(String[] args) throws InterruptedException {
+        boolean compute = false;
+        boolean trace = false;
+        long duration  = 30;
         // Checkstyle: stop modified control variable check
        for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (arg.equals("s")) {
                 _sleepTime = Integer.parseInt(args[++i]);
-            } else if (arg.equals("h")) {
-                _handler = Integer.parseInt(args[++i]);
-            } else if (arg.equals("w")) {
-                _waitTime = Integer.parseInt(args[++i]);
+            } else if (arg.equals("r")) {
+                _randomSleep = true;
+            } else if (arg.equals("c")) {
+                compute = true;
+            } else if (arg.equals("t")) {
+                trace = true;
+            } else if (arg.equals("d")) {
+                duration = Integer.parseInt(args[++i]);
             }
         }
        // Checkstyle: resume modified control variable check
 
-        _now = System.currentTimeMillis();
+        if (trace) {
+            GUKTrace.setTraceState(GUKTrace.Name.SCHED, true);
+        }
+        _startTime = System.nanoTime();
+        _endTime = _startTime + duration * SEC_TO_NANO;
         System.out.println("starting: handler sleep time: " + _sleepTime);
         final NetDevice device = GUKNetDevice.create();
         final SlowNetDeviceHandlerTest self = new SlowNetDeviceHandlerTest();
         device.registerHandler(self);
-        if (_handler == 2) {
-            final Thread notifier = new Thread(self);
-            notifier.setDaemon(true);
-            notifier.start();
+
+        if (compute) {
+            final Thread spinner = new Thread(new SlowNetDeviceHandlerTest());
+            spinner.setName("Spinner");
+            spinner.setDaemon(true);
+            spinner.start();
         }
 
-        while (true) {
+        while (!_done) {
             Thread.sleep(1000);
-            System.out.println("drop counter @ " + relTime() + " : " + device.dropCount());
+            tprintln("drop counter: " + device.dropCount());
         }
     }
 
     static long relTime() {
-        return System.currentTimeMillis() - _now;
+        final long now = System.nanoTime();
+        if (now >= _endTime) {
+            _done = true;
+        }
+        return now - _startTime;
     }
 
     public void handle(Packet packet) {
-        System.out.println("handler entry @ " + relTime() + " : " + packet.length() + " bytes received");
-        if (_handler == 1) {
-            handlerBody1();
-        } else if (_handler == 2) {
-            handlerBody2();
-        }
-        System.out.println("handler exit @ " + relTime());
-    }
-
-    void handlerBody1() {
+        final int sleepTime = _randomSleep ? _random.nextInt(_sleepTime) : _sleepTime;
+        tprintln("handler entry: ttp: " + (System.nanoTime() - packet.getTimeStamp()) + " : len: " + packet.length() + " sleep: " + sleepTime);
         try {
-            Thread.sleep(_sleepTime);
+            Thread.sleep(sleepTime);
         } catch (InterruptedException ex) {
-            System.out.println("handler interrupted");
+            tprintln("handler interrupted");
         }
-    }
-
-    void handlerBody2() {
-        synchronized (_lock) {
-            _waiting = true;
-            while (_waiting) {
-                try {
-                    _lock.wait();
-                    System.out.println("handler wait ended @ " + relTime());
-                } catch (InterruptedException ex) {
-                    System.out.println("handler interrupted");
-                }
-            }
-        }
+        tprintln("handler exit");
     }
 
     public void run() {
-        for (;;) {
-            try {
-                Thread.sleep(_waitTime);
-                synchronized (_lock) {
-                    _waiting = false;
-                    _lock.notify();
-                }
-            } catch (InterruptedException ex) {
-            }
+        long x = 0;
+        while (true && !_done) {
+            x++;
         }
+    }
 
+    static void tprintln(String msg) {
+        System.out.println(Thread.currentThread().getName() + ": @" + relTime() + ": " + msg);
     }
 
 }
