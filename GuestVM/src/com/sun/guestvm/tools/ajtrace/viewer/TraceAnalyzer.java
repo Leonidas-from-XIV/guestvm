@@ -47,43 +47,55 @@ import java.awt.event.*;
 import java.text.DecimalFormat;
 
 /**
+<<<<<<< local
+ * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial.
+=======
  * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial
+>>>>>>> other
  *
  * @author Mick Jordan
  *
  */
 
 public class TraceAnalyzer extends JPanel {
+
     private URL helpURL;
     private static boolean DEBUG = false;
     private static boolean PROGRESS = false;
 
-    enum TimeFormat { Nano, Micro, Milli, Sec };
-    private static TimeFormat timeFormat = TimeFormat.Micro;
-    enum TimeDisplay { WallRel, WallAbs, Duration };
-    private static TimeDisplay timeDisplay = TimeDisplay.Duration;
-    private long traceStartTime;  // used for WallRel time display
+    enum TimeFormat {
+        Nano, Micro, Milli, Sec
+    };
 
-    //Optionally play with line styles.  Possible values are
-    //"Angled" (the default), "Horizontal", and "None".
+    private static TimeFormat timeFormat = TimeFormat.Micro;
+
+    enum TimeDisplay {
+        WallRel, WallAbs, Duration
+    };
+
+    private static TimeDisplay timeDisplay = TimeDisplay.Duration;
+    private long traceStartTime; // used for WallRel time display
+
+    // Optionally play with line styles. Possible values are
+    // "Angled" (the default), "Horizontal", and "None".
     private static boolean playWithLineStyle = false;
     private static String lineStyle = "Horizontal";
 
-    Map<String,JTree> threadJTrees = new HashMap<String,JTree>();  // thread trees
+    Map<String, JTree> threadJTrees = new HashMap<String, JTree>(); // thread trees
     Set<JTree> matchJTrees = new HashSet<JTree>();
     JTree currentJTree;
 
-    //Optionally set the look and feel.
+    // Optionally set the look and feel.
     private static boolean useSystemLookAndFeel = false;
     JFrame myFrame;
     String traceFilePathName;
     long nodeCount;
 
     public TraceAnalyzer(String[] args) {
-        super(new GridLayout(1,0));
+        super(new GridLayout(1, 0));
 
         try {
-            for (int i=0; i<args.length; i++) {
+            for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
                 if (arg.equals("-f")) {
                     traceFilePathName = args[++i];
@@ -96,38 +108,39 @@ public class TraceAnalyzer extends JPanel {
                     String tf = args[i];
                     if (tf.equals("milli")) {
                         timeFormat = TimeFormat.Milli;
-                    } else if (tf.equals("nano")) timeFormat = TimeFormat.Nano;
+                    } else if (tf.equals("nano"))
+                        timeFormat = TimeFormat.Nano;
                     else if (tf.equals("micro")) {
                         timeFormat = TimeFormat.Micro;
                     } else if (tf.equals("sec")) {
                         timeFormat = TimeFormat.Sec;
-                    } else throw new Exception("unknown time format: " + tf);
+                    } else
+                        throw new Exception("unknown time format: " + tf);
                 }
             }
 
-            //Create and set up the window.
+            // Create and set up the window.
             myFrame = new JFrame("TraceAnalyzer " + traceFilePathName);
             myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
             if (traceFilePathName == null) {
-            	usage();
-            	return;
+                usage();
+                return;
             }
             BufferedReader r = new BufferedReader(new FileReader(traceFilePathName));
 
-            //Create the nodes.
-            Map<String,DefaultMutableTreeNode> threadTreeNodes = createNodes(r);
+            // Create the nodes.
+            Map<String, DefaultMutableTreeNode> threadTreeNodes = createNodes(r);
             r.close();
 
-            //JComponent left = null; int count = 0;
+            // JComponent left = null; int count = 0;
             JTabbedPane threadTabPane = new JTabbedPane();
             threadTabPane.addChangeListener(new TabbedPaneChangeListener());
             for (DefaultMutableTreeNode top : threadTreeNodes.values()) {
 
-                //Create a tree that allows one selection at a time.
+                // Create a tree that allows one selection at a time.
                 JTree tree = new JTree(top);
-                tree.getSelectionModel().setSelectionMode
-                        (TreeSelectionModel.SINGLE_TREE_SELECTION);
+                tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
                 ToolTipManager.sharedInstance().registerComponent(tree);
                 tree.setCellRenderer(new ToolTipRenderer());
 
@@ -140,22 +153,22 @@ public class TraceAnalyzer extends JPanel {
                     tree.putClientProperty("JTree.lineStyle", lineStyle);
                 }
 
-                //Create the scroll pane and add the tree to it.
+                // Create the scroll pane and add the tree to it.
                 JScrollPane treeView = new JScrollPane(tree);
-                //Dimension minimumSize = new Dimension(500, 500);
-                //treeView.setMinimumSize(minimumSize);
+                // Dimension minimumSize = new Dimension(500, 500);
+                // treeView.setMinimumSize(minimumSize);
 
-                MethodData md = (MethodData)top.getUserObject();
+                MethodData md = (MethodData) top.getUserObject();
                 threadJTrees.put(md.thread, tree);
                 threadTabPane.add(md.thread, treeView);
             }
             add(threadTabPane);
-            this.setOpaque(true); //content panes must be opaque
+            this.setOpaque(true); // content panes must be opaque
             myFrame.setContentPane(this);
 
             myFrame.setJMenuBar(createMenuBar());
 
-            //Display the window.
+            // Display the window.
             myFrame.pack();
             myFrame.setVisible(true);
         } catch (Exception ex) {
@@ -165,51 +178,49 @@ public class TraceAnalyzer extends JPanel {
     }
 
     private static void usage() {
-    	System.out.println("usage: -f tracefile [-debug] [-progress] [-time sec | milli | micro | nano]");
+        System.out.println("usage: -f tracefile [-debug] [-progress] [-time sec | milli | micro | nano]");
     }
 
     class ToolTipRenderer extends DefaultTreeCellRenderer {
-        public Component getTreeCellRendererComponent(
-                JTree tree,
-                Object value,
-                boolean sel,
-                boolean expanded,
-                boolean leaf,
-                int row,
-                boolean hasFocus) {
 
-            super.getTreeCellRendererComponent(
-                    tree, value, sel,
-                    expanded, leaf, row,
-                    hasFocus);
-            DefaultMutableTreeNode node =
-                    (DefaultMutableTreeNode)value;
-            MethodData md = (MethodData)node.getUserObject();
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+            MethodData md = (MethodData) node.getUserObject();
             if (md.thisArg != null) {
                 setToolTipText(md.thisArg);
-            } else setToolTipText(null);
+            } else
+                setToolTipText(null);
             return this;
         }
     }
 
     class TabbedPaneChangeListener implements ChangeListener {
+
         public void stateChanged(ChangeEvent e) {
-            JTabbedPane tabbedPane = (JTabbedPane)e.getSource();
-            JScrollPane scrollPane = (JScrollPane)tabbedPane.getSelectedComponent();
-            JViewport viewPort = (JViewport)scrollPane.getComponent(0);
-            JTree t = (JTree)viewPort.getComponent(0);
+            JTabbedPane tabbedPane = (JTabbedPane) e.getSource();
+            JScrollPane scrollPane = (JScrollPane) tabbedPane.getSelectedComponent();
+            JViewport viewPort = (JViewport) scrollPane.getComponent(0);
+            JTree t = (JTree) viewPort.getComponent(0);
             currentJTree = t;
         }
     }
 
-    enum FindType { First, Next, All };
-    enum FindWhat { Method, Arg };
+    enum FindType {
+        First, Next, All
+    };
+
+    enum FindWhat {
+        Method, Arg
+    };
 
     public JTree getCurrentJTree() {
         return currentJTree;
     }
 
     class APopupMenu implements TreeSelectionListener {
+
         JTree tree;
         FindHelper findHelper;
         boolean moveByFind = false;
@@ -238,32 +249,33 @@ public class TraceAnalyzer extends JPanel {
 
         /** Required by TreeSelectionListener interface. */
         public void valueChanged(TreeSelectionEvent e) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-            tree.getLastSelectedPathComponent();
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
 
-            if (node == null) return;
+            if (node == null)
+                return;
 
-            MethodData md = (MethodData)node.getUserObject();
+            MethodData md = (MethodData) node.getUserObject();
             if (DEBUG) {
                 System.out.println(md.toString());
             }
             // reset FindHelper unless this change came from moveByNode
-            if (!moveByFind) findHelper.startTp = null;
+            if (!moveByFind)
+                findHelper.startTp = null;
         }
 
         class PropertiesAction extends AbstractAction {
+
             JPanel propsPanel;
             Map<String, JTextField> propsMap = new HashMap<String, JTextField>();
 
             public PropertiesAction() {
                 super("Properties", null);
-                //putValue(SHORT_DESCRIPTION, desc);
-                //putValue(MNEMONIC_KEY, mnemonic);
-                String[] labels = {"Name", "Entry time", "Exit time", "Entry cpu", "Exit cpu",
-                "This", "Result", "Parameters"};
+                // putValue(SHORT_DESCRIPTION, desc);
+                // putValue(MNEMONIC_KEY, mnemonic);
+                String[] labels = { "Name", "Entry time", "Exit time", "Entry cpu", "Exit cpu", "This", "Result", "Parameters"};
 
                 propsPanel = new JPanel(new SpringLayout());
-                for (int i=0; i<labels.length; i++) {
+                for (int i = 0; i < labels.length; i++) {
                     JLabel l = new JLabel(labels[i] + ": ", JLabel.TRAILING);
                     propsPanel.add(l);
                     JTextField textField = new JTextField(10);
@@ -274,23 +286,26 @@ public class TraceAnalyzer extends JPanel {
                 SpringUtilities.makeCompactGrid(propsPanel, labels.length, 2, 5, 5, 5, 5);
 
             }
+
             public void actionPerformed(ActionEvent e) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-                tree.getLastSelectedPathComponent();
-                if (DEBUG) System.out.println(e);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+                if (DEBUG)
+                    System.out.println(e);
 
-                if (node == null) return;
+                if (node == null)
+                    return;
 
-                MethodData md = (MethodData)node.getUserObject();
+                MethodData md = (MethodData) node.getUserObject();
                 propsMap.get("Name").setText(md.methodName);
-                propsMap.get("This").setText(md.thisArg==null ? "" : md.thisArg);
-                propsMap.get("Result").setText(md.result==null ? "" : md.result);
+                propsMap.get("This").setText(md.thisArg == null ? "" : md.thisArg);
+                propsMap.get("Result").setText(md.result == null ? "" : md.result);
                 long tst = timeDisplay == TimeDisplay.WallRel ? traceStartTime : 0;
-                propsMap.get("Entry time").setText(TimeFunctions.formatTime(md.entryTimeInfo.wallTime-tst));
-                propsMap.get("Exit time").setText(md.exitTimeInfo == null ? "?" : TimeFunctions.formatTime(md.exitTimeInfo.wallTime-tst));
+                propsMap.get("Entry time").setText(TimeFunctions.formatTime(md.entryTimeInfo.wallTime - tst));
+                propsMap.get("Exit time").setText(md.exitTimeInfo == null ? "?" : TimeFunctions.formatTime(md.exitTimeInfo.wallTime - tst));
                 propsMap.get("Entry cpu").setText("u: " + TimeFunctions.formatTime(md.entryTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(md.entryTimeInfo.sysUsage));
-                propsMap.get("Exit cpu").setText(md.exitTimeInfo == null ? "?" : "u:" + TimeFunctions.formatTime(md.exitTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(md.exitTimeInfo.sysUsage));
-                propsMap.get("Parameters").setText(md.params==null ? "" : fixNL(md.params));
+                propsMap.get("Exit cpu").setText(
+                                md.exitTimeInfo == null ? "?" : "u:" + TimeFunctions.formatTime(md.exitTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(md.exitTimeInfo.sysUsage));
+                propsMap.get("Parameters").setText(md.params == null ? "" : fixNL(md.params));
                 JFrame propsFrame = new JFrame("Properties for " + md.methodName);
                 propsFrame.add(propsPanel);
                 propsFrame.pack();
@@ -300,9 +315,10 @@ public class TraceAnalyzer extends JPanel {
             private String fixNL(String s) {
                 String[] sp = s.split("\\\\n");
                 StringBuilder sb = new StringBuilder(s.length());
-                for (int i=0; i<sp.length; i++) {
+                for (int i = 0; i < sp.length; i++) {
                     sb.append(sp[i]);
-                    if (i != sp.length-1) sb.append('\n');
+                    if (i != sp.length - 1)
+                        sb.append('\n');
                 }
                 return sb.toString();
             }
@@ -310,14 +326,16 @@ public class TraceAnalyzer extends JPanel {
         }
 
         class ExpandAction extends AbstractAction {
+
             public ExpandAction(String name) {
                 super(name, null);
-                //putValue(SHORT_DESCRIPTION, desc);
-                //putValue(MNEMONIC_KEY, mnemonic);
+                // putValue(SHORT_DESCRIPTION, desc);
+                // putValue(MNEMONIC_KEY, mnemonic);
             }
+
             public void actionPerformed(ActionEvent e) {
                 TreePath tp = tree.getSelectionPath();
-                //System.out.println("Path is " + tp);
+                // System.out.println("Path is " + tp);
                 String response = JOptionPane.showInputDialog(myFrame, "Depth:");
                 if (response != null && !response.equals("")) {
                     try {
@@ -330,36 +348,42 @@ public class TraceAnalyzer extends JPanel {
             }
 
             protected void expandNodes(TreePath tp, int n) {
-                TreeNode tn = (TreeNode)tp.getLastPathComponent();
+                TreeNode tn = (TreeNode) tp.getLastPathComponent();
                 tree.makeVisible(tp);
                 if (!tn.isLeaf() && n > 0) {
                     Enumeration en = tn.children();
                     while (en.hasMoreElements()) {
-                        TreeNode ctn = (TreeNode)en.nextElement();
+                        TreeNode ctn = (TreeNode) en.nextElement();
                         TreePath ctp = tp.pathByAddingChild(ctn);
-                        expandNodes(ctp, n-1);
+                        expandNodes(ctp, n - 1);
                     }
                 }
             }
         }
 
         class ExpandAllAction extends ExpandAction {
+
             public ExpandAllAction(String name) {
                 super(name);
-                //putValue(SHORT_DESCRIPTION, desc);
-                //putValue(MNEMONIC_KEY, mnemonic);
-            }
-            public void actionPerformed(ActionEvent e) {
-                TreePath tp = tree.getSelectionPath();
-                //System.out.println("Path is " + tp);
-                expandNodes(tp, Integer.MAX_VALUE);
+                // putValue(SHORT_DESCRIPTION, desc);
+                // putValue(MNEMONIC_KEY, mnemonic);
             }
 
+            public void actionPerformed(ActionEvent e) {
+                TreePath tp = tree.getSelectionPath();
+                // System.out.println("Path is " + tp);
+                expandNodes(tp, Integer.MAX_VALUE);
+            }
 
         }
 
         class FindHelper {
+<<<<<<< local
+
+            static final String DEFAULT_SEARCH_TEXT = "org.apache.derby[\\.\\w]*";
+=======
             static final String DEFAULT_SEARCH_TEXT = "com.sun.guestvm[\\.\\w]*";
+>>>>>>> other
             String searchText = DEFAULT_SEARCH_TEXT;
             TreePath startTp = null;
             TreePath[] matches = null;
@@ -375,6 +399,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         class FindAction extends AbstractAction {
+
             FindType type;
             FindWhat findWhat;
             FindHelper findHelper;
@@ -398,18 +423,12 @@ public class TraceAnalyzer extends JPanel {
                     }
                 } else {
                     TreePath tp = tree.getSelectionPath();
-                    String response = (String)JOptionPane.showInputDialog(
-                            myFrame,
-                            "Find:",
-                            "",
-                            JOptionPane.PLAIN_MESSAGE,
-                            null,
-                            null,
-                            findHelper.searchText);
-                    if (response == null) return;
+                    String response = (String) JOptionPane.showInputDialog(myFrame, "Find:", "", JOptionPane.PLAIN_MESSAGE, null, null, findHelper.searchText);
+                    if (response == null)
+                        return;
                     findHelper.searchText = response;
                     findHelper.startTp = tp;
-                    findHelper.nextIndex = 1;  // where Find->Next looks
+                    findHelper.nextIndex = 1; // where Find->Next looks
                     TreePath[] tpa = findNodes();
                     if (tpa != null) {
                         findHelper.matches = tpa;
@@ -425,7 +444,8 @@ public class TraceAnalyzer extends JPanel {
             }
 
             private void moveToNode(TreePath tp) {
-                if (DEBUG) System.out.println(tp);
+                if (DEBUG)
+                    System.out.println(tp);
                 moveByFind = true;
                 tree.setSelectionPath(tp);
                 tree.scrollPathToVisible(tp);
@@ -433,8 +453,13 @@ public class TraceAnalyzer extends JPanel {
             }
 
             class MyTreePath extends TreePath {
+
                 TreePath tp;
-                MyTreePath(TreePath tp) { this.tp = tp; }
+
+                MyTreePath(TreePath tp) {
+                    this.tp = tp;
+                }
+
                 public String toString() {
                     return tp.getLastPathComponent().toString();
                 }
@@ -446,18 +471,21 @@ public class TraceAnalyzer extends JPanel {
                 // us to move the selection in the threadTree when the user double-clicks
                 // on a node in the depth 1 tree.
                 MyTreePath[] mtpa = new MyTreePath[tpa.length];
-                for (int i=0; i<tpa.length; i++) {
+                for (int i = 0; i < tpa.length; i++) {
                     mtpa[i] = new MyTreePath(tpa[i]);
                 }
                 final JTree tpaTree = new JTree(mtpa);
                 matchJTrees.add(tpaTree);
                 MouseListener ml = new MouseAdapter() {
+
                     public void mousePressed(MouseEvent e) {
-                        DefaultMutableTreeNode tn = (DefaultMutableTreeNode)tpaTree.getLastSelectedPathComponent();
-                        if (tn == null) return;
-                        MyTreePath ttp = (MyTreePath)tn.getUserObject();
+                        DefaultMutableTreeNode tn = (DefaultMutableTreeNode) tpaTree.getLastSelectedPathComponent();
+                        if (tn == null)
+                            return;
+                        MyTreePath ttp = (MyTreePath) tn.getUserObject();
                         // ttp is the path to the node in the threadTree
-                        if (DEBUG) System.out.println(ttp.tp);
+                        if (DEBUG)
+                            System.out.println(ttp.tp);
                         tree.setSelectionPath(ttp.tp);
                         tree.scrollPathToVisible(ttp.tp);
                     }
@@ -469,8 +497,7 @@ public class TraceAnalyzer extends JPanel {
                 JMenuBar tpaFrameMenuBar = new JMenuBar();
                 JMenu tpaFrameMenu = new JMenu("File");
                 tpaFrameMenuBar.add(tpaFrameMenu);
-                JMenuItem tpaFrameMenuSaveItem = new JMenuItem(new SaveAction(tpaFrame,
-                        new FindSaveActionBody(tpaTree)));
+                JMenuItem tpaFrameMenuSaveItem = new JMenuItem(new SaveAction(tpaFrame, new FindSaveActionBody(tpaTree)));
                 tpaFrameMenu.add(tpaFrameMenuSaveItem);
                 tpaFrameMenu.add(new JMenuItem(new CloseAction(tpaFrame)));
                 tpaFrame.setJMenuBar(tpaFrameMenuBar);
@@ -479,24 +506,27 @@ public class TraceAnalyzer extends JPanel {
             }
 
             class FindSaveActionBody implements SaveActionBody {
+
                 JTree myTree;
+
                 FindSaveActionBody(JTree myTree) {
                     this.myTree = myTree;
                 }
+
                 public void doSave(PrintWriter pw) {
-                    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-                    for (int i=0; i<root.getChildCount(); i++) {
-                        DefaultMutableTreeNode child = (DefaultMutableTreeNode)root.getChildAt(i);
-                        MyTreePath mtp = (MyTreePath)child.getUserObject();
-                        DefaultMutableTreeNode realChild = (DefaultMutableTreeNode)mtp.tp.getLastPathComponent();
-                        MethodData md = (MethodData)realChild.getUserObject();
+                    DefaultMutableTreeNode root = (DefaultMutableTreeNode) myTree.getModel().getRoot();
+                    for (int i = 0; i < root.getChildCount(); i++) {
+                        DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
+                        MyTreePath mtp = (MyTreePath) child.getUserObject();
+                        DefaultMutableTreeNode realChild = (DefaultMutableTreeNode) mtp.tp.getLastPathComponent();
+                        MethodData md = (MethodData) realChild.getUserObject();
                         pw.println(md);
                     }
                 }
             }
 
             protected TreePath[] findNodes() {
-                DefaultMutableTreeNode tn = (DefaultMutableTreeNode)findHelper.startTp.getLastPathComponent();
+                DefaultMutableTreeNode tn = (DefaultMutableTreeNode) findHelper.startTp.getLastPathComponent();
                 ArrayList<TreePath> result = new ArrayList<TreePath>();
                 Pattern pattern;
                 try {
@@ -507,43 +537,43 @@ public class TraceAnalyzer extends JPanel {
                 }
                 matchTree(tn, result, pattern);
                 int size = result.size();
-                if (size == 0) return null;
+                if (size == 0)
+                    return null;
                 else {
                     return result.toArray(new TreePath[size]);
                 }
             }
 
             protected boolean matchTree(DefaultMutableTreeNode tn, ArrayList<TreePath> result, Pattern pattern) {
-                MethodData md = (MethodData)tn.getUserObject();
+                MethodData md = (MethodData) tn.getUserObject();
                 String toMatch = findWhat == FindWhat.Method ? md.methodName : md.params;
                 if (toMatch != null && pattern.matcher(toMatch).matches()) {
                     result.add(new TreePath(tn.getPath()));
                     // to make Find->Next easy we find all the matches always
-                    //if (type != FindType.All) return true;
+                    // if (type != FindType.All) return true;
                 }
                 Enumeration en = tn.children();
                 while (en.hasMoreElements()) {
-                    DefaultMutableTreeNode ctn = (DefaultMutableTreeNode)en.nextElement();
-                    if (matchTree(ctn, result, pattern) /*&& type != FindType.All*/) return true;
+                    DefaultMutableTreeNode ctn = (DefaultMutableTreeNode) en.nextElement();
+                    if (matchTree(ctn, result, pattern) /* && type != FindType.All */)
+                        return true;
                 }
                 return false;
             }
         }
 
         class MyTimeAction extends AbstractAction {
+
             public MyTimeAction(String name) {
                 super(name, null);
             }
 
             public void actionPerformed(ActionEvent e) {
                 TreePath tp = tree.getSelectionPath();
-                DefaultMutableTreeNode tn = (DefaultMutableTreeNode)tp.getLastPathComponent();
+                DefaultMutableTreeNode tn = (DefaultMutableTreeNode) tp.getLastPathComponent();
                 TimeInfo ti = timeForNode(tn);
-                JOptionPane.showMessageDialog(myFrame,
-                        "w="+ TimeFunctions.formatTime(ti.wallTime) +
-                        ", u=" + TimeFunctions.formatTime(ti.userUsage) +
-                        ", s=" + TimeFunctions.formatTime(ti.sysUsage), "",
-                        JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(myFrame, "w=" + TimeFunctions.formatTime(ti.wallTime) + ", u=" + TimeFunctions.formatTime(ti.userUsage) + ", s=" + TimeFunctions.formatTime(ti.sysUsage),
+                                "", JOptionPane.INFORMATION_MESSAGE);
             }
         }
 
@@ -556,6 +586,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         class TimeSortAction extends AbstractAction {
+
             String sortBy;
             Comparator nameAndTimeInfoComparator;
             TimeInfo.Adder timeInfoAdder;
@@ -582,14 +613,18 @@ public class TraceAnalyzer extends JPanel {
             }
 
             class NameAndTimeInfo {
+
                 String name;
                 TimeInfo timeInfo;
+
                 NameAndTimeInfo(String name, TimeInfo timeInfo) {
-                    this.name = name; this.timeInfo = timeInfo;
+                    this.name = name;
+                    this.timeInfo = timeInfo;
                 }
             }
 
             class NameAndTimeInfoComparator implements Comparator<NameAndTimeInfo> {
+
                 Comparator<TimeInfo> timeInfoComparator;
 
                 NameAndTimeInfoComparator(Comparator<TimeInfo> timeInfoComparator) {
@@ -603,49 +638,47 @@ public class TraceAnalyzer extends JPanel {
 
             public void actionPerformed(ActionEvent e) {
                 TreePath tp = tree.getSelectionPath();
-                DefaultMutableTreeNode tn = (DefaultMutableTreeNode)tp.getLastPathComponent();
-                Map<String,ArrayList<DefaultMutableTreeNode>> map = new HashMap<String,ArrayList<DefaultMutableTreeNode>>();
+                DefaultMutableTreeNode tn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+                Map<String, ArrayList<DefaultMutableTreeNode>> map = new HashMap<String, ArrayList<DefaultMutableTreeNode>>();
                 visitNodes(map, tn);
                 // now we need to sum up the times for the individual methods
                 NameAndTimeInfo[] nameAndTimeInfo = new NameAndTimeInfo[map.size()];
                 int ix = 0;
                 for (Map.Entry me : map.entrySet()) {
-                    ArrayList<DefaultMutableTreeNode> altn = (ArrayList<DefaultMutableTreeNode>)me.getValue();
+                    ArrayList<DefaultMutableTreeNode> altn = (ArrayList<DefaultMutableTreeNode>) me.getValue();
                     TimeInfo alti = new TimeInfo();
                     for (DefaultMutableTreeNode xtn : altn) {
                         alti.add(timeForNode(xtn));
                     }
-                    nameAndTimeInfo[ix++] = new NameAndTimeInfo((String)me.getKey(), alti);
+                    nameAndTimeInfo[ix++] = new NameAndTimeInfo((String) me.getKey(), alti);
                 }
                 Arrays.sort(nameAndTimeInfo, nameAndTimeInfoComparator);
                 long totalTime = 0;
                 for (NameAndTimeInfo nti : nameAndTimeInfo) {
                     totalTime = timeInfoAdder.add(totalTime, nti.timeInfo);
                 }
-                String[] labels = {"Name", "Entry time", "Exit time", "Entry cpu", "Exit cpu",
-                "This", "Result", "Parameters"};
+                String[] labels = { "Name", "Entry time", "Exit time", "Entry cpu", "Exit cpu", "This", "Result", "Parameters"};
 
                 JPanel panel = new JPanel(new SpringLayout());
                 panel.add(new JLabel("Percent"));
                 panel.add(new JLabel("Time"));
                 panel.add(new JLabel("Method"));
-                for (int i=nameAndTimeInfo.length-1; i>=0; i--) {
+                for (int i = nameAndTimeInfo.length - 1; i >= 0; i--) {
                     NameAndTimeInfo nti = nameAndTimeInfo[i];
                     long time = nti.timeInfo.get(timeInfoType);
-                    double percent = ((double)time * 100) / (double)totalTime;
+                    double percent = ((double) time * 100) / (double) totalTime;
                     panel.add(new JTextField(TimeFunctions.ftime(percent, TimeFunctions.format2d)));
                     panel.add(new JTextField(TimeFunctions.formatTime(time)));
                     panel.add(new JTextField(nti.name));
                 }
-                SpringUtilities.makeCompactGrid(panel, nameAndTimeInfo.length+1, 3, 3, 3, 3, 3);
+                SpringUtilities.makeCompactGrid(panel, nameAndTimeInfo.length + 1, 3, 3, 3, 3, 3);
                 JFrame frame = new JFrame("Sorted Time: " + sortBy);
                 JScrollPane scrollPane = new JScrollPane(panel);
                 frame.add(scrollPane);
                 JMenu frameMenu = new JMenu("File");
                 JMenuBar frameMenuBar = new JMenuBar();
                 frameMenuBar.add(frameMenu);
-                JMenuItem frameMenuSaveItem = new JMenuItem(new SaveAction(frame,
-                        new TimeInfoSaveActionBody(nameAndTimeInfo, totalTime)));
+                JMenuItem frameMenuSaveItem = new JMenuItem(new SaveAction(frame, new TimeInfoSaveActionBody(nameAndTimeInfo, totalTime)));
                 frameMenu.add(frameMenuSaveItem);
                 frameMenu.add(new JMenuItem(new CloseAction(frame)));
                 frame.setJMenuBar(frameMenuBar);
@@ -653,11 +686,11 @@ public class TraceAnalyzer extends JPanel {
                 frame.setVisible(true);
             }
 
-            private void visitNodes(Map<String,ArrayList<DefaultMutableTreeNode>> map, DefaultMutableTreeNode ptn) {
+            private void visitNodes(Map<String, ArrayList<DefaultMutableTreeNode>> map, DefaultMutableTreeNode ptn) {
                 Enumeration en = ptn.children();
                 while (en.hasMoreElements()) {
-                    DefaultMutableTreeNode tn = (DefaultMutableTreeNode)en.nextElement();
-                    MethodData md = (MethodData)tn.getUserObject();
+                    DefaultMutableTreeNode tn = (DefaultMutableTreeNode) en.nextElement();
+                    MethodData md = (MethodData) tn.getUserObject();
                     ArrayList<DefaultMutableTreeNode> instances = map.get(md.methodName);
                     if (instances == null) {
                         // new
@@ -670,20 +703,24 @@ public class TraceAnalyzer extends JPanel {
             }
 
             class TimeInfoSaveActionBody implements SaveActionBody {
+
                 NameAndTimeInfo[] nameAndTimeInfo;
                 long totalTime;
+
                 TimeInfoSaveActionBody(NameAndTimeInfo[] nameAndTimeInfo, long totalTime) {
                     this.nameAndTimeInfo = nameAndTimeInfo;
                     this.totalTime = totalTime;
                 }
 
                 public void doSave(PrintWriter pw) {
-                    for (int i=nameAndTimeInfo.length-1; i>=0; i--) {
+                    for (int i = nameAndTimeInfo.length - 1; i >= 0; i--) {
                         NameAndTimeInfo nti = nameAndTimeInfo[i];
                         long time = nti.timeInfo.get(timeInfoType);
-                        double percent = ((double)time * 100) / (double)totalTime;
-                        pw.print(TimeFunctions.ftime(percent, TimeFunctions.format2d)); pw.print("\t");
-                        pw.print(TimeFunctions.formatTime(time)); pw.print("\t");
+                        double percent = ((double) time * 100) / (double) totalTime;
+                        pw.print(TimeFunctions.ftime(percent, TimeFunctions.format2d));
+                        pw.print("\t");
+                        pw.print(TimeFunctions.formatTime(time));
+                        pw.print("\t");
                         pw.println(nti.name);
                     }
                 }
@@ -691,12 +728,14 @@ public class TraceAnalyzer extends JPanel {
         }
 
         private TimeInfo timeForNode(DefaultMutableTreeNode tn) {
-            MethodData mymd = (MethodData)tn.getUserObject();
-            long childWall = 0; long childUser = 0; long childSys = 0;
+            MethodData mymd = (MethodData) tn.getUserObject();
+            long childWall = 0;
+            long childUser = 0;
+            long childSys = 0;
             Enumeration en = tn.children();
             while (en.hasMoreElements()) {
-                DefaultMutableTreeNode ctn = (DefaultMutableTreeNode)en.nextElement();
-                MethodData cmd = (MethodData)ctn.getUserObject();
+                DefaultMutableTreeNode ctn = (DefaultMutableTreeNode) en.nextElement();
+                MethodData cmd = (MethodData) ctn.getUserObject();
                 childWall += cmd.exitTimeInfo.wallTime - cmd.entryTimeInfo.wallTime;
                 childUser += cmd.exitTimeInfo.userUsage - cmd.entryTimeInfo.userUsage;
                 childSys += cmd.exitTimeInfo.sysUsage - cmd.entryTimeInfo.sysUsage;
@@ -704,11 +743,12 @@ public class TraceAnalyzer extends JPanel {
             long myWall = mymd.exitTimeInfo.wallTime - mymd.entryTimeInfo.wallTime;
             long myUser = mymd.exitTimeInfo.userUsage - mymd.entryTimeInfo.userUsage;
             long mySys = mymd.exitTimeInfo.sysUsage - mymd.entryTimeInfo.sysUsage;
-            return new TimeInfo(myWall-childWall, myUser-childUser, mySys-childSys);
+            return new TimeInfo(myWall - childWall, myUser - childUser, mySys - childSys);
         }
     }
 
     static class PopupListener extends MouseAdapter {
+
         JPopupMenu popup;
 
         PopupListener(JPopupMenu popupMenu) {
@@ -725,39 +765,43 @@ public class TraceAnalyzer extends JPanel {
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
-                popup.show(e.getComponent(),
-                        e.getX(), e.getY());
+                popup.show(e.getComponent(), e.getX(), e.getY());
             }
         }
     }
 
     static class NodeStack {
+
         ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<DefaultMutableTreeNode>();
         int depth = 0;
     }
 
-    private Map<String,DefaultMutableTreeNode> createNodes(BufferedReader r) throws Exception {
-        Map<String,DefaultMutableTreeNode> result = new HashMap<String,DefaultMutableTreeNode>();
-        Map<String,NodeStack> forest = new HashMap<String,NodeStack>();
+    private Map<String, DefaultMutableTreeNode> createNodes(BufferedReader r) throws Exception {
+        Map<String, DefaultMutableTreeNode> result = new HashMap<String, DefaultMutableTreeNode>();
+        Map<String, NodeStack> forest = new HashMap<String, NodeStack>();
 
         int lineCount = 0;
         long startTime = System.currentTimeMillis();
         while (true) {
             String line = r.readLine();
-            if (line == null) break;
+            if (line == null)
+                break;
             MethodData md = parseLine(line);
             lineCount++;
             if (PROGRESS && (lineCount % 1000 == 0)) {
-                System.out.println("processed " + lineCount + " lines in " +
-                        (System.currentTimeMillis() -startTime));
+                System.out.println("processed " + lineCount + " lines in " + (System.currentTimeMillis() - startTime));
             }
             if (DEBUG) {
                 System.out.print("line " + lineCount + ", " + md.ttype + " ");
-                switch (md.ttype){
+                switch (md.ttype) {
                     case StartTime:
                         System.out.println(traceStartTime);
                         break;
                     case Entry:
+<<<<<<< local
+                        System.out.println(", d " + md.depth + ", [t " + md.entryTimeInfo.wallTime + ", u " + md.entryTimeInfo.userUsage + ", s " + md.entryTimeInfo.sysUsage + "] " + md.thread +
+                                        ", " + md.methodName + (md.params == null ? "" : ("(" + md.params + ")")));
+=======
                         System.out.println(", d " + md.depth +
                                         ", [t " + md.entryTimeInfo.wallTime +
                                         ", u " + md.entryTimeInfo.userUsage +
@@ -765,8 +809,13 @@ public class TraceAnalyzer extends JPanel {
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
+>>>>>>> other
                         break;
                     case Return:
+<<<<<<< local
+                        System.out.println(", d " + md.depth + ", [t " + md.exitTimeInfo.wallTime + ", " + ", u " + md.exitTimeInfo.userUsage + ", " + ", s " + md.exitTimeInfo.sysUsage + "], " +
+                                        md.thread + ", " + md.methodName + (md.params == null ? "" : ("(" + md.params + ")")));
+=======
                         System.out.println(", d " + md.depth +
                                         ", [t " +  md.exitTimeInfo.wallTime + ", " +
                                         ", u " +  md.exitTimeInfo.userUsage + ", " +
@@ -774,11 +823,12 @@ public class TraceAnalyzer extends JPanel {
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
+>>>>>>> other
                         break;
                     case DefineThread:
                     case DefineMethod:
-                         System.out.println(md.methodName + " " + md.thread);
-                         break;
+                        System.out.println(md.methodName + " " + md.thread);
+                        break;
                 }
             }
 
@@ -787,9 +837,10 @@ public class TraceAnalyzer extends JPanel {
                 case Entry:
                     DefaultMutableTreeNode nnode = new DefaultMutableTreeNode(md);
                     nodeCount++;
-                    ns.nodes.get(md.depth-1).add(nnode);
+                    ns.nodes.get(md.depth - 1).add(nnode);
                     if (md.depth > ns.depth) {
-                        if (md.depth >= ns.nodes.size()) ns.nodes.add(null);
+                        if (md.depth >= ns.nodes.size())
+                            ns.nodes.add(null);
                     } else if (md.depth < ns.depth) {
                     } else {
                     }
@@ -798,21 +849,22 @@ public class TraceAnalyzer extends JPanel {
                     break;
 
                 case Return:
-                    DefaultMutableTreeNode parent = ns.nodes.get(md.depth-1);
+                    DefaultMutableTreeNode parent = ns.nodes.get(md.depth - 1);
                     int count = parent.getChildCount();
                     boolean found = false;
-                    for (int i=count-1; i>=0; i--) {
-                        DefaultMutableTreeNode tn = (DefaultMutableTreeNode)parent.getChildAt(i);
-                        MethodData cmd = (MethodData)tn.getUserObject();
+                    for (int i = count - 1; i >= 0; i--) {
+                        DefaultMutableTreeNode tn = (DefaultMutableTreeNode) parent.getChildAt(i);
+                        MethodData cmd = (MethodData) tn.getUserObject();
                         if (cmd.methodName.equals(md.methodName)) {
                             cmd.exitTimeInfo = md.exitTimeInfo;
-                            if (md.params != null) cmd.result = mungeResult(md.params);
+                            if (md.params != null)
+                                cmd.result = mungeResult(md.params);
                             found = true;
                             break;
                         }
                     }
                     if (!found) {
-                        System.err.println("line " + lineCount + " failed to find return for " +md.methodName);
+                        System.err.println("line " + lineCount + " failed to find return for " + md.methodName);
                     }
                     break;
 
@@ -825,7 +877,7 @@ public class TraceAnalyzer extends JPanel {
                 case DefineMethod:
             }
         }
-        for (Map.Entry<String,NodeStack> me : forest.entrySet()) {
+        for (Map.Entry<String, NodeStack> me : forest.entrySet()) {
             result.put(me.getKey(), me.getValue().nodes.get(0));
         }
         return result;
@@ -837,20 +889,28 @@ public class TraceAnalyzer extends JPanel {
     private String mungeResult(String r) {
         if (r.charAt(0) == 'A') {
             return paramMap.get(r);
-        } else return r;
+        } else
+            return r;
     }
 
     enum TraceType {
         Entry, Return, DefineThread, DefineMethod, DefineParam, StartTime;
     }
 
+<<<<<<< local
+    Map<String, String> threadMap = new HashMap<String, String>();
+    Map<String, String> methodMap = new HashMap<String, String>();
+    Map<String, String> paramMap = new HashMap<String, String>();
+=======
     Map<String,String> threadMap = new HashMap<String,String>();
     Map<String,String> methodMap = new HashMap<String,String>();
     Map<String,String> paramMap = new HashMap<String,String>();
+>>>>>>> other
 
     ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
 
     class MethodData {
+
         TraceType ttype;
         int depth;
         String thread;
@@ -862,7 +922,8 @@ public class TraceAnalyzer extends JPanel {
         TimeInfo exitTimeInfo;
 
         MethodData(TraceType ttype, String thread, int depth, String methodName, String params, TimeInfo timeInfo) {
-            this.ttype = ttype; this.thread = threadMap.get(thread);
+            this.ttype = ttype;
+            this.thread = threadMap.get(thread);
             this.depth = depth;
             this.methodName = methodMap.get(methodName);
             if (this.methodName == null) {
@@ -877,12 +938,12 @@ public class TraceAnalyzer extends JPanel {
                 this.entryTimeInfo = timeInfo;
                 if (params != null) {
                     int a1x = params.indexOf(',');
-                    if (a1x < 0) {  // no actual args
+                    if (a1x < 0) { // no actual args
                         thisArg = paramMap.get(params);
                         this.params = null;
                     } else {
                         thisArg = paramMap.get(params.substring(0, a1x));
-                        this.params = params.substring(a1x+1);
+                        this.params = params.substring(a1x + 1);
                     }
                 }
             } else if (ttype == TraceType.Return) {
@@ -891,16 +952,23 @@ public class TraceAnalyzer extends JPanel {
         }
 
         /**
-         * This variant is used for the DefineXXX variants.
-         * N.B. definitions do NOT always precede uses!
-         * @param ttype DefineXXX
-         * @param realName the real (full) name of the thread, method, param
-         * @param shortForm the short form that is used in the rest of the trace
+         * This variant is used for the DefineXXX variants. N.B. definitions do NOT always precede uses!
+         *
+         * @param ttype
+         *            DefineXXX
+         * @param realName
+         *            the real (full) name of the thread, method, param
+         * @param shortForm
+         *            the short form that is used in the rest of the trace
          */
         MethodData(TraceType ttype, String realName, String shortForm) {
-            this.ttype = ttype; this.thread = realName; this.methodName = shortForm;
-            if (ttype == TraceType.DefineThread) threadMap.put(shortForm, realName);
-            else if (ttype == TraceType.DefineParam) paramMap.put(shortForm, realName);
+            this.ttype = ttype;
+            this.thread = realName;
+            this.methodName = shortForm;
+            if (ttype == TraceType.DefineThread)
+                threadMap.put(shortForm, realName);
+            else if (ttype == TraceType.DefineParam)
+                paramMap.put(shortForm, realName);
             else if (ttype == TraceType.DefineMethod) {
                 methodMap.put(shortForm, realName);
                 for (MethodData m : forwardRefs) {
@@ -924,8 +992,10 @@ public class TraceAnalyzer extends JPanel {
                         time = time + displayTime(entryTimeInfo, exitTimeInfo, TimeInfo.Type.SysUsage) + " ";
                     }
                     String s = time + methodName;
-                    if (params != null) s += "(" + params + ")";
-                    if (result != null) s += " returned " + result;
+                    if (params != null)
+                        s += "(" + params + ")";
+                    if (result != null)
+                        s += " returned " + result;
                     return s;
 
                 default:
@@ -940,23 +1010,29 @@ public class TraceAnalyzer extends JPanel {
             switch (tt) {
                 case WallTime:
                     if (timeDisplay == TimeDisplay.WallRel) {
-                        time = startInfo.wallTime- traceStartTime;
+                        time = startInfo.wallTime - traceStartTime;
                     } else if (timeDisplay == TimeDisplay.WallAbs) {
                         time = startInfo.wallTime;
                     } else if (timeDisplay == TimeDisplay.Duration) {
-                        if (endInfo != null) { time = endInfo.wallTime - startInfo.wallTime; }
+                        if (endInfo != null) {
+                            time = endInfo.wallTime - startInfo.wallTime;
+                        }
                     }
                     break;
                 case UserUsage:
                     if (timeDisplay == TimeDisplay.Duration) {
-                        if (endInfo != null) { time = endInfo.userUsage - startInfo.userUsage; }
+                        if (endInfo != null) {
+                            time = endInfo.userUsage - startInfo.userUsage;
+                        }
                     } else {
                         time = startInfo.userUsage;
                     }
                     break;
                 case SysUsage:
                     if (timeDisplay == TimeDisplay.Duration) {
-                        if (endInfo != null) { time = endInfo.sysUsage - startInfo.sysUsage; }
+                        if (endInfo != null) {
+                            time = endInfo.sysUsage - startInfo.sysUsage;
+                        }
                     } else {
                         time = startInfo.sysUsage;
                     }
@@ -973,24 +1049,36 @@ public class TraceAnalyzer extends JPanel {
     }
 
     static class TimeInfo {
+
         static interface Adder {
+
             long add(long sum, TimeInfo ti);
         }
-        enum Type {WallTime, UserUsage, SysUsage};
+
+        enum Type {
+            WallTime, UserUsage, SysUsage
+        };
 
         long wallTime;
         long userUsage;
         long sysUsage;
 
-        TimeInfo() { }
+        TimeInfo() {
+        }
+
         TimeInfo(long wallTime, long userUsage, long sysUsage) {
-            this.wallTime = wallTime; this.userUsage = userUsage; this.sysUsage = sysUsage;
+            this.wallTime = wallTime;
+            this.userUsage = userUsage;
+            this.sysUsage = sysUsage;
         }
 
         long get(Type t) {
-            if (t == Type.WallTime) return wallTime;
-            else if (t == Type.UserUsage) return userUsage;
-            else return sysUsage;
+            if (t == Type.WallTime)
+                return wallTime;
+            else if (t == Type.UserUsage)
+                return userUsage;
+            else
+                return sysUsage;
         }
 
         void add(TimeInfo ti) {
@@ -1000,6 +1088,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         static class WallTimeAdder implements TimeInfo.Adder {
+
             // result = sum + ti.wallTime;
             public long add(long sum, TimeInfo ti) {
                 return sum + ti.wallTime;
@@ -1007,6 +1096,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         static class UserUsageAdder implements TimeInfo.Adder {
+
             // result = sum + ti.userUsage;
             public long add(long sum, TimeInfo ti) {
                 return sum + ti.userUsage;
@@ -1014,6 +1104,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         static class SysUsageAdder implements TimeInfo.Adder {
+
             // result = sum + ti.susUsage;
             public long add(long sum, TimeInfo ti) {
                 return sum + ti.sysUsage;
@@ -1021,29 +1112,44 @@ public class TraceAnalyzer extends JPanel {
         }
 
         static class WallTimeComparator implements Comparator<TimeInfo> {
+
             public int compare(TimeInfo t1, TimeInfo t2) {
-                if (t1.wallTime < t2.wallTime) return -1;
-                else if (t1.wallTime > t2.wallTime) return +1;
-                else return 0;
+                if (t1.wallTime < t2.wallTime)
+                    return -1;
+                else if (t1.wallTime > t2.wallTime)
+                    return +1;
+                else
+                    return 0;
             }
         }
+
         static class UserUsageComparator implements Comparator<TimeInfo> {
+
             public int compare(TimeInfo t1, TimeInfo t2) {
-                if (t1.userUsage < t2.userUsage) return -1;
-                else if (t1.userUsage > t2.userUsage) return +1;
-                else return 0;
+                if (t1.userUsage < t2.userUsage)
+                    return -1;
+                else if (t1.userUsage > t2.userUsage)
+                    return +1;
+                else
+                    return 0;
             }
         }
+
         static class SysUsageComparator implements Comparator<TimeInfo> {
+
             public int compare(TimeInfo t1, TimeInfo t2) {
-                if (t1.sysUsage < t2.sysUsage) return -1;
-                else if (t1.sysUsage > t2.sysUsage) return +1;
-                else return 0;
+                if (t1.sysUsage < t2.sysUsage)
+                    return -1;
+                else if (t1.sysUsage > t2.sysUsage)
+                    return +1;
+                else
+                    return 0;
             }
         }
     }
 
     static class TimeFunctions {
+
         static DecimalFormat format2d = new DecimalFormat("#.##");
         static DecimalFormat format3d = new DecimalFormat("#.###");
         static DecimalFormat format6d = new DecimalFormat("#.######");
@@ -1062,21 +1168,21 @@ public class TraceAnalyzer extends JPanel {
                     ds = ftime(stime(time), format9d) + "s";
                     break;
                 case Nano:
-                	ds = Long.toString(time) + "ns";
+                    ds = Long.toString(time) + "ns";
             }
             return ds;
         }
 
         private static double utime(long time) {
-            return (double)time / 1000;
+            return (double) time / 1000;
         }
 
         private static double mtime(long time) {
-            return (double)time / (1000 * 1000);
+            return (double) time / (1000 * 1000);
         }
 
         private static double stime(long time) {
-            return (double)time / (1000 * 1000 * 1000);
+            return (double) time / (1000 * 1000 * 1000);
         }
 
         static String ftime(double time, DecimalFormat f) {
@@ -1084,36 +1190,44 @@ public class TraceAnalyzer extends JPanel {
         }
     }
 
-    Map<String,TimeInfo> lastTimeInfoMap = new HashMap<String,TimeInfo>();
+    Map<String, TimeInfo> lastTimeInfoMap = new HashMap<String, TimeInfo>();
     TimeInfo timeInfo = new TimeInfo();
 
     private MethodData parseLine(String line) throws Exception {
         // Format, four cases, [] optional
-        // 0 S S t                  start time
-        // 0 D TX name               define short name SX for thread name
-        // 0 M MX name               define short name MX for method name
-        // 0 P AX name               define short name AX for arg/result name
-        // d E[t] T M[( ... )]      method M entry [at time t,u,s] in thread T, optional args
-        // d R[t] M [ (result) ]  method M return [at time t,u,s] with optional result
+        // 0 S S t start time
+        // 0 D TX name define short name SX for thread name
+        // 0 M MX name define short name MX for method name
+        // 0 P AX name define short name AX for arg/result name
+        // d E[t] T M[( ... )] method M entry [at time t,u,s] in thread T, optional args
+        // d R[t] M [ (result) ] method M return [at time t,u,s] with optional result
         // wall time is relative to start time
 
+<<<<<<< local
+        int s1 = line.indexOf(' '); // before E/R
+        int s2 = line.indexOf(' ', s1 + 1); // before T
+        int s3 = line.indexOf(' ', s2 + 1); // before M
+        if (s1 < 0 || s2 < 0 || s3 < 0)
+            throw new Exception("syntax error");
+=======
         int s1 = line.indexOf(' ');        // before E/R
         int s2 = line.indexOf(' ', s1+1);  // before T
         int s3 = line.indexOf(' ', s2+1);  // before M
         if (s1 < 0 || s2 < 0 || s3 < 0 ) throw new Exception("syntax error");
+>>>>>>> other
 
         int depth = Integer.parseInt(line.substring(0, s1));
-        String ttype = line.substring(s1+1, s2);
-        String thread = line.substring(s2+1, s3);
+        String ttype = line.substring(s1 + 1, s2);
+        String thread = line.substring(s2 + 1, s3);
         String params = null;
         String methodName = null;
 
-        int s4 = line.indexOf('(', s3+1);
+        int s4 = line.indexOf('(', s3 + 1);
         if (s4 > 0) {
-            methodName = line.substring(s3+1, s4);
-            params = line.substring(s4+1, line.length()-1);
+            methodName = line.substring(s3 + 1, s4);
+            params = line.substring(s4 + 1, line.length() - 1);
         } else {
-            methodName = line.substring(s3+1);
+            methodName = line.substring(s3 + 1);
         }
 
         if (depth == 0) {
@@ -1135,10 +1249,14 @@ public class TraceAnalyzer extends JPanel {
             TraceType traceType = isReturn(ttype) ? TraceType.Return : TraceType.Entry;
             TimeInfo timeInfo = getTimeInfo(ttype);
             TimeInfo lastTimeInfo = lastTimeInfoMap.get(thread);
-            if (timeInfo.userUsage == 0) timeInfo.userUsage = lastTimeInfo.userUsage;
-            else lastTimeInfo.userUsage = timeInfo.userUsage;
-            if (timeInfo.sysUsage == 0) timeInfo.sysUsage = lastTimeInfo.sysUsage;
-            else lastTimeInfo.sysUsage = timeInfo.sysUsage;
+            if (timeInfo.userUsage == 0)
+                timeInfo.userUsage = lastTimeInfo.userUsage;
+            else
+                lastTimeInfo.userUsage = timeInfo.userUsage;
+            if (timeInfo.sysUsage == 0)
+                timeInfo.sysUsage = lastTimeInfo.sysUsage;
+            else
+                lastTimeInfo.sysUsage = timeInfo.sysUsage;
 
             return new MethodData(traceType, thread, depth, methodName, params, timeInfo);
         }
@@ -1148,11 +1266,11 @@ public class TraceAnalyzer extends JPanel {
         TimeInfo result = new TimeInfo();
         if (t.length() > 1) {
             int t1 = t.indexOf(',');
-            int t2 = t.indexOf(',', t1+1);
+            int t2 = t.indexOf(',', t1 + 1);
             if (t1 > 0) {
-                result.wallTime = Long.parseLong(t.substring(1,t1)) + traceStartTime;
-                result.userUsage = Long.parseLong(t.substring(t1+1, t2));
-                result.sysUsage = Long.parseLong(t.substring(t2+1));
+                result.wallTime = Long.parseLong(t.substring(1, t1)) + traceStartTime;
+                result.userUsage = Long.parseLong(t.substring(t1 + 1, t2));
+                result.sysUsage = Long.parseLong(t.substring(t2 + 1));
             } else {
                 result.wallTime = Long.parseLong(t.substring(1));
             }
@@ -1161,21 +1279,16 @@ public class TraceAnalyzer extends JPanel {
     }
 
     private boolean isReturn(String token) {
-        return token.length() > 0 && token.charAt(0) == 'R' &&
-                (token.length() == 1 ||
-                ('0' <= token.charAt(1) && token.charAt(1) <= '9'));
+        return token.length() > 0 && token.charAt(0) == 'R' && (token.length() == 1 || ('0' <= token.charAt(1) && token.charAt(1) <= '9'));
     }
 
     /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event-dispatching thread.
+     * Create the GUI and show it. For thread safety, this method should be invoked from the event-dispatching thread.
      */
     private static void createAndShowGUI(String[] args) {
         if (useSystemLookAndFeel) {
             try {
-                UIManager.setLookAndFeel(
-                        UIManager.getSystemLookAndFeelClassName());
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
                 System.err.println("Couldn't use system look and feel.");
             }
@@ -1186,7 +1299,7 @@ public class TraceAnalyzer extends JPanel {
 
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
-        //------------ File ---------------
+        // ------------ File ---------------
         JMenu fileMenu = new JMenu("File");
         menuBar.add(fileMenu);
         JMenuItem openItem = new JMenuItem(new OpenAction());
@@ -1199,12 +1312,12 @@ public class TraceAnalyzer extends JPanel {
         fileMenu.addSeparator();
         JMenuItem exitItem = new JMenuItem(new ExitAction());
         fileMenu.add(exitItem);
-        //------------ Edit ---------------
-        //JMenu edit = new JMenu("Edit");
-        //menuBar.add(edit);
-        //JMenuItem findItem = new JMenuItem(new FindAction());
-        //edit.add(findItem);
-        //------------ Show ---------------
+        // ------------ Edit ---------------
+        // JMenu edit = new JMenu("Edit");
+        // menuBar.add(edit);
+        // JMenuItem findItem = new JMenuItem(new FindAction());
+        // edit.add(findItem);
+        // ------------ Show ---------------
         JMenu showMenu = new JMenu("Show");
         ButtonGroup showGroup = new ButtonGroup();
         JRadioButtonMenuItem etaItem = new JRadioButtonMenuItem(new ElapsedTimeAction());
@@ -1223,7 +1336,7 @@ public class TraceAnalyzer extends JPanel {
         JMenuItem selItem = new JMenuItem(new ScrollSelAction());
         showMenu.add(selItem);
         menuBar.add(showMenu);
-        //------------ Format ---------------
+        // ------------ Format ---------------
         JMenu formatMenu = new JMenu("Format");
         JMenu timeSubMenu = new JMenu("Time");
         ButtonGroup timeGroup = new ButtonGroup();
@@ -1231,6 +1344,17 @@ public class TraceAnalyzer extends JPanel {
         JRadioButtonMenuItem microItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Micro));
         JRadioButtonMenuItem milliItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Milli));
         JRadioButtonMenuItem secItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Sec));
+<<<<<<< local
+        milliItem.setSelected(true);
+        timeGroup.add(nanoItem);
+        timeGroup.add(microItem);
+        timeGroup.add(milliItem);
+        timeGroup.add(secItem);
+        timeSubMenu.add(nanoItem);
+        timeSubMenu.add(microItem);
+        timeSubMenu.add(milliItem);
+        timeSubMenu.add(secItem);
+=======
         switch (timeFormat) {
             case Nano: nanoItem.setSelected(true); break;
             case Micro: microItem.setSelected(true); break;
@@ -1242,6 +1366,7 @@ public class TraceAnalyzer extends JPanel {
         timeGroup.add(milliItem); timeGroup.add(secItem);
         timeSubMenu.add(nanoItem); timeSubMenu.add(microItem);
         timeSubMenu.add(milliItem); timeSubMenu.add(secItem);
+>>>>>>> other
         formatMenu.add(timeSubMenu);
         menuBar.add(formatMenu);
 
@@ -1249,9 +1374,10 @@ public class TraceAnalyzer extends JPanel {
     }
 
     public static void main(final String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
+        // Schedule a job for the event-dispatching thread:
+        // creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
+
             public void run() {
                 createAndShowGUI(args);
             }
@@ -1259,58 +1385,70 @@ public class TraceAnalyzer extends JPanel {
     }
 
     class OpenAction extends AbstractAction {
+
         public OpenAction() {
             super("Open", null);
         }
+
         public void actionPerformed(ActionEvent e) {
             JFileChooser fc = new JFileChooser();
             int returnVal = fc.showOpenDialog(myFrame);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                new TraceAnalyzer(new String[] {"-f", file.getPath()});
+                new TraceAnalyzer(new String[] { "-f", file.getPath()});
             }
         }
     }
 
     class PropsAction extends AbstractAction {
+
         public PropsAction() {
             super("Properties", null);
         }
+
         public void actionPerformed(ActionEvent e) {
             JOptionPane.showMessageDialog(myFrame, "Trace file path: " + traceFilePathName, "", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
     static class ExitAction extends AbstractAction {
+
         public ExitAction() {
             super("Exit", null);
-            //putValue(SHORT_DESCRIPTION, desc);
-            //putValue(MNEMONIC_KEY, mnemonic);
+            // putValue(SHORT_DESCRIPTION, desc);
+            // putValue(MNEMONIC_KEY, mnemonic);
         }
+
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
         }
     }
 
     static class CloseAction extends AbstractAction {
+
         JFrame frame;
+
         public CloseAction(JFrame frame) {
             super("Close", null);
             this.frame = frame;
-            //putValue(SHORT_DESCRIPTION, desc);
-            //putValue(MNEMONIC_KEY, mnemonic);
+            // putValue(SHORT_DESCRIPTION, desc);
+            // putValue(MNEMONIC_KEY, mnemonic);
         }
+
         public void actionPerformed(ActionEvent e) {
             frame.dispose();
         }
     }
 
     class TimeAction extends AbstractAction {
+
         TimeFormat tf;
+
         public TimeAction(TimeFormat tf) {
             super(tf.toString());
             this.tf = tf;
         }
+
         public void actionPerformed(ActionEvent e) {
             timeFormat = tf;
             repaintTrees();
@@ -1318,25 +1456,31 @@ public class TraceAnalyzer extends JPanel {
     }
 
     class FindAction extends AbstractAction {
+
         public FindAction() {
             super("Find");
         }
+
         public void actionPerformed(ActionEvent e) {
         }
     }
 
     class SnapShotAction extends AbstractAction {
+
         public SnapShotAction() {
             super("Snapshot");
         }
+
         public void actionPerformed(ActionEvent e) {
         }
     }
 
     class AbsElapsedTimeAction extends AbstractAction {
+
         public AbsElapsedTimeAction() {
             super("Wall Clock Absolute");
         }
+
         public void actionPerformed(ActionEvent e) {
             timeDisplay = TimeDisplay.WallAbs;
             repaintTrees();
@@ -1344,9 +1488,11 @@ public class TraceAnalyzer extends JPanel {
     }
 
     class ElapsedTimeAction extends AbstractAction {
+
         public ElapsedTimeAction() {
             super("Wall Clock Relative");
         }
+
         public void actionPerformed(ActionEvent e) {
             timeDisplay = TimeDisplay.WallRel;
             repaintTrees();
@@ -1354,9 +1500,11 @@ public class TraceAnalyzer extends JPanel {
     }
 
     class DurationTimeAction extends AbstractAction {
+
         public DurationTimeAction() {
             super("Duration");
         }
+
         public void actionPerformed(ActionEvent e) {
             timeDisplay = TimeDisplay.Duration;
             repaintTrees();
@@ -1364,9 +1512,11 @@ public class TraceAnalyzer extends JPanel {
     }
 
     class ScrollSelAction extends AbstractAction {
+
         public ScrollSelAction() {
             super("Selection");
         }
+
         public void actionPerformed(ActionEvent e) {
             TreePath tp = currentJTree.getSelectionPath();
             currentJTree.scrollPathToVisible(tp);
@@ -1383,26 +1533,30 @@ public class TraceAnalyzer extends JPanel {
     }
 
     static interface SaveActionBody {
+
         public void doSave(PrintWriter pw);
     }
 
     static class SaveAction extends AbstractAction {
+
         JFrame frame;
         SaveActionBody body;
 
         public SaveAction(JFrame frame, SaveActionBody body) {
             super("Save", null);
-            this.frame = frame; this.body = body;
+            this.frame = frame;
+            this.body = body;
         }
+
         public void actionPerformed(ActionEvent e) {
             JFileChooser fc = new JFileChooser();
             int returnVal = fc.showOpenDialog(frame);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
                 if (file.exists()) {
-                    int r = JOptionPane.showConfirmDialog(frame, "File exists, ok to overwrite?",
-                            "File exists", JOptionPane.YES_NO_OPTION);
-                    if (r == JOptionPane.NO_OPTION) return;
+                    int r = JOptionPane.showConfirmDialog(frame, "File exists, ok to overwrite?", "File exists", JOptionPane.YES_NO_OPTION);
+                    if (r == JOptionPane.NO_OPTION)
+                        return;
                 }
                 PrintWriter pw = null;
                 try {
@@ -1412,7 +1566,8 @@ public class TraceAnalyzer extends JPanel {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(frame, "error writing file", "", JOptionPane.ERROR_MESSAGE);
                 } finally {
-                    if (pw != null) pw.close();
+                    if (pw != null)
+                        pw.close();
                 }
             }
         }
