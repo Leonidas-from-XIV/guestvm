@@ -378,12 +378,7 @@ public class TraceAnalyzer extends JPanel {
         }
 
         class FindHelper {
-<<<<<<< local
-
-            static final String DEFAULT_SEARCH_TEXT = "org.apache.derby[\\.\\w]*";
-=======
             static final String DEFAULT_SEARCH_TEXT = "com.sun.guestvm[\\.\\w]*";
->>>>>>> other
             String searchText = DEFAULT_SEARCH_TEXT;
             TreePath startTp = null;
             TreePath[] matches = null;
@@ -798,10 +793,6 @@ public class TraceAnalyzer extends JPanel {
                         System.out.println(traceStartTime);
                         break;
                     case Entry:
-<<<<<<< local
-                        System.out.println(", d " + md.depth + ", [t " + md.entryTimeInfo.wallTime + ", u " + md.entryTimeInfo.userUsage + ", s " + md.entryTimeInfo.sysUsage + "] " + md.thread +
-                                        ", " + md.methodName + (md.params == null ? "" : ("(" + md.params + ")")));
-=======
                         System.out.println(", d " + md.depth +
                                         ", [t " + md.entryTimeInfo.wallTime +
                                         ", u " + md.entryTimeInfo.userUsage +
@@ -809,13 +800,8 @@ public class TraceAnalyzer extends JPanel {
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
->>>>>>> other
                         break;
                     case Return:
-<<<<<<< local
-                        System.out.println(", d " + md.depth + ", [t " + md.exitTimeInfo.wallTime + ", " + ", u " + md.exitTimeInfo.userUsage + ", " + ", s " + md.exitTimeInfo.sysUsage + "], " +
-                                        md.thread + ", " + md.methodName + (md.params == null ? "" : ("(" + md.params + ")")));
-=======
                         System.out.println(", d " + md.depth +
                                         ", [t " +  md.exitTimeInfo.wallTime + ", " +
                                         ", u " +  md.exitTimeInfo.userUsage + ", " +
@@ -823,7 +809,6 @@ public class TraceAnalyzer extends JPanel {
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
->>>>>>> other
                         break;
                     case DefineThread:
                     case DefineMethod:
@@ -897,15 +882,9 @@ public class TraceAnalyzer extends JPanel {
         Entry, Return, DefineThread, DefineMethod, DefineParam, StartTime;
     }
 
-<<<<<<< local
-    Map<String, String> threadMap = new HashMap<String, String>();
-    Map<String, String> methodMap = new HashMap<String, String>();
-    Map<String, String> paramMap = new HashMap<String, String>();
-=======
     Map<String,String> threadMap = new HashMap<String,String>();
     Map<String,String> methodMap = new HashMap<String,String>();
     Map<String,String> paramMap = new HashMap<String,String>();
->>>>>>> other
 
     ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
 
@@ -1203,18 +1182,10 @@ public class TraceAnalyzer extends JPanel {
         // d R[t] M [ (result) ] method M return [at time t,u,s] with optional result
         // wall time is relative to start time
 
-<<<<<<< local
-        int s1 = line.indexOf(' '); // before E/R
-        int s2 = line.indexOf(' ', s1 + 1); // before T
-        int s3 = line.indexOf(' ', s2 + 1); // before M
-        if (s1 < 0 || s2 < 0 || s3 < 0)
-            throw new Exception("syntax error");
-=======
         int s1 = line.indexOf(' ');        // before E/R
         int s2 = line.indexOf(' ', s1+1);  // before T
         int s3 = line.indexOf(' ', s2+1);  // before M
         if (s1 < 0 || s2 < 0 || s3 < 0 ) throw new Exception("syntax error");
->>>>>>> other
 
         int depth = Integer.parseInt(line.substring(0, s1));
         String ttype = line.substring(s1 + 1, s2);
@@ -1344,17 +1315,6 @@ public class TraceAnalyzer extends JPanel {
         JRadioButtonMenuItem microItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Micro));
         JRadioButtonMenuItem milliItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Milli));
         JRadioButtonMenuItem secItem = new JRadioButtonMenuItem(new TimeAction(TimeFormat.Sec));
-<<<<<<< local
-        milliItem.setSelected(true);
-        timeGroup.add(nanoItem);
-        timeGroup.add(microItem);
-        timeGroup.add(milliItem);
-        timeGroup.add(secItem);
-        timeSubMenu.add(nanoItem);
-        timeSubMenu.add(microItem);
-        timeSubMenu.add(milliItem);
-        timeSubMenu.add(secItem);
-=======
         switch (timeFormat) {
             case Nano: nanoItem.setSelected(true); break;
             case Micro: microItem.setSelected(true); break;
@@ -1366,7 +1326,6 @@ public class TraceAnalyzer extends JPanel {
         timeGroup.add(milliItem); timeGroup.add(secItem);
         timeSubMenu.add(nanoItem); timeSubMenu.add(microItem);
         timeSubMenu.add(milliItem); timeSubMenu.add(secItem);
->>>>>>> other
         formatMenu.add(timeSubMenu);
         menuBar.add(formatMenu);
 
