@@ -125,6 +125,10 @@ Java_com_sun_guestvm_guk_GUK_guk_1exec_1write_1bytes(JNIEnv *env, jclass c, jint
 	return guk_exec_write_bytes(pid, buf, length, fileOffset);
 }
 
+long guk_nano_time(void) {
+	return NOW();
+}
+
 /* Owing the the ttprintk macro magic we have to expand these manually. */
 void guk_ttprintk0(char * fmt) {
 	guk_ttprintk("%s\n", fmt);
@@ -223,6 +227,7 @@ void *guk_dlsym(const char * symbol) {
   else if (strcmp(symbol, "guk_register_is_crashing_method")  == 0) return guk_register_is_crashing_method;
   else if (strcmp(symbol, "guk_domain_id")  == 0) return guk_domain_id;
   else if (strcmp(symbol, "guk_get_cpu_running_time")  == 0) return guk_get_cpu_running_time;
+  else if (strcmp(symbol, "guk_nano_time")  == 0) return guk_nano_time;
 
   else if  (strcmp(symbol, "guk_ttprintk0") == 0) return guk_ttprintk0;
   else if  (strcmp(symbol, "guk_ttprintk1") == 0) return guk_ttprintk1;
