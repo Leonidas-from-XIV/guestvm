@@ -78,10 +78,17 @@ void guk_net_app_main(unsigned char *mac, char *nic) {
  * This is the Guest VM override (strong) definition of the GUK netfront function
  * that is called whenever a packet is taken off the ring.
  * Note that packets may arrive before the Guest VM driver is set up - they are ignored.
+ * We mark the interrupted thread as needing rescheduling to get the packet
+ * handling thread running with minimal latency (the scheduler may override this).
  */
 void guk_netif_rx(unsigned char* data, int len) {
   if (net_started) {
+	  struct thread *current;
     (*copy_packet_method)(data, len);
+    current = guk_not_idle_or_stepped();
+    if (current != NULL) {
+    	set_need_resched(current);
+    }
   }
 }
 
