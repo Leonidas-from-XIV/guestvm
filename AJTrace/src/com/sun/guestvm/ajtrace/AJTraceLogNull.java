@@ -33,7 +33,7 @@ package com.sun.guestvm.ajtrace;
 
 /**
  * The null logger.
- * 
+ *
  * @author Mick Jordan
  *
  */
@@ -49,13 +49,17 @@ public class AJTraceLogNull extends AJTraceLog {
 	}
 
 	@Override
+	public void defineParam(int id, String fullName) {
+	}
+
+	@Override
 	public void enter(int depth, long tod, long user, long sys, long threadId,
-			int methodId) {
+			int methodId, String[] args) {
 	}
 
 	@Override
 	public void exit(int depth, long tod, long user, long sys, long threadId,
-			int methodId) {
+			int methodId, String result) {
 	}
 
 	@Override

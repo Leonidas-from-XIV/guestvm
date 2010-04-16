@@ -41,22 +41,22 @@ import java.io.*;
  * 0 M MX fn             define short name MX for method fn
  * d E[t] T M              method M entry [at time t,u,s] in thread T
  * d R[t] M                 method M return [at time t,u,s]
- * 
+ *
  * This implementation is inefficient in that it allocates a StringBuilder per trace and
  * writes it out per trace. So trace log is ordered by time, with thread traces interleaved and
  * no sync required (other than that implicit on the output stream).
- * 
+ *
  * It defines protected methods that log the data to a StringBuilder for use by subclasses
  * that might, for example, buffer the output.
- * 
+ *
  * @author Mick Jordan
-*/ 
+*/
 
 public class AJTraceLogSB extends AJTraceLog {
 
 	protected PrintStream _ps;
 	private long _startTime;
-	
+
 	@Override
 	public void init(long startTime) {
 		initPS();
@@ -64,16 +64,16 @@ public class AJTraceLogSB extends AJTraceLog {
 		initLog(startTime, sb);
 		_ps.print(sb);
 	}
-	
+
 	protected void initPS() {
 		final OutputStream logStream = AJTraceLogFile.create();
 		if (logStream == null) {
 			_ps = System.out;
 		} else {
 			_ps = new PrintStream(logStream);
-		}		
+		}
 	}
-	
+
 	protected void initLog(long startTime, StringBuilder sb) {
 		_startTime = startTime;
 		sb.append("0 S S ");
@@ -81,7 +81,7 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append('\n');
 		checkFlush(sb);
 	}
-	
+
 	@Override
 	public void fini(long endTime) {
 		_ps.flush();
@@ -89,7 +89,7 @@ public class AJTraceLogSB extends AJTraceLog {
 			_ps.close();
 		}
 	}
-	
+
 	/**
 	 * Determines the size at which checkFlush will flush the StringBuilder.
 	 * Subclasses that buffer should override this method.
@@ -98,7 +98,7 @@ public class AJTraceLogSB extends AJTraceLog {
 	protected int flushSize() {
 		return 0;
 	}
-	
+
 	protected boolean checkFlush(StringBuilder sb) {
 		// conservative check that will (usually) flush before StringBuilder increases capacity
 		if (sb.length() >= flushSize() - 64) {
@@ -114,7 +114,7 @@ public class AJTraceLogSB extends AJTraceLog {
 		final StringBuilder sb = new StringBuilder();
 		defineThreadLog(id, fullName, sb);
 	}
-	
+
 	protected void defineThreadLog(long id, String fullName, StringBuilder sb) {
 		sb.append("0 D T");
 		sb.append(id);
@@ -123,14 +123,32 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append('\n');
 		checkFlush(sb);
 	}
-	
+
+	@Override
+	public void defineParam(int id, String fullName) {
+		final StringBuilder sb = new StringBuilder();
+		defineParamLog(id, fullName, sb);
+	}
+
+	protected void defineParamLog(int id, String fullName, StringBuilder sb) {
+		sb.append("0 P A");
+		sb.append(id);
+		sb.append(' ');
+		sb.append(fullName);
+		sb.append('\n');
+		checkFlush(sb);
+	}
+
 	@Override
 	public void defineMethod(int id, String fullName) {
 		final StringBuilder sb = new StringBuilder();
 		defineMethodLog(id, fullName, sb);
 	}
-	
+
 	protected void defineMethodLog(int id, String fullName, StringBuilder sb) {
+		if (fullName.equals("com.sun.c1x.alloc.Interval.assignReg")) {
+			System.console();
+		}
 		sb.append("0 M M");
 		sb.append(id);
 		sb.append(' ');
@@ -138,14 +156,15 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append('\n');
 		checkFlush(sb);
 	}
-	
+
 	@Override
-	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
 		final StringBuilder sb = new StringBuilder();
-		enterLog(depth, tod, user, sys, threadId, methodId, sb);
+		enterLog(depth, tod, user, sys, threadId, methodId, args, sb);
 	}
-	
-	protected void enterLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
+
+	protected void enterLog(int depth, long tod, long user, long sys,
+			long threadId, int methodId, String[] args, StringBuilder sb) {
 		sb.append(depth);
 		sb.append(' ');
 		sb.append('E');
@@ -154,17 +173,28 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append(threadId);
 		sb.append(" M");
 		sb.append(methodId);
+		if (args != null) {
+			sb.append('(');
+			for (int i = 0; i < args.length; i++) {
+				String arg = args[i];
+				sb.append(arg);
+				if (i != args.length-1) {
+					sb.append(',');
+				}
+			}
+			sb.append(')');
+		}
 		sb.append('\n');
 		checkFlush(sb);
 	}
-	
+
 	@Override
-	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
 		final StringBuilder sb = new StringBuilder();
-		exitLog(depth, tod, user, sys, threadId, methodId, sb);
+		exitLog(depth, tod, user, sys, threadId, methodId, result, sb);
 	}
-	
-	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
+
+	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, String result, StringBuilder sb) {
 		sb.append(depth);
 		sb.append(' ');
 		sb.append('R');
@@ -173,10 +203,15 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append(threadId);
 		sb.append(" M");
 		sb.append(methodId);
+		if (result != null) {
+			sb.append('(');
+			sb.append(result);
+			sb.append(')');
+		}
 		sb.append('\n');
 		checkFlush(sb);
 	}
-	
+
 	private void appendTime(long tod, long user, long sys,
 			StringBuilder sb) {
 		if (tod != 0) {

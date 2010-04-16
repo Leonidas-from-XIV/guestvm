@@ -34,7 +34,7 @@ package com.sun.guestvm.ajtrace;
 /**
  * This version buffers the trace logs in a single pre-allocated buffer, and hence must synchronize
  * between threads, It flushes when it reaches the log buffer size and also on fini.
- * 
+ *
  * @author Mick Jordan
  *
  */
@@ -45,7 +45,7 @@ public class AJTraceLogBSB extends AJTraceLogSB {
 	protected int _logSize;
 	private static final String LOGSIZE_PROPERTY = "guestvm.ajtrace.logbuffersize";
 	private static final int DEFAULT_LOGSIZE = 1024 * 1024;
-	
+
 	@Override
 	public void init(long startTime) {
 		initPS();
@@ -53,7 +53,7 @@ public class AJTraceLogBSB extends AJTraceLogSB {
 		_sb = new StringBuilder(_logSize);
 		initLog(startTime, _sb);
 	}
-	
+
 	protected int initLogSize() {
 		final String s = System.getProperty(LOGSIZE_PROPERTY);
 		_logSize = DEFAULT_LOGSIZE;
@@ -70,7 +70,7 @@ public class AJTraceLogBSB extends AJTraceLogSB {
 		}
 		super.fini(endTime);
 	}
-	
+
 	protected int flushSize() {
 		return _logSize;
 	}
@@ -81,19 +81,24 @@ public class AJTraceLogBSB extends AJTraceLogSB {
 	}
 
 	@Override
+	public synchronized void defineParam(int id, String fullName) {
+		defineParamLog(id, fullName, _sb);
+	}
+
+	@Override
 	public synchronized void defineThread(long id, String fullName) {
 		defineThreadLog(id, fullName, _sb);
 	}
 
 	@Override
-	public synchronized void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
-		enterLog(depth, tod, user, sys, threadId, methodId, _sb);
+	public synchronized void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
+		enterLog(depth, tod, user, sys, threadId, methodId, args, _sb);
 
 	}
 
 	@Override
-	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
-		exitLog(depth, tod, user, sys, threadId, methodId, _sb);
+	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
+		exitLog(depth, tod, user, sys, threadId, methodId, result, _sb);
 	}
 
 }

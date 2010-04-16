@@ -35,7 +35,7 @@ import java.util.*;
 /**
  * This version has a per-thread string builder, so no sync needed, but trace logs are
  * output per thread.
- * 
+ *
  * @author Mick Jordan
  *
  */
@@ -44,7 +44,7 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 	private static StringBuilderThreadLocal _sbtl;
 	private static ArrayList<StringBuilder> _sbList = new ArrayList<StringBuilder>(64);
 	private static int _ptLogSize;
-	
+
 	static class StringBuilderThreadLocal extends ThreadLocal<StringBuilder> {
 		public StringBuilder initialValue() {
 			final StringBuilder sb = new StringBuilder(_ptLogSize);
@@ -52,7 +52,7 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 			return sb;
 		}
 	}
-	
+
 	@Override
 	public void init(long startTime) {
 		initPS();
@@ -70,7 +70,7 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 		}
 		super.fini(endTime);
 	}
-	
+
 	@Override
 	public void defineMethod(int id, String fullName) {
 		defineMethodLog(id, fullName, _sbtl.get());
@@ -82,14 +82,14 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 	}
 
 	@Override
-	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId) {
-		enterLog(depth, tod, user, sys, threadId, methodId, _sbtl.get());
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
+		enterLog(depth, tod, user, sys, threadId, methodId, args, _sbtl.get());
 
 	}
 
 	@Override
-	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
-		exitLog(depth, tod, user, sys, threadId, methodId, _sbtl.get());
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
+		exitLog(depth, tod, user, sys, threadId, methodId, result, _sbtl.get());
 	}
 
 
