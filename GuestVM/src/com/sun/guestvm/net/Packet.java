@@ -63,18 +63,19 @@ public class Packet {
     byte[] _buf;                          // where the packet data is stored, so max size is _buf.length
     private int _length;              // may be set to < _buf.length
     private int _hdrOffset;          // the offset of the first byte after the "header", gets changed by protocol handlers
+    private long _timeStamp;     // incoming packet: arrival time at network device, outgoing packet: undefined
 
     private Packet(int hlen, int dlen) {
         this(hlen, dlen, new byte[hlen + dlen]);
     }
 
     // CheckStyle: stop parameter assignment check
-    
+
     /*
      * The following four methods exists for the benefit of the network device interrupt handler, com.sun.guestvm.net.guk.GUKNetDevice.
      * They must be inlined. We name them specially to indicate that fact.
      */
-    
+
     @INLINE
     public final void inlineReset() {
         _length = _buf.length;
@@ -101,6 +102,11 @@ public class Packet {
         return _buf[off];
     }
 
+    @INLINE
+    public final void inlineSetTimeStamp(long ts) {
+        _timeStamp = ts;
+    }
+
     protected Packet(int hlen, int dlen, byte[] buf) {
         _length = hlen + dlen;
         _hdrOffset = hlen;
@@ -117,6 +123,10 @@ public class Packet {
 
     public static Packet get(int length) {
         return new Packet(0, length);
+    }
+
+    public long getTimeStamp() {
+        return _timeStamp;
     }
 
     public int getSrcPort() {
@@ -317,10 +327,7 @@ public class Packet {
         _buf[off + 1] = (byte) (d & 0xff);
     }
 
-    /**
-     * Call that is used in GUKNetDevice and must be inlined.
-     */
-  public void putByte(int d, int off) {
+    public void putByte(int d, int off) {
         _buf[_hdrOffset + off] = (byte) (d & 0xff);
     }
 
