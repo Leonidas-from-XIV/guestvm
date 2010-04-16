@@ -129,6 +129,7 @@ public final class GUK {
         new CriticalNativeMethod(GUK.class, "guk_exec_destroy");
         new CriticalNativeMethod(GUK.class, "guk_domain_id");
         new CriticalNativeMethod(GUK.class, "guk_get_cpu_running_time");
+        new CriticalNativeMethod(GUK.class, "guk_nano_time");
     }
 
     private GUK() {
@@ -148,6 +149,11 @@ public final class GUK {
     public static void initialize() {
         final Address isCrashingMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(ClassActor.fromJava(GUK.class).findLocalStaticMethodActor("is_crashing"), CallEntryPoint.C_ENTRY_POINT);
         guk_register_is_crashing_method(isCrashingMethodAddress);
+    }
+
+    @INLINE
+    public static long nanoTime() {
+        return guk_nano_time();
     }
 
     /**
@@ -186,7 +192,7 @@ public final class GUK {
     static native Pointer guk_current();
     @C_FUNCTION
     static native void guk_block(Word thread);
-    @C_FUNCTION //(isInterruptHandler = true)
+    @C_FUNCTION
     static native void guk_wake(Word thread);
     @C_FUNCTION
     static native void guk_attach_to_appsched(Word thread, int id);
@@ -204,9 +210,9 @@ public final class GUK {
     static native void guk_add_timer(Pointer timer, long timeout);
     @C_FUNCTION
     static native int guk_remove_timer(Pointer timer);
-    @C_FUNCTION //(isInterruptHandler = true)
+    @C_FUNCTION
     static native void guk_spin_lock(Pointer lock);
-    @C_FUNCTION //(isInterruptHandler = true)
+    @C_FUNCTION
     static native void guk_spin_unlock(Pointer lock);
     @C_FUNCTION
     static native long guk_spin_lock_irqsave(Pointer lock);
@@ -275,9 +281,12 @@ public final class GUK {
     static native long guk_allocate_2mb_machine_pages(int n, int type);
     @C_FUNCTION
     public static native int guk_domain_id();
-
     @C_FUNCTION
     public static native void guk_netfront_xmit(Address buffer, int len);
+    @C_FUNCTION
+    static native int guk_get_cpu_running_time(int cpu);
+    @C_FUNCTION
+    static native long guk_nano_time();
 
     @C_FUNCTION
     static native void guk_ttprintk0(Pointer msg);
@@ -295,6 +304,4 @@ public final class GUK {
     static native int guk_set_trace_state(int var, int value);
     @C_FUNCTION
     static native int guk_get_trace_state(int var);
-    @C_FUNCTION
-    static native int guk_get_cpu_running_time(int cpu);
 }
