@@ -35,6 +35,7 @@ import com.sun.guestvm.guk.*;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 import com.sun.guestvm.net.device.*;
+import com.sun.guestvm.sched.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.compiler.*;
 import com.sun.max.memory.*;
@@ -43,15 +44,11 @@ import com.sun.max.unsafe.*;
 import com.sun.max.util.*;
 import com.sun.max.vm.actor.holder.*;
 
-
 /**
  * This class provides a singleton object that manages the interaction between the
  * low level GUK network driver and the JDK. It manages a ring of packet buffers
  * that are filled by the @see copyPacket upcall from uKernel. This call happens
- * in interrupt mode and so must return promptly without rescheduling, which means no use
- * of Java synchronization, unfortunately. TODO: find a clever way around this problem?
- * So we use spin locks to protect the ring buffer and native thread block/wake calls.
- * This depends on there being precisely one Java thread consuming the packets.
+ * in interrupt handler mode and so must return promptly without rescheduling.
  *
  * In interrupt handler mode, we are not in a proper Java thread context, in particular
  * code with safepoint instructions must not be executed, since that can cause
@@ -61,7 +58,24 @@ import com.sun.max.vm.actor.holder.*;
  * that might be moved by the GC, which means that the ring buffer and the
  * byte arrays must be allocated in the boot heap at image build time. Therefore,
  * the property that controls the ring buffer size is interpreted at image build time
- * and not run time.
+ * and not run time. The default is defined by @see DEFAULT_RING_SIZE.
+ * This value controls the maximum number of packets that can be processed
+ * concurrently. As an additional control, it is possible to dial down the
+ * effective concurrency using the "guestvm.net.device.mt" property. If this
+ * property is set at runtime, its value limits the number of concurrently active
+ * handlers. This is mostly a debugging aid; in particular if set to one, the
+ * network stack will be single-threaded for input packets.
+ *
+ * The ring buffer is an array of PacketHandler objects, each of which contains
+ * a Packet object, allocated at image build time, a thread and associated
+ * completion object allocated at runtime device initialisation, and a volatile
+ * boolean flag indicating whether the packet is currently being handled by the
+ * thread. When a new packet comes in, it is assigned to the first free handler
+ * or dropped if there are none. The thread that was interrupted by the
+ * incoming packet will be marked as needing to be rescheduled, which
+ * will be checked in the ukernel on return from the interrupt handler (copyPacket).
+ * This will causes network thread to run in preference to compute-bound threads
+ * (modulo other policies imposed by the scheduler).
  *
  * @author Mick Jordan
  *
@@ -73,58 +87,64 @@ public final class GUKNetDevice implements NetDevice {
     private static final int DEFAULT_RING_SIZE = 4;
     private static final String RING_SIZE_PROPERTY = "guestvm.net.device.ringsize";
     private static final String DEBUG_PROPERTY = "guestvm.net.device.debug";
+    private static final String MT_PROPERTY = "guestvm.net.device.mt";
     private static int _ringSize = DEFAULT_RING_SIZE;
     private static boolean _debug = false;
     private static GUKNetDevice _device;
 
-  //  private static Pointer _nativeThread;
-    private static Pointer _spinlock;
-    private static Pointer _completion;
-    private static Packet [] _ring;
-    private static volatile int _entryCount;
-    private static volatile int _readIndex;
-    private static volatile int _writeIndex;
-    private static boolean _deviceHandlerStarted;
+    private static PacketHandler [] _ring;
     private static Handler _handler;
     private static long _dropCount;
     private static long _pktCount;
     private static long _truncateCount;
     private static Pointer _transmitBuffer;
-    private static boolean _active;
+    private static boolean _deviceActive;
+    // these fields allow the actual handler concurrency to be controlled at runtime
+    private static int _maxActiveHandlers;
+    private static int _activeHandlers;
 
     static {
         final String ringSizeProperty = System.getProperty(RING_SIZE_PROPERTY);
         if (ringSizeProperty != null) {
             _ringSize = Integer.parseInt(ringSizeProperty);
         }
-        _ring = new Packet[_ringSize];
+        _ring = new PacketHandler[_ringSize];
         for (int i = 0; i < _ringSize; i++) {
-            _ring[i] = Packet.get(MTU);
+            _ring[i] = new PacketHandler(Packet.get(MTU));
+        }
+    }
+
+    private static class PacketHandler {
+        Packet _packet;
+        Thread _handlerThread;
+        Pointer _completion;
+        volatile boolean _active = true;  // prevents use until handler thread really started
+        PacketHandler(Packet packet) {
+            _packet = packet;
         }
     }
 
     private GUKNetDevice() {
         _debug = System.getProperty(DEBUG_PROPERTY) != null;
+        final String mtProperty = System.getProperty(MT_PROPERTY);
+        if (mtProperty != null) {
+            _maxActiveHandlers = Integer.parseInt(mtProperty);
+        }
         _transmitBuffer = Memory.allocate(Size.fromInt(MTU));
-        _spinlock = GUKScheduler.createSpinLock();
-        _completion = GUKScheduler.createCompletion();
-        final DeviceHandler deviceHandler = new DeviceHandler();
-        final Thread deviceThread = new Thread(deviceHandler, "NetDevice");
-        deviceThread.setDaemon(true);
-        deviceThread.start();
-        // We must wait until the thread has really started before we can let copyPacket execute
-        synchronized (deviceHandler) {
-            while (!_deviceHandlerStarted) {
-                try {
-                    deviceHandler.wait();
-                } catch (InterruptedException ex) {
-                }
-            }
+
+        for (int i = 0; i < _ringSize; i++) {
+            final PacketHandler packetHandler = _ring[i];
+            final DeviceHandler deviceHandler = new DeviceHandler(packetHandler);
+            final Thread deviceThread = new Thread(deviceHandler, "NetPacketHandler-" + i);
+            deviceThread.setDaemon(true);
+            deviceThread.start();
+            packetHandler._completion = GUKScheduler.createCompletion();
+            packetHandler._handlerThread = deviceThread;
         }
         // Have to pass the address of copyPacket down to the kernel
         final ClassActor classActor = ClassActor.fromJava(getClass());
         final Address copyMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(classActor.findLocalStaticMethodActor("copyPacket"), CallEntryPoint.C_ENTRY_POINT);
-        _active = guestvmXen_netStart(copyMethodAddress);
+        _deviceActive = guestvmXen_netStart(copyMethodAddress);
         _device = this;
     }
 
@@ -136,7 +156,7 @@ public final class GUKNetDevice implements NetDevice {
     }
 
     public boolean active() {
-        return _active;
+        return _deviceActive;
     }
 
     public byte[] getMACAddress() {
@@ -170,7 +190,7 @@ public final class GUKNetDevice implements NetDevice {
     }
 
     public synchronized void transmit(Packet pkt) {
-        if (!_active) {
+        if (!_deviceActive) {
             if (_debug) {
                 dprintln("device not active");
             }
@@ -210,31 +230,25 @@ public final class GUKNetDevice implements NetDevice {
     }
 
     static class DeviceHandler implements Runnable {
+        private PacketHandler _packetHandler;
+        DeviceHandler(PacketHandler packetHandler) {
+            _packetHandler = packetHandler;
+        }
+
         public void run() {
-            synchronized (this) {
-                _deviceHandlerStarted = true;
-                notify();
-            }
-            long flags = GUKScheduler.spinLockDisableInterrupts(_spinlock);
+            _packetHandler._active = false;
             while (true) {
-                // Since this is the only thread checking _entryCount we do not need a while loop to recheck
-                // that _entryCount has not changed since we woke up (unlike Object.wait)
-                // N.B. we hold _spinlock here
-                if (_entryCount == 0) {
-                    GUKScheduler.spinUnlockEnableInterrupts(_spinlock, flags);
-                    GUKScheduler.waitCompletion(_completion);
-                } else {
-                    GUKScheduler.spinUnlockEnableInterrupts(_spinlock, flags);
-                }
-
-                final Packet packet = _ring[_readIndex];
-                _readIndex = (_readIndex + 1) % _ringSize;
+                GUKScheduler.waitCompletion(_packetHandler._completion);
                 if (_handler != null) {
-                    _handler.handle(packet);
+                    if (_maxActiveHandlers > 0) {
+                        handlerGateEntry();
+                    }
+                    _handler.handle(_packetHandler._packet);
+                    if (_maxActiveHandlers > 0) {
+                        handlerGateExit();
+                    }
                 }
-
-                flags = GUKScheduler.spinLockDisableInterrupts(_spinlock);
-                _entryCount--;
+                _packetHandler._active = false;
             }
         }
     }
@@ -249,10 +263,19 @@ public final class GUKNetDevice implements NetDevice {
     @NO_SAFEPOINTS("network packet copy must be atomic")
     private static void copyPacket(Pointer p, int pktLength) {
         int length = pktLength;
-
+        PacketHandler packetHandler = null;
+        // try to find a free handler
+        for (int i = 0; i < _ringSize; i++) {
+            if (!_ring[i]._active) {
+                packetHandler = _ring[i];
+                packetHandler._active = true;
+                break;
+            }
+        }
         // All Packet calls are inlined
-        if (_entryCount != _ring.length) {
-            final Packet pkt = _ring[_writeIndex];
+        if (packetHandler != null) {
+            final Packet pkt = packetHandler._packet;
+            pkt.inlineSetTimeStamp(GUK.nanoTime());
             pkt.inlineReset();
             if (length > pkt.inlineLength()) {
                 length = pkt.inlineLength();
@@ -261,20 +284,29 @@ public final class GUKNetDevice implements NetDevice {
             for (int i = 0; i < length; i++) {
                 pkt.inlinePutByteIgnoringHdrOffset(p.readByte(i), i);
             }
-            _ring[_writeIndex].inlineSetLength(length);
-            _writeIndex = (_writeIndex + 1) % _ringSize;
+            pkt.inlineSetLength(length);
 
             _pktCount++;
-            GUKScheduler.spinLock(_spinlock);
-            if (_entryCount++ == 0) {
-                // wake up DeviceHandler
-                GUKScheduler.complete(_completion);
-            }
-            GUKScheduler.spinUnlock(_spinlock);
+            GUKScheduler.complete(packetHandler._completion);
         } else {
             _dropCount++;
             // full, drop packet
         }
+    }
+
+    private static synchronized void handlerGateEntry() {
+        while (_activeHandlers > _maxActiveHandlers) {
+            try {
+                GUKNetDevice.class.wait();
+            } catch (InterruptedException ex) {
+            }
+        }
+        _activeHandlers++;
+    }
+
+    private static synchronized void handlerGateExit() {
+        _activeHandlers--;
+        GUKNetDevice.class.notify();
     }
 
     private void dprintln(String m) {
