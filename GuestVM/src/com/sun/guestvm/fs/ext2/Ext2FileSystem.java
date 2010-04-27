@@ -1,48 +1,51 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
- * Clara, California 95054, U.S.A. All rights reserved.
+ * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, California 95054, U.S.A. All rights
+ * reserved.
  *
- * U.S. Government Rights - Commercial software. Government users are
- * subject to the Sun Microsystems, Inc. standard license agreement and
- * applicable provisions of the FAR and its supplements.
+ * U.S. Government Rights - Commercial software. Government users are subject to the Sun Microsystems, Inc. standard
+ * license agreement and applicable provisions of the FAR and its supplements.
  *
  * Use is subject to license terms.
  *
  * This distribution may include materials developed by third parties.
  *
- * Parts of the product may be derived from Berkeley BSD systems,
- * licensed from the University of California. UNIX is a registered
- * trademark in the U.S.  and in other countries, exclusively licensed
- * through X/Open Company, Ltd.
+ * Parts of the product may be derived from Berkeley BSD systems, licensed from the University of California. UNIX is a
+ * registered trademark in the U.S. and in other countries, exclusively licensed through X/Open Company, Ltd.
  *
- * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
- * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
- * countries.
+ * Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered trademarks of Sun Microsystems, Inc. in the
+ * U.S. and other countries.
  *
- * This product is covered and controlled by U.S. Export Control laws and
- * may be subject to the export or import laws in other
- * countries. Nuclear, missile, chemical biological weapons or nuclear
- * maritime end uses or end users, whether direct or indirect, are
- * strictly prohibited. Export or reexport to countries subject to
- * U.S. embargo or to entities identified on U.S. export exclusion lists,
- * including, but not limited to, the denied persons and specially
- * designated nationals lists is strictly prohibited.
- *
+ * This product is covered and controlled by U.S. Export Control laws and may be subject to the export or import laws in
+ * other countries. Nuclear, missile, chemical biological weapons or nuclear maritime end uses or end users, whether
+ * direct or indirect, are strictly prohibited. Export or reexport to countries subject to U.S. embargo or to entities
+ * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
+ * nationals lists is strictly prohibited.
  */
 package com.sun.guestvm.fs.ext2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import com.sun.guestvm.logging.*;
-import com.sun.guestvm.jdk.*;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.jnode.driver.*;
-import org.jnode.driver.block.*;
-import org.jnode.fs.*;
-import org.jnode.fs.ext2.*;
+import org.jnode.driver.Device;
+import org.jnode.driver.block.FSBlockDeviceAPI;
+import org.jnode.fs.FSAccessRights;
+import org.jnode.fs.FSDirectory;
+import org.jnode.fs.FSEntry;
+import org.jnode.fs.FSFile;
+import org.jnode.fs.FileSystem;
+import org.jnode.fs.FileSystemException;
+import org.jnode.fs.ext2.Ext2File;
+import org.jnode.fs.ext2.Ext2FileSystemType;
 
-import com.sun.guestvm.fs.*;
+import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.guestvm.fs.UnimplementedFileSystemImpl;
+import com.sun.guestvm.fs.VirtualFileSystem;
+import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
+import com.sun.guestvm.logging.Logger;
 
 /**
  * This is the ext2 file from JNode system that GuestVM uses for the virtual disk device.
@@ -63,6 +66,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     private static Logger _logger;
 
     private static class FileData {
+
         FSFile _fsFile;
         java.nio.ByteBuffer _byteBuffer;
         boolean _isWrite;
@@ -101,9 +105,10 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     }
 
     /**
-     * Access Ext2 file system on block device.
-     * devPath syntax: /blk/N
-     * @param devPath block device path
+     * Access Ext2 file system on block device. devPath syntax: /blk/N
+     *
+     * @param devPath
+     *            block device path
      * @return
      */
     public static Ext2FileSystem create(String devPath, String mountPath, boolean readOnly) {
@@ -144,7 +149,6 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         _openFiles.add(fileData);
         return size;
     }
-
 
     @Override
     public boolean checkAccess(String path, int access) {
@@ -235,7 +239,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     public long getLastModifiedTime(String path) {
         long result = 0;
         try {
-            final  FSEntry fsEntry = matchPath(path);
+            final FSEntry fsEntry = matchPath(path);
             if (fsEntry != null) {
                 result = fsEntry.getLastModified();
             }
@@ -482,10 +486,9 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             if (fsEntry != null) {
                 final FSAccessRights r = fsEntry.getAccessRights();
                 /**
-                 * The Ext2 API matches the java.io.File API which means that
-                 * arbitrary mode patters cannot be handled. The code below
-                 * assumes that mode was generated by UnixFileSystem.setPermission,
-                 * i.e., it recovers the enable and owneronly arguments.
+                 * The Ext2 API matches the java.io.File API which means that arbitrary mode patters cannot be handled.
+                 * The code below assumes that mode was generated by UnixFileSystem.setPermission, i.e., it recovers the
+                 * enable and owneronly arguments.
                  */
                 if ((mode & (S_IRUSR | S_IRGRP | S_IROTH)) != 0) {
                     r.setReadable(true, (mode & (S_IRGRP | S_IROTH)) == 0);
@@ -527,6 +530,16 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     }
 
     @Override
+    public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
+        return writeBytes(fd, bb.array(), 0, bb.arrayOffset() + bb.limit(), fileOffset);
+    }
+
+    @Override
+    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
+        return readBytes(fd, bb.array(), 0, bb.arrayOffset() + bb.limit(), fileOffset);
+    }
+
+    @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         // CheckStyle: stop parameter assignment check
         try {
@@ -553,14 +566,15 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     }
 
     /**
-     * Represents the result of matching a pathname against the directory hierarchy,
-     * The FSDirectory _d corresponds to the directory containing the final component
-     * of the pathname, which is stored in _tail.
+     * Represents the result of matching a pathname against the directory hierarchy, The FSDirectory _d corresponds to
+     * the directory containing the final component of the pathname, which is stored in _tail.
      */
     static class Match {
+
         FSEntry _e;
         FSDirectory _d;
         String _tail;
+
         Match(FSDirectory d, String tail) {
             _d = d;
             _tail = tail;
@@ -577,10 +591,11 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     }
 
     /**
-     * Matches the sequence of names in parts against the directory hierarchy,
-     * up to the last but one component of the path (which is stored in the Match object
-     * for subsequent checking (e.g. Match.matchTail).
-     * @param name path to match
+     * Matches the sequence of names in parts against the directory hierarchy, up to the last but one component of the
+     * path (which is stored in the Match object for subsequent checking (e.g. Match.matchTail).
+     *
+     * @param name
+     *            path to match
      * @return Match object or null if no match
      */
     private Match match(String name) throws IOException {
@@ -602,6 +617,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     /**
      * Convenience function that first matches the path and then tries to match the final component.
+     *
      * @param name
      * @return FSEntry corresponding to last component of path or null if no match
      * @throws IOException
@@ -653,9 +669,10 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         return 0;
     }
 
-    /* Note that "inter-process" file locking is unnecessary since the filesystem is not shared with any other
-     * "processes". However, the JDK assumes intra-process file locking and generally treats an IOException
-     * as a sign that locking is not available and proceeds without it.
+    /*
+     * Note that "inter-process" file locking is unnecessary since the filesystem is not shared with any other
+     * "processes". However, the JDK assumes intra-process file locking and generally treats an IOException as a sign
+     * that locking is not available and proceeds without it.
      */
 
     public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
@@ -665,7 +682,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     public void release0(int fd, long pos, long size) throws IOException {
 
     }
-    
+
     private void logWarning(IOException ex) {
         String m = ex.toString();
         if (ex.getCause() != null) {

@@ -134,6 +134,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         resetNativeDispatcher("sun.nio.ch.SocketChannelImpl", bbnd);
         resetNativeDispatcher("sun.nio.ch.SinkChannelImpl", bbnd);
         resetNativeDispatcher("sun.nio.ch.SourceChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.FileChannelImpl", bbnd);
     }
 
     void resetNativeDispatcher(String name, BBNativeDispatcher nd) {

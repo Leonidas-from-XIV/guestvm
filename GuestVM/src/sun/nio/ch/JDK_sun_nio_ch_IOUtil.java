@@ -118,7 +118,7 @@ public class JDK_sun_nio_ch_IOUtil {
         if (rem == 0)
             return 0;
         if (position != -1) {
-            GuestVMError.unimplemented("sun.nio.ch.IOUtil.write wih position");
+            bnd.write(fd, position, bb);
             /*
             written = nd.pwrite(fd,
                                 ((DirectBuffer)bb).address() + pos,
@@ -150,7 +150,7 @@ public class JDK_sun_nio_ch_IOUtil {
             return 0;
         int n = 0;
         if (position != -1) {
-            GuestVMError.unimplemented("sun.nio.ch.IOUtil.read wih position");
+            n = bnd.read(fd, position, bb);
             /*
             n = nd.pread(fd, ((DirectBuffer)bb).address() + pos,
                          rem, position, lock);

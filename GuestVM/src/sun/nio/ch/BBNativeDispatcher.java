@@ -38,6 +38,7 @@ import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.VirtualFileSystemId;
 import com.sun.guestvm.jdk.JDK_java_io_util;
+import com.sun.guestvm.jdk.JDK_java_io_util.FdInfo;
 
 /**
  * This is part of the mechanism that replaces the part of the Sun JDK that uses an "address, length"
@@ -83,9 +84,21 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
     public int write(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
         final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
         final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        return write(fdObj, fdInfo, fd, fdInfo._fileOffset, bbs);
+    }
+
+
+    @Override
+    public int write(FileDescriptor fdObj, long fileOffset, ByteBuffer... bbs) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        return write(fdObj,fdInfo,fd,fileOffset,bbs);
+    }
+
+    private int write(FileDescriptor fdObj, FdInfo fdInfo, int fd, long fileOffset, ByteBuffer... bbs)throws IOException {
         int bytesWritten = 0;
         for (int i = 0; i < bbs.length; i++) {
-            final int result = convertReturnValue(fdInfo._vfs.writeBytes(fd, bbs[i], fdInfo._fileOffset), false);
+            final int result = convertReturnValue(fdInfo._vfs.writeBytes(fd, bbs[i], fileOffset), false);
             if (result < 0) {
                 return result;
             }
@@ -93,11 +106,16 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
         }
         return bytesWritten;
     }
-
     public int read(FileDescriptor fdObj, ByteBuffer bb) throws IOException {
         final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
         final int result = convertReturnValue(fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), bb, fdInfo._fileOffset), true);
         return result;
+    }
+
+    @Override
+    public int read(FileDescriptor fdObj, long fileOffset, ByteBuffer... bb) throws IOException {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
     public int read(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
@@ -146,5 +164,7 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
     static void unexpected(String name) {
         GuestVMError.unexpected("BBNativeDispatcher." + name + " invoked");
     }
+
+
 
 }
