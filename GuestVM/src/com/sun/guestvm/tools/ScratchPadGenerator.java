@@ -49,7 +49,7 @@ import com.sun.guestvm.tools.ext2.Ext2FileTool;
  * disk1.init=<true | false> #Create disk and copy JDK dirs and jars onto it.
  * disk1.mntpoint = <mount point in GuestVM> #The run script if generated will contain the appropriate guestvm.fs.table string based on all disks and mount points
  * disk1.copypaths=<localpath:virtualdiskpath,localpath:virtualdiskpath> #specify files or directories to be copied onto the virtual disk.
- *
+ * disk1.ro=<true|false> #should this be mounted as readonly. if false/null, defaults to auto
  * xenconfig=<the suffix of the xen domain config file.> #This file will be created in the directory ./xmconfigs/ with the name domain_config_suffix
  * xenconfig.initmem=<initial memory allocated to the GuestVM domain. Defaults to 256>
  * xenconfig.maxmem=<Maximum memory allocated to the GuestVM domain. Defaults to 1024>
@@ -132,6 +132,7 @@ public class ScratchPadGenerator {
                 diskImage._frontEndDevice = "sda" + i;
                 diskImage._init = "true".equals(p.get(propPrefix + ".init"));
                 diskImage._mountpoint = p.getProperty(propPrefix + ".mntpoint");
+                diskImage._readOnly = "true".equals(p.get(propPrefix + ".ro"));
                 if (diskImage._mountpoint == null) {
                     System.err.println("A mount point must be specified for disk" + i);
                     error = true;
