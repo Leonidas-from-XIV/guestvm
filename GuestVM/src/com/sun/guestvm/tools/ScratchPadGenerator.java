@@ -83,6 +83,18 @@ public class ScratchPadGenerator {
         List<DiskImage> _diskImageConfigs;
     }
 
+    private static final String JAVA_HOME_PROPERTY="JAVA_HOME";
+    private static final String XEN_CONFIG_PROPERTY="xenconfig";
+    private static final String XEN_CONFIG_MAXMEM_PROPERTY="xenconfig.maxmem";
+    private static final String XEN_CONFIG_INITMEM_PROPERTY="xenconfig.initmem";
+    private static final String DISK_CONFIG_PROPERTY_PREFIX="disk";
+    private static final String DISK_CONFIG_INIT_PROPERTY_SUFFIX="init";
+    private static final String DISK_CONFIG_MOUNT_POINT_PROPERTY_SUFFIX="mnpoint";
+    private static final String DISK_CONFIG_RO_PROPERTY_SUFFIX="ro";
+    private static final String DISK_CONFIG_COPYPATHS_PROPERTY_SUFFIX="copypaths";
+    private static final String RUNSCRIPT_FILE_NAME_PROPERTY="runscript";
+    private static final String GUESTVM_FSTABLE_STRING_SEPARATOR=";";
+
     /**
      * @param args
      */
@@ -90,21 +102,21 @@ public class ScratchPadGenerator {
         final Properties p = new Properties();
         p.load(new FileInputStream(args[0]));
         boolean error = false;
-        final String javaHome = System.getenv("JAVA_HOME");
+        final String javaHome = System.getenv(JAVA_HOME_PROPERTY);
         if (javaHome == null) {
-            System.err.println("Java_HOME not defined");
+            System.err.println(JAVA_HOME_PROPERTY + " not defined");
             error = true;
         }
         final XenConfig config = new XenConfig();
-        if (p.containsKey("xenconfig")) {
-            config._fileSuffix = p.getProperty("xenconfig");
-            if (p.containsKey("xenconfig.initmem")) {
-                config._initMemory = Integer.parseInt(p.getProperty("xenconfig.initmem"));
+        if (p.containsKey(XEN_CONFIG_PROPERTY)) {
+            config._fileSuffix = p.getProperty(XEN_CONFIG_PROPERTY);
+            if (p.containsKey(XEN_CONFIG_INITMEM_PROPERTY)) {
+                config._initMemory = Integer.parseInt(p.getProperty(XEN_CONFIG_INITMEM_PROPERTY));
             } else {
                 config._initMemory = 256;
             }
-            if (p.containsKey("xenconfig.maxmem")) {
-                config._maxMemory = Integer.parseInt(p.getProperty("xenconfig.maxmem"));
+            if (p.containsKey(XEN_CONFIG_MAXMEM_PROPERTY)) {
+                config._maxMemory = Integer.parseInt(p.getProperty(XEN_CONFIG_MAXMEM_PROPERTY));
             } else {
                 if (config._initMemory < 1024) {
                     config._maxMemory = 1024;
@@ -120,8 +132,8 @@ public class ScratchPadGenerator {
         config._diskImageConfigs = diskImageConfigs;
         // Disk Image operations
         for (int i = 1; i <= 5; i++) {
-            final String propPrefix = "disk" + i;
-            if (p.containsKey("disk" + i)) {
+            final String propPrefix = DISK_CONFIG_PROPERTY_PREFIX + i;
+            if (p.containsKey(DISK_CONFIG_PROPERTY_PREFIX + i)) {
                 final File imageFile = new File(p.getProperty(propPrefix));
 // if (!imageFile.exists()) {
 // System.err.println("Image File:" + imageFile.getAbsolutePath() + " does not exist");
@@ -130,16 +142,16 @@ public class ScratchPadGenerator {
                 final DiskImage diskImage = new DiskImage();
                 diskImage._imageFile = imageFile;
                 diskImage._frontEndDevice = "sda" + i;
-                diskImage._init = "true".equals(p.get(propPrefix + ".init"));
-                diskImage._mountpoint = p.getProperty(propPrefix + ".mntpoint");
-                diskImage._readOnly = "true".equals(p.get(propPrefix + ".ro"));
+                diskImage._init = "true".equals(p.get(propPrefix + DISK_CONFIG_INIT_PROPERTY_SUFFIX));
+                diskImage._mountpoint = p.getProperty(propPrefix + DISK_CONFIG_MOUNT_POINT_PROPERTY_SUFFIX);
+                diskImage._readOnly = "true".equals(p.get(propPrefix + DISK_CONFIG_RO_PROPERTY_SUFFIX));
                 if (diskImage._mountpoint == null) {
                     System.err.println("A mount point must be specified for disk" + i);
                     error = true;
                 }
                 final Map<File, File> copyPaths = new HashMap<File, File>();
-                if (p.containsKey(propPrefix + ".copypaths")) {
-                    final String[] copyDirsString = p.getProperty(propPrefix + ".copypaths").split(",");
+                if (p.containsKey(propPrefix + DISK_CONFIG_COPYPATHS_PROPERTY_SUFFIX)) {
+                    final String[] copyDirsString = p.getProperty(propPrefix + DISK_CONFIG_COPYPATHS_PROPERTY_SUFFIX).split(",");
                     for (String pair : copyDirsString) {
                         final String[] fsgvPathPair = pair.split(":");
                         final File fileSystemPath = new File(fsgvPathPair[0]);
@@ -175,7 +187,7 @@ public class ScratchPadGenerator {
         // Create Disk Image File.
         for (DiskImage diskImage : diskImageConfigs) {
             final String imageFilePath = diskImage._imageFile.getAbsolutePath();
-            guestvmFsString.append(diskImage._guestvmFsTableString + ";");
+            guestvmFsString.append(diskImage._guestvmFsTableString + GUESTVM_FSTABLE_STRING_SEPARATOR);
             if (diskImage._init) {
 
                 System.out.println("Creating disk file:" + imageFilePath);
@@ -254,8 +266,8 @@ public class ScratchPadGenerator {
 
         System.out.println("Creating run script");
         // Create run script
-        if (p.containsKey("runscript")) {
-            final File runScriptFile = new File(p.getProperty("runscript"));
+        if (p.containsKey(RUNSCRIPT_FILE_NAME_PROPERTY)) {
+            final File runScriptFile = new File(p.getProperty(RUNSCRIPT_FILE_NAME_PROPERTY));
             final BufferedWriter bw = new BufferedWriter(new FileWriter(runScriptFile));
             bw.write("#!/bin/bash\n");
             if (guestvmJavaHome != null) {
