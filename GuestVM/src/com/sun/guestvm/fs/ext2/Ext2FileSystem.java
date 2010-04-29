@@ -542,9 +542,19 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         // CheckStyle: stop parameter assignment check
+
         try {
+            if ((offset + length) > bytes.length) {
+                length = bytes.length;
+            }
             final FileData fileData = _openFiles.get(fd);
             final java.nio.ByteBuffer byteBuffer = fileData._byteBuffer;
+            final long currentFileLength = fileData._fsFile.getLength();
+
+            //Expand the file if required
+            if (currentFileLength < (fileOffset + length)) {
+                fileData._fsFile.setLength(fileOffset + length);
+            }
             int left = length;
             while (left > 0) {
                 byteBuffer.position(0);

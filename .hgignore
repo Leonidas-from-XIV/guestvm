@@ -1,6 +1,8 @@
 
 syntax: regexp
 ^GuestVMNative/objs$
+^\.metadata/*
+~$
 syntax: regexp
 \.out$
 syntax: regexp
