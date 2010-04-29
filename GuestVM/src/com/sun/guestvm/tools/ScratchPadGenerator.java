@@ -42,6 +42,21 @@ import java.util.Map.Entry;
 import com.sun.guestvm.tools.ext2.Ext2FileTool;
 
 /**
+ * Generates a xen domain config file, a run script (that uses bin/run) and disk files for running guestvm based on the properties file provided.
+ * Syntax of the properties file
+ * <pre>
+ * disk1=<disk file path>
+ * disk1.init=<true | false> #Create disk and copy JDK dirs and jars onto it.
+ * disk1.mntpoint = <mount point in GuestVM> #The run script if generated will contain the appropriate guestvm.fs.table string based on all disks and mount points
+ * disk1.copypaths=<localpath:virtualdiskpath,localpath:virtualdiskpath> #specify files or directories to be copied onto the virtual disk.
+ *
+ * xenconfig=<the suffix of the xen domain config file.> #This file will be created in the directory ./xmconfigs/ with the name domain_config_suffix
+ * xenconfig.initmem=<initial memory allocated to the GuestVM domain. Defaults to 256>
+ * xenconfig.maxmem=<Maximum memory allocated to the GuestVM domain. Defaults to 1024>
+ *
+ * runscript=<the name of the run script file generated>
+ *
+ * <pre>
  * @author Puneeet Lakhina
  *
  */
