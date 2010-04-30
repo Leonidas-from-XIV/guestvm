@@ -4,6 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project>MaxineELF</project>
+		<project>NfsServer</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -13,5 +13,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/GNUCP"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVMJDK"/>
 	<classpathentry kind="lib" path="/import/javaguest/solaris/jdk1.6.0_17/lib/tools.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NfsServer"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
