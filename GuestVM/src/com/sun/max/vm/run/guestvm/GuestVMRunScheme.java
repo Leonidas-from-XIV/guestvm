@@ -44,6 +44,7 @@ import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.*;
 import com.sun.guestvm.fs.FSTable;
+import com.sun.guestvm.fs.nfs.NFSExports;
 import com.sun.guestvm.guk.*;
 import com.sun.guestvm.memory.HeapPool;
 import com.sun.guestvm.sched.*;
@@ -97,6 +98,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
             resetNativeDispatchers();
             netInit();
+            NFSExports.initNFSExports();
             checkRmiRegistry();
             AttachListener.create();
         }

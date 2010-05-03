@@ -17,4 +17,5 @@ YANFS/bin/com/sun/gssapi/dummy/*
 GuestVM/bin
 GuestVMBase/bin
 TraceAspect/bin
+NfsServer/bin
 
