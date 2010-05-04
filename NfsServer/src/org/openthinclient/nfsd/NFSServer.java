@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.acplt.oncrpc.OncRpcException;
 import org.openthinclient.nfsd.tea.NFSServerStub;
@@ -63,8 +64,6 @@ import org.openthinclient.nfsd.tea.statfsokres;
 import org.openthinclient.nfsd.tea.statfsres;
 import org.openthinclient.nfsd.tea.symlinkargs;
 import org.openthinclient.nfsd.tea.writeargs;
-
-import com.sun.guestvm.logging.Logger;
 
 /*
  * JNFSD - Free NFSD. Mark Mitchell 2001 markmitche11@aol.com
