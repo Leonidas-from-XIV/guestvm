@@ -62,12 +62,15 @@ public class ThreadDeathTest implements Runnable {
         // Checkstyle: resume modified control variable check
 
         if (sleep > 0) {
+            System.out.println("Sleeping for " + sleep + " seconds");
             Thread.sleep(sleep * 1000);
         }
 
         if (trace) {
             OSSpecific.setTraceState(0, true);
         }
+
+        System.out.println("Starting");
         final Thread[] threads = new Thread[numThreads];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(new ThreadDeathTest(i, lifeTime));
@@ -78,7 +81,11 @@ public class ThreadDeathTest implements Runnable {
         for (int i = 0; i < threads.length; i++) {
             threads[i].join();
         }
-        Thread.sleep(sleep * 1000);
+        if (sleep > 0) {
+            System.out.println("Sleeping for " + sleep + " seconds");
+            Thread.sleep(sleep * 1000);
+        }
+        System.out.println("Exiting");
     }
 
     private int _id;
