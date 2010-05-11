@@ -25,3 +25,4 @@ forcemethod com.sun.guestvm.spinlock.tas.cp.PCTTASSpinLock.*
 forcemethod com.sun.guestvm.spinlock.tas.cp.PCTASTSpinLock.*
 forcemethod com.sun.guestvm.spinlock.tas.inline.TISpinLock.*
 package com.sun.guestvm.sched.priority
+#include imagespec.testnetbench

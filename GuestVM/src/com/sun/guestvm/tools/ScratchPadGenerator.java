@@ -139,7 +139,7 @@ public class ScratchPadGenerator {
             if (config._networking) {
                 config._vifBridge = p.getProperty(XEN_CONFIG_BRIDGE_PROPERTY) != null ? p.getProperty(XEN_CONFIG_BRIDGE_PROPERTY) : "xenbr0";
                 config._macAddress = p.getProperty(XEN_CONFIG_MAC_PROPERTY) != null ? p.getProperty(XEN_CONFIG_MAC_PROPERTY) : null;
-                if (!MAC_ADDRESS_PATTERN.matcher(config._macAddress).matches()) {
+                if (config._macAddress != null && !MAC_ADDRESS_PATTERN.matcher(config._macAddress).matches()) {
                     System.err.println("Improper mac address:" + config._macAddress);
                     error = true;
                 }

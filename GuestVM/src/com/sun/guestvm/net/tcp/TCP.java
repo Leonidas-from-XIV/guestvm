@@ -2066,6 +2066,9 @@ public final class TCP extends IP {
                 dprint("scheduling " + task + " on " + _name);
             }
             super.schedule(task, delay);
+            if (_debug) {
+                dprint("scheduled " + task + " on " + _name);
+            }
         }
 
         synchronized void  cancelTask() {
@@ -2074,6 +2077,9 @@ public final class TCP extends IP {
                     dprint("cancelling " + _task + " on " + _name);
                 }
                 _task.cancel();
+                if (_debug) {
+                    dprint("cancelled " + _task + " on " + _name);
+                }
                 _task = null;
             }
         }
@@ -2133,6 +2139,7 @@ public final class TCP extends IP {
 
         public void run() {
             try {
+                if (_debug) dprint("delayed ack " + this + " activated");
                 _timer.resetTask();
                 delayedAck();
             } catch (NetworkException ex) {
