@@ -29,38 +29,35 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen;
+package com.sun.max.elf.xen.section.notes;
 
-import com.sun.max.elf.xen.NotesSection.DescriptorType;
+import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
 
 
 /**
  * @author Puneeet Lakhina
  *
  */
-public class NotesSectionDescriptor {
+public class FormatVersionDescriptor extends NotesSectionDescriptor {
+    private long _formatVersion;
 
-    public NotesSectionDescriptor(DescriptorType type) {
-        this._descriptorType = type;
+    public FormatVersionDescriptor() {
+        super(DescriptorType.FORMAT_VERSION);
     }
-    private DescriptorType _descriptorType;
-
 
 
     /**
-     * @return the _descriptorType
+     * @return the _formatVersion
      */
-    public DescriptorType get_descriptorType() {
-        return _descriptorType;
+    public long get_formatVersion() {
+        return _formatVersion;
     }
 
     /**
-     * @param descriptorType the _descriptorType to set
+     * @param formatVersion the _formatVersion to set
      */
-    public void set_descriptorType(DescriptorType descriptorType) {
-        _descriptorType = descriptorType;
+    public void set_formatVersion(long formatVersion) {
+        _formatVersion = formatVersion;
     }
-
-
 
 }

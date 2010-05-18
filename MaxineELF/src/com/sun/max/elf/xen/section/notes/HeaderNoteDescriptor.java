@@ -29,9 +29,9 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen;
+package com.sun.max.elf.xen.section.notes;
 
-import com.sun.max.elf.xen.NotesSection.DescriptorType;
+import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
 
 
 /**
@@ -48,6 +48,13 @@ public class HeaderNoteDescriptor extends NotesSectionDescriptor {
      *
      */
     private long _magicnumber;
+    private DomainType _domainType;
+    private long _vcpus;
+    private long _noOfPages;
+    private long _pageSize;
+    public HeaderNoteDescriptor() {
+        super(DescriptorType.HEADER);
+    }
 
     /**
      * @return the _magicnumber
@@ -126,11 +133,10 @@ public class HeaderNoteDescriptor extends NotesSectionDescriptor {
     public void set_pageSize(long pageSize) {
         _pageSize = pageSize;
     }
-    private DomainType _domainType;
-    private long _vcpus;
-    private long _noOfPages;
-    private long _pageSize;
-    public HeaderNoteDescriptor() {
-        super(DescriptorType.HEADER);
+
+    @Override
+    public String toString() {
+        return "Domain Type: [" + _domainType+"] , No of Pages: [" + _noOfPages + "], Page Size: [" + _pageSize + "],  VCpus: [" + _vcpus + "]";
     }
+
 }

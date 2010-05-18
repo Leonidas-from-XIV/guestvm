@@ -29,35 +29,74 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen;
-
-import com.sun.max.elf.xen.NotesSection.DescriptorType;
+package com.sun.max.elf.xen.section.prstatus;
 
 
 /**
  * @author Puneeet Lakhina
  *
  */
-public class FormatVersionDescriptor extends NotesSectionDescriptor {
-    private long _formatVersion;
+public class TrapInfo {
 
-    public FormatVersionDescriptor() {
-        super(DescriptorType.FORMAT_VERSION);
-    }
-
-
+    private short _vector;
+    private short _flags;
+    private int _codeSelector;
+    private long _codeOffset;
     /**
-     * @return the _formatVersion
+     * @return the _vector
      */
-    public long get_formatVersion() {
-        return _formatVersion;
+    public short get_vector() {
+        return _vector;
     }
 
     /**
-     * @param formatVersion the _formatVersion to set
+     * @param vector the _vector to set
      */
-    public void set_formatVersion(long formatVersion) {
-        _formatVersion = formatVersion;
+    public void set_vector(short vector) {
+        _vector = vector;
     }
+
+    /**
+     * @return the _flags
+     */
+    public short get_flags() {
+        return _flags;
+    }
+
+    /**
+     * @param flags the _flags to set
+     */
+    public void set_flags(short flags) {
+        _flags = flags;
+    }
+
+    /**
+     * @return the _codeSelector
+     */
+    public int get_codeSelector() {
+        return _codeSelector;
+    }
+
+    /**
+     * @param codeSelector the _codeSelector to set
+     */
+    public void set_codeSelector(int codeSelector) {
+        _codeSelector = codeSelector;
+    }
+
+    /**
+     * @return the _codeOffset
+     */
+    public long get_codeOffset() {
+        return _codeOffset;
+    }
+
+    /**
+     * @param codeOffset the _codeOffset to set
+     */
+    public void set_codeOffset(long codeOffset) {
+        _codeOffset = codeOffset;
+    }
+
 
 }

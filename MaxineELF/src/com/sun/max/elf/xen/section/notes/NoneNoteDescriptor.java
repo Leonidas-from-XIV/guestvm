@@ -29,9 +29,9 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen;
+package com.sun.max.elf.xen.section.notes;
 
-import com.sun.max.elf.xen.NotesSection.DescriptorType;
+import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
 
 
 /**
@@ -42,5 +42,10 @@ public class NoneNoteDescriptor extends NotesSectionDescriptor {
 
     public NoneNoteDescriptor() {
         super(DescriptorType.NONE);
+    }
+
+    @Override
+    public String toString () {
+        return "-None-";
     }
 }

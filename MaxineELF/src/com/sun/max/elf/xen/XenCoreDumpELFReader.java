@@ -29,6 +29,8 @@ import java.io.RandomAccessFile;
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFLoader;
 import com.sun.max.elf.ELFSectionHeaderTable;
+import com.sun.max.elf.xen.section.notes.NotesSection;
+import com.sun.max.elf.xen.section.prstatus.GuestContext;
 
 /**
  * @author Puneeet Lakhina
@@ -37,7 +39,7 @@ import com.sun.max.elf.ELFSectionHeaderTable;
 public class XenCoreDumpELFReader {
 
     private static final String NOTES_SECTION_NAME = ".note.Xen";
-    private static final String CONTEXT_SECTION_NAME = ".xen.prstatus";
+    private static final String CONTEXT_SECTION_NAME = ".xen_prstatus";
     private static final String SHARED_INFO_SECTION_NAME = ".xen_shared_info";
     private static final String P2M_SECTION_NAME = ".xen.p2m";
     private static final String PFN_SECTION_NAME = ".xen.pfn";
@@ -70,5 +72,15 @@ public class XenCoreDumpELFReader {
         NotesSection notesSection = new NotesSection(_fis, _header, _notesSectionHeader);
         notesSection.read();
         return notesSection;
+    }
+
+    public GuestContext readGuestContext(int cpuid) throws IOException,ImproperDumpFileException {
+        GuestContext context = new GuestContext(_fis, _header, _contextSectionHeader,cpuid);
+        context.read();
+        return context;
+    }
+
+    public GuestContext readGuestContext() throws IOException,ImproperDumpFileException {
+        return readGuestContext(0);
     }
 }

@@ -18,4 +18,4 @@ GuestVM/bin
 GuestVMBase/bin
 TraceAspect/bin
 NfsServer/bin
-
+*.orig
