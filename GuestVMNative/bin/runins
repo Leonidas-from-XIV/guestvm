@@ -32,11 +32,6 @@
 # 
 #
 # This script runs the Maxine inspector (on Linux).
-# This requires that the maxine/Native libraries tele and prototype have
-# been compiled for Linux. To do this execute the following command in
-# the maxine/Native directory on a Linux system:
-#
-# gmake OSNAME=GuestVM tele prototype
 #
 CWD=`basename $PWD`
 if [ "$CWD" != "GuestVMNative" ];
@@ -60,6 +55,7 @@ cp=""
 cpb=""
 vmargs=""
 javacmd=`which java`
+channel=""
 
 while [ "$1" != "" ];
 do
@@ -107,6 +103,14 @@ do
     shift
     javacmd=$1
     ;;
+  "-tcp" )
+    shift
+    channel="-Dmax.ins.guestvm.channel=ring.tcp,$1 -Dmax.tele.page.noDirectBuffers=1"
+    ;;
+  " -dump" )
+    shift
+    channel="-Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
+    ;;
   * )
     ;;
   esac
@@ -140,7 +144,7 @@ then
   classpath=${cpb}:${classpath}
 fi
 
-cmd="$javacmd $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
+cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
 
 if [ "$echocmd" -eq 1 ] ;
 then
