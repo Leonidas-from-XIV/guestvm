@@ -35,6 +35,8 @@ import com.sun.max.vm.thread.*;
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.guestvm.guk.*;
+import static com.sun.cri.bytecode.Bytecodes.*;
+import com.sun.cri.bytecode.*;
 
 /**
  * A subclass of VmThread that is tied to the Guest VM microkernel (GUK) native thread.
@@ -85,6 +87,14 @@ public class GUKVmThread extends VmThread {
         _cpu = -1;
         _nextWaiting = null;
         _notified = false;
+    }
+
+    // all VmThreads are GUKVmThreads
+    @INTRINSIC(UNSAFE_CAST) private static GUKVmThread asGUKVmThread(Object object) { return (GUKVmThread) object; }
+
+    @INLINE
+    public static GUKVmThread current() {
+        return asGUKVmThread(VmThread.current());
     }
 
     @Override
@@ -187,6 +197,11 @@ public class GUKVmThread extends VmThread {
     @INLINE
     public final void clearOSInterrupted() {
         clearFlag(INTERRUPTED_FLAG);
+    }
+
+    @INLINE
+    public final void setNeedReSched() {
+        setFlag(RESCHED_FLAG);
     }
 
     @INLINE
