@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
  * Clara, California 95054, U.S.A. All rights reserved.
- * 
+ *
  * U.S. Government Rights - Commercial software. Government users are
  * subject to the Sun Microsystems, Inc. standard license agreement and
  * applicable provisions of the FAR and its supplements.
- * 
+ *
  * Use is subject to license terms.
- * 
+ *
  * This distribution may include materials developed by third parties.
- * 
+ *
  * Parts of the product may be derived from Berkeley BSD systems,
  * licensed from the University of California. UNIX is a registered
  * trademark in the U.S.  and in other countries, exclusively licensed
  * through X/Open Company, Ltd.
- * 
+ *
  * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
  * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
  * countries.
- * 
+ *
  * This product is covered and controlled by U.S. Export Control laws and
  * may be subject to the export or import laws in other
  * countries. Nuclear, missile, chemical biological weapons or nuclear
@@ -27,7 +27,7 @@
  * U.S. embargo or to entities identified on U.S. export exclusion lists,
  * including, but not limited to, the denied persons and specially
  * designated nationals lists is strictly prohibited.
- * 
+ *
  */
 /**
  * Copyright (c) 2005, Regents of the University of California
@@ -94,6 +94,8 @@ public class ELFSymbolTable {
 
     private static final int ELF32_STENT_SIZE = 16;
     private static final int ELF64_STENT_SIZE = 24;
+    public static enum Binding {LOCAL,GLOBAL,WEAK,UNKNOWN};
+    public static enum Type {NO_TYPE,OBJECT,FUNCTION,SECTION,FILE,UNKNOWN};
 
 
     public abstract class Entry {
@@ -101,33 +103,33 @@ public class ELFSymbolTable {
 
         public abstract int getInfo();
 
-        public String getBinding() {
+        public Binding getBinding() {
             switch ((getInfo() >> 4) & 0xf) {
                 case STB_LOCAL:
-                    return "LOCAL";
+                    return Binding.LOCAL;
                 case STB_GLOBAL:
-                    return "GLOBAL";
+                    return Binding.GLOBAL;
                 case STB_WEAK:
-                    return "WEAK";
+                    return Binding.WEAK;
                 default:
-                    return "unknown";
+                    return Binding.UNKNOWN;
             }
         }
 
-        public String getType() {
+        public Type getType() {
             switch (getInfo() & 0xf) {
                 case STT_NOTYPE:
-                    return "n";
+                    return Type.NO_TYPE;
                 case STT_OBJECT:
-                    return "object";
+                    return Type.OBJECT;
                 case STT_FUNC:
-                    return "func";
+                    return Type.FUNCTION;
                 case STT_SECTION:
-                    return "section";
+                    return Type.SECTION;
                 case STT_FILE:
-                    return "file";
+                    return Type.FILE;
                 default:
-                    return "unknown";
+                    return Type.UNKNOWN;
             }
         }
 
