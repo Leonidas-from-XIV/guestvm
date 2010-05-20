@@ -32,6 +32,7 @@ import com.sun.max.elf.ELFLoader;
 import com.sun.max.elf.ELFSectionHeaderTable;
 import com.sun.max.elf.ELFHeader.FormatError;
 import com.sun.max.elf.xen.section.notes.NotesSection;
+import com.sun.max.elf.xen.section.pages.PagesSection;
 import com.sun.max.elf.xen.section.prstatus.GuestContext;
 
 /**
@@ -40,12 +41,12 @@ import com.sun.max.elf.xen.section.prstatus.GuestContext;
  */
 public class XenCoreDumpELFReader {
 
-    private static final String NOTES_SECTION_NAME = ".note.Xen";
-    private static final String CONTEXT_SECTION_NAME = ".xen_prstatus";
-    private static final String SHARED_INFO_SECTION_NAME = ".xen_shared_info";
-    private static final String P2M_SECTION_NAME = ".xen.p2m";
-    private static final String PFN_SECTION_NAME = ".xen.pfn";
-    private static final String XEN_PAGES_SECTION_NAME = ".xen_pages";
+    public static final String NOTES_SECTION_NAME = ".note.Xen";
+    public static final String CONTEXT_SECTION_NAME = ".xen_prstatus";
+    public static final String SHARED_INFO_SECTION_NAME = ".xen_shared_info";
+    public static final String P2M_SECTION_NAME = ".xen.p2m";
+    public static final String PFN_SECTION_NAME = ".xen.pfn";
+    public static final String XEN_PAGES_SECTION_NAME = ".xen_pages";
 
     private RandomAccessFile _fis;
     private ELFHeader _header;
@@ -55,8 +56,10 @@ public class XenCoreDumpELFReader {
     private ELFSectionHeaderTable.Entry _contextSectionHeader;
     private ELFSectionHeaderTable.Entry _pagesSectionHeader;
     private ELFSectionHeaderTable.Entry _p2mSectionHeader;
-    private long _pageSize;
-    private long _noOfPages;
+
+    private NotesSection _notesSection;
+    private PagesSection _pagesSection;
+
     public XenCoreDumpELFReader(File dumpFile) throws IOException, FormatError {
         this(new RandomAccessFile(dumpFile, "r"));
     }
@@ -84,31 +87,31 @@ public class XenCoreDumpELFReader {
 
     }
 
-    public NotesSection readNotesSection() throws IOException, ImproperDumpFileException {
-        NotesSection notesSection = new NotesSection(_fis, _header, _notesSectionHeader);
-        notesSection.read();
-        _pageSize = notesSection.get_headerNoteDescriptor().get_pageSize();
-        _noOfPages = notesSection.get_headerNoteDescriptor().get_noOfPages();
-        return notesSection;
+    public NotesSection getNotesSection() throws IOException, ImproperDumpFileException {
+        if (_notesSection == null) {
+            _notesSection = new NotesSection(_fis, _header, _notesSectionHeader);
+            _notesSection.read();
+        }
+        return _notesSection;
     }
 
-    public GuestContext readGuestContext(int cpuid) throws IOException, ImproperDumpFileException {
+    public GuestContext getGuestContext(int cpuid) throws IOException, ImproperDumpFileException {
         GuestContext context = new GuestContext(_fis, _header, _contextSectionHeader, cpuid);
         context.read();
         return context;
     }
 
-    public GuestContext readGuestContext() throws IOException, ImproperDumpFileException {
-        return readGuestContext(0);
+    public GuestContext getAllGuestContexts() throws IOException, ImproperDumpFileException {
+        return getGuestContext(0);
     }
 
-    public void readPageBytes(long offset, byte[] arr, int arrayOffset, int length) throws IOException {
-        _fis.seek(_pagesSectionHeader.getOffset() + offset);
-        _fis.read(arr, arrayOffset, length);
-    }
+    public PagesSection getPagesSection() throws IOException,ImproperDumpFileException {
+        if (_pagesSection != null) {
+            _pagesSection = new PagesSection(_fis, _pagesSectionHeader, _p2mSectionHeader, _header, getNotesSection().get_headerNoteDescriptor().get_noOfPages(), getNotesSection()
+                            .get_headerNoteDescriptor().get_pageSize());
+        }
+        return _pagesSection;
 
-    public void readPageBytes(long offset, byte[] arr) throws IOException {
-        readPageBytes(offset, arr, 0, arr.length);
     }
 
     /**
@@ -119,26 +122,10 @@ public class XenCoreDumpELFReader {
     }
 
     /**
-     * @param notesSectionHeader
-     *            the _notesSectionHeader to set
-     */
-    public void set_notesSectionHeader(ELFSectionHeaderTable.Entry notesSectionHeader) {
-        _notesSectionHeader = notesSectionHeader;
-    }
-
-    /**
      * @return the _pagesSectionHeader
      */
     public ELFSectionHeaderTable.Entry get_pagesSectionHeader() {
         return _pagesSectionHeader;
-    }
-
-    /**
-     * @param pagesSectionHeader
-     *            the _pagesSectionHeader to set
-     */
-    public void set_pagesSectionHeader(ELFSectionHeaderTable.Entry pagesSectionHeader) {
-        _pagesSectionHeader = pagesSectionHeader;
     }
 
     /**
@@ -148,11 +135,4 @@ public class XenCoreDumpELFReader {
         return _p2mSectionHeader;
     }
 
-    /**
-     * @param p2mSectionHeader
-     *            the _p2mSectionHeader to set
-     */
-    public void set_p2mSectionHeader(ELFSectionHeaderTable.Entry p2mSectionHeader) {
-        _p2mSectionHeader = p2mSectionHeader;
-    }
 }
