@@ -187,4 +187,116 @@ public class NotesSection {
     public String toString() {
         return "Header:"+_headerNoteDescriptor != null ? _headerNoteDescriptor.toString():null;
     }
+
+
+    /**
+     * @return the _elfdis
+     */
+    public ELFDataInputStream get_elfdis() {
+        return _elfdis;
+    }
+
+
+    /**
+     * @param elfdis the _elfdis to set
+     */
+    public void set_elfdis(ELFDataInputStream elfdis) {
+        _elfdis = elfdis;
+    }
+
+
+    /**
+     * @return the _noneNoteDescriptor
+     */
+    public NoneNoteDescriptor get_noneNoteDescriptor() {
+        return _noneNoteDescriptor;
+    }
+
+
+    /**
+     * @param noneNoteDescriptor the _noneNoteDescriptor to set
+     */
+    public void set_noneNoteDescriptor(NoneNoteDescriptor noneNoteDescriptor) {
+        _noneNoteDescriptor = noneNoteDescriptor;
+    }
+
+
+    /**
+     * @return the _headerNoteDescriptor
+     */
+    public HeaderNoteDescriptor get_headerNoteDescriptor() {
+        return _headerNoteDescriptor;
+    }
+
+
+    /**
+     * @param headerNoteDescriptor the _headerNoteDescriptor to set
+     */
+    public void set_headerNoteDescriptor(HeaderNoteDescriptor headerNoteDescriptor) {
+        _headerNoteDescriptor = headerNoteDescriptor;
+    }
+
+
+    /**
+     * @return the _xenVersionDescriptor
+     */
+    public XenVersionDescriptor get_xenVersionDescriptor() {
+        return _xenVersionDescriptor;
+    }
+
+
+    /**
+     * @param xenVersionDescriptor the _xenVersionDescriptor to set
+     */
+    public void set_xenVersionDescriptor(XenVersionDescriptor xenVersionDescriptor) {
+        _xenVersionDescriptor = xenVersionDescriptor;
+    }
+
+
+    /**
+     * @return the _formatVersionDescriptor
+     */
+    public FormatVersionDescriptor get_formatVersionDescriptor() {
+        return _formatVersionDescriptor;
+    }
+
+
+    /**
+     * @param formatVersionDescriptor the _formatVersionDescriptor to set
+     */
+    public void set_formatVersionDescriptor(FormatVersionDescriptor formatVersionDescriptor) {
+        _formatVersionDescriptor = formatVersionDescriptor;
+    }
+
+
+    /**
+     * @return the _elfHeader
+     */
+    public ELFHeader get_elfHeader() {
+        return _elfHeader;
+    }
+
+
+    /**
+     * @param elfHeader the _elfHeader to set
+     */
+    public void set_elfHeader(ELFHeader elfHeader) {
+        _elfHeader = elfHeader;
+    }
+
+
+    /**
+     * @return the _sectionHeader
+     */
+    public ELFSectionHeaderTable.Entry get_sectionHeader() {
+        return _sectionHeader;
+    }
+
+
+    /**
+     * @param sectionHeader the _sectionHeader to set
+     */
+    public void set_sectionHeader(ELFSectionHeaderTable.Entry sectionHeader) {
+        _sectionHeader = sectionHeader;
+    }
 }
