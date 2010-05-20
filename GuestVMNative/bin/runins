@@ -55,7 +55,7 @@ cp=""
 cpb=""
 vmargs=""
 javacmd=`which java`
-channel=""
+channel="-Dmax.ins.guestvm.channel=db,$PWD/guestvm"
 
 while [ "$1" != "" ];
 do
@@ -103,9 +103,13 @@ do
     shift
     javacmd=$1
     ;;
-  "-tcp" )
+  -tcp* )
+    type=${1/-/}
     shift
-    channel="-Dmax.ins.guestvm.channel=ring.tcp,$1 -Dmax.tele.page.noDirectBuffers=1"
+    channel="-Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
+    ;;
+  "-xg" )
+    channel="-Dmax.ins.guestvm.channel=xg,$PWD/guestvm"
     ;;
   " -dump" )
     shift
