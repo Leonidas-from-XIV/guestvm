@@ -47,6 +47,9 @@ extern int main(int argc, char *argv[]);
 extern void init_malloc(void);
 extern void init_thread_stacks(void);
 extern void init_code_regions(void);
+extern int image_load(char *file);
+extern unsigned long image_heap(void);
+
 
 static char* argv[64]; // place to store canonical command line **argv
 char * environ[1];     // environment variables - we dont have any but maxine wants this symbol
@@ -87,6 +90,17 @@ static char *process_arg(char *arg, int len) {
   return argc;
 }
 
+ volatile uint8_t xg_resume_flag = 0;
+
+ void wait_for_xg_resume(void) {
+    image_load(NULL);
+    printk("image loaded %lx, waiting for debugger resume\n", image_heap());
+    while (xg_resume_flag == 0) {
+        guk_sleep(1000);
+    }
+ }
+
+
 // If the args exceed the 1024 Xen limit they will have been placed in a file and passed as a ramdisk.
 #define RAMARGS "-XX:GVMRamArgs"
 
@@ -120,13 +134,16 @@ static void maxine_start(void *p) {
   }
 
   /* Block if we run in the debug mode, let the debugger resume us */
-  if (guk_debugging())
-  {
+  if (guk_db_debugging()) {
+	  // db-front
       preempt_disable();
       set_debug_suspend(current);
       block(current);
       preempt_enable();
       schedule();
+  } else if (guk_xg_debugging()) {
+	  // xg
+	  wait_for_xg_resume();
   } else {
 	  /* This seems to avoid a startup bug involving xm and the console */
 	  guk_sleep(500);
@@ -157,9 +174,6 @@ void guestvmXen_native_props(native_props_t *native_props) {
 	native_props->user_home = "/tmp";
 	native_props->user_dir = "/tmp";
 }
-
-extern int image_load(char *file);
-extern unsigned long image_heap(void);
 
 void guk_dispatch_app_specific1_request(
         struct dbif_request *req, struct dbif_response *rsp)
