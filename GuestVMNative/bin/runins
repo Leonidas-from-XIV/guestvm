@@ -56,6 +56,7 @@ cpb=""
 vmargs=""
 javacmd=`which java`
 channel="-Dmax.ins.guestvm.channel=db,$PWD/guestvm"
+mode="create"
 
 while [ "$1" != "" ];
 do
@@ -106,14 +107,19 @@ do
   -tcp* )
     type=${1/-/}
     shift
-    channel="-Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
+    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
+    if [ $type = "tcp.xg" ] ;
+    then
+       mode="attach"
+    fi
     ;;
-  "-xg" )
-    channel="-Dmax.ins.guestvm.channel=xg,$PWD/guestvm"
-    ;;
-  " -dump" )
+  "-dump" )
     shift
+    mode="dump"
     channel="-Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
+    ;;
+  "-view" )
+    mode="image"
     ;;
   * )
     ;;
@@ -148,7 +154,7 @@ then
   classpath=${cpb}:${classpath}
 fi
 
-cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
+cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg -mode=$mode"
 
 if [ "$echocmd" -eq 1 ] ;
 then
