@@ -40,25 +40,27 @@ import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
  */
 public class NotesSectionDescriptor {
 
+    private DescriptorType descriptorType;
+
     public NotesSectionDescriptor(DescriptorType type) {
-        this._descriptorType = type;
+        this.descriptorType = type;
     }
-    private DescriptorType _descriptorType;
+
 
 
 
     /**
      * @return the _descriptorType
      */
-    public DescriptorType get_descriptorType() {
-        return _descriptorType;
+    public DescriptorType getDescriptorType() {
+        return descriptorType;
     }
 
     /**
      * @param descriptorType the _descriptorType to set
      */
-    public void set_descriptorType(DescriptorType descriptorType) {
-        _descriptorType = descriptorType;
+    public void setDescriptorType(DescriptorType descriptorType) {
+        this.descriptorType = descriptorType;
     }
 
 

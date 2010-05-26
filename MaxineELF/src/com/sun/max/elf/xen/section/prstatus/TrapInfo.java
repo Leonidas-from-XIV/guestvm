@@ -38,65 +38,66 @@ package com.sun.max.elf.xen.section.prstatus;
  */
 public class TrapInfo {
 
-    private short _vector;
-    private short _flags;
-    private int _codeSelector;
-    private long _codeOffset;
+    private short vector;
+    private short flags;
+    private int codeSelector;
+    private long codeOffset;
     /**
-     * @return the _vector
+     * @return the vector
      */
-    public short get_vector() {
-        return _vector;
+    public short getVector() {
+        return vector;
     }
 
     /**
-     * @param vector the _vector to set
+     * @param vector the vector to set
      */
-    public void set_vector(short vector) {
-        _vector = vector;
+    public void setVector(short vector) {
+        this.vector = vector;
     }
 
     /**
-     * @return the _flags
+     * @return the flags
      */
-    public short get_flags() {
-        return _flags;
+    public short getFlags() {
+        return flags;
     }
 
     /**
-     * @param flags the _flags to set
+     * @param flags the flags to set
      */
-    public void set_flags(short flags) {
-        _flags = flags;
+    public void setFlags(short flags) {
+        this.flags = flags;
     }
 
     /**
-     * @return the _codeSelector
+     * @return the codeSelector
      */
-    public int get_codeSelector() {
-        return _codeSelector;
+    public int getCodeSelector() {
+        return codeSelector;
     }
 
     /**
-     * @param codeSelector the _codeSelector to set
+     * @param codeSelector the codeSelector to set
      */
-    public void set_codeSelector(int codeSelector) {
-        _codeSelector = codeSelector;
+    public void setCodeSelector(int codeSelector) {
+        this.codeSelector = codeSelector;
     }
 
     /**
-     * @return the _codeOffset
+     * @return the codeOffset
      */
-    public long get_codeOffset() {
-        return _codeOffset;
+    public long getCodeOffset() {
+        return codeOffset;
     }
 
     /**
-     * @param codeOffset the _codeOffset to set
+     * @param codeOffset the codeOffset to set
      */
-    public void set_codeOffset(long codeOffset) {
-        _codeOffset = codeOffset;
+    public void setCodeOffset(long codeOffset) {
+        this.codeOffset = codeOffset;
     }
+
 
 
 }

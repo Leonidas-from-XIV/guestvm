@@ -26,6 +26,8 @@ package com.sun.max.elf.xen;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFLoader;
@@ -48,91 +50,111 @@ public class XenCoreDumpELFReader {
     public static final String PFN_SECTION_NAME = ".xen.pfn";
     public static final String XEN_PAGES_SECTION_NAME = ".xen_pages";
 
-    private RandomAccessFile _fis;
-    private ELFHeader _header;
+    private RandomAccessFile fis;
+    private ELFHeader header;
 
-    private ELFSectionHeaderTable _sectionHeaderTable;
-    private ELFSectionHeaderTable.Entry _notesSectionHeader;
-    private ELFSectionHeaderTable.Entry _contextSectionHeader;
-    private ELFSectionHeaderTable.Entry _pagesSectionHeader;
-    private ELFSectionHeaderTable.Entry _p2mSectionHeader;
+    private ELFSectionHeaderTable sectionHeaderTable;
+    private ELFSectionHeaderTable.Entry notesSectionHeader;
+    private ELFSectionHeaderTable.Entry contextSectionHeader;
+    private ELFSectionHeaderTable.Entry pagesSectionHeader;
+    private ELFSectionHeaderTable.Entry p2mSectionHeader;
 
-    private NotesSection _notesSection;
-    private PagesSection _pagesSection;
+    private NotesSection notesSection;
+    private PagesSection pagesSection;
+    private int vcpus;
+    GuestContext[] guestContexts;
 
     public XenCoreDumpELFReader(File dumpFile) throws IOException, FormatError {
         this(new RandomAccessFile(dumpFile, "r"));
     }
 
     public XenCoreDumpELFReader(RandomAccessFile raf) throws IOException, FormatError {
-        this._fis = raf;
-        this._header = ELFLoader.readELFHeader(_fis);
-        this._sectionHeaderTable = ELFLoader.readSHT(raf, _header);
-        for (ELFSectionHeaderTable.Entry entry : _sectionHeaderTable.entries) {
+        this.fis = raf;
+        this.header = ELFLoader.readELFHeader(fis);
+        this.sectionHeaderTable = ELFLoader.readSHT(raf, header);
+        for (ELFSectionHeaderTable.Entry entry : sectionHeaderTable.entries) {
             String sectionName = entry.getName();
             System.out.println(sectionName);
             if (NOTES_SECTION_NAME.equalsIgnoreCase(sectionName)) {
-                _notesSectionHeader = entry;
+                notesSectionHeader = entry;
             }
             if (CONTEXT_SECTION_NAME.equalsIgnoreCase(sectionName)) {
-                _contextSectionHeader = entry;
+                contextSectionHeader = entry;
             }
             if (XEN_PAGES_SECTION_NAME.equalsIgnoreCase(sectionName)) {
-                _pagesSectionHeader = entry;
+                pagesSectionHeader = entry;
             }
             if (P2M_SECTION_NAME.equalsIgnoreCase(sectionName)) {
-                _p2mSectionHeader = entry;
+                p2mSectionHeader = entry;
             }
         }
 
     }
 
     public NotesSection getNotesSection() throws IOException, ImproperDumpFileException {
-        if (_notesSection == null) {
-            _notesSection = new NotesSection(_fis, _header, _notesSectionHeader);
-            _notesSection.read();
+        if (notesSection == null) {
+            notesSection = new NotesSection(fis, header, notesSectionHeader);
+            notesSection.read();
         }
-        return _notesSection;
+        return notesSection;
     }
 
     public GuestContext getGuestContext(int cpuid) throws IOException, ImproperDumpFileException {
-        GuestContext context = new GuestContext(_fis, _header, _contextSectionHeader, cpuid);
-        context.read();
-        return context;
+        int vcpus = getVcpus();
+        if(vcpus == -1) {
+            throw new IOException("Couldnt not get no of vcpus from noets section");
+        }
+        if(cpuid < 0 || cpuid >= vcpus) {
+            throw new IllegalArgumentException("Improper CPU Id value");
+        }
+        if (guestContexts == null) {
+            guestContexts = new GuestContext[vcpus];
+        }
+        if (guestContexts[cpuid] == null) {
+            guestContexts = new GuestContext[vcpus];
+            GuestContext context = new GuestContext(fis, header, contextSectionHeader, cpuid);
+            context.read();
+            guestContexts[cpuid] = context;
+            return context;
+        }else {
+            return guestContexts[cpuid];
+        }
     }
 
-    public GuestContext getAllGuestContexts() throws IOException, ImproperDumpFileException {
-        return getGuestContext(0);
+    public GuestContext[] getAllGuestContexts() throws IOException, ImproperDumpFileException {
+        if (guestContexts == null) {
+            for (int i = 0; i < getVcpus(); i++) {
+                getGuestContext(i);
+            }
+        }
+        return guestContexts;
     }
 
     public PagesSection getPagesSection() throws IOException,ImproperDumpFileException {
-        if (_pagesSection != null) {
-            _pagesSection = new PagesSection(_fis, _pagesSectionHeader, _p2mSectionHeader, _header, getNotesSection().get_headerNoteDescriptor().get_noOfPages(), getNotesSection()
-                            .get_headerNoteDescriptor().get_pageSize());
+        if (pagesSection != null) {
+            pagesSection = new PagesSection(fis, pagesSectionHeader, p2mSectionHeader, header, getNotesSection().getHeaderNoteDescriptor().getNoOfPages(), getNotesSection()
+                            .getHeaderNoteDescriptor().getPageSize());
         }
-        return _pagesSection;
+        return pagesSection;
 
     }
 
-    /**
-     * @return the _notesSectionHeader
-     */
-    public ELFSectionHeaderTable.Entry get_notesSectionHeader() {
-        return _notesSectionHeader;
+
+
+    public int getVcpus() {
+        try {
+            if (this.vcpus == 0) {
+                vcpus = (int) getNotesSection().getHeaderNoteDescriptor().getVcpus();
+            }
+            return vcpus;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
-    /**
-     * @return the _pagesSectionHeader
-     */
-    public ELFSectionHeaderTable.Entry get_pagesSectionHeader() {
-        return _pagesSectionHeader;
-    }
-
-    /**
-     * @return the _p2mSectionHeader
-     */
-    public ELFSectionHeaderTable.Entry get_p2mSectionHeader() {
-        return _p2mSectionHeader;
+    public long getNoOfPages()throws IOException {
+        return getNotesSection().getHeaderNoteDescriptor().getNoOfPages();
     }
 
 }

@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFSectionHeaderTable;
 import com.sun.max.elf.xen.ImproperDumpFileException;
@@ -42,54 +43,100 @@ public class GuestContext {
     /**
      * This only includes XMM0 - XMM15
      */
-    private byte[] _fpuRegisters = new byte[128];
-    private long _flags;
-    private byte[] _intRegisters;
-    private TrapInfo[] _trapInfo = new TrapInfo[256];
-    private long _linearAddressBase, _linearAddressEntries;
-    private long[] _gdtFrames = new long[16];
-    private long _gdtEntries;
-    private long _kernelSS;
-    private long _kernelSP;
+    private byte[] fpuRegisters = new byte[128];
+    private long flags;
+   private X86_64Registers cpuUserRegs = null;
+    private TrapInfo[] trapInfo = new TrapInfo[256];
+    private long linearAddressBase, linearAddressEntries;
+    private long[] gdtFrames = new long[16];
+    private long gdtEntries;
+    private long kernelSS;
+    private long kernelSP;
     private long[] ctrlreg = new long[8];
     private long[] debugreg = new long[8];
-    private long _eventCallBackEip;
-    private long _failsafeCallbackEip;
-    private long _syscallCallbackEip;
-    private long _vmAssist;
-    private long _fsBase;
-    private long _gsBaseKernel;
-    private long _gsBaseUser;
-    private RandomAccessFile _dumpraf;
-    private ELFHeader _header;
-    private ELFSectionHeaderTable.Entry _sectionHeader;
-    private ByteBuffer _sectionDataBuffer;
-    private int _cpuid;
+    private long eventCallBackEip;
+    private long failsafeCallbackEip;
+    private long syscallCallbackEip;
+    private long vmAssist;
+    private long fsBase;
+    private long gsBaseKernel;
+    private long gsBaseUser;
+    private RandomAccessFile dumpraf;
+    private ELFHeader header;
+    private ELFSectionHeaderTable.Entry sectionHeader;
+    private ByteBuffer sectionDataBuffer;
+    private int cpuid;
+    private ELFDataInputStream byteBufferInputStream;
 
     public GuestContext(RandomAccessFile dumpraf, ELFHeader header, ELFSectionHeaderTable.Entry sectionHeader,int cpuid) {
-        this._dumpraf = dumpraf;
-        this._header = header;
-        this._sectionHeader = sectionHeader;
-        this._cpuid = cpuid;
+        this.dumpraf = dumpraf;
+        this.header = header;
+        this.sectionHeader = sectionHeader;
+        this.cpuid = cpuid;
     }
 
     public void read() throws IOException, ImproperDumpFileException {
-        _dumpraf.seek(_sectionHeader.getOffset());
-        byte[] sectionData = new byte[_sectionHeader.getSize()];
-        _dumpraf.read(sectionData);
-        _sectionDataBuffer = ByteBuffer.wrap(sectionData);
+        dumpraf.seek(sectionHeader.getOffset()+cpuid * 5168);
+        byte[] sectionData = new byte[5168];
+        dumpraf.read(sectionData);
+        sectionDataBuffer = ByteBuffer.wrap(sectionData);
+        //read fpu registers
         readfpu();
+        //read flags
+        byteBufferInputStream = new ELFDataInputStream(header,sectionDataBuffer);
+        flags = byteBufferInputStream.read_Elf64_XWord();
+        //Read registers
+        byte[] registerData = new byte[X86_64Registers.TOTAL_SIZE];
+        sectionDataBuffer.get(registerData);
+        cpuUserRegs = new X86_64Registers(registerData , header.isBigEndian());
+        //Skip trap info ldt gdt kernel ss
+        sectionDataBuffer.position(sectionDataBuffer.position() + 4264);
+        readctrlregs();
     }
 
+    private void readctrlregs()throws IOException {
+        for (int i = 0; i < ctrlreg.length; i++) {
+            // for each register read 8 bytes
+            ctrlreg[i] = byteBufferInputStream.read_Elf64_XWord();
+        }
+    }
     private void readfpu() {
-        _sectionDataBuffer.position(0 + 21 * 8);
+        sectionDataBuffer.position(20 * 8);
         // Skip registers we dont want
         for (int i = 0; i < 15; i++) {
             // for each register read 8 bytes
+            byte[] data = new byte[8];
+            sectionDataBuffer.get(data);
             for (int j = 0; j < 8; j++) {
-                _fpuRegisters[i*8+j] = _sectionDataBuffer.get();
+                fpuRegisters[i*8+j] = data[header.isBigEndian()? j:7 - j];
             }
-            _sectionDataBuffer.position(_sectionDataBuffer.position()+8);
+            sectionDataBuffer.position(sectionDataBuffer.position()+8);
         }
+        sectionDataBuffer.position(512);
     }
+
+
+    /**
+     * @return the fpuRegisters
+     */
+    public byte[] getfpuRegisters() {
+        return fpuRegisters;
+    }
+
+    /**
+     * @return the cpuUserRegs
+     */
+    public X86_64Registers getCpuUserRegs() {
+        return cpuUserRegs;
+    }
+
+
+    /**
+     * @return the ctrlreg
+     */
+    public long[] getCtrlreg() {
+        return ctrlreg;
+    }
+
+
 }

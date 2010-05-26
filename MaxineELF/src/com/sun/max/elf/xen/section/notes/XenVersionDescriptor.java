@@ -40,212 +40,186 @@ public class XenVersionDescriptor extends NotesSectionDescriptor {
     public static final int EXTRA_VERSION_LENGTH = 16;
     public static final int CAPABILITIES_LENGTH = 1024;
     public static final int CHANGESET_LENGTH = 64;
-    private long _majorVersion;
-    private long _minorVersion;
-    private String _extraVersion;
-    private CompileInfo _compileInfo;
-    private String _capabilities;
-    private String _changeSet;
-    private long _platformParamters;
-    private long _pageSize;
+    private long majorVersion;
+    private long minorVersion;
+    private String extraVersion;
+    private CompileInfo compileInfo;
+    private String capabilities;
+    private String changeSet;
+    private long platformParamters;
+    private long pageSize;
 
     static class CompileInfo {
         public static final int COMPILE_INFO_COMPILER_LENGTH = 64;
         public static final int COMPILE_INFO_COMPILE_BY_LENGTH = 16;
         public static final int COMPILE_INFO_COMPILER_DOMAIN_LENGTH = 32;
         public static final int COMPILE_INFO_COMPILE_DATE_LENGTH = 32;
-        private String _compiler;
+        private String compiler;
         private String compiledBy;
-        private String _compileDomain;
-        private String _compileDate;
-
-        /**
-         * @return the _compiler
-         */
-        public String get_compiler() {
-            return _compiler;
-        }
-
-        /**
-         * @param compiler the _compiler to set
-         */
-        public void set_compiler(String compiler) {
-            _compiler = compiler;
-        }
-
-        /**
-         * @return the compiledBy
-         */
-        public String getCompiledBy() {
-            return compiledBy;
-        }
-
-        /**
-         * @param compiledBy the compiledBy to set
-         */
-        public void setCompiledBy(String compiledBy) {
-            this.compiledBy = compiledBy;
-        }
-
-        /**
-         * @return the _compileDomain
-         */
-        public String get_compileDomain() {
-            return _compileDomain;
-        }
-
-        /**
-         * @param compileDomain the _compileDomain to set
-         */
-        public void set_compileDomain(String compileDomain) {
-            _compileDomain = compileDomain;
-        }
-
-        /**
-         * @return the _compileDate
-         */
-        public String get_compileDate() {
-            return _compileDate;
-        }
-
-        /**
-         * @param compileDate the _compileDate to set
-         */
-        public void set_compileDate(String compileDate) {
-            _compileDate = compileDate;
-        }
+        private String compileDomain;
+        private String compileDate;
 
     }
 
-    /**
-     * @return the _majorVersion
-     */
-    public long get_majorVersion() {
-        return _majorVersion;
+
+
+    public void setCompileInfo(String compiler,String compiledby,String compiledomain,String compileDate) {
+        compileInfo = new CompileInfo();
+        compileInfo.compileDate = compileDate;
+        compileInfo.compiler=compiler;
+        compileInfo.compileDomain=compiledomain;
+        compileInfo.compiledBy=compiledby;
     }
 
-    /**
-     * @param majorVersion
-     *            the _majorVersion to set
-     */
-    public void set_majorVersion(long majorVersion) {
-        _majorVersion = majorVersion;
-    }
 
-    /**
-     * @return the _minorVersion
-     */
-    public long get_minorVersion() {
-        return _minorVersion;
-    }
-
-    /**
-     * @param minorVersion
-     *            the _minorVersion to set
-     */
-    public void set_minorVersion(long minorVersion) {
-        _minorVersion = minorVersion;
-    }
-
-    /**
-     * @return the _extraVersion
-     */
-    public String get_extraVersion() {
-        return _extraVersion;
-    }
-
-    /**
-     * @param extraVersion
-     *            the _extraVersion to set
-     */
-    public void set_extraVersion(String extraVersion) {
-        _extraVersion = extraVersion;
-    }
-
-    /**
-     * @return the _compileInfo
-     */
-    public CompileInfo get_compileInfo() {
-        return _compileInfo;
-    }
-
-    /**
-     * @param compileInfo
-     *            the _compileInfo to set
-     */
-    public void set_compileInfo(CompileInfo compileInfo) {
-        _compileInfo = compileInfo;
-    }
-
-    public void set_compileInfo(String compiler,String compiledby,String compiledomain,String compileDate) {
-        _compileInfo = new CompileInfo();
-        _compileInfo._compileDate = compileDate;
-        _compileInfo._compiler=compiler;
-        _compileInfo._compileDomain=compiledomain;
-        _compileInfo.compiledBy=compiledby;
-    }
 
 
     /**
-     * @return the _capabilities
+     * @return the majorVersion
      */
-    public String get_capabilities() {
-        return _capabilities;
+    public long getMajorVersion() {
+        return majorVersion;
     }
+
+
 
 
     /**
-     * @param capabilities the _capabilities to set
+     * @param majorVersion the majorVersion to set
      */
-    public void set_capabilities(String capabilities) {
-        _capabilities = capabilities;
+    public void setMajorVersion(long majorVersion) {
+        this.majorVersion = majorVersion;
     }
+
+
 
 
     /**
-     * @return the _changeSet
+     * @return the minorVersion
      */
-    public String get_changeSet() {
-        return _changeSet;
+    public long getMinorVersion() {
+        return minorVersion;
     }
+
+
 
 
     /**
-     * @param changeSet the _changeSet to set
+     * @param minorVersion the minorVersion to set
      */
-    public void set_changeSet(String changeSet) {
-        _changeSet = changeSet;
+    public void setMinorVersion(long minorVersion) {
+        this.minorVersion = minorVersion;
     }
+
+
 
 
     /**
-     * @return the _platformParamters
+     * @return the extraVersion
      */
-    public long get_platformParamters() {
-        return _platformParamters;
+    public String getExtraVersion() {
+        return extraVersion;
     }
+
+
 
 
     /**
-     * @param platformParamters the _platformParamters to set
+     * @param extraVersion the extraVersion to set
      */
-    public void set_platformParamters(long platformParamters) {
-        _platformParamters = platformParamters;
+    public void setExtraVersion(String extraVersion) {
+        this.extraVersion = extraVersion;
     }
 
-    /**
-     * @return the _pageSize
-     */
-    public long get_pageSize() {
-        return _pageSize;
-    }
+
+
 
     /**
-     * @param pageSize
-     *            the _pageSize to set
+     * @return the capabilities
      */
-    public void set_pageSize(long pageSize) {
-        _pageSize = pageSize;
+    public String getCapabilities() {
+        return capabilities;
     }
+
+
+
+
+    /**
+     * @param capabilities the capabilities to set
+     */
+    public void setCapabilities(String capabilities) {
+        this.capabilities = capabilities;
+    }
+
+
+
+
+    /**
+     * @return the changeSet
+     */
+    public String getChangeSet() {
+        return changeSet;
+    }
+
+
+
+
+    /**
+     * @param changeSet the changeSet to set
+     */
+    public void setChangeSet(String changeSet) {
+        this.changeSet = changeSet;
+    }
+
+
+
+
+    /**
+     * @return the platformParamters
+     */
+    public long getPlatformParamters() {
+        return platformParamters;
+    }
+
+
+
+
+    /**
+     * @param platformParamters the platformParamters to set
+     */
+    public void setPlatformParamters(long platformParamters) {
+        this.platformParamters = platformParamters;
+    }
+
+
+
+
+    /**
+     * @return the pageSize
+     */
+    public long getPageSize() {
+        return pageSize;
+    }
+
+
+
+
+    /**
+     * @param pageSize the pageSize to set
+     */
+    public void setPageSize(long pageSize) {
+        this.pageSize = pageSize;
+    }
+
+
+
+
+    /**
+     * @return the compileInfo
+     */
+    public CompileInfo getCompileInfo() {
+        return compileInfo;
+    }
+
 
 }

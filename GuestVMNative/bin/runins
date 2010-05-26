@@ -145,7 +145,7 @@ fi
 
 MAX=$INS_WS_ROOT/maxine
 
-classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NfsServer/bin:$GUESTVM_ROOT/GNUCP/bin
+classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$GUESTVM_ROOT/GuestVMTele/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NfsServer/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
