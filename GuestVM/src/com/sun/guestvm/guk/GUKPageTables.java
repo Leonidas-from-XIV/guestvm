@@ -74,7 +74,7 @@ public class GUKPageTables {
      * @return machine frame
      */
     public static long getMfnForAddress(Address address) {
-        return GUK.guk_pfn_to_mfn((int) (address.toLong() >> X64VM.L1_SHIFT));
+        return  getMfnForPfn(address.toLong() >> X64VM.L1_SHIFT);
     }
 
     public static long getPfnForAddress(Address address) {
@@ -202,7 +202,7 @@ public class GUKPageTables {
 
     /**
      * Return the physical frame that is mapped to the given machine frame.
-     * @arg mfn machine frame number
+     * @param mfn machine frame number
      * @return physical frame number
      */
     public static long getPfnForMfn(long mfn) {
