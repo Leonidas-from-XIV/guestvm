@@ -55,8 +55,8 @@ public class XGDumpTestProtocol extends TCPXGProtocol {
 
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
-        DumpProtocol.inappropriate("writeBytes");
-        return 0;
+        // The Inspector does try to update some Inspector related state, so we claim to have done it keep it happy.
+        return length;
     }
 
     @Override
