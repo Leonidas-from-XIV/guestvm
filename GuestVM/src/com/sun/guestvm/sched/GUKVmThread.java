@@ -67,19 +67,23 @@ public class GUKVmThread extends VmThread {
     private static final int APPSCHED_FLAG = 0x00002000;
 
     /*
-     * Byte (address) offsets into the native thread struct. Must match include/sched.h.
+     * Byte (address) offsets into the native thread struct. Must match guk/include/guk/sched.h.
      */
     private static final int PREEMPT_COUNT_OFFSET = 0;
     private static final int FLAGS_OFFSET = 4;
     private static final int ID_OFFSET = 24;
-    // private static final int JAVA_ID_OFFSET = 26;
+    private static final int STACK_OFFSET = 40;
+    private static final int STACKSIZE_OFFSET = 48;
     private static final int CPU_OFFSET = 96;
     private static final int CUM_RUNNING_TIME_OFFSET = 88;
+
+    // Maxine's typed methods scale the offset according to type
     private static final int CUM_RUNNING_TIME_OFFSET_AS_LONG = CUM_RUNNING_TIME_OFFSET / 8;
     private static final int FLAGS_OFFSET_ASINT = FLAGS_OFFSET / 4;
     private static final int CPU_OFFSET_ASINT = CPU_OFFSET / 4;
     private static final int ID_OFFSET_AS_SHORT = ID_OFFSET / 2;
-    // private static final int JAVA_ID_OFFSET_AS_SHORT = JAVA_ID_OFFSET / 2;
+    private static final int STACK_OFFSET_AS_LONG = STACK_OFFSET / 8;
+    private static final int STACKSIZE_OFFSET_AS_LONG = STACKSIZE_OFFSET / 8;
 
     public GUKVmThread() {
         super();
@@ -337,5 +341,18 @@ public class GUKVmThread extends VmThread {
     @C_FUNCTION
     private static native int get_java_id(Word nativeThread);
 
+    // Support for debugger
 
+    public long getStack(Pointer tcb) {
+        return tcb.asPointer().getLong(STACK_OFFSET_AS_LONG);
+    }
+
+    public static long getStackSize(Pointer tcb) {
+        return tcb.getLong(STACKSIZE_OFFSET_AS_LONG);
+    }
+    
+    public static int getCpu(Pointer tcb) {
+        return tcb.asPointer().getInt(CPU_OFFSET_ASINT);
+    }
+        
 }

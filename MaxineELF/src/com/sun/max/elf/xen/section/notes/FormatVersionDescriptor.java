@@ -39,7 +39,7 @@ import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
  *
  */
 public class FormatVersionDescriptor extends NotesSectionDescriptor {
-    private long _formatVersion;
+    private long formatVersion;
 
     public FormatVersionDescriptor() {
         super(DescriptorType.FORMAT_VERSION);
@@ -49,15 +49,15 @@ public class FormatVersionDescriptor extends NotesSectionDescriptor {
     /**
      * @return the _formatVersion
      */
-    public long get_formatVersion() {
-        return _formatVersion;
+    public long getFormatVersion() {
+        return formatVersion;
     }
 
     /**
      * @param formatVersion the _formatVersion to set
      */
-    public void set_formatVersion(long formatVersion) {
-        _formatVersion = formatVersion;
+    public void setFormatVersion(long formatVersion) {
+        this.formatVersion = formatVersion;
     }
 
 }

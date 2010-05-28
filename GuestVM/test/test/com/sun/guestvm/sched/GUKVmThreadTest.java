@@ -33,9 +33,17 @@ package test.com.sun.guestvm.sched;
 
 import com.sun.guestvm.sched.*;
 import com.sun.guestvm.test.*;
+import com.sun.max.vm.thread.*;
+import com.sun.max.lang.*;
 
 import test.util.*;
 
+/**
+ * Test the functionality of the {@link GukVMThread} interface.
+ *
+ * @author Mick Jordan
+ *
+ */
 public class GUKVmThreadTest {
 
     /**
@@ -53,15 +61,26 @@ public class GUKVmThreadTest {
             final String op = h._ops[j];
 
             try {
+                final GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
                 if (op.equals("runningTime")) {
-                    GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
                     System.out.println("current thread running time is " + vmThread.getRunningTime());
+                } else if (op.equals("stack")) {
+
+                } else if (op.equals("list")) {
+                    VmThreadMap.ACTIVE.forAllThreads(null, new Lister());
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
 
+    }
+
+    static class Lister implements Procedure<VmThread> {
+        public void run(VmThread thread) {
+            final GUKVmThread t = (GUKVmThread) thread;
+            System.out.println("id " + t.id() + ", cpu " + t.getCpu());
+        }
     }
 
 }

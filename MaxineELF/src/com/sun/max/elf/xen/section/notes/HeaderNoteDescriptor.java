@@ -40,103 +40,128 @@ import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
  */
 public class HeaderNoteDescriptor extends NotesSectionDescriptor {
 
-    static enum DomainType {PARAVIRTUALIZED,FULL_VIRTUALIZED};
-    private static final long PVDOMAIN_MAGIC_NUMBER = 0xF00FEBEDL;
-    private static final long FVDOMAIN_MAGIC_NUMBER = 0xF00FEBEEL;
+    static enum DomainType {
+        PARAVIRTUALIZED, FULL_VIRTUALIZED;
+
+        private static final long PVDOMAIN_MAGIC_NUMBER = 0xF00FEBEDL;
+        private static final long FVDOMAIN_MAGIC_NUMBER = 0xF00FEBEEL;
+
+        public static DomainType getType(long magicNumber) {
+            if (magicNumber == PVDOMAIN_MAGIC_NUMBER) {
+                return PARAVIRTUALIZED;
+            } else if(magicNumber == FVDOMAIN_MAGIC_NUMBER) {
+                return FULL_VIRTUALIZED;
+            }else {
+                throw new IllegalArgumentException("Improper Magic Number");
+            }
+        }
+    };
+
     /*
      * The domain type depends on the magic number.
      *
      */
-    private long _magicnumber;
-    private DomainType _domainType;
-    private long _vcpus;
-    private long _noOfPages;
-    private long _pageSize;
+    private long magicnumber;
+    //vpus is uint64 but we use int here.
+    private int vcpus;
+    private long noOfPages;
+    private long pageSize;
     public HeaderNoteDescriptor() {
         super(DescriptorType.HEADER);
     }
 
+
+
+
     /**
-     * @return the _magicnumber
+     * @return the magicnumber
      */
-    public long get_magicnumber() {
-        return _magicnumber;
+    public long getMagicnumber() {
+        return magicnumber;
+    }
+
+
+
+
+    /**
+     * @param magicnumber the magicnumber to set
+     */
+    public void setMagicnumber(long magicnumber) {
+        this.magicnumber = magicnumber;
+    }
+
+
+
+
+    /**
+     * @return the domainType
+     */
+    public DomainType getDomainType() {
+        return DomainType.getType(magicnumber);
     }
 
     /**
-     * @param magicnumber the _magicnumber to set
+     * @return the vcpus
      */
-    public void set_magicnumber(long magicnumber) {
-        if(magicnumber != PVDOMAIN_MAGIC_NUMBER && magicnumber != FVDOMAIN_MAGIC_NUMBER) {
-            throw new IllegalArgumentException("Improper magic number");
-        }
-        _magicnumber = magicnumber;
-        if(magicnumber == PVDOMAIN_MAGIC_NUMBER) {
-            this._domainType = DomainType.PARAVIRTUALIZED;
-        }else {
-            this._domainType = DomainType.FULL_VIRTUALIZED;
-        }
+    public int getVcpus() {
+        return vcpus;
     }
 
-    /**
-     * @return the _domainType
-     */
-    public DomainType get_domainType() {
-        return _domainType;
-    }
+
+
 
     /**
-     * @param domainType the _domainType to set
+     * @param vcpus the vcpus to set
      */
-    public void set_domainType(DomainType domainType) {
-        _domainType = domainType;
+    public void setVcpus(int vcpus) {
+        this.vcpus = vcpus;
     }
 
-    /**
-     * @return the _vcpus
-     */
-    public long get_vcpus() {
-        return _vcpus;
-    }
+
+
 
     /**
-     * @param vcpus the _vcpus to set
+     * @return the noOfPages
      */
-    public void set_vcpus(long vcpus) {
-        _vcpus = vcpus;
+    public long getNoOfPages() {
+        return noOfPages;
     }
 
-    /**
-     * @return the _noOfPages
-     */
-    public long get_noOfPages() {
-        return _noOfPages;
-    }
+
+
 
     /**
-     * @param noOfPages the _noOfPages to set
+     * @param noOfPages the noOfPages to set
      */
-    public void set_noOfPages(long noOfPages) {
-        _noOfPages = noOfPages;
+    public void setNoOfPages(long noOfPages) {
+        this.noOfPages = noOfPages;
     }
 
-    /**
-     * @return the _pageSize
-     */
-    public long get_pageSize() {
-        return _pageSize;
-    }
+
+
 
     /**
-     * @param pageSize the _pageSize to set
+     * @return the pageSize
      */
-    public void set_pageSize(long pageSize) {
-        _pageSize = pageSize;
+    public long getPageSize() {
+        return pageSize;
     }
+
+
+
+
+    /**
+     * @param pageSize the pageSize to set
+     */
+    public void setPageSize(long pageSize) {
+        this.pageSize = pageSize;
+    }
+
+
 
     @Override
     public String toString() {
-        return "Domain Type: [" + _domainType+"] , No of Pages: [" + _noOfPages + "], Page Size: [" + _pageSize + "],  VCpus: [" + _vcpus + "]";
+        return "Domain Type: [" + getDomainType() +"] , No of Pages: [" + noOfPages + "], Page Size: [" + pageSize + "],  VCpus: [" + vcpus + "]";
     }
 
 }

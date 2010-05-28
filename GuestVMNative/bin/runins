@@ -56,6 +56,7 @@ cpb=""
 vmargs=""
 javacmd=`which java`
 channel="-Dmax.ins.guestvm.channel=db,$PWD/guestvm"
+mode="create"
 
 while [ "$1" != "" ];
 do
@@ -106,14 +107,20 @@ do
   -tcp* )
     type=${1/-/}
     shift
-    channel="-Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
+    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
+    if [ $type = "tcp.xg" ] ;
+    then
+#       mode="attach"
+        mode="create"
+    fi
     ;;
-  "-xg" )
-    channel="-Dmax.ins.guestvm.channel=xg,$PWD/guestvm"
-    ;;
-  " -dump" )
+  "-dump" )
     shift
+    mode="dump"
     channel="-Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
+    ;;
+  "-view" )
+    mode="image"
     ;;
   * )
     ;;
@@ -138,7 +145,7 @@ fi
 
 MAX=$INS_WS_ROOT/maxine
 
-classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NfsServer/bin:$GUESTVM_ROOT/GNUCP/bin
+classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$GUESTVM_ROOT/MaxineELF/bin:$GUESTVM_ROOT/GuestVMTele/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NfsServer/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
@@ -147,8 +154,8 @@ if [ "$cpb" != "" ] ;
 then
   classpath=${cpb}:${classpath}
 fi
-
-cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg"
+set -x
+cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg -mode=$mode"
 
 if [ "$echocmd" -eq 1 ] ;
 then

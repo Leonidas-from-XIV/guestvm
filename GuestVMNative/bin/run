@@ -35,7 +35,8 @@ java_launcher_compat=1
 config="generic"
 echocmd=0
 mainclass=""
-debug="-XX:GUKDebug"
+db_debug="-XX:GUKDebugDB"
+xg_debug="-XX:GUKDebugXG"
 upcalls="-XX:GUKAS"
 upcalls=""
 xtra_args=""
@@ -72,7 +73,9 @@ options:
   -k            set keyword argument mode
   -echo         echo the full xm create command
   -cf <cf>      set the domain config file to xmconfigs/domain_config_cf (default generic)
-  -d            run in debug mode (wait for Inspector to connect)
+  -db           run in debug mode (wait for Inspector to connect via dbfront)
+  -xg           run in debug mode (wait for Inspector to connect via xg)  
+  -d            same as -db
   -a <arg>      force arg as program arg (only necessary if arg has leading -)
   -n            force -echo but do not execute the xm create command
   -J<args>      set VM argument(s)
@@ -103,12 +106,20 @@ do
     shift
     config=$1
     ;;
-  -d )
+  -d | -db )
     if [ "$gukargs" = "" ] ;
     then
-      gukargs=$debug
+      gukargs=$db_debug
     else
-      gukargs="$gukargs $debug"
+      gukargs="$gukargs $db_debug"
+    fi
+    ;;
+  -xg )
+    if [ "$gukargs" = "" ] ;
+    then
+      gukargs=$xg_debug
+    else
+      gukargs="$gukargs $xg_debug"
     fi
     ;;
   -a )

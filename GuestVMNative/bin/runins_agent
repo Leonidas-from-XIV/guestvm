@@ -68,6 +68,6 @@ do
 done
 
 
-classpath=$MAX/Inspector/bin:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin
+classpath=$GUESTVM_ROOT/GuestVMTele/bin:$MAX/Inspector/bin:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin
 
-$javacmd -cp $classpath com.sun.max.tele.debug.guestvm.xen.dbchannel.agent.ProtocolAgent $port $impl $trace $*
+$javacmd -cp $classpath com.sun.max.tele.debug.guestvm.dbchannel.agent.ProtocolAgent $port $impl $trace $*

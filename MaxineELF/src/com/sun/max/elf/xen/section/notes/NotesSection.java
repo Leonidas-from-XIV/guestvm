@@ -39,14 +39,14 @@ import com.sun.max.elf.xen.ImproperDumpFileException;
  */
 public class NotesSection {
 
-    private ELFDataInputStream _elfdis;
-    private NoneNoteDescriptor _noneNoteDescriptor;
-    private HeaderNoteDescriptor _headerNoteDescriptor;
-    private XenVersionDescriptor _xenVersionDescriptor;
-    private FormatVersionDescriptor _formatVersionDescriptor;
-    private ELFHeader _elfHeader;
-    private ELFSectionHeaderTable.Entry _sectionHeader;
-    private RandomAccessFile _dumpraf;
+    private ELFDataInputStream elfdis;
+    private NoneNoteDescriptor noneNoteDescriptor;
+    private HeaderNoteDescriptor headerNoteDescriptor;
+    private XenVersionDescriptor xenVersionDescriptor;
+    private FormatVersionDescriptor formatVersionDescriptor;
+    private ELFHeader elfHeader;
+    private ELFSectionHeaderTable.Entry sectionHeader;
+    private RandomAccessFile dumpraf;
 
     static enum DescriptorType {
         NONE, HEADER, XEN_VERSION, FORMAT_VERSION;
@@ -68,14 +68,14 @@ public class NotesSection {
     };
 
     public NotesSection(RandomAccessFile raf, ELFHeader elfheader, ELFSectionHeaderTable.Entry sectionHeader) {
-        this._dumpraf = raf;
-        this._elfHeader = elfheader;
-        this._sectionHeader = sectionHeader;
+        this.dumpraf = raf;
+        this.elfHeader = elfheader;
+        this.sectionHeader = sectionHeader;
     }
 
     public void read() throws IOException, ImproperDumpFileException {
-        _dumpraf.seek(_sectionHeader.getOffset());
-        this._elfdis = new ELFDataInputStream(_elfHeader, _dumpraf);
+        dumpraf.seek(sectionHeader.getOffset());
+        this.elfdis = new ELFDataInputStream(elfHeader, dumpraf);
         // readNone
         // readHeader
         // readVersion
@@ -85,13 +85,13 @@ public class NotesSection {
          */
         /* the Name is always Xen and in case of notes section in thus coredump thus is length = 4 (including nullbyte) */
         int readLength = 0;
-        while (readLength < _sectionHeader.getSize()) {
-            int nameLength = _elfdis.read_Elf64_Word();
+        while (readLength < sectionHeader.getSize()) {
+            int nameLength = elfdis.read_Elf64_Word();
             if (nameLength != 4) {
                 throw new ImproperDumpFileException("Length of name in notes section must be 4");
             }
-            int descriptorlength = _elfdis.read_Elf64_Word();
-            DescriptorType type = DescriptorType.fromIntType(_elfdis.read_Elf64_Word());
+            int descriptorlength = elfdis.read_Elf64_Word();
+            DescriptorType type = DescriptorType.fromIntType(elfdis.read_Elf64_Word());
             String name = readString(nameLength);
             if (!name.equals("Xen")) {
                 throw new ImproperDumpFileException("Name of each descriptor in the notes section should be xen");
@@ -102,7 +102,7 @@ public class NotesSection {
                     if (descriptorlength != 0) {
                         throw new ImproperDumpFileException("None descriptor should be 0 length");
                     }
-                    this._noneNoteDescriptor = new NoneNoteDescriptor();
+                    this.noneNoteDescriptor = new NoneNoteDescriptor();
                     readLength += descriptorlength;
                     break;
                 case HEADER:
@@ -126,15 +126,15 @@ public class NotesSection {
         if (length != 32) {
             throw new ImproperDumpFileException("Length of the header section should be 32 bytes");
         }
-        this._headerNoteDescriptor = new HeaderNoteDescriptor();
-        this._headerNoteDescriptor.set_magicnumber(_elfdis.read_Elf64_XWord());
-        this._headerNoteDescriptor.set_vcpus(_elfdis.read_Elf64_XWord());
-        this._headerNoteDescriptor.set_noOfPages(_elfdis.read_Elf64_XWord());
-        this._headerNoteDescriptor.set_pageSize(_elfdis.read_Elf64_XWord());
+        this.headerNoteDescriptor = new HeaderNoteDescriptor();
+        this.headerNoteDescriptor.setMagicnumber(elfdis.read_Elf64_XWord());
+        this.headerNoteDescriptor.setVcpus((int)elfdis.read_Elf64_XWord());
+        this.headerNoteDescriptor.setNoOfPages(elfdis.read_Elf64_XWord());
+        this.headerNoteDescriptor.setPageSize(elfdis.read_Elf64_XWord());
     }
 
     private void readXenVersionDescriptor(int length) throws IOException, ImproperDumpFileException {
-        this._xenVersionDescriptor = new XenVersionDescriptor();
+        this.xenVersionDescriptor = new XenVersionDescriptor();
         // 1272 =
         // sizeof(majorversion)+sizeof(minorversion)+sizeof(extraversion)+sizeof(compileinfo)+sizeof(capabilitiesinfo)+sizeof(changesetinfo)+sizeof(pagesize)
         // the platform param length is platform dependent thus we deduce it based on the total size
@@ -142,20 +142,20 @@ public class NotesSection {
         if (platformParamLength != 4 && platformParamLength != 8) {
             throw new ImproperDumpFileException("Improper xen version descriptor");
         }
-        this._xenVersionDescriptor.set_majorVersion(_elfdis.read_Elf64_XWord());
-        this._xenVersionDescriptor.set_minorVersion(_elfdis.read_Elf64_XWord());
-        this._xenVersionDescriptor.set_extraVersion(readString(XenVersionDescriptor.EXTRA_VERSION_LENGTH));
-        this._xenVersionDescriptor.set_compileInfo(readString(XenVersionDescriptor.CompileInfo.COMPILE_INFO_COMPILER_LENGTH),
+        this.xenVersionDescriptor.setMajorVersion(elfdis.read_Elf64_XWord());
+        this.xenVersionDescriptor.setMinorVersion(elfdis.read_Elf64_XWord());
+        this.xenVersionDescriptor.setExtraVersion(readString(XenVersionDescriptor.EXTRA_VERSION_LENGTH));
+        this.xenVersionDescriptor.setCompileInfo(readString(XenVersionDescriptor.CompileInfo.COMPILE_INFO_COMPILER_LENGTH),
                         readString(XenVersionDescriptor.CompileInfo.COMPILE_INFO_COMPILE_BY_LENGTH), readString(XenVersionDescriptor.CompileInfo.COMPILE_INFO_COMPILER_DOMAIN_LENGTH),
                         readString(XenVersionDescriptor.CompileInfo.COMPILE_INFO_COMPILE_DATE_LENGTH));
-        this._xenVersionDescriptor.set_capabilities(readString(XenVersionDescriptor.CAPABILITIES_LENGTH));
-        this._xenVersionDescriptor.set_changeSet(readString(XenVersionDescriptor.CHANGESET_LENGTH));
+        this.xenVersionDescriptor.setCapabilities(readString(XenVersionDescriptor.CAPABILITIES_LENGTH));
+        this.xenVersionDescriptor.setChangeSet(readString(XenVersionDescriptor.CHANGESET_LENGTH));
         if(platformParamLength == 4) {
-            this._xenVersionDescriptor.set_platformParamters(_elfdis.read_Elf64_Word());
+            this.xenVersionDescriptor.setPlatformParamters(elfdis.read_Elf64_Word());
         }else {
-            this._xenVersionDescriptor.set_platformParamters(_elfdis.read_Elf64_XWord());
+            this.xenVersionDescriptor.setPlatformParamters(elfdis.read_Elf64_XWord());
         }
-        this._xenVersionDescriptor.set_pageSize(_elfdis.read_Elf64_XWord());
+        this.xenVersionDescriptor.setPageSize(elfdis.read_Elf64_XWord());
     }
 
     private void readFormatVersionDescriptor(int length) throws IOException, ImproperDumpFileException {
@@ -163,8 +163,8 @@ public class NotesSection {
             throw new ImproperDumpFileException("the format version notes descriptor should be 8 bytes");
         }
 
-        this._formatVersionDescriptor = new FormatVersionDescriptor();
-        this._formatVersionDescriptor.set_formatVersion(this._elfdis.read_Elf64_XWord());
+        this.formatVersionDescriptor = new FormatVersionDescriptor();
+        this.formatVersionDescriptor.setFormatVersion(this.elfdis.read_Elf64_XWord());
     }
 
     /**
@@ -177,126 +177,33 @@ public class NotesSection {
     private String readString(int length) throws IOException {
         byte[] arr = new byte[length - 1];
         for (int i = 0; i < arr.length; i++) {
-            arr[i] = _elfdis.read_Elf64_byte();
+            arr[i] = elfdis.read_Elf64_byte();
         }
-        _elfdis.read_Elf64_byte();
+        elfdis.read_Elf64_byte();
         return new String(arr);
 
     }
 
     public String toString() {
-        return "Header:"+_headerNoteDescriptor != null ? _headerNoteDescriptor.toString():null;
+        return "Header:"+headerNoteDescriptor != null ? headerNoteDescriptor.toString():null;
     }
 
 
     /**
-     * @return the _elfdis
+     * @return the headerNoteDescriptor
      */
-    public ELFDataInputStream get_elfdis() {
-        return _elfdis;
+    public HeaderNoteDescriptor getHeaderNoteDescriptor() {
+        return headerNoteDescriptor;
     }
 
 
     /**
-     * @param elfdis the _elfdis to set
+     * @param headerNoteDescriptor the headerNoteDescriptor to set
      */
-    public void set_elfdis(ELFDataInputStream elfdis) {
-        _elfdis = elfdis;
+    public void setHeaderNoteDescriptor(HeaderNoteDescriptor headerNoteDescriptor) {
+        this.headerNoteDescriptor = headerNoteDescriptor;
     }
 
 
-    /**
-     * @return the _noneNoteDescriptor
-     */
-    public NoneNoteDescriptor get_noneNoteDescriptor() {
-        return _noneNoteDescriptor;
-    }
 
-
-    /**
-     * @param noneNoteDescriptor the _noneNoteDescriptor to set
-     */
-    public void set_noneNoteDescriptor(NoneNoteDescriptor noneNoteDescriptor) {
-        _noneNoteDescriptor = noneNoteDescriptor;
-    }
-
-
-    /**
-     * @return the _headerNoteDescriptor
-     */
-    public HeaderNoteDescriptor get_headerNoteDescriptor() {
-        return _headerNoteDescriptor;
-    }
-
-
-    /**
-     * @param headerNoteDescriptor the _headerNoteDescriptor to set
-     */
-    public void set_headerNoteDescriptor(HeaderNoteDescriptor headerNoteDescriptor) {
-        _headerNoteDescriptor = headerNoteDescriptor;
-    }
-
-
-    /**
-     * @return the _xenVersionDescriptor
-     */
-    public XenVersionDescriptor get_xenVersionDescriptor() {
-        return _xenVersionDescriptor;
-    }
-
-
-    /**
-     * @param xenVersionDescriptor the _xenVersionDescriptor to set
-     */
-    public void set_xenVersionDescriptor(XenVersionDescriptor xenVersionDescriptor) {
-        _xenVersionDescriptor = xenVersionDescriptor;
-    }
-
-
-    /**
-     * @return the _formatVersionDescriptor
-     */
-    public FormatVersionDescriptor get_formatVersionDescriptor() {
-        return _formatVersionDescriptor;
-    }
-
-
-    /**
-     * @param formatVersionDescriptor the _formatVersionDescriptor to set
-     */
-    public void set_formatVersionDescriptor(FormatVersionDescriptor formatVersionDescriptor) {
-        _formatVersionDescriptor = formatVersionDescriptor;
-    }
-
-
-    /**
-     * @return the _elfHeader
-     */
-    public ELFHeader get_elfHeader() {
-        return _elfHeader;
-    }
-
-
-    /**
-     * @param elfHeader the _elfHeader to set
-     */
-    public void set_elfHeader(ELFHeader elfHeader) {
-        _elfHeader = elfHeader;
-    }
-
-
-    /**
-     * @return the _sectionHeader
-     */
-    public ELFSectionHeaderTable.Entry get_sectionHeader() {
-        return _sectionHeader;
-    }
-
-
-    /**
-     * @param sectionHeader the _sectionHeader to set
-     */
-    public void set_sectionHeader(ELFSectionHeaderTable.Entry sectionHeader) {
-        _sectionHeader = sectionHeader;
-    }
 }
