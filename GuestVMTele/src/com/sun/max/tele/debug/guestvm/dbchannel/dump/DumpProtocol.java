@@ -177,11 +177,11 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
-        unimplemented("writeBytes");
+        inappropriate("writeBytes");
         return 0;
     }
 
-    private void inappropriate(String name) {
+    static void inappropriate(String name) {
         ProgramError.unexpected("DumpProtocol: inappropriate method: " + name + " invoked");
     }
 

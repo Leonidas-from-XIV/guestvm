@@ -36,7 +36,7 @@ public class TeleNativeThread {
         this.data = data;
     }
 
-    SimpleProtocol.GatherThreadData getThreadData() {
+    public SimpleProtocol.GatherThreadData getThreadData() {
         return data;
     }
 }

@@ -135,6 +135,9 @@ public class ProtocolAgent {
                             terminated = true;
                         }
                     }
+                } catch (EOFException ex) {
+                	System.out.println("client closed connection, terminating");
+                	terminated = true;
                 } catch (Exception ex) {
                     System.err.println(ex);
                     ex.printStackTrace();
