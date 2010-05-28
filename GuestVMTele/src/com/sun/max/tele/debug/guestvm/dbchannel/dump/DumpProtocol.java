@@ -192,7 +192,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
         return 0;
     }
 
-    private void inappropriate(String name) {
+    static void inappropriate(String name) {
         ProgramError.unexpected("DumpProtocol: inappropriate method: " + name + " invoked");
     }
 

@@ -99,16 +99,16 @@ public interface SimpleProtocol {
      * It is manually serialized and passed as a byte array.
      */
     public static class GatherThreadData implements Serializable {
-        int id;
-        long localHandle;
-        long handle;
-        int state;
-        long instructionPointer;
-        long stackBase;
-        long stackSize;
-        long tlb;
-        long tlbSize;
-        int tlaSize;
+        public int id;
+        public long localHandle;
+        public long handle;
+        public int state;
+        public long instructionPointer;
+        public long stackBase;
+        public long stackSize;
+        public long tlb;
+        public long tlbSize;
+        public int tlaSize;
 
         public GatherThreadData(int id, long localHandle, long handle, int state, long instructionPointer, long stackBase, long stackSize, long tlb, long tlbSize, int tlaSize) {
             this.id = id;

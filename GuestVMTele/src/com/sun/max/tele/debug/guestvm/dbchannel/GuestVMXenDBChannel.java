@@ -56,6 +56,7 @@ public final class GuestVMXenDBChannel {
     private static final String XG_DIRECT = "xg";
     private static final String XG_TCP = "tcp.xg";
     private static final String XEN_DUMP = "xen.dump";
+    private static final String TEST_DUMP = "test.dump";
     private static final String DEFAULT_PROTOCOL = DB_DIRECT;
     private static GuestVMTeleDomain teleDomain;
     private static Protocol channelProtocol;
@@ -72,6 +73,8 @@ public final class GuestVMXenDBChannel {
                 channelProtocol = new TCPProtocol(channelInfo.rest);
             } else if (channelInfo.type.equals(XG_DIRECT)) {
                 channelProtocol = new XGProtocol(ImageFileHandler.open(channelInfo.imageFile));
+            } else if (channelInfo.type.equals(TEST_DUMP)) {
+                channelProtocol = new XGDumpTestProtocol(ImageFileHandler.open(channelInfo.imageFile), channelInfo.rest);
             } else if (channelInfo.type.equals(XG_TCP)) {
                 channelProtocol = new TCPXGProtocol(ImageFileHandler.open(channelInfo.imageFile), channelInfo.rest);
             } else if (channelInfo.type.equals(XEN_DUMP)) {
