@@ -89,8 +89,9 @@ public abstract class CompleteProtocolAdaptor extends DataIOProtocol implements 
             // now we call the real jniGatherThread on this side
             GuestVMTeleDomain teleDomain = (GuestVMTeleDomain) teleDomainObject;
             for (SimpleProtocol.GatherThreadData t : threadDataArray) {
-                //Trace.line(1, "calling jniGatherThread " + t.id + ", " + t.localHandle + ", " + t.handle + ", " + t.state + ", " + t.instructionPointer + ", " +
-                //                Long.toHexString(t.stackBase) + ", " + t.stackSize+ ", " + t.tlb + ", " + t.tlbSize + ", " + t.tlaSize);
+                Trace.line(1, "calling jniGatherThread id=" + t.id + ", lh=" + t.localHandle + ", h=" + Long.toHexString(t.handle) + ", st=" + t.state +
+                        ", ip=" + Long.toHexString(t.instructionPointer) + ", sb=" + Long.toHexString(t.stackBase) + ", ss=" + Long.toHexString(t.stackSize) +
+                        ", tlb=" + Long.toHexString(t.tlb) + ", tlbs=" + t.tlbSize + ", tlas=" + t.tlaSize);
                 teleDomain.jniGatherThread((AppendableSequence<TeleNativeThread>) threadSequence, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
             }
         } catch (Exception ex) {
