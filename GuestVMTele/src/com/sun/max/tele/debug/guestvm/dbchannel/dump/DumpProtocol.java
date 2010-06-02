@@ -48,6 +48,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
      * @param dumpImageFileStr designates the dump file and image file separated by a comma (",")
      */
     private File dumpFile = null;
+    private GUKThreadListAccess tla;
 
     public DumpProtocol(ImageFileHandler imageFileHandler, String dumpFileStr) {
         this.imageFileHandler = imageFileHandler;
@@ -71,6 +72,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     @Override
     public boolean attach(int domId, int threadLocalsAreaSize, long extra1) {
+		tla = new GUKThreadListAccess(this, imageFileHandler.getThreadListSymbolAddress(), threadLocalsAreaSize);
         return true;
     }
 
@@ -87,10 +89,10 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
     }
 
     @Override
-    public boolean gatherThreads(Object teleDomain, Object threadSequence, long threadLocalsList, long primordialThreadLocals) {
-        unimplemented("gatherThreads");
-        return false;
-    }
+    public boolean gatherThreads(Object teleDomainObject, Object threadSequence, long threadLocalsList, long primordialThreadLocals) {
+        // we use the GUKThreadListAccess class
+        return tla.gatherThreads(teleDomainObject, threadSequence, threadLocalsList, primordialThreadLocals);
+     }
 
     @Override
     public long getBootHeapStart() {

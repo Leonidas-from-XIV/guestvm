@@ -31,8 +31,18 @@ import com.sun.max.tele.debug.guestvm.dbchannel.tcp.TCPXGProtocol;
  */
 
 public class XGDumpTestProtocol extends TCPXGProtocol {
+    private GUKThreadListAccess tla;
+    private ImageFileHandler imageFileHandler;
+
     public XGDumpTestProtocol(ImageFileHandler imageFileHandler, String hostAndPort) {
         super(imageFileHandler, hostAndPort);
+        this.imageFileHandler = imageFileHandler;
+    }
+
+    @Override
+    public boolean attach(int domId, int threadLocalsAreaSize, long extra1) {
+        tla = new GUKThreadListAccess(this, imageFileHandler.getThreadListSymbolAddress(), threadLocalsAreaSize);
+        return super.attach(domId, threadLocalsAreaSize, extra1);
     }
 
     @Override
@@ -55,8 +65,8 @@ public class XGDumpTestProtocol extends TCPXGProtocol {
 
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
-        DumpProtocol.inappropriate("writeBytes");
-        return 0;
+        // The Inspector does try to update some Inspector related state, so we claim to have done it keep it happy.
+        return length;
     }
 
     @Override
@@ -88,5 +98,11 @@ public class XGDumpTestProtocol extends TCPXGProtocol {
         DumpProtocol.inappropriate("deactivateWatchpoint");
         return false;
     }
+
+    @Override
+    public boolean gatherThreads(Object teleDomainObject, Object threadSequence, long threadLocalsList, long primordialThreadLocals) {
+        // we use the GUKThreadListAccess class
+        return tla.gatherThreads(teleDomainObject, threadSequence, threadLocalsList, primordialThreadLocals);
+     }
 
 }

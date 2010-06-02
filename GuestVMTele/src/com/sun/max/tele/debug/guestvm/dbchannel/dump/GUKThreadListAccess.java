@@ -1,20 +1,21 @@
 package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 
 import java.nio.*;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.elf.xen.section.prstatus.X86_64Registers;
+import com.sun.max.tele.debug.*;
+import com.sun.max.tele.debug.guestvm.*;
 import com.sun.max.tele.debug.guestvm.dbchannel.*;
 import com.sun.max.vm.thread.VmThreadLocal;
+import com.sun.max.tele.MaxThreadState;
 
 import static com.sun.max.vm.thread.VmThreadLocal.*;
 import static com.sun.guestvm.sched.GUKVmThread.*;
 import static com.sun.max.tele.MaxThreadState.*;
 import static com.sun.max.tele.thread.NativeThreadLocal.*;
-import com.sun.max.tele.MaxThreadState;
 
 /**
  * Accesses the GUK thread list to support the gathering of threads by the Inspector.
@@ -26,7 +27,8 @@ public class GUKThreadListAccess {
     private SimpleProtocol protocol;
     private final static int MAXINE_THREAD_ID = 40;
     private static final int NATIVE_THREAD_LOCALS_STRUCT_SIZE = 72;
-    private static final int THREAD_LOCALS_AREA_SIZE = VmThreadLocal.values().length() * 8;
+    private long threadListAddress;
+    private int threadLocalsAreaSize;
 
     public static class ThreadInfo {
         public final int id;
@@ -44,12 +46,15 @@ public class GUKThreadListAccess {
         }
     }
 
-    public GUKThreadListAccess(SimpleProtocol protocol) {
+    public GUKThreadListAccess(SimpleProtocol protocol, long threadListAddress, int threadLocalsAreaSize) {
         this.protocol = protocol;
+        this.threadListAddress = threadListAddress;
+        this.threadLocalsAreaSize = threadLocalsAreaSize;
     }
 
-    public void gatherThreads(Object teleDomain, Object threadSeq, long threadListAddress, long threadLocalsList, long primordialThreadLocals) {
-        final ByteBuffer threadLocals = ByteBuffer.allocate(THREAD_LOCALS_AREA_SIZE).order(ByteOrder.LITTLE_ENDIAN);
+    @SuppressWarnings("unchecked")
+    public boolean gatherThreads(Object teleDomainObject, Object threadSeq, long threadLocalsList, long primordialThreadLocals) {
+        final ByteBuffer threadLocals = ByteBuffer.allocate(threadLocalsAreaSize).order(ByteOrder.LITTLE_ENDIAN);
         final ByteBuffer nativeThreadLocals = ByteBuffer.allocate(NATIVE_THREAD_LOCALS_STRUCT_SIZE).order(ByteOrder.LITTLE_ENDIAN);
 
         List<ThreadInfo> threads = gatherGUKThreads(threadListAddress);
@@ -65,30 +70,26 @@ public class GUKThreadListAccess {
                 id = id < 0 ? id : -id;
                 setInStruct(threadLocals, VmThreadLocal.ID.offset, id);
             }
-            Method m = jniGatherThreadMethod(teleDomain);
             try {
-            m.invoke(teleDomain, new Object[] {threadSeq, (int) getFromStruct(threadLocals, ID.offset), threadInfo.id, getFromStruct(nativeThreadLocals, HANDLE.offset),
-                    toThreadState(threadInfo.flags).ordinal(), threadInfo.rip,
-                    getFromStruct(nativeThreadLocals, STACKBASE.offset), getFromStruct(nativeThreadLocals, STACKSIZE.offset),
-                    getFromStruct(nativeThreadLocals, TLBLOCK.offset), getFromStruct(nativeThreadLocals, TLBLOCKSIZE.offset),
-                    THREAD_LOCALS_AREA_SIZE});
+                SimpleProtocol.GatherThreadData t = new SimpleProtocol.GatherThreadData(
+                        (int) getFromStruct(threadLocals, ID.offset),
+                        threadInfo.id,
+                        getFromStruct(nativeThreadLocals, HANDLE.offset),
+                        toThreadState(threadInfo.flags).ordinal(), threadInfo.rip,
+                        getFromStruct(nativeThreadLocals, STACKBASE.offset), getFromStruct(nativeThreadLocals, STACKSIZE.offset),
+                        getFromStruct(nativeThreadLocals, TLBLOCK.offset), getFromStruct(nativeThreadLocals, TLBLOCKSIZE.offset),
+                        threadLocalsAreaSize
+                        );
+                Trace.line(1, "calling jniGatherThread id=" + t.id + ", lh=" + t.localHandle + ", h=" + Long.toHexString(t.handle) + ", st=" + t.state +
+                        ", ip=" + Long.toHexString(t.instructionPointer) + ", sb=" + Long.toHexString(t.stackBase) + ", ss=" + Long.toHexString(t.stackSize) +
+                        ", tlb=" + Long.toHexString(t.tlb) + ", tlbs=" + t.tlbSize + ", tlas=" + t.tlaSize);
+                GuestVMTeleDomain teleDomain = (GuestVMTeleDomain) teleDomainObject;
+                teleDomain.jniGatherThread((AppendableSequence<TeleNativeThread>) threadSeq, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
             } catch (Exception ex) {
                 ProgramError.unexpected("invoke failure on jniGatherThread", ex);
             }
         }
-    }
-
-    static Method jniGatherThreadMethod(Object teleDomain) {
-        Class<?> klass = teleDomain.getClass();
-        try {
-            return klass.getMethod("jniGatherThread", new Class[] {
-                    AppendableSequence.class, int.class, long.class,
-                    long.class, int.class, long.class, long.class, long.class,
-                    long.class, long.class, int.class });
-        } catch (NoSuchMethodException ex) {
-            ProgramError.unexpected("cannot resolve jniGatherThread", ex);
-            return null;
-        }
+        return true;
     }
 
     static MaxThreadState toThreadState(int state) {
@@ -171,12 +172,11 @@ public class GUKThreadListAccess {
     boolean isThreadLocalsForStackPointer(long stackPointer, long tl, ByteBuffer tlCopy, ByteBuffer ntlCopy) {
         long ntl;
 
-        int n = protocol.readBytes(tl, tlCopy.array(), 0, THREAD_LOCALS_AREA_SIZE);
-        assert n == THREAD_LOCALS_AREA_SIZE;
+        int n = protocol.readBytes(tl, tlCopy.array(), 0, threadLocalsAreaSize);
+        assert n == threadLocalsAreaSize;
         ntl = getFromStruct(tlCopy, NATIVE_THREAD_LOCALS.offset);
         n = protocol.readBytes(ntl, ntlCopy.array(), 0, NATIVE_THREAD_LOCALS_STRUCT_SIZE);
-//	    setThreadLocal(tlCopy, NATIVE_THREAD_LOCALS.offset, ntlCopy);
-        Trace.line(1, "findThreadLocals : " + Long.toHexString(stackPointer));
+//        Trace.line(1, "findThreadLocals : " + Long.toHexString(stackPointer));
         long stackBase = ntlCopy.getLong(STACKBASE.offset);
         long stackSize = ntlCopy.getLong(STACKSIZE.offset);
         return stackBase <= stackPointer && stackPointer < (stackBase + stackSize);
