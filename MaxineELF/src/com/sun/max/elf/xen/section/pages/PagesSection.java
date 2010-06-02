@@ -33,6 +33,8 @@ package com.sun.max.elf.xen.section.pages;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
@@ -51,6 +53,7 @@ public class PagesSection {
     private ELFSectionHeaderTable.Entry p2mSectionHeader;
     private ELFHeader elfHeader;
     private long noOfPages;
+    private Map<Long, PageInfo> mfnPageInfoMap = new HashMap<Long, PageInfo>();
     private long pageSize;
 
     public PagesSection(RandomAccessFile raf,ELFSectionHeaderTable.Entry pageSectionHeader,ELFSectionHeaderTable.Entry p2mSectionHeader, ELFHeader elfHeader,long noOfPages,long pageSize) {
@@ -70,12 +73,12 @@ public class PagesSection {
         return new ELFDataInputStream(elfHeader, raf);
     }
 
-    public void readBytes(long address,byte[] dst, int dstOffset,int length)throws IOException {
+    public int readBytes(long address,byte[] dst, int dstOffset,int length)throws IOException {
         if(address > (pageSectionHeader.getOffset()+pageSectionHeader.getSize())) {
             throw new IllegalArgumentException("Improper address");
         }
         raf.seek(pageSectionHeader.getOffset() + address);
-        raf.read(dst, dstOffset, length);
+        return raf.read(dst, dstOffset, length);
     }
     /**
      * Get the page info corresponding to this pseudo physical pfn.
@@ -100,12 +103,16 @@ public class PagesSection {
      * @return
      */
     public PageInfo getPageInfoForMfn(long mfn)throws IOException {
+        if(mfnPageInfoMap.get(mfn) != null ) {
+            return mfnPageInfoMap.get(mfn);
+        }
         raf.seek(p2mSectionHeader.getOffset());
-        for(int i=0;i<noOfPages;i++) {
+        ELFDataInputStream dataInputStream = new ELFDataInputStream(elfHeader,raf);
+        for(int i=mfnPageInfoMap.size();i<noOfPages;i++) {
             PageInfo pageInfo = new PageInfo();
-            ELFDataInputStream dataInputStream = new ELFDataInputStream(elfHeader,raf);
             pageInfo.setPfn(dataInputStream.read_Elf64_XWord());
             pageInfo.setGmfn(dataInputStream.read_Elf64_XWord());
+            mfnPageInfoMap.put(pageInfo.getGmfn(), pageInfo);
             if(pageInfo.getGmfn() == mfn) {
                 return pageInfo;
             }

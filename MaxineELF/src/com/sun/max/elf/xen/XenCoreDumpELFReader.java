@@ -46,7 +46,7 @@ public class XenCoreDumpELFReader {
     public static final String NOTES_SECTION_NAME = ".note.Xen";
     public static final String CONTEXT_SECTION_NAME = ".xen_prstatus";
     public static final String SHARED_INFO_SECTION_NAME = ".xen_shared_info";
-    public static final String P2M_SECTION_NAME = ".xen.p2m";
+    public static final String P2M_SECTION_NAME = ".xen_p2m";
     public static final String PFN_SECTION_NAME = ".xen.pfn";
     public static final String XEN_PAGES_SECTION_NAME = ".xen_pages";
 
@@ -131,7 +131,7 @@ public class XenCoreDumpELFReader {
     }
 
     public PagesSection getPagesSection() throws IOException,ImproperDumpFileException {
-        if (pagesSection != null) {
+        if (pagesSection == null) {
             pagesSection = new PagesSection(fis, pagesSectionHeader, p2mSectionHeader, header, getNotesSection().getHeaderNoteDescriptor().getNoOfPages(), getNotesSection()
                             .getHeaderNoteDescriptor().getPageSize());
         }

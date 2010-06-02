@@ -55,6 +55,12 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
         if (!dumpFile.exists()) {
             throw new IllegalArgumentException("Dump or Image file does not exist or is not accessible");
         }
+        try {
+            xenReader = new XenCoreDumpELFReader(new RandomAccessFile(dumpFile, "r"));
+            pageTableAccess = new CoreDumpPageTableAccess(xenReader);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -65,12 +71,6 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     @Override
     public boolean attach(int domId, int threadLocalsAreaSize, long extra1) {
-        try {
-            xenReader = new XenCoreDumpELFReader(new RandomAccessFile(dumpFile, "r"));
-            pageTableAccess = new CoreDumpPageTableAccess(xenReader);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
         return true;
     }
 
@@ -99,6 +99,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
             //This essentially assumes 64 bitness of the address and the target.
             return xenReader.getPagesSection().getX64WordAtOffset(address);
         } catch (Exception e) {
+        	e.printStackTrace();
             ProgramError.unexpected("Couldnt get Boot Heap start from the dump File");
         }
         return 0;
@@ -113,9 +114,9 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
     public int readBytes(long src, byte[] dst, int dstOffset, int length) {
         //Resolve the address
     	try {
-			long physicalAddr = pageTableAccess.getPteForAddress(Address.fromLong(src));
-			xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
-		} catch (IOException e) {
+			long physicalAddr = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src))).toLong();
+			return xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
         return 0;

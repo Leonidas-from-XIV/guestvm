@@ -34,10 +34,10 @@ import com.sun.max.unsafe.*;
 public class CoreDumpPageTableAccess extends AbstractX64PageTableAccess {
 
     private XenCoreDumpELFReader dumpReader;
+    private static final Long PAGE_TABLE_BASE_ADDRESS_MASK=4503599627370495L;
     public CoreDumpPageTableAccess(XenCoreDumpELFReader dumpReader) {
         this.dumpReader = dumpReader;
     }
-
 
 
     /* (non-Javadoc)
@@ -74,7 +74,7 @@ public class CoreDumpPageTableAccess extends AbstractX64PageTableAccess {
      */
     @Override
     public Address getPageTableBase()throws IOException {
-        return Address.fromLong(dumpReader.getGuestContext(0).getCtrlreg()[3]);
+        return getAddressForPfn(dumpReader.getPagesSection().getPageInfoForMfn(dumpReader.getGuestContext(0).getCtrlreg()[3] >> 12).getPfn());
     }
 
 

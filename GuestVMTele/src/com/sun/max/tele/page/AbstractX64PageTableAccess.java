@@ -101,6 +101,7 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
                 throw new PteNotPresentException("page table entry at index " + index + " in level " + level + " is not present");
             }
             table = getAddressForPte(pte);
+            //table = Address.fromLong(pte);
             level--;
         }
         return pte;

@@ -74,7 +74,7 @@ public class PageInfo {
 
     @Override
     public String toString() {
-        return String.format("pfn=%s , gfn = %s ",Long.toHexString(pfn),Long.toHexString(gmfn));
+        return String.format("[pfn=%s , gfn = %s ",Long.toHexString(pfn),Long.toHexString(gmfn)+"]");
     }
 
     @Override

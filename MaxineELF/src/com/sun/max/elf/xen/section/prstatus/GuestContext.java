@@ -26,6 +26,7 @@ package com.sun.max.elf.xen.section.prstatus;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
@@ -66,7 +67,6 @@ public class GuestContext {
     private ELFSectionHeaderTable.Entry sectionHeader;
     private ByteBuffer sectionDataBuffer;
     private int cpuid;
-    private ELFDataInputStream byteBufferInputStream;
 
     public GuestContext(RandomAccessFile dumpraf, ELFHeader header, ELFSectionHeaderTable.Entry sectionHeader,int cpuid) {
         this.dumpraf = dumpraf;
@@ -80,16 +80,16 @@ public class GuestContext {
         byte[] sectionData = new byte[5168];
         dumpraf.read(sectionData);
         sectionDataBuffer = ByteBuffer.wrap(sectionData);
+        sectionDataBuffer.order(ByteOrder.LITTLE_ENDIAN);
         //read fpu registers
         readfpu();
-        //read flags
-        byteBufferInputStream = new ELFDataInputStream(header,sectionDataBuffer);
-        flags = byteBufferInputStream.read_Elf64_XWord();
+        flags = sectionDataBuffer.getLong();
         //Read registers
         byte[] registerData = new byte[X86_64Registers.TOTAL_SIZE];
         sectionDataBuffer.get(registerData);
         cpuUserRegs = new X86_64Registers(registerData , header.isBigEndian());
         //Skip trap info ldt gdt kernel ss
+        System.out.println(sectionDataBuffer.position());
         sectionDataBuffer.position(sectionDataBuffer.position() + 4264);
         readctrlregs();
     }
@@ -97,7 +97,7 @@ public class GuestContext {
     private void readctrlregs()throws IOException {
         for (int i = 0; i < ctrlreg.length; i++) {
             // for each register read 8 bytes
-            ctrlreg[i] = byteBufferInputStream.read_Elf64_XWord();
+            ctrlreg[i] = sectionDataBuffer.getLong();
         }
     }
     private void readfpu() {
