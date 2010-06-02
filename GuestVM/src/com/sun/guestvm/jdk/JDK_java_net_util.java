@@ -32,12 +32,14 @@
 package com.sun.guestvm.jdk;
 
 import java.io.FileDescriptor;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sun.guestvm.fs.VirtualFileSystemId;
-import com.sun.guestvm.net.*;
-import com.sun.guestvm.net.tcp.*;
-import com.sun.guestvm.net.udp.*;
-import com.sun.max.collect.*;
+import com.sun.guestvm.net.Endpoint;
+import com.sun.guestvm.net.EndpointFileSystem;
+import com.sun.guestvm.net.tcp.TCPEndpoint;
+import com.sun.guestvm.net.udp.UDPEndpoint;
 import com.sun.max.vm.object.TupleAccess;
 
 /**
@@ -52,7 +54,7 @@ import com.sun.max.vm.object.TupleAccess;
 
 public class JDK_java_net_util {
 
-    private static VariableSequence<Endpoint> _endpoints = new ArrayListSequence<Endpoint>(16);
+    private static List<Endpoint> _endpoints = new ArrayList<Endpoint>(16);
     private static EndpointFileSystem _endpointFileSystem;
 
     /**
@@ -63,7 +65,7 @@ public class JDK_java_net_util {
     static int getFreeIndex(Endpoint u) {
         int result;
         synchronized (_endpoints) {
-            final int length = _endpoints.length();
+            final int length = _endpoints.size();
             for (int i = 0; i < length; i++) {
                 if (_endpoints.get(i) == null) {
                     _endpoints.set(i, u);
@@ -71,7 +73,7 @@ public class JDK_java_net_util {
                     break;
                 }
             }
-            _endpoints.append(u);
+            _endpoints.add(u);
             result = length;
         }
         return getUniqueFd(result);

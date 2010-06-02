@@ -21,8 +21,8 @@
 package com.sun.max.tele.debug.guestvm.dbchannel;
 
 import java.nio.*;
+import java.util.*;
 
-import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.MaxWatchpoint.*;
 import com.sun.max.tele.debug.*;
@@ -57,7 +57,6 @@ public final class GuestVMXenDBChannel {
     private static final String XG_TCP = "tcp.xg";
     private static final String XEN_DUMP = "xen.dump";
     private static final String TEST_DUMP = "test.dump";
-    private static final String DEFAULT_PROTOCOL = DB_DIRECT;
     private static GuestVMTeleDomain teleDomain;
     private static Protocol channelProtocol;
     private static int maxByteBufferSize;
@@ -175,7 +174,7 @@ public final class GuestVMXenDBChannel {
         return length;
     }
 
-    public static synchronized void gatherThreads(AppendableSequence<TeleNativeThread> threads, long threadLocalsList, long primordialThreadLocals) {
+    public static synchronized void gatherThreads(List<TeleNativeThread> threads, long threadLocalsList, long primordialThreadLocals) {
         channelProtocol.gatherThreads(teleDomain, threads, threadLocalsList, primordialThreadLocals);
     }
 

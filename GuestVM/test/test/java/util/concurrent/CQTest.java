@@ -32,7 +32,7 @@
 package test.java.util.concurrent;
 
 import java.util.*;
-import com.sun.max.lang.StaticLoophole;
+import com.sun.max.*;
 
 public class CQTest {
 
@@ -80,7 +80,7 @@ public class CQTest {
         Queue<Long> queue = null;
         try {
             final Class< ? > qClass = Class.forName(qImpl);
-            queue = StaticLoophole.cast(qClass.newInstance());
+            queue = Utils.cast(qClass.newInstance());
         } catch (Exception ex) {
             System.out.println("failed to instantiate " + qImpl);
         }

@@ -3,7 +3,6 @@ package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 import java.nio.*;
 import java.util.*;
 
-import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.elf.xen.section.prstatus.X86_64Registers;
 import com.sun.max.tele.debug.*;
@@ -84,7 +83,7 @@ public class GUKThreadListAccess {
                         ", ip=" + Long.toHexString(t.instructionPointer) + ", sb=" + Long.toHexString(t.stackBase) + ", ss=" + Long.toHexString(t.stackSize) +
                         ", tlb=" + Long.toHexString(t.tlb) + ", tlbs=" + t.tlbSize + ", tlas=" + t.tlaSize);
                 GuestVMTeleDomain teleDomain = (GuestVMTeleDomain) teleDomainObject;
-                teleDomain.jniGatherThread((AppendableSequence<TeleNativeThread>) threadSeq, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
+                teleDomain.jniGatherThread((List<TeleNativeThread>) threadSeq, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
             } catch (Exception ex) {
                 ProgramError.unexpected("invoke failure on jniGatherThread", ex);
             }

@@ -20,7 +20,7 @@
  */
 package com.sun.max.tele.debug.guestvm.dbchannel.agent;
 
-import com.sun.max.collect.*;
+import java.util.*;
 import com.sun.max.tele.debug.guestvm.dbchannel.*;
 
 /**
@@ -31,7 +31,7 @@ import com.sun.max.tele.debug.guestvm.dbchannel.*;
  */
 
 public class TeleProcess {
-    public final void jniGatherThread(AppendableSequence<TeleNativeThread> threads,
+    public final void jniGatherThread(List<TeleNativeThread> threads,
                     int id,
                     long localHandle,
                     long handle,
@@ -42,7 +42,7 @@ public class TeleProcess {
                     long tlb,
                     long tlbSize,
                     int tlaSize) {
-        threads.append(new TeleNativeThread(new SimpleProtocol.GatherThreadData(id, localHandle, handle, state, instructionPointer, stackBase, stackSize, tlb, tlbSize, tlaSize)));
+        threads.add(new TeleNativeThread(new SimpleProtocol.GatherThreadData(id, localHandle, handle, state, instructionPointer, stackBase, stackSize, tlb, tlbSize, tlaSize)));
     }
 
 }
