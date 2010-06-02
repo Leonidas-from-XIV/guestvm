@@ -31,12 +31,11 @@
  */
 package com.sun.max.vm.run.guestvm;
 
+import java.util.*;
 import sun.nio.ch.BBNativeDispatcher;
 import sun.rmi.registry.RegistryImpl;
 
 import com.sun.max.annotate.*;
-import com.sun.max.collect.AppendableSequence;
-import com.sun.max.collect.LinkSequence;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.object.TupleAccess;
 import com.sun.max.vm.actor.member.*;
@@ -68,7 +67,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
     private static boolean _netInit;
     private static boolean _launcherReset;
-    private static AppendableSequence<ClassActor> _netReinitClasses = new LinkSequence<ClassActor>();
+    private static List<ClassActor> _netReinitClasses = new LinkedList<ClassActor>();
     private static final String RMIREGISTRY_PROPERTY = "guestvm.rmiregistry";
 
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
@@ -116,9 +115,9 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
     @HOSTED_ONLY
     private void forceNetReInit() {
-        _netReinitClasses.append(doForceInitClass("java.net.NetworkInterface", false));
-        _netReinitClasses.append(doForceInitClass("java.net.PlainDatagramSocketImpl", false));
-        _netReinitClasses.append(doForceInitClass("java.net.PlainSocketImpl", false));
+        _netReinitClasses.add(doForceInitClass("java.net.NetworkInterface", false));
+        _netReinitClasses.add(doForceInitClass("java.net.PlainDatagramSocketImpl", false));
+        _netReinitClasses.add(doForceInitClass("java.net.PlainSocketImpl", false));
     }
 
     @Override

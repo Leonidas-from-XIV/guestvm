@@ -22,8 +22,8 @@ package com.sun.max.tele.debug.guestvm.dbchannel;
 
 import java.io.*;
 import java.nio.*;
+import java.util.*;
 
-import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.debug.guestvm.*;
 import com.sun.max.tele.debug.guestvm.dbchannel.dataio.*;
@@ -92,7 +92,7 @@ public abstract class CompleteProtocolAdaptor extends DataIOProtocol implements 
                 Trace.line(1, "calling jniGatherThread id=" + t.id + ", lh=" + t.localHandle + ", h=" + Long.toHexString(t.handle) + ", st=" + t.state +
                         ", ip=" + Long.toHexString(t.instructionPointer) + ", sb=" + Long.toHexString(t.stackBase) + ", ss=" + Long.toHexString(t.stackSize) +
                         ", tlb=" + Long.toHexString(t.tlb) + ", tlbs=" + t.tlbSize + ", tlas=" + t.tlaSize);
-                teleDomain.jniGatherThread((AppendableSequence<TeleNativeThread>) threadSequence, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
+                teleDomain.jniGatherThread((List<TeleNativeThread>) threadSequence, t.id, t.localHandle, t.handle, t.state, t.instructionPointer, t.stackBase, t.stackSize, t.tlb, t.tlbSize, t.tlaSize);
             }
         } catch (Exception ex) {
             ex.printStackTrace();

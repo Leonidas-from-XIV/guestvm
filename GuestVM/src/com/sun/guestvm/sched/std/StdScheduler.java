@@ -33,7 +33,7 @@ package com.sun.guestvm.sched.std;
 
 import com.sun.max.annotate.*;
 import com.sun.max.lang.Procedure;
-import com.sun.max.lang.StaticLoophole;
+import com.sun.max.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.*;
 import com.sun.max.vm.thread.*;
@@ -74,7 +74,7 @@ final class StdScheduler extends GUKUpcallHandler {
      */
     @HOSTED_ONLY
     StdScheduler() {
-        _ready = StaticLoophole.cast(new RunQueue[MAX_CPU]);
+        _ready = Utils.cast(new RunQueue[MAX_CPU]);
         _current = new GUKVmThread[MAX_CPU];
         _assignCurrent = new int[MAX_CPU];
         _assignNew = new int[MAX_CPU];
