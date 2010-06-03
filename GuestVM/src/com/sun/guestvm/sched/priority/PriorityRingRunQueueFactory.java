@@ -32,7 +32,7 @@
 package com.sun.guestvm.sched.priority;
 
 import com.sun.guestvm.sched.*;
-import com.sun.max.lang.StaticLoophole;
+import com.sun.max.*;
 import com.sun.max.vm.thread.VmThread;
 
 
@@ -40,7 +40,7 @@ public class PriorityRingRunQueueFactory extends RunQueueFactory {
 
     @Override
     public RunQueue<GUKVmThread> createRunQueue() {
-        final RunQueue<GUKVmThread> result = StaticLoophole.cast(new PriorityRingRunQueue<RingGUKVmThread>(Thread.MIN_PRIORITY, Thread.MAX_PRIORITY, new UnlockedRingRunQueueCreator<RingGUKVmThread>()));
+        final RunQueue<GUKVmThread> result = Utils.cast(new PriorityRingRunQueue<RingGUKVmThread>(Thread.MIN_PRIORITY, Thread.MAX_PRIORITY, new UnlockedRingRunQueueCreator<RingGUKVmThread>()));
         result.buildtimeInitialize();
         return result;
     }

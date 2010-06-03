@@ -32,7 +32,7 @@
 package test.java.lang;
 
 import java.util.*;
-import com.sun.max.lang.StaticLoophole;
+import com.sun.max.*;
 
 public class OutOfMemoryTest {
 
@@ -66,7 +66,7 @@ public class OutOfMemoryTest {
         final Object[] lists = new Object[repeat];
         while (repeat > 0) {
             lists[repeat - 1] = new ArrayList<Object[]>();
-            List<Object[]> leak = StaticLoophole.cast(lists[repeat - 1]);
+            List<Object[]> leak = Utils.cast(lists[repeat - 1]);
 
             try {
                 long count = 0;

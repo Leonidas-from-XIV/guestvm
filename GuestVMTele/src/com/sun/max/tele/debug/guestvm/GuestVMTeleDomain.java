@@ -21,10 +21,10 @@
 package com.sun.max.tele.debug.guestvm;
 
 import java.nio.*;
+import java.util.*;
 
 import javax.swing.*;
 
-import com.sun.max.collect.*;
 import com.sun.max.platform.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.*;
@@ -124,7 +124,7 @@ public class GuestVMTeleDomain extends TeleProcess {
     }
 
     @Override
-    protected void gatherThreads(AppendableSequence<TeleNativeThread> threads) {
+    protected void gatherThreads(List<TeleNativeThread> threads) {
         final Word primordialThreadLocals = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.primordialThreadLocalsOffset));
         final Word threadLocalsList = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.threadLocalsListHeadOffset));
         GuestVMXenDBChannel.gatherThreads(threads, threadLocalsList.asAddress().toLong(), primordialThreadLocals.asAddress().toLong());

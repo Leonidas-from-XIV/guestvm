@@ -36,7 +36,7 @@ import java.util.*;
 import com.sun.guestvm.sched.RingRunQueue;
 import com.sun.guestvm.sched.RingRunQueueEntry;
 import com.sun.guestvm.sched.RunQueue;
-import com.sun.max.lang.StaticLoophole;
+import com.sun.max.*;
 
 /**
  * This class supports O(1) prioritized insertion of elements into the logical queue.
@@ -71,7 +71,7 @@ public class PriorityRingRunQueue<T extends PriorityRingRunQueueEntry> extends R
 
     public void buildtimeInitialize() {
         // allocate a queue for each priority level
-        _queues = StaticLoophole.cast(new RingRunQueue[_max - _min + 1]);
+        _queues = Utils.cast(new RingRunQueue[_max - _min + 1]);
         for (int q = 0; q < _queues.length; q++) {
             _queues[q] = _creator.create();
         }

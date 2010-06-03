@@ -21,8 +21,8 @@
 package com.sun.max.tele.debug.guestvm.dbchannel.agent;
 
 import java.io.*;
+import java.util.*;
 
-import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.debug.guestvm.dbchannel.*;
 import com.sun.max.tele.debug.guestvm.dbchannel.dataio.DataIOProtocol.*;
@@ -142,9 +142,9 @@ public abstract class AgentProtocolAdaptor extends RIProtocolAdaptor implements 
     @Override
     public int gatherThreads(long threadLocalsList, long primordialThreadLocals) {
         GuestVMTeleDomain teleDomain = new GuestVMTeleDomain();
-        AppendableSequence<TeleNativeThread> threads = new ArrayListSequence<TeleNativeThread>();
+        List<TeleNativeThread> threads = new ArrayList<TeleNativeThread>();
         impl.gatherThreads(teleDomain, threads, threadLocalsList, primordialThreadLocals);
-        numThreads = threads.length();
+        numThreads = threads.size();
         SimpleProtocol.GatherThreadData[] data = new SimpleProtocol.GatherThreadData[numThreads];
         int index = 0;
         for (TeleNativeThread tnt : threads) {
