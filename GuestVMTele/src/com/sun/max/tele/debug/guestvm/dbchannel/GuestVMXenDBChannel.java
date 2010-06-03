@@ -22,6 +22,8 @@ package com.sun.max.tele.debug.guestvm.dbchannel;
 
 import java.nio.*;
 
+import javax.swing.JOptionPane;
+
 import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.MaxWatchpoint.*;
@@ -67,6 +69,11 @@ public final class GuestVMXenDBChannel {
         String channelType = System.getProperty(CHANNEL_PROPERTY);
         final ChannelInfo channelInfo = ChannelInfo.getChannelInfo(channelType);
         try {
+        	if(!channelInfo.type.equals(XEN_DUMP)) {
+        		if (domId < 0) {
+                    domId = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter the domain id"));
+                }
+        	}
             if (channelInfo.type.equals(DB_DIRECT)) {
                 channelProtocol = new DBProtocol();
             } else if (channelInfo.type.equals(DB_TCP)) {

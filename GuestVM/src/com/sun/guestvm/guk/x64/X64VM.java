@@ -40,6 +40,7 @@ package com.sun.guestvm.guk.x64;
 
 public class X64VM {
 
+    public static final int L0_SHIFT = 0;
     public static final int L1_SHIFT = 12;
     public static final int L2_SHIFT = 21;
     public static final int L3_SHIFT = 30;
@@ -49,6 +50,7 @@ public class X64VM {
     public static final long L2_MASK = (1L << L3_SHIFT) - 1;
     public static final long L3_MASK = (1L << L4_SHIFT) - 1;
 
+    public static final int L0_ENTRIES = 4096;
     public static final int L1_ENTRIES = 512;
     public static final int L2_ENTRIES = 512;
     public static final int L3_ENTRIES = 512;

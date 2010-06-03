@@ -91,6 +91,9 @@ public class PagesSection {
         ELFDataInputStream dataInputStream = new ELFDataInputStream(elfHeader,raf);
         pageInfo.setPfn(dataInputStream.read_Elf64_Addr());
         pageInfo.setGmfn(dataInputStream.read_Elf64_Addr());
+        if(!pageInfo.isValid()) {
+            return null;
+        }
         if(pageInfo.getPfn() != pfn) {
             throw new RuntimeException("Improper read.The pfn at the offset doesnt match.");
         }
@@ -112,6 +115,9 @@ public class PagesSection {
             PageInfo pageInfo = new PageInfo();
             pageInfo.setPfn(dataInputStream.read_Elf64_XWord());
             pageInfo.setGmfn(dataInputStream.read_Elf64_XWord());
+            if(!pageInfo.isValid()) {
+                continue;
+            }
             mfnPageInfoMap.put(pageInfo.getGmfn(), pageInfo);
             if(pageInfo.getGmfn() == mfn) {
                 return pageInfo;

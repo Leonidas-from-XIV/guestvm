@@ -27,6 +27,7 @@ import java.io.RandomAccessFile;
 import com.sun.max.elf.xen.XenCoreDumpELFReader;
 import com.sun.max.elf.xen.section.prstatus.GuestContext;
 import com.sun.max.program.ProgramError;
+import com.sun.max.program.Trace;
 import com.sun.max.tele.debug.guestvm.dbchannel.CompleteProtocolAdaptor;
 import com.sun.max.tele.debug.guestvm.dbchannel.ImageFileHandler;
 import com.sun.max.tele.debug.guestvm.dbchannel.Protocol;
@@ -116,7 +117,11 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
     public int readBytes(long src, byte[] dst, int dstOffset, int length) {
         //Resolve the address
     	try {
-			long physicalAddr = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src))).toLong();
+//    		Trace.begin(1, "VA - "+Long.toHexString(src));
+    		Address l1pte = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src)));
+    		int index = pageTableAccess.getPTIndex(Address.fromLong(src), 0);
+    		long physicalAddr = l1pte.toLong() + index * 8;
+//			Trace.end(1,"PHY - " + Long.toHexString(physicalAddr));
 			return xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
 		} catch (Exception e) {
 			e.printStackTrace();

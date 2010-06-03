@@ -36,26 +36,31 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
     /* (non-Javadoc)
      * @see com.sun.max.tele.page.PageTableAccess#getMfnForAddress(com.sun.max.unsafe.Address)
      */
+
+	protected Address basePageTableAddress = null;
     @Override
     public long getMfnForAddress(Address address)throws IOException {
         return getPfnForMfn(address.toLong() >> X64VM.L1_SHIFT);
     }
 
     @Override
-    public int getNumPTEntries(int level) {
-        switch (level) {
-            case 1:
-                return X64VM.L1_ENTRIES;
-            case 2:
-                return X64VM.L2_ENTRIES;
-            case 3:
-                return X64VM.L3_ENTRIES;
-            case 4:
-                return X64VM.L4_ENTRIES;
-            default:
-                throw new IllegalArgumentException("illegal page table level: " + level);
-        }
-    }
+	public int getNumPTEntries(int level) {
+		switch (level) {
+		case 0:
+			return X64VM.L0_ENTRIES;
+		case 1:
+			return X64VM.L1_ENTRIES;
+		case 2:
+			return X64VM.L2_ENTRIES;
+		case 3:
+			return X64VM.L3_ENTRIES;
+		case 4:
+			return X64VM.L4_ENTRIES;
+		default:
+			throw new IllegalArgumentException("illegal page table level: "+ level);
+		}
+	}
+
     @Override
     public Address getAddressForPfn(long pfn) {
         return Address.fromLong(pfn << X64VM.L1_SHIFT);
@@ -64,34 +69,48 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
      * @see com.sun.max.tele.page.PageTableAccess#getPTIndex(com.sun.max.unsafe.Address, int)
      */
     @Override
-    public final int getPTIndex(Address address, int level) {
-        final long a = address.toLong();
-        long result;
-        switch (level) {
-            case 1:
-                result =  (a >> X64VM.L1_SHIFT) & (X64VM.L1_ENTRIES - 1);
-                break;
-            case 2:
-                result =  (a >> X64VM.L2_SHIFT) & (X64VM.L2_ENTRIES - 1);
-                break;
-            case 3:
-                result =  (a >> X64VM.L3_SHIFT) & (X64VM.L3_ENTRIES - 1);
-                break;
-            case 4:
-                result =  (a >> X64VM.L4_SHIFT) & (X64VM.L4_ENTRIES - 1);
-                break;
-            default:
-                throw new IllegalArgumentException("illegal page table level: " + level);
-        }
+	public final int getPTIndex(Address address, int level) {
+		final long a = address.toLong();
+		long result;
+		switch (level) {
+		case 0:
+			result = (a >> X64VM.L0_SHIFT) & (X64VM.L0_ENTRIES - 1);
+			break;
+		case 1:
+			result = (a >> X64VM.L1_SHIFT) & (X64VM.L1_ENTRIES - 1);
+			break;
+		case 2:
+			result = (a >> X64VM.L2_SHIFT) & (X64VM.L2_ENTRIES - 1);
+			break;
+		case 3:
+			result = (a >> X64VM.L3_SHIFT) & (X64VM.L3_ENTRIES - 1);
+			break;
+		case 4:
+			result = (a >> X64VM.L4_SHIFT) & (X64VM.L4_ENTRIES - 1);
+			break;
+		default:
+			throw new IllegalArgumentException("illegal page table level: "
+					+ level);
+		}
         return (int) result;
     }
 
+//    public final long getPhysicalAddressForVirtualAddress(Address address)throws IOException {
+//    	long pte = getPteForAddress(address);
+//    	Address l0PageTableAddress = getAddressForPte(pte);
+//    	final int index = getPTIndex(address, 0);
+//    	return getPTEntryAtIndex(l0PageTableAddress, index);
+//    }
     /* (non-Javadoc)
      * @see com.sun.max.tele.page.PageTableAccess#getPteForAddress(com.sun.max.unsafe.Address)
      */
     @Override
     public final long getPteForAddress(Address address)throws IOException {
-        Address table = getPageTableBase(); // level 4 table
+    	if(basePageTableAddress == null) {
+    		basePageTableAddress = getPageTableBase();
+    	}
+        //Address table = basePageTableAddress; // level 4 table pfn
+    	Address table = basePageTableAddress;
         long pte = 0;
         int level = 4;
         while (level > 0) {

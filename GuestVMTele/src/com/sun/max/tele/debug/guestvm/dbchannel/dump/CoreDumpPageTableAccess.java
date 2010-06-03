@@ -22,6 +22,7 @@ package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 
 import java.io.*;
 
+import com.sun.guestvm.guk.x64.X64VM;
 import com.sun.max.elf.xen.*;
 import com.sun.max.tele.page.*;
 import com.sun.max.unsafe.*;
@@ -34,7 +35,6 @@ import com.sun.max.unsafe.*;
 public class CoreDumpPageTableAccess extends AbstractX64PageTableAccess {
 
     private XenCoreDumpELFReader dumpReader;
-    private static final Long PAGE_TABLE_BASE_ADDRESS_MASK=4503599627370495L;
     public CoreDumpPageTableAccess(XenCoreDumpELFReader dumpReader) {
         this.dumpReader = dumpReader;
     }
@@ -74,7 +74,7 @@ public class CoreDumpPageTableAccess extends AbstractX64PageTableAccess {
      */
     @Override
     public Address getPageTableBase()throws IOException {
-        return getAddressForPfn(dumpReader.getPagesSection().getPageInfoForMfn(dumpReader.getGuestContext(0).getCtrlreg()[3] >> 12).getPfn());
+        return getAddressForPte((dumpReader.getGuestContext(0).getCtrlreg()[3]));
     }
 
 

@@ -49,12 +49,7 @@ public class GuestVMTeleDomain extends TeleProcess {
 
     protected GuestVMTeleDomain(TeleVM teleVM, Platform platform, int id) {
         super(teleVM, platform, ProcessState.STOPPED);
-        if (id < 0) {
-            domainId = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter the domain id"));
-        } else {
-            domainId = id;
-        }
-        GuestVMXenDBChannel.attach(this, domainId);
+        GuestVMXenDBChannel.attach(this,id);
         dataAccess = new PageDataAccess(this, platform.processorKind.dataModel);
     }
 
