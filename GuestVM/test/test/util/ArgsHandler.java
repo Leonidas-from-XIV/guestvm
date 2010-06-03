@@ -59,6 +59,10 @@ public final class ArgsHandler {
                 _opArgs1[_opCount] = args[++i];
             } else if (arg.equals("a2")) {
                 _opArgs2[_opCount] = args[++i];
+            } else if (arg.equals("a3")) {
+                _opArgs3[_opCount] = args[++i];
+            } else if (arg.equals("a4")) {
+                _opArgs4[_opCount] = args[++i];
             } else if (arg.equals("op")) {
                 _ops[_opCount++] = args[++i];
                 _opArgs1[_opCount] = _opArgs1[_opCount - 1];

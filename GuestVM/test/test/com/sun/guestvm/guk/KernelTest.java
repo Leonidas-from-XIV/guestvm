@@ -35,7 +35,6 @@ import java.util.*;
 import com.sun.max.memory.VirtualMemory;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.VMConfiguration;
-import com.sun.max.vm.thread.*;
 import com.sun.guestvm.guk.*;
 import com.sun.guestvm.sched.*;
 import com.sun.guestvm.guk.x64.*;
@@ -46,11 +45,13 @@ import test.util.*;
 
 public class KernelTest {
 
+    static long allocatedObject;
+
     /**
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        final ArgsHandler h = ArgsHandler.process(args);
+         final ArgsHandler h = ArgsHandler.process(args);
         if (h._opCount == 0) {
             System.out.println("no operations given");
             return;
@@ -63,6 +64,9 @@ public class KernelTest {
             final String opArg2 = h._opArgs2[j];
             final String opArg3 = h._opArgs3[j];
             final String opArg4 = h._opArgs4[j];
+            if (h._verbose) {
+                System.out.println("op=" + op + ", a1=" + opArg1 + ", a2=" + opArg2 + ", a3=" + opArg3 + ", a4=" + opArg4);
+            }
             if (op.equals("getNumPages")) {
                 System.out.println("NumPages: " + GUKPagePool.getCurrentReservation());
             } else if (op.equals("getPTBase")) {
@@ -111,13 +115,13 @@ public class KernelTest {
                 }
                 System.out.println();
             } else if (op.equals("getPTInfo")) {
-                final Address a = VMTestHelper.fromLong(Long.parseLong(opArg1, 16));
+                final Address a = VMTestHelper.fromLong(parseAddr(opArg1));
                 getPTInfo(a);
             } else if (op.equals("getPTIndices")) {
                 final Address a = VMTestHelper.fromLong(parseAddr(opArg1));
                 getPTInfo(a);
             } else if (op.equals("validate")) {
-                validate(VMTestHelper.fromLong(parseLong(opArg1, 16)));
+                validate(VMTestHelper.fromLong(parseAddr(opArg1)));
             } else if (op.equals("pageFrames")) {
                 final int minLevel = parseInt(opArg1);
                 pageFramesInfo(minLevel);
@@ -192,6 +196,15 @@ public class KernelTest {
             } else if (op.equals("threadRunningTime")) {
                 final GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
                 System.out.println("Current Thread running time: " + vmThread.getRunningTime());
+            } else if (op.equals("allocateObject")) {
+                Object obj = new Object();
+                allocatedObject = VMTestHelper.toLong(obj);
+                System.out.println("address " + allocatedObject);
+            } else if (op.equals("sleep")) {
+                try {
+                    Thread.sleep(Long.parseLong(opArg1));
+                } catch (InterruptedException ex) {
+                }
             } else {
                 System.out.println("command " + op + " not recognized");
             }
@@ -272,39 +285,46 @@ public class KernelTest {
     private static final long T = 1024 * G;
     private static final long P = 1024 * T;
 
+    /**
+     * Parse an address given as a hex number, with optional scaling suffix.
+     * If the argument is "null", then the value of the variables {@link allocatedObject} is used instead.
+     * @param string to parse
+     * @return the address
+     */
     private static long parseAddr(String s) {
-        if (s != null) {
+        if (s == null || s.equals("null")) {
+            return allocatedObject;
+        } else {
             long r = 0;
             final int l = s.length();
             int i = 0;
             char ch = ' ';
             while (i < l) {
-                ch = s.charAt(i);
+                ch = Character.toUpperCase(s.charAt(i));
                 if ('0' <= ch && ch <= '9') {
-                    r = r * 10 + (ch - '0');
+                    r = r * 16 + (ch - '0');
+                } else if ('A' <= ch && ch <= 'F') {
+                    r = r * 16 + (ch - 'A' + 10);
                 } else {
                     break;
                 }
                 i++;
             }
-            switch (ch) {
-                case 'k':
+            switch (Character.toUpperCase(ch)) {
+                case 'K':
                     return r * K;
-                case 'm':
+                case 'M':
                     return r * M;
-                case 'g':
+                case 'G':
                     return r * G;
-                case 't':
+                case 'T':
                     return r * T;
-                case 'p':
+                case 'P':
                     return r * P;
                 default:
                     return r;
             }
-        } else {
-            return -1L;
         }
-
     }
 
      /**
@@ -710,6 +730,10 @@ public class KernelTest {
         printPool(new CodePoolImpl());
     }
 
+    /**
+     * Prints the allocated/free entries in a {@link Pool}.
+     * @param pool the pool to  print
+     */
     private static void printPool(Pool pool) {
         final long base = VMTestHelper.toLong(pool.getBase());
         final int size = pool.getSize();
@@ -731,6 +755,11 @@ public class KernelTest {
         }
     }
 
+    /**
+     * Generates a map of the machine page frames allocated to the domain, and computes maximum contiguous run.
+     *
+     * @param mask if bit 0 is set prints the map, if bit 1 is set prints maximum contiguous run
+     */
     private static void mfnMap(int mask) {
         final long start = GUKPagePool.getStart();
         final long end = GUKPagePool.getEnd();
@@ -770,6 +799,10 @@ public class KernelTest {
         }
     }
 
+    /**
+     * Calculates maximum contiguous run of machine pages allocated to domain using machine page pool map directly.
+     * @param mask
+     */
     private static void mfnMap2(int mask) {
         final long maxRam = GUKPagePool.getMaximumRamPage();
         if ((mask & 2) != 0) {
