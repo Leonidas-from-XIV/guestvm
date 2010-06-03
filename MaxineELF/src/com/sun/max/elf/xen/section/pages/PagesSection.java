@@ -109,7 +109,7 @@ public class PagesSection {
         if(mfnPageInfoMap.get(mfn) != null ) {
             return mfnPageInfoMap.get(mfn);
         }
-        raf.seek(p2mSectionHeader.getOffset());
+        raf.seek(p2mSectionHeader.getOffset() + mfnPageInfoMap.size() * 16);
         ELFDataInputStream dataInputStream = new ELFDataInputStream(elfHeader,raf);
         for(int i=mfnPageInfoMap.size();i<noOfPages;i++) {
             PageInfo pageInfo = new PageInfo();
@@ -123,6 +123,6 @@ public class PagesSection {
                 return pageInfo;
             }
         }
-        throw new RuntimeException("Mfn not found");
+        throw new RuntimeException("Mfn "+Long.toHexString(mfn) + " not found");
     }
 }
