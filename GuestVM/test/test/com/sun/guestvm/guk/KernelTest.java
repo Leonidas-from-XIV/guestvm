@@ -63,6 +63,9 @@ public class KernelTest {
             final String opArg2 = h._opArgs2[j];
             final String opArg3 = h._opArgs3[j];
             final String opArg4 = h._opArgs4[j];
+            if (h._verbose) {
+                System.out.println("op=" + op + ", a1=" + opArg1 + ", a2=" + opArg2 + ", a3=" + opArg3 + ", a4=" + opArg4);
+            }
             if (op.equals("getNumPages")) {
                 System.out.println("NumPages: " + GUKPagePool.getCurrentReservation());
             } else if (op.equals("getPTBase")) {
@@ -192,6 +195,11 @@ public class KernelTest {
             } else if (op.equals("threadRunningTime")) {
                 final GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
                 System.out.println("Current Thread running time: " + vmThread.getRunningTime());
+            } else if (op.equals("sleep")) {
+                try {
+                    Thread.sleep(Long.parseLong(opArg1));
+                } catch (InterruptedException ex) {
+                }
             } else {
                 System.out.println("command " + op + " not recognized");
             }
