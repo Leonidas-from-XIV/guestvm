@@ -196,8 +196,8 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
-        inappropriate("writeBytes");
-        return 0;
+        Trace.line(1, "WARNING: Inspector trying to write to " + Long.toHexString(dst));
+        return length;
     }
 
     static void inappropriate(String name) {
