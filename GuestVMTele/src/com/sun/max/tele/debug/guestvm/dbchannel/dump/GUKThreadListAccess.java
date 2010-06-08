@@ -107,6 +107,9 @@ public class GUKThreadListAccess {
         if ((state & WATCH_FLAG) != 0) {
             return WATCHPOINT;
         }
+        if ((state & RUNNING_FLAG) != 0) {
+        	return RUNNING;
+        }
         // default
         return SUSPENDED;
     }
