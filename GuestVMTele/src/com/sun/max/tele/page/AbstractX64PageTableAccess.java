@@ -22,6 +22,7 @@ package com.sun.max.tele.page;
 
 import java.io.*;
 
+import com.sun.max.program.Trace;
 import com.sun.max.unsafe.*;
 import com.sun.guestvm.guk.x64.*;
 
@@ -46,8 +47,6 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
     @Override
 	public int getNumPTEntries(int level) {
 		switch (level) {
-		case 0:
-			return X64VM.L0_ENTRIES;
 		case 1:
 			return X64VM.L1_ENTRIES;
 		case 2:
@@ -73,9 +72,6 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
 		final long a = address.toLong();
 		long result;
 		switch (level) {
-		case 0:
-			result = (a >> X64VM.L0_SHIFT) & (X64VM.L0_ENTRIES - 1);
-			break;
 		case 1:
 			result = (a >> X64VM.L1_SHIFT) & (X64VM.L1_ENTRIES - 1);
 			break;
@@ -119,6 +115,7 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
             if (!PageTableUtil.isPresent(pte)) {
                 throw new PteNotPresentException("page table entry at index " + index + " in level " + level + " is not present");
             }
+            Trace.line(1, String.format("L%d Base: %s Index: %d",level,Long.toHexString(table.toLong()),index));
             table = getAddressForPte(pte);
             //table = Address.fromLong(pte);
             level--;

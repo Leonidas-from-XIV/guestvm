@@ -43,7 +43,6 @@ impl=""
 trace=""
 javacmd=`which java`
 
-
 while [ "$1" != "" ];
 do
 #  echo $1
@@ -59,6 +58,10 @@ do
   "-trace" )
     shift
     trace="-trace $1"
+    ;;
+  "-java" )
+    shift
+    javacmd="$1"
     ;;
   * )
     break

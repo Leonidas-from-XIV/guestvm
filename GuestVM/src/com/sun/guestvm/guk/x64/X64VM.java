@@ -40,7 +40,6 @@ package com.sun.guestvm.guk.x64;
 
 public class X64VM {
 
-    public static final int L0_SHIFT = 0;
     public static final int L1_SHIFT = 12;
     public static final int L2_SHIFT = 21;
     public static final int L3_SHIFT = 30;
