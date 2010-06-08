@@ -154,7 +154,6 @@ if [ "$cpb" != "" ] ;
 then
   classpath=${cpb}:${classpath}
 fi
-set -x
 cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg -mode=$mode"
 
 if [ "$echocmd" -eq 1 ] ;
