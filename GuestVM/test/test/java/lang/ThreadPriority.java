@@ -46,6 +46,7 @@ import test.util.*;
  * p t n  set priority of thread t to n (default NORM_PRIORITY)
  * ts t n  set scheduling timeslice for thread t to n (if possible)
  * h       run an additional thread with max priority
+ * r n     run each thread for n seconds (default 5)
  * s n    display OS-specific thread scheduler stats every n seconds (if available)
  *
  * @author Mick Jordan
