@@ -118,10 +118,8 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
     public int readBytes(long src, byte[] dst, int dstOffset, int length) {
         //Resolve the address
     	try {
-    		Trace.begin(1, "VA - "+Long.toHexString(src));
     		Address l1pte = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src)));
     		long physicalAddr = l1pte.toLong() + (src & (X64VM.L0_ENTRIES-1));
-			Trace.end(1,"PHY - " + Long.toHexString(physicalAddr));
 			return xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,9 +200,5 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     static void inappropriate(String name) {
         ProgramError.unexpected("DumpProtocol: inappropriate method: " + name + " invoked");
-    }
-
-    private void unimplemented(String name) {
-        ProgramError.unexpected("DumpProtocol: unimplemented method: " + name + " invoked");
     }
 }

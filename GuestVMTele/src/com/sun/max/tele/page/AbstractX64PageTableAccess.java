@@ -105,7 +105,6 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
     	if(basePageTableAddress == null) {
     		basePageTableAddress = getPageTableBase();
     	}
-        //Address table = basePageTableAddress; // level 4 table pfn
     	Address table = basePageTableAddress;
         long pte = 0;
         int level = 4;
@@ -115,9 +114,7 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
             if (!PageTableUtil.isPresent(pte)) {
                 throw new PteNotPresentException("page table entry at index " + index + " in level " + level + " is not present");
             }
-            Trace.line(1, String.format("L%d Base: %s Index: %d",level,Long.toHexString(table.toLong()),index));
             table = getAddressForPte(pte);
-            //table = Address.fromLong(pte);
             level--;
         }
         return pte;
