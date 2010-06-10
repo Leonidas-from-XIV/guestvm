@@ -81,4 +81,7 @@ name = "GuestVM-" + os.environ.get("USER")
 if os.environ.get("BRIDGE") != None :
     vif=['bridge=' + os.environ.get("BRIDGE")]
 
-on_crash = 'destroy'
+if os.environ.get("ON_CRASH") != None :
+   on_crash = os.environ.get("ON_CRASH")
+else :
+   on_crash = 'destroy'
