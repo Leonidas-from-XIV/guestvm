@@ -28,6 +28,7 @@ public class GUKThreadListAccess {
     private static final int NATIVE_THREAD_LOCALS_STRUCT_SIZE = 72;
     private long threadListAddress;
     private int threadLocalsAreaSize;
+    private List<ThreadInfo> currentThreadList;
 
     public static class ThreadInfo {
         public final int id;
@@ -36,12 +37,10 @@ public class GUKThreadListAccess {
         public long rsp;
         public long rip;
 
-        ThreadInfo(int id, int flags, int cpu, long rip, long rsp) {
+        ThreadInfo(int id, int flags, int cpu) {
             this.id = id;
             this.flags = flags;
             this.cpu = cpu;
-            this.rip = rip;
-            this.rsp =rsp;
         }
     }
 
@@ -79,7 +78,7 @@ public class GUKThreadListAccess {
                         getFromStruct(nativeThreadLocals, TLBLOCK.offset), getFromStruct(nativeThreadLocals, TLBLOCKSIZE.offset),
                         threadLocalsAreaSize
                         );
-                Trace.line(1, "calling jniGatherThread id=" + t.id + ", lh=" + t.localHandle + ", h=" + Long.toHexString(t.handle) + ", st=" + t.state +
+                Trace.line(2, "calling jniGatherThread id=" + t.id + ", lh=" + t.localHandle + ", h=" + Long.toHexString(t.handle) + ", st=" + t.state +
                         ", ip=" + Long.toHexString(t.instructionPointer) + ", sb=" + Long.toHexString(t.stackBase) + ", ss=" + Long.toHexString(t.stackSize) +
                         ", tlb=" + Long.toHexString(t.tlb) + ", tlbs=" + t.tlbSize + ", tlas=" + t.tlaSize);
                 GuestVMTeleDomain teleDomain = (GuestVMTeleDomain) teleDomainObject;
@@ -115,7 +114,7 @@ public class GUKThreadListAccess {
     }
 
     public List<ThreadInfo> gatherGUKThreads(long threadListAddress) {
-        final ArrayList<ThreadInfo> result = new ArrayList<ThreadInfo>();
+        currentThreadList = new ArrayList<ThreadInfo>();
         final ByteBuffer listHeadBuffer = ByteBuffer.allocate(STRUCT_LIST_HEAD_SIZE).order(ByteOrder.LITTLE_ENDIAN);
         int n = protocol.readBytes(threadListAddress, listHeadBuffer.array(), 0, STRUCT_LIST_HEAD_SIZE);
         assert n == STRUCT_LIST_HEAD_SIZE;
@@ -128,7 +127,9 @@ public class GUKThreadListAccess {
             final int flags = threadStructBuffer.getInt(FLAGS_OFFSET);
             final int id = threadStructBuffer.getShort(ID_OFFSET);
             if ((id == MAXINE_THREAD_ID) || ((flags & UKERNEL_FLAG) == 0)) {
-                final int cpu = threadStructBuffer.getInt(CPU_OFFSET);
+                ThreadInfo threadInfo = new ThreadInfo(id, flags, threadStructBuffer.getInt(CPU_OFFSET));
+                // must add before calling protocol.readRegisters as it calls back to find cpu
+                currentThreadList.add(threadInfo);
                 long rip;
                 long rsp;
                 if ((flags & RUNNING_FLAG) != 0) {
@@ -148,12 +149,27 @@ public class GUKThreadListAccess {
                     rsp = threadStructBuffer.getLong(SP_OFFSET);
                     rip = threadStructBuffer.getLong(IP_OFFSET);
                 }
-                result.add(new ThreadInfo(id, flags, cpu, rip, rsp));
+                threadInfo.rip = rip;
+                threadInfo.rsp = rsp;
             }
             threadStructAddress = threadStructBuffer.getLong(THREAD_LIST_OFFSET);
         }
 
-        return result;
+        return currentThreadList;
+    }
+
+    /**
+     * Gets the cpu the thread is currently running on.
+     * @param id
+     * @return the cpu the thread is currently running on.
+     */
+    public int getCpu(int id) {
+    	for (ThreadInfo threadInfo : currentThreadList) {
+    		if (threadInfo.id == id) {
+    			return threadInfo.cpu;
+    		}
+    	}
+    	throw new IllegalArgumentException("cannot find cpu for thread id " + id);
     }
 
     private static void zeroBuffer(ByteBuffer bb) {

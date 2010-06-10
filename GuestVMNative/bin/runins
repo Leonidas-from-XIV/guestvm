@@ -107,17 +107,17 @@ do
   -tcp* )
     type=${1/-/}
     shift
-    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
-    if [ $type = "tcp.xg" ] ;
+    if [ $type = "tcp.xga" ] ;
     then
-#       mode="attach"
-        mode="create"
+        mode="attach"
+        type="tcp.xg"
     fi
+    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
     ;;
   "-dump" )
     shift
     mode="dump"
-    channel="-Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
+    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
     ;;
   "-view" )
     mode="image"

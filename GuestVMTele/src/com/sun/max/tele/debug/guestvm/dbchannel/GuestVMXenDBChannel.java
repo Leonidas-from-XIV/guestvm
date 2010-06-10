@@ -24,7 +24,6 @@ import java.nio.*;
 
 import javax.swing.JOptionPane;
 import java.util.*;
-import com.sun.max.collect.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.MaxWatchpoint.*;
 import com.sun.max.tele.debug.*;
@@ -107,7 +106,6 @@ public final class GuestVMXenDBChannel {
         private static ChannelInfo getChannelInfo(String channelType) {
             final ChannelInfo result = new ChannelInfo();
             final String[] parts = channelType.split(",");
-            System.out.println("l " + parts.length + " p0 " + parts[0] + " p1 " + parts[1] + " p2 " + parts[2]);
             if (parts.length < 2) {
                 usage(channelType);
             }

@@ -131,8 +131,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
     public boolean readRegisters(int threadId, byte[] integerRegisters, int integerRegistersSize, byte[] floatingPointRegisters, int floatingPointRegistersSize, byte[] stateRegisters,
                     int stateRegistersSize) {
         try {
-            //FIXME: Thhe right context for the given threadId
-            GuestContext context = xenReader.getGuestContext(0);
+            GuestContext context = xenReader.getGuestContext(tla.getCpu(threadId));
             context.getCpuUserRegs().canonicalizeTeleIntegerRegisters(integerRegisters);
             context.getCpuUserRegs().canonicalizeTeleStateRegisters(stateRegisters);
             System.arraycopy(context.getfpuRegisters(), 0, floatingPointRegisters, 0, floatingPointRegistersSize);
@@ -194,7 +193,7 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
 
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
-        Trace.line(1, "WARNING: Inspector trying to write to " + Long.toHexString(dst));
+        Trace.line(2, "WARNING: Inspector trying to write to " + Long.toHexString(dst));
         return length;
     }
 
