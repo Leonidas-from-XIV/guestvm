@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen.section.pages;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.pages;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -39,7 +39,6 @@ import java.util.Map;
 import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFSectionHeaderTable;
-import com.sun.max.unsafe.Address;
 
 
 /**

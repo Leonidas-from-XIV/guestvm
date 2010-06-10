@@ -29,9 +29,9 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen.section.notes;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes;
 
-import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes.NotesSection.DescriptorType;
 
 
 /**

@@ -20,11 +20,11 @@
  */
 package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 
-import java.io.*;
+import java.io.IOException;
 
-import com.sun.max.elf.xen.*;
-import com.sun.max.tele.page.*;
-import com.sun.max.unsafe.*;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.XenCoreDumpELFReader;
+import com.sun.max.tele.page.AbstractX64PageTableAccess;
+import com.sun.max.unsafe.Address;
 
 
 /**

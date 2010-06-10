@@ -21,7 +21,7 @@
  * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
  * nationals lists is strictly prohibited.
  */
-package com.sun.max.elf.xen.section.notes;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -29,7 +29,7 @@ import java.io.RandomAccessFile;
 import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFSectionHeaderTable;
-import com.sun.max.elf.xen.ImproperDumpFileException;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.ImproperDumpFileException;
 
 /**
  * Represents the notes section in the xen core dump elf file

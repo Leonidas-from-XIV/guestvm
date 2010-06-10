@@ -1,20 +1,50 @@
 package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 
-import java.nio.*;
-import java.util.*;
+import static com.sun.guestvm.sched.GUKVmThread.AUX1_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.AUX2_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.CPU_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.FLAGS_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.ID_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.IP_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.JOIN_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.NEXT_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.RUNNING_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.SLEEP_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.SP_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.STRUCT_LIST_HEAD_SIZE;
+import static com.sun.guestvm.sched.GUKVmThread.STRUCT_THREAD_SIZE;
+import static com.sun.guestvm.sched.GUKVmThread.THREAD_LIST_OFFSET;
+import static com.sun.guestvm.sched.GUKVmThread.UKERNEL_FLAG;
+import static com.sun.guestvm.sched.GUKVmThread.WATCH_FLAG;
+import static com.sun.max.tele.MaxThreadState.JOIN_WAIT;
+import static com.sun.max.tele.MaxThreadState.MONITOR_WAIT;
+import static com.sun.max.tele.MaxThreadState.NOTIFY_WAIT;
+import static com.sun.max.tele.MaxThreadState.RUNNING;
+import static com.sun.max.tele.MaxThreadState.SLEEPING;
+import static com.sun.max.tele.MaxThreadState.SUSPENDED;
+import static com.sun.max.tele.MaxThreadState.WATCHPOINT;
+import static com.sun.max.tele.thread.NativeThreadLocal.HANDLE;
+import static com.sun.max.tele.thread.NativeThreadLocal.STACKBASE;
+import static com.sun.max.tele.thread.NativeThreadLocal.STACKSIZE;
+import static com.sun.max.tele.thread.NativeThreadLocal.TLBLOCK;
+import static com.sun.max.tele.thread.NativeThreadLocal.TLBLOCKSIZE;
+import static com.sun.max.vm.thread.VmThreadLocal.FORWARD_LINK;
+import static com.sun.max.vm.thread.VmThreadLocal.ID;
+import static com.sun.max.vm.thread.VmThreadLocal.NATIVE_THREAD_LOCALS;
 
-import com.sun.max.program.*;
-import com.sun.max.elf.xen.section.prstatus.X86_64Registers;
-import com.sun.max.tele.debug.*;
-import com.sun.max.tele.debug.guestvm.*;
-import com.sun.max.tele.debug.guestvm.dbchannel.*;
-import com.sun.max.vm.thread.VmThreadLocal;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sun.max.program.ProgramError;
+import com.sun.max.program.Trace;
 import com.sun.max.tele.MaxThreadState;
-
-import static com.sun.max.vm.thread.VmThreadLocal.*;
-import static com.sun.guestvm.sched.GUKVmThread.*;
-import static com.sun.max.tele.MaxThreadState.*;
-import static com.sun.max.tele.thread.NativeThreadLocal.*;
+import com.sun.max.tele.debug.TeleNativeThread;
+import com.sun.max.tele.debug.guestvm.GuestVMTeleDomain;
+import com.sun.max.tele.debug.guestvm.dbchannel.SimpleProtocol;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.prstatus.X86_64Registers;
+import com.sun.max.vm.thread.VmThreadLocal;
 
 /**
  * Accesses the GUK thread list to support the gathering of threads by the Inspector.

@@ -21,21 +21,19 @@
  * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
  * nationals lists is strictly prohibited.
  */
-package com.sun.max.elf.xen;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFLoader;
 import com.sun.max.elf.ELFSectionHeaderTable;
 import com.sun.max.elf.ELFHeader.FormatError;
-import com.sun.max.elf.xen.section.notes.NotesSection;
-import com.sun.max.elf.xen.section.pages.PagesSection;
-import com.sun.max.elf.xen.section.prstatus.GuestContext;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes.NotesSection;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.pages.PagesSection;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.prstatus.GuestContext;
 
 /**
  * @author Puneeet Lakhina

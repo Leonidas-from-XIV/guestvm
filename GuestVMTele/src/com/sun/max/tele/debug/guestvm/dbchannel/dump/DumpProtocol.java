@@ -25,13 +25,13 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import com.sun.guestvm.guk.x64.X64VM;
-import com.sun.max.elf.xen.XenCoreDumpELFReader;
-import com.sun.max.elf.xen.section.prstatus.GuestContext;
 import com.sun.max.program.ProgramError;
 import com.sun.max.program.Trace;
 import com.sun.max.tele.debug.guestvm.dbchannel.CompleteProtocolAdaptor;
 import com.sun.max.tele.debug.guestvm.dbchannel.ImageFileHandler;
 import com.sun.max.tele.debug.guestvm.dbchannel.Protocol;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.XenCoreDumpELFReader;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.prstatus.GuestContext;
 import com.sun.max.tele.page.PageTableAccess;
 import com.sun.max.unsafe.Address;
 /**

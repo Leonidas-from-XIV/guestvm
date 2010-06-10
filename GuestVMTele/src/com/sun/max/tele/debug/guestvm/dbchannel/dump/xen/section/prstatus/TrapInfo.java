@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.elf.xen.section.prstatus;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.prstatus;
 
 
 /**

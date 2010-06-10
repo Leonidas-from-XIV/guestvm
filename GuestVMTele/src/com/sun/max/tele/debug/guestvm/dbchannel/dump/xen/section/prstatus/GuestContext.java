@@ -21,17 +21,16 @@
  * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
  * nationals lists is strictly prohibited.
  */
-package com.sun.max.elf.xen.section.prstatus;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.prstatus;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import com.sun.max.elf.ELFDataInputStream;
 import com.sun.max.elf.ELFHeader;
 import com.sun.max.elf.ELFSectionHeaderTable;
-import com.sun.max.elf.xen.ImproperDumpFileException;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.ImproperDumpFileException;
 
 /**
  * The CPU context dumped by xen
@@ -80,7 +79,7 @@ public class GuestContext {
 
     public void read() throws IOException, ImproperDumpFileException {
         dumpraf.seek(sectionHeader.getOffset()+cpuid * CPUCONTEXT_STRUCT_SIZE);
-        byte[] sectionData = new byte[CPU_CONTEXT_STRUCT_SIZE];
+        byte[] sectionData = new byte[CPUCONTEXT_STRUCT_SIZE];
         dumpraf.read(sectionData);
         sectionDataBuffer = ByteBuffer.wrap(sectionData);
         sectionDataBuffer.order(ByteOrder.LITTLE_ENDIAN);

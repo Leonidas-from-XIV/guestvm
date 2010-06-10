@@ -21,9 +21,9 @@
  * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
  * nationals lists is strictly prohibited.
  */
-package com.sun.max.elf.xen.section.notes;
+package com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes;
 
-import com.sun.max.elf.xen.section.notes.NotesSection.DescriptorType;
+import com.sun.max.tele.debug.guestvm.dbchannel.dump.xen.section.notes.NotesSection.DescriptorType;
 
 /**
  * The Xen Version descriptor from the notes section of the ELF dump
