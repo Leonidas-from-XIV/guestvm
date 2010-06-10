@@ -341,6 +341,8 @@ public final class TCP extends IP {
         // This is a simple removal from a double-linked list.
         synchronized (TCP.class) {
             if (this == tcps) {
+                this._retransmitTimer.cancel();
+                this._delayedAckTimer.cancel();
                 tcps = _next;
             } else {
                 _prev._next = _next;
@@ -2076,9 +2078,9 @@ public final class TCP extends IP {
                 if (_debug) {
                     dprint("cancelling " + _task + " on " + _name);
                 }
-                _task.cancel();
+                final boolean status = _task.cancel();
                 if (_debug) {
-                    dprint("cancelled " + _task + " on " + _name);
+                    dprint("cancelled " + _task + " on " + _name + " cancellation status:" + status);
                 }
                 _task = null;
             }

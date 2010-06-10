@@ -68,6 +68,9 @@ public class GuestContext {
     private ByteBuffer sectionDataBuffer;
     private int cpuid;
 
+    private static final int CPUCONTEXT_STRUCT_SIZE=5168;
+    private static final int CPUCONTEXT_SKIP_BYTES=4264;
+
     public GuestContext(RandomAccessFile dumpraf, ELFHeader header, ELFSectionHeaderTable.Entry sectionHeader,int cpuid) {
         this.dumpraf = dumpraf;
         this.header = header;
@@ -76,8 +79,8 @@ public class GuestContext {
     }
 
     public void read() throws IOException, ImproperDumpFileException {
-        dumpraf.seek(sectionHeader.getOffset()+cpuid * 5168);
-        byte[] sectionData = new byte[5168];
+        dumpraf.seek(sectionHeader.getOffset()+cpuid * CPUCONTEXT_STRUCT_SIZE);
+        byte[] sectionData = new byte[CPU_CONTEXT_STRUCT_SIZE];
         dumpraf.read(sectionData);
         sectionDataBuffer = ByteBuffer.wrap(sectionData);
         sectionDataBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -89,8 +92,7 @@ public class GuestContext {
         sectionDataBuffer.get(registerData);
         cpuUserRegs = new X86_64Registers(registerData , header.isBigEndian());
         //Skip trap info ldt gdt kernel ss
-        System.out.println(sectionDataBuffer.position());
-        sectionDataBuffer.position(sectionDataBuffer.position() + 4264);
+        sectionDataBuffer.position(sectionDataBuffer.position() + CPUCONTEXT_SKIP_BYTES);
         readctrlregs();
     }
 

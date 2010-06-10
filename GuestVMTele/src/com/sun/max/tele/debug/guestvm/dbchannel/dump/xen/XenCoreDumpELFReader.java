@@ -74,7 +74,6 @@ public class XenCoreDumpELFReader {
         this.sectionHeaderTable = ELFLoader.readSHT(raf, header);
         for (ELFSectionHeaderTable.Entry entry : sectionHeaderTable.entries) {
             String sectionName = entry.getName();
-            System.out.println(sectionName);
             if (NOTES_SECTION_NAME.equalsIgnoreCase(sectionName)) {
                 notesSectionHeader = entry;
             }
