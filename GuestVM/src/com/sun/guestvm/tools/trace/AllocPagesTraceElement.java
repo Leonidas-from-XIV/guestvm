@@ -79,6 +79,9 @@ public class AllocPagesTraceElement extends AllocTraceElement {
             case 3:
                 _memType = MemType.DATA;
                 break;
+            case 4:
+                _memType = MemType.PAGE_FRAME;
+                break;
             default:
                 throw new IllegalArgumentException("invalid MemType ordinal " + memTypeOrdinal);
         }

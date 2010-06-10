@@ -22,7 +22,6 @@ package com.sun.max.tele.debug.guestvm.dbchannel.dump;
 
 import java.io.*;
 
-import com.sun.guestvm.guk.x64.X64VM;
 import com.sun.max.elf.xen.*;
 import com.sun.max.tele.page.*;
 import com.sun.max.unsafe.*;
