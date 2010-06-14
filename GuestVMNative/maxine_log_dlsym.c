@@ -37,7 +37,8 @@
 #include <log.h>
 
 void *maxine_log_dlsym(const char *symbol) {
-    if (strcmp(symbol, "log_lock") == 0) return log_lock;
+    if (strcmp(symbol, "log_print_symbol") == 0) return log_print_symbol;
+    else if (strcmp(symbol, "log_lock") == 0) return log_lock;
     else if (strcmp(symbol, "log_unlock") == 0) return log_unlock;
     else if (strcmp(symbol, "log_print_int") == 0) return log_print_int;
     else if (strcmp(symbol, "log_print_long") == 0) return log_print_long;
