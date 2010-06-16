@@ -256,12 +256,18 @@ public final class GUKNetDevice implements NetDevice {
     /**
      * This is upcalled from the network handler. It must not block nor may it call
      * any methods that are compiled with safepoint code installed, because it
-     * is in IRQ mode.
+     * is in IRQ mode and may be running on a microkernel thread.
+     * The safepoint register will be valid however, else we couldn't even call
+     * {@link C_FUNCTION} annotated code.
+     *
+     * @param p address of the network packet
+     * @param pktLength length of packet
+     * @param ts time of this upcall
      */
     @SuppressWarnings({"unused"})
     @VM_ENTRY_POINT
     @NO_SAFEPOINTS("network packet copy must be atomic")
-    private static void copyPacket(Pointer p, int pktLength) {
+    private static void copyPacket(Pointer p, int pktLength, long ts) {
         int length = pktLength;
         PacketHandler packetHandler = null;
         // try to find a free handler
@@ -275,7 +281,7 @@ public final class GUKNetDevice implements NetDevice {
         // All Packet calls are inlined
         if (packetHandler != null) {
             final Packet pkt = packetHandler._packet;
-            pkt.inlineSetTimeStamp(GUK.nanoTime());
+            pkt.inlineSetTimeStamp(ts);
             pkt.inlineReset();
             if (length > pkt.inlineLength()) {
                 length = pkt.inlineLength();
