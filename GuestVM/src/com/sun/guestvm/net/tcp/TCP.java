@@ -1,73 +1,53 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
- * Clara, California 95054, U.S.A. All rights reserved.
+ * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, California 95054, U.S.A. All rights
+ * reserved.
  *
- * U.S. Government Rights - Commercial software. Government users are
- * subject to the Sun Microsystems, Inc. standard license agreement and
- * applicable provisions of the FAR and its supplements.
+ * U.S. Government Rights - Commercial software. Government users are subject to the Sun Microsystems, Inc. standard
+ * license agreement and applicable provisions of the FAR and its supplements.
  *
  * Use is subject to license terms.
  *
  * This distribution may include materials developed by third parties.
  *
- * Parts of the product may be derived from Berkeley BSD systems,
- * licensed from the University of California. UNIX is a registered
- * trademark in the U.S.  and in other countries, exclusively licensed
- * through X/Open Company, Ltd.
+ * Parts of the product may be derived from Berkeley BSD systems, licensed from the University of California. UNIX is a
+ * registered trademark in the U.S. and in other countries, exclusively licensed through X/Open Company, Ltd.
  *
- * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
- * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
- * countries.
+ * Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered trademarks of Sun Microsystems, Inc. in the
+ * U.S. and other countries.
  *
- * This product is covered and controlled by U.S. Export Control laws and
- * may be subject to the export or import laws in other
- * countries. Nuclear, missile, chemical biological weapons or nuclear
- * maritime end uses or end users, whether direct or indirect, are
- * strictly prohibited. Export or reexport to countries subject to
- * U.S. embargo or to entities identified on U.S. export exclusion lists,
- * including, but not limited to, the denied persons and specially
- * designated nationals lists is strictly prohibited.
- *
- */
-
-/* Although this state machine was implemented from scratch, you
- * may find a line or two of the BSD code here.  The following copyright
- * notice therefore also applies:
+ * This product is covered and controlled by U.S. Export Control laws and may be subject to the export or import laws in
+ * other countries. Nuclear, missile, chemical biological weapons or nuclear maritime end uses or end users, whether
+ * direct or indirect, are strictly prohibited. Export or reexport to countries subject to U.S. embargo or to entities
+ * identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated
+ * nationals lists is strictly prohibited.
  */
 
 /*
- * Copyright (c) 1982, 1986, 1988, 1990, 1993, 1994
- *        The Regents of the University of California.  All rights reserved.
+ * Although this state machine was implemented from scratch, you may find a line or two of the BSD code here. The
+ * following copyright notice therefore also applies:
+ */
+
+/*
+ * Copyright (c) 1982, 1986, 1988, 1990, 1993, 1994 The Regents of the University of California. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following Conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of Conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of Conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *        This product includes software developed by the University of
- *        California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+ * following Conditions are met: 1. Redistributions of source code must retain the above copyright notice, this list of
+ * Conditions and the following disclaimer. 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of Conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution. 3. All advertising materials mentioning features or use of this software must display the following
+ * acknowledgement: This product includes software developed by the University of California, Berkeley and its
+ * contributors. 4. Neither the name of the University nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *        @(#)tcp_input.c        8.5 (Berkeley) 4/10/94
+ * @(#)tcp_input.c 8.5 (Berkeley) 4/10/94
  */
 package com.sun.guestvm.net.tcp;
 
@@ -82,71 +62,54 @@ import com.sun.guestvm.net.icmp.*;
 import com.sun.guestvm.net.ip.*;
 import com.sun.guestvm.util.TimeLimitedProc;
 
-
-/* Here's the big TCP state machine.  This class does lots of things.
-
-   Packets are received from IP into the state machine by input().  The local
-   instance variable 'state' describes which method should process the
-   packet after input().
-
-   read(), write(), connect() and close() are implemented here.  A receive
-   queue buffers packets until they are read by clients.
-
-   The method output() handles packet formatting and output to the IP layer.
-
-   TCPSendQueue manages bytes that are sent but not acknowledged.
-   TCPRecvQueue manages bytes that are received but not delivered to
-   the application.
-
-   There are at least four threads that access the state of a TCP instance:
-
-   1. The client thread that is reading or writing the connection.
-   2. The network device layer thread that delivers packets via input()
-   3. The retransmit timer task
-   4. The delayed ack timer task
-
-   All externally accessible static methods are synchronized on the class.
-   All externally accessible virtual methods are synchronized on the instance.
-   The static input() method synchronizes on the instance the packet targets.
-   The timer tasks synchronize on the instance related to the timer.
-   All other (private) methods are unsynchronized as they are always called
-   from a synchronized state.
-
-   The implementation supports blocking and non-blocking mode, the latter
-   being needed for nio channels.
-
-   The backlog queue for incoming connections is currently of length 1.
-*/
+/*
+ * Here's the big TCP state machine. This class does lots of things.
+ *
+ * Packets are received from IP into the state machine by input(). The local instance variable 'state' describes which
+ * method should process the packet after input().
+ *
+ * read(), write(), connect() and close() are implemented here. A receive queue buffers packets until they are read by
+ * clients.
+ *
+ * The method output() handles packet formatting and output to the IP layer.
+ *
+ * TCPSendQueue manages bytes that are sent but not acknowledged. TCPRecvQueue manages bytes that are received but not
+ * delivered to the application.
+ *
+ * There are at least four threads that access the state of a TCP instance:
+ *
+ * 1. The client thread that is reading or writing the connection. 2. The network device layer thread that delivers
+ * packets via input() 3. The retransmit timer task 4. The delayed ack timer task
+ *
+ * All externally accessible static methods are synchronized on the class. All externally accessible virtual methods are
+ * synchronized on the instance. The static input() method synchronizes on the instance the packet targets. The timer
+ * tasks synchronize on the instance related to the timer. All other (private) methods are unsynchronized as they are
+ * always called from a synchronized state.
+ *
+ * The implementation supports blocking and non-blocking mode, the latter being needed for nio channels.
+ *
+ * The backlog queue for incoming connections is currently of length 1.
+ */
 
 public final class TCP extends IP {
+
     private static boolean _debug;
 
     // The TCP connection state.
     enum State {
-        CLOSED,
-        LISTEN,
-        SYN_SENT,
-        SYN_RCVD,
-        ESTABLISHED,
-        CLOSE_WAIT,
-        FIN_WAIT_1,
-        CLOSING,
-        LAST_ACK,
-        FIN_WAIT_2,
-        TIME_WAIT,
-        NEW
+        CLOSED, LISTEN, SYN_SENT, SYN_RCVD, ESTABLISHED, CLOSE_WAIT, FIN_WAIT_1, CLOSING, LAST_ACK, FIN_WAIT_2, TIME_WAIT, NEW
     }
 
     // the state that this connection is in.
     private State _state;
 
-    // The connection endpoint addresses.  local_ip is assumed to be
+    // The connection endpoint addresses. local_ip is assumed to be
     // the local host address, so we don't need to store it here.
     // Not having local_ip here means we can't support more than one
     // local IP address at a time (useful for multiple network interfaces).
     // However, we do save the cost of storing and bookkeeping the value.
     private int _localPort;
-    private  int _remotePort;
+    private int _remotePort;
     private int _remoteIp;
 
     // these two variables control the acceptance of incoming connections.
@@ -155,50 +118,51 @@ public final class TCP extends IP {
 
     // timer management
     private static final int DELAYED_ACK_MSEC = 50;
-    private RetransmitTimer _retransmitTimer;
-    private DelayedAckTimer _delayedAckTimer;
-
+    private static TCPTimer _retransmitTimer = new TCPTimer("Retransmit Timer");
+    private static TCPTimer _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
+    private TimerTask _retransmitTask;
+    private TimerTask _delayedAckTask;
     private TCPRecvQueue _recvQueue;
 
     // Used to cache the packet header size for outgoing packets
     // on a connection.
     private int _hdrLen;
 
-    private TCP _next;     // next TCP object in list
-    private TCP _prev;     // prev TCP object in list
+    private TCP _next; // next TCP object in list
+    private TCP _prev; // prev TCP object in list
 
     // TCP sequence space state variables.
-    private int _snd_una;   // lowest unacknowledged sequence number
-    private int _snd_max;  // maximum send sequence number
-    private int _snd_wnd;  // window size offered from receiver
-    private int _snd_wl1;    // seq number used for last window update
-    private int _sndWl2;   // ack number used for last window update
-    private int _iss;           // initial send sequence number
+    private int _snd_una; // lowest unacknowledged sequence number
+    private int _snd_max; // maximum send sequence number
+    private int _snd_wnd; // window size offered from receiver
+    private int _snd_wl1; // seq number used for last window update
+    private int _sndWl2; // ack number used for last window update
+    private int _iss; // initial send sequence number
 
-    private int rcv_wnd;   // bytes unused in receive window
-    private int rcv_nxt;    // next expected receive sequence number
-    private int _irs;          // initial receive sequence number
-    private int _prev_ack;  // last acknowledgement we have sent
+    private int rcv_wnd; // bytes unused in receive window
+    private int rcv_nxt; // next expected receive sequence number
+    private int _irs; // initial receive sequence number
+    private int _prev_ack; // last acknowledgement we have sent
     private boolean _ack_after_read;
 
     // Number of segments to receive before generating an ACK.
-    // Used for the "ack-every-other-segment" algorithm.  Change
+    // Used for the "ack-every-other-segment" algorithm. Change
     // this to 3 if you want to ACK every third segment, etc.
     private static final int ACK_SEGMENTS = 2;
-    private int _ack_segment;  // counter for "ack-every-other-segment"
+    private int _ack_segment; // counter for "ack-every-other-segment"
 
-     // some random constants and variables
-    private static int _startTime;   // used to create initial sequence numbers
-    private static final int MAXSEGSIZE = 1460;     // maximum segment size
-    private static final int RECEIVE_WINDOW = 8760;  // default recv window size
+    // some random constants and variables
+    private static int _startTime; // used to create initial sequence numbers
+    private static final int MAXSEGSIZE = 1460; // maximum segment size
+    private static final int RECEIVE_WINDOW = 8760; // default recv window size
 
     // this scratch state is used for interactions when we don't
     // have a connection.
     private static TCP _scratchTCP;
 
-    private int _connectFailure;                // Why connect failed
-    public  static final int CONN_FAIL_TIMEOUT = 1;
-    public  static final int CONN_FAIL_REFUSED = 2;
+    private int _connectFailure; // Why connect failed
+    public static final int CONN_FAIL_TIMEOUT = 1;
+    public static final int CONN_FAIL_REFUSED = 2;
 
     private static final int MIN_TCP_HEADER_SIZE = 20;
     private static final int TTL = 64;
@@ -212,20 +176,20 @@ public final class TCP extends IP {
     private static final int ACK = 0x10;
     private static final int URG = 0x20;
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // some interesting TCP header field offsets
     private static final int SRCPORT_OFFSET = 0;
     private static final int DSTPORT_OFFSET = 2;
-    private static final int SEQ_OFFSET     = 4;
-    private static final int ACK_OFFSET     = 8;
-    private static final int HLEN_OFFSET    = 12;
-    private static final int FLAGS_OFFSET   = 13;
-    private static final int WINDOW_OFFSET  = 14;
-    private static final int CKSUM_OFFSET   = 16;
-    private static final int MSS_OFFSET     = 20;
+    private static final int SEQ_OFFSET = 4;
+    private static final int ACK_OFFSET = 8;
+    private static final int HLEN_OFFSET = 12;
+    private static final int FLAGS_OFFSET = 13;
+    private static final int WINDOW_OFFSET = 14;
+    private static final int CKSUM_OFFSET = 16;
+    private static final int MSS_OFFSET = 20;
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // state storage for the incoming packet.
     private static int inp_seq;
@@ -233,16 +197,16 @@ public final class TCP extends IP {
     private static int inp_flags;
     private static int inp_wnd;
 
-    private static int inp_len;   // length of data portion of input segment
+    private static int inp_len; // length of data portion of input segment
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     private static final int MAX_TCP_CONNECTIONS = 20;
 
     // linked list of active TCP objects
     private static TCP tcps;
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     //
     // This variable is the number of times retransmission occurred since
@@ -252,10 +216,10 @@ public final class TCP extends IP {
     //
     private int retransmits;
 
-    private int rtt_seq;       // sequence number of the packet we are timing.
-    private int rtt_start;     // initial timestamp from rtt of timed segment.
-    private int srtt;          // smoothed round trip time estimator
-    private int rttvar;        // mean deviation
+    private int rtt_seq; // sequence number of the packet we are timing.
+    private int rtt_start; // initial timestamp from rtt of timed segment.
+    private int srtt; // smoothed round trip time estimator
+    private int rttvar; // mean deviation
 
     // current timeout value in msec.
     private int rtx_timeout;
@@ -267,10 +231,9 @@ public final class TCP extends IP {
     private static Timer rttTimer;
     private static final long RTT_TICK_MSEC = 500;
 
-
     // minimum of 1 second timeout, maximum 64 second timeout.
-    private static final int RTX_TIMEOUT_MIN  = 1000;
-    private static final int RTX_TIMEOUT_MAX  = 64000;
+    private static final int RTX_TIMEOUT_MIN = 1000;
+    private static final int RTX_TIMEOUT_MAX = 64000;
     private static final int RTX_TIMEOUT_INIT = 1000;
     private static final int RTTVAR_INIT = RTX_TIMEOUT_INIT * 4;
 
@@ -310,8 +273,8 @@ public final class TCP extends IP {
         _localPort = 0;
         _debugId = _nextDebugId++;
 
-        _retransmitTimer = new RetransmitTimer();
-        _delayedAckTimer = new DelayedAckTimer();
+        _retransmitTask = new RetransmitTask(_retransmitTimer, this);
+        _delayedAckTask = new DelayedAckTask(_delayedAckTimer, this);
 
         // cache the TCP packet header length.
         _hdrLen = headerHint();
@@ -323,7 +286,6 @@ public final class TCP extends IP {
         srtt = 0;
         rttvar = RTTVAR_INIT;
     }
-
 
     static synchronized TCP get() {
         final TCP t = new TCP();
@@ -356,30 +318,26 @@ public final class TCP extends IP {
     }
 
     /**
-     *  Choose and advance the initial sequence number.
-     *  This computation has the effect of incrementing the iss
-     *  by 128000 every second, which is good according to BSD.
+     * Choose and advance the initial sequence number. This computation has the effect of incrementing the iss by 128000
+     * every second, which is good according to BSD.
      */
     private static int chooseISS() {
         return (int) (System.currentTimeMillis() - _startTime) * 128;
-     }
+    }
 
-
-    //----------------------------------------------------------------------
-
+    // ----------------------------------------------------------------------
 
     // General TCP output routine.
     // Please try to keep the common path of this routine as
-    // uncluttered as possible.  Any code you add here will likely
+    // uncluttered as possible. Any code you add here will likely
     // slow things down.
-    private void output(Packet pkt, int flags, int seq, int ack)
-        throws NetworkException {
+    private void output(Packet pkt, int flags, int seq, int ack) throws NetworkException {
 
         tcpOutSegs++;
 
         if ((flags & ACK) != 0) {
-            _delayedAckTimer.cancelTask();
-            _prev_ack = ack;  // remember this ACK for delayed ACK processing.
+            _delayedAckTimer.cancelTask(_delayedAckTask);
+            _prev_ack = ack; // remember this ACK for delayed ACK processing.
             _ack_segment = 0; // reset "ack-every-other-segment" counter.
         }
 
@@ -390,7 +348,7 @@ public final class TCP extends IP {
         if ((flags & SYN) != 0) {
 
             pkt.shiftHeader(-24);
-            pkt.putByte(6 << 4, HLEN_OFFSET);     // set header length
+            pkt.putByte(6 << 4, HLEN_OFFSET); // set header length
             pkt.putShort(0x0204, MSS_OFFSET);
 
             //
@@ -400,9 +358,9 @@ public final class TCP extends IP {
             // 1460 or 536 or the MSS of the serial line interface.
             // Next,
             // 1) Active Open: (Indicated by absence of ACK)
-            //               - val from Route.GetRouteMSS().
+            // - val from Route.GetRouteMSS().
             // 2) Passive Open: (Indicated by presence of ACK)
-            //               - mss = min(maxSegSize and val from Route.GetRouteMSS().
+            // - mss = min(maxSegSize and val from Route.GetRouteMSS().
             //
 
             short route_mss = IP.getRouteMSS(_remoteIp);
@@ -417,18 +375,18 @@ public final class TCP extends IP {
 
         } else {
             pkt.shiftHeader(-20);
-            pkt.putByte(5 << 4, HLEN_OFFSET);     // set header length
+            pkt.putByte(5 << 4, HLEN_OFFSET); // set header length
         }
 
         // put source and destination port nunpers
         pkt.putShort(_localPort, SRCPORT_OFFSET);
         pkt.putShort(_remotePort, DSTPORT_OFFSET);
 
-        pkt.putInt(seq, SEQ_OFFSET);          // set sequence number
-        pkt.putInt(ack, ACK_OFFSET);          // set acknowledgement number
-        pkt.putByte(flags, FLAGS_OFFSET);     // set the flags
+        pkt.putInt(seq, SEQ_OFFSET); // set sequence number
+        pkt.putInt(ack, ACK_OFFSET); // set acknowledgement number
+        pkt.putByte(flags, FLAGS_OFFSET); // set the flags
         pkt.putShort(rcv_wnd, WINDOW_OFFSET); // set window size
-        pkt.putInt(0, CKSUM_OFFSET);          // clear cksum and urg pointer
+        pkt.putInt(0, CKSUM_OFFSET); // clear cksum and urg pointer
 
         int length = pkt.dataLength();
 
@@ -438,18 +396,16 @@ public final class TCP extends IP {
         pkt.putInt(_remoteIp, -4);
 
         // compute packet checksum and stick it into the header
-        int cksum = pkt.cksum(-12, length+12);
+        int cksum = pkt.cksum(-12, length + 12);
         pkt.putShort(cksum, CKSUM_OFFSET);
 
-        if (_debug) tcpdprint("output dst:" + IPAddress.toString(_remoteIp) +
-           " state:" + _state + " " + flagsToString(flags) +
-            "seq:" + seq + " ack:" + ack + " wnd:" + rcv_wnd);
+        if (_debug)
+            tcpdprint("output dst:" + IPAddress.toString(_remoteIp) + " state:" + _state + " " + flagsToString(flags) + "seq:" + seq + " ack:" + ack + " wnd:" + rcv_wnd);
 
-        // We're finished building the TCP header.  Now send it down to IP,
+        // We're finished building the TCP header. Now send it down to IP,
         // passing our time-to-live and type of service.
-         IP.output(pkt, _remoteIp, length,  (TTL<<24) | (IP.IPPROTO_TCP<<16), TOS);
+        IP.output(pkt, _remoteIp, length, (TTL << 24) | (IP.IPPROTO_TCP << 16), TOS);
     }
-
 
     /**
      * General input routine for packets coming up from IP. Entry point, hence synchronized on class and on target
@@ -600,7 +556,7 @@ public final class TCP extends IP {
         }
     }
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // Transmit an RST segment in response to the current segment.
     private void outputRst() throws NetworkException {
@@ -624,7 +580,7 @@ public final class TCP extends IP {
                 ack++;
             }
 
-            output(pkt, RST|ACK, 0, ack);
+            output(pkt, RST | ACK, 0, ack);
         } else {
             output(pkt, RST, inp_ack, 0);
         }
@@ -632,8 +588,7 @@ public final class TCP extends IP {
         tcpOutRsts++;
     }
 
-    //----------------------------------------------------------------------
-
+    // ----------------------------------------------------------------------
 
     // Test the acceptibility of a segment's Sequence number.
     // Trim off segment data that falls before (duplicate) or
@@ -641,33 +596,35 @@ public final class TCP extends IP {
     private boolean verifySeq(Packet pkt) throws NetworkException {
 
         if (inp_seq > rcv_nxt) {
-            if (_debug) tcpdprint("verifySeq: ignoring out of sequence");
+            if (_debug)
+                tcpdprint("verifySeq: ignoring out of sequence");
             return false;
         }
 
         int todrop = rcv_nxt - inp_seq;
 
-        if (_debug) tcpdprint("verifySeq todrop:" + todrop + " inp_len:" + inp_len);
+        if (_debug)
+            tcpdprint("verifySeq todrop:" + todrop + " inp_len:" + inp_len);
 
         if (todrop > 0) {
 
             if ((inp_flags & SYN) != 0) {
-                inp_flags &= ~SYN;  // remove SYN bit
-                inp_seq++;          // add for SYN
-                todrop--;           // remove one for SYN
+                inp_flags &= ~SYN; // remove SYN bit
+                inp_seq++; // add for SYN
+                todrop--; // remove one for SYN
             }
 
             // check if the entire segment is duplicate data
-            if ((todrop > inp_len) ||
-                ((todrop == inp_len) && ((inp_flags & FIN) == 0))) {
+            if ((todrop > inp_len) || ((todrop == inp_len) && ((inp_flags & FIN) == 0))) {
 
-                if (_debug) tcpdprint(_state + " port:" + _localPort +
-                    " total duplicate todrop:" + todrop + " rcv_wnd:"+rcv_wnd);
+                if (_debug)
+                    tcpdprint(_state + " port:" + _localPort + " total duplicate todrop:" + todrop + " rcv_wnd:" + rcv_wnd);
 
-                // Entire segment is duplicate.  The remote probably
+                // Entire segment is duplicate. The remote probably
                 // never got our ACK, so send another.
                 if ((inp_flags & RST) == 0) {
-                    if (_debug) tcpdprint("sending ACK");
+                    if (_debug)
+                        tcpdprint("sending ACK");
                     send(ACK, _snd_max, rcv_nxt);
                 }
 
@@ -691,43 +648,40 @@ public final class TCP extends IP {
                 return true;
             }
 
-            if (_debug) tcpdprint(_state + " port:" + _localPort + " inp_len:"+
-            inp_len + " todrop:" + todrop + " rcv_wnd:" + rcv_wnd +
-            " persist packet?");
+            if (_debug)
+                tcpdprint(_state + " port:" + _localPort + " inp_len:" + inp_len + " todrop:" + todrop + " rcv_wnd:" + rcv_wnd + " persist packet?");
 
         } else if (inp_len >= 0 && rcv_wnd > 0) {
 
-            if (rcv_nxt <= inp_seq && inp_seq < rcv_nxt+rcv_wnd) {
+            if (rcv_nxt <= inp_seq && inp_seq < rcv_nxt + rcv_wnd) {
                 // Segment data fits within our receive window.
                 // Continue processing.
                 return true;
             }
         } else {
-            if (_debug) tcpdprint(_state + " port:" + _localPort + " inp_len:"+
-                  inp_len + " todrop:" + todrop + " rcv_wnd:" + rcv_wnd);
+            if (_debug)
+                tcpdprint(_state + " port:" + _localPort + " inp_len:" + inp_len + " todrop:" + todrop + " rcv_wnd:" + rcv_wnd);
         }
 
         if ((inp_flags & RST) == 0) {
             // This will acknowledge any out-of-sequence or
-            // persist packets.  But it won't acknowledge an RST.
+            // persist packets. But it won't acknowledge an RST.
             send(ACK, _snd_max, rcv_nxt);
         }
 
         return false;
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // Initialize the timing of a segment for round-trip time calculations.
     private final void rttStart(int seq) {
 
         if (rtt_start == 0) {
-            rtt_start = rtt_clock;    // take a timestamp from the rtt clock
-            rtt_seq = seq;      // remember seq num of this timed segment
+            rtt_start = rtt_clock; // take a timestamp from the rtt clock
+            rtt_seq = seq; // remember seq num of this timed segment
         }
     }
-
 
     private static final int SRTT_SHIFT = 3;
     private static final int RTTVAR_SHIFT = 2;
@@ -743,7 +697,7 @@ public final class TCP extends IP {
 
             srtt += delta;
             if (srtt <= 0) {
-                    srtt = 1;
+                srtt = 1;
             }
 
             if (delta < 0) {
@@ -754,20 +708,20 @@ public final class TCP extends IP {
 
             rttvar += delta;
             if (rttvar <= 0) {
-                    rttvar = 1;
+                rttvar = 1;
             }
         } else {
             srtt = time << SRTT_SHIFT;
-            rttvar = time << (RTTVAR_SHIFT-1);
+            rttvar = time << (RTTVAR_SHIFT - 1);
         }
 
-        // Compute the actual timeout value in msec.  Multiply by
+        // Compute the actual timeout value in msec. Multiply by
         // 500 because the timestamp units come from the rtt counter,
         // which is incremented every 500 msec.
-        rtx_timeout = (((srtt >> SRTT_SHIFT-1) + rttvar) >> 1) * 500;
+        rtx_timeout = (((srtt >> SRTT_SHIFT - 1) + rttvar) >> 1) * 500;
 
         // err("local_port:" + local_port + " time:" + time + " srtt:" +
-        //     srtt + " rttvar:" + rttvar + " timeout:" + rtx_timeout);
+        // srtt + " rttvar:" + rttvar + " timeout:" + rtx_timeout);
 
         // Make sure timeout doesn't go below our minimum.
         if (rtx_timeout < RTX_TIMEOUT_MIN) {
@@ -778,11 +732,10 @@ public final class TCP extends IP {
         rtt_start = 0;
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // Check to see whether the segment's acknowledgement falls within
-    // our unacknowledged send window.  If it does, we should be able
+    // our unacknowledged send window. If it does, we should be able
     // drop some data from the unacknowledged send queue.
     private boolean verifyAck() {
 
@@ -793,7 +746,7 @@ public final class TCP extends IP {
 
         if (_snd_una <= inp_ack && inp_ack <= _snd_max) {
 
-            // This ACK acknowledges some data we sent.  See if this
+            // This ACK acknowledges some data we sent. See if this
             // includes our round-trip timer measurement.
             if (rtt_start != 0 && inp_ack > rtt_seq) {
                 // use this new timestamp to update our rtt estimate
@@ -812,13 +765,12 @@ public final class TCP extends IP {
             if (_snd_una == _snd_max) {
                 // All our data has been acked, so stop retrans timer.
                 // retransmitTimer.stop();
-                _retransmitTimer.cancelTask();
+                _retransmitTimer.cancelTask(_retransmitTask);
             }
 
-            // Update the send window.  This test prevents old segments
+            // Update the send window. This test prevents old segments
             // from updating the window.
-            if (_snd_wl1 < inp_seq ||
-                (_snd_wl1 == inp_seq && _sndWl2 <= inp_ack)) {
+            if (_snd_wl1 < inp_seq || (_snd_wl1 == inp_seq && _sndWl2 <= inp_ack)) {
 
                 _snd_wnd = inp_wnd;
                 _snd_wl1 = inp_seq;
@@ -826,26 +778,26 @@ public final class TCP extends IP {
             }
         } else if (inp_ack > _snd_max) {
 
-            // This ack is for data we haven't sent yet.  Reply with
+            // This ack is for data we haven't sent yet. Reply with
             // an ACK to help resynch.
-            //out_flags |= ACK;
-            if (_debug) tcpdprint("verifyAck inp_ack:" + inp_ack + " > snd_max:" + _snd_max);
+            // out_flags |= ACK;
+            if (_debug)
+                tcpdprint("verifyAck inp_ack:" + inp_ack + " > snd_max:" + _snd_max);
             return false;
 
-        } //else { the ack is a duplicate and can be ignored. }
+        } // else { the ack is a duplicate and can be ignored. }
 
         return true;
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     // Simple utility routine to send a segment.
     private void send(int flags, int seq, int ack) throws NetworkException {
 
         int len = _hdrLen;
         if ((flags & SYN) != 0) {
-            len += 4;  // add 4 for MSS option
+            len += 4; // add 4 for MSS option
         }
 
         Packet pkt = Packet.getTx(_remoteIp, len, 0);
@@ -854,8 +806,7 @@ public final class TCP extends IP {
         }
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     private void doListen() throws NetworkException {
 
@@ -877,7 +828,7 @@ public final class TCP extends IP {
         // Check if there is already a connection pending
         // on the incoming connection queue.
         if (_incomingConnection != null) {
-            // There is already a connection pending.  Ignore this
+            // There is already a connection pending. Ignore this
             // connection request for now (they will retransmit and
             // hopefully then we will be ready for it).
             return;
@@ -886,7 +837,8 @@ public final class TCP extends IP {
         // May want to move this get() into TCPEndpoint.
         TCP tcp = get();
         if (tcp == null) {
-            if (_debug) tcpdprint("LISTEN: no more connections");
+            if (_debug)
+                tcpdprint("LISTEN: no more connections");
             tcp.outputRst();
             return;
         }
@@ -904,8 +856,8 @@ public final class TCP extends IP {
         tcp._remoteIp = _remoteIp;
         tcp._localPort = _localPort;
 
-        inp_flags = inp_flags & ~SYN;    // remove SYN and
-        inp_seq++;                       // increment past it.
+        inp_flags = inp_flags & ~SYN; // remove SYN and
+        inp_seq++; // increment past it.
 
         tcp.rcv_nxt = inp_seq;
         tcp._irs = inp_seq;
@@ -913,7 +865,7 @@ public final class TCP extends IP {
         tcp._iss = chooseISS();
 
         tcp._snd_una = tcp._iss;
-        tcp._snd_max = tcp._iss+1;
+        tcp._snd_max = tcp._iss + 1;
         tcp._snd_wnd = inp_wnd;
         tcp.rcv_wnd = RECEIVE_WINDOW;
 
@@ -922,12 +874,12 @@ public final class TCP extends IP {
         tcp._state = State.SYN_RCVD;
         tcpPassiveOpens++;
 
-        tcp.send(SYN|ACK, tcp._iss, tcp.rcv_nxt);
+        tcp.send(SYN | ACK, tcp._iss, tcp.rcv_nxt);
 
         // take the initial rto timestamp for this connection.
         rttStart(tcp._iss);
 
-        tcp._retransmitTimer.schedule(rtx_timeout);
+        tcp._retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
     }
 
     private void doSynSent(Packet pkt) throws NetworkException {
@@ -936,7 +888,8 @@ public final class TCP extends IP {
 
         if ((inp_flags & ACK) != 0) {
             if (inp_ack <= _iss || inp_ack > _snd_max) {
-                if (_debug) tcpdprint("SYN_SENT iss:"+_iss+" max:"+_snd_max+" inp_ack:"+inp_ack);
+                if (_debug)
+                    tcpdprint("SYN_SENT iss:" + _iss + " max:" + _snd_max + " inp_ack:" + inp_ack);
                 outputRst();
                 return;
             }
@@ -944,12 +897,13 @@ public final class TCP extends IP {
             got_ack = true;
 
             // our SYN is acknowledged, so stop retrans timer.
-            _retransmitTimer.cancelTask();
-       }
+            _retransmitTimer.cancelTask(_retransmitTask);
+        }
 
         if ((inp_flags & RST) != 0) {
             if (got_ack == true) {
-                if (_debug) tcpdprint(_state + " got RST -- connection refused");
+                if (_debug)
+                    tcpdprint(_state + " got RST -- connection refused");
                 _connectFailure = CONN_FAIL_REFUSED;
                 cleanup("Connection refused");
             }
@@ -959,9 +913,10 @@ public final class TCP extends IP {
 
         if ((inp_flags & SYN) != 0) {
 
-            if (_debug) tcpdprint(_state + " got SYN");
+            if (_debug)
+                tcpdprint(_state + " got SYN");
 
-            rcv_nxt = inp_seq+1;
+            rcv_nxt = inp_seq + 1;
             _irs = inp_seq;
 
             _snd_una = inp_ack;
@@ -973,20 +928,22 @@ public final class TCP extends IP {
 
             if (_snd_una > _iss) {
                 // our SYN has been ACKed
-                if (_debug) tcpdprint("SYN is acked, going to ESTABLISHED");
+                if (_debug)
+                    tcpdprint("SYN is acked, going to ESTABLISHED");
                 _state = State.ESTABLISHED;
 
-                _delayedAckTimer.schedule(DELAYED_ACK_MSEC*4);
+                _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
 
                 syncNotify();
 
             } else {
-                if (_debug) tcpdprint("SIMULTANEOUS OPEN, going to SYN_RCVD");
+                if (_debug)
+                    tcpdprint("SIMULTANEOUS OPEN, going to SYN_RCVD");
                 _state = State.SYN_RCVD;
 
-                send(SYN|ACK, _iss, rcv_nxt);
+                send(SYN | ACK, _iss, rcv_nxt);
 
-                 _retransmitTimer.schedule(rtx_timeout);
+                _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
             }
         }
     }
@@ -998,7 +955,8 @@ public final class TCP extends IP {
     private void doSynRcvd(Packet pkt) throws NetworkException {
 
         if (verifySeq(pkt) != true) {
-            if (_debug) tcpdprint("verifySeq() failed");
+            if (_debug)
+                tcpdprint("verifySeq() failed");
             return;
         }
 
@@ -1035,17 +993,18 @@ public final class TCP extends IP {
         _snd_wl1 = inp_seq;
         _sndWl2 = inp_ack;
 
-        if (_debug) tcpdprint("SYN_RCVD got ACK, going to ESTABLISHED");
+        if (_debug)
+            tcpdprint("SYN_RCVD got ACK, going to ESTABLISHED");
         _state = State.ESTABLISHED;
 
-        _retransmitTimer.cancelTask();
+        _retransmitTimer.cancelTask(_retransmitTask);
 
         // Tell any threads blocked on accept() or poll() that a new connection
         // is available.
         synchronized (_listener) {
             _listener.notify();
         }
-        _listener = null;  // don't need listener after this point.
+        _listener = null; // don't need listener after this point.
 
         // continue to do processing in the ESTABLISHED state.
         doEstablished(pkt);
@@ -1056,7 +1015,8 @@ public final class TCP extends IP {
         // Check the sequence number and data length in the segment.
         // Trim off any excess and filter out really bad ones.
         if (verifySeq(pkt) != true) {
-            if (_debug) tcpdprint("verifySeq(pkt) false");
+            if (_debug)
+                tcpdprint("verifySeq(pkt) false");
             return;
         }
 
@@ -1075,12 +1035,14 @@ public final class TCP extends IP {
         }
 
         if (verifyAck() == false) {
-            if (_debug) tcpdprint("verifyAck() false");
+            if (_debug)
+                tcpdprint("verifyAck() false");
             return;
         }
 
         if ((inp_flags & URG) != 0) {
-            if (_debug) tcpdprint("ESTABLISHED ignoring URG flag");
+            if (_debug)
+                tcpdprint("ESTABLISHED ignoring URG flag");
         }
 
         if (inp_len > 0) {
@@ -1093,7 +1055,7 @@ public final class TCP extends IP {
             // acknowledgement for it (we will probably call close()
             // soon which will piggyback an ACK).
             rcv_nxt++;
-            _delayedAckTimer.schedule(DELAYED_ACK_MSEC*4);
+            _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
 
             _state = State.CLOSE_WAIT;
 
@@ -1101,7 +1063,6 @@ public final class TCP extends IP {
             syncNotify();
         }
     }
-
 
     private void doCloseWait(Packet pkt) throws NetworkException {
 
@@ -1124,15 +1085,16 @@ public final class TCP extends IP {
             return;
         }
 
-        if ((inp_flags & (URG|FIN)) != 0) {
-            if (_debug) tcpdprint("CLOSE_WAIT ignoring " + flagsToString(inp_flags & (URG|FIN)));
+        if ((inp_flags & (URG | FIN)) != 0) {
+            if (_debug)
+                tcpdprint("CLOSE_WAIT ignoring " + flagsToString(inp_flags & (URG | FIN)));
         }
 
         if (inp_len > 0) {
-            if (_debug) tcpdprint("CLOSE_WAIT ignoring data len = " + inp_len);
+            if (_debug)
+                tcpdprint("CLOSE_WAIT ignoring data len = " + inp_len);
         }
     }
-
 
     private void doClosing(Packet pkt) throws NetworkException {
 
@@ -1157,17 +1119,19 @@ public final class TCP extends IP {
 
         // If this segment acknowledges our FIN, we are done.
         if (inp_ack >= _snd_una) {
-            //state = State.TIME_WAIT;
+            // state = State.TIME_WAIT;
             cleanup("Connection closed");
             return;
         }
 
-        if ((inp_flags & (URG|FIN)) != 0) {
-            if (_debug) tcpdprint("CLOSING ignoring " + flagsToString(inp_flags & (URG|FIN)));
+        if ((inp_flags & (URG | FIN)) != 0) {
+            if (_debug)
+                tcpdprint("CLOSING ignoring " + flagsToString(inp_flags & (URG | FIN)));
         }
 
         if (inp_len > 0) {
-            if (_debug) tcpdprint("CLOSING ignoring data len = " + inp_len);
+            if (_debug)
+                tcpdprint("CLOSING ignoring data len = " + inp_len);
         }
     }
 
@@ -1194,7 +1158,8 @@ public final class TCP extends IP {
             return;
         }
 
-        if (_debug) tcpdprint(_state + " ack:" + inp_ack + " snd_una:" + _snd_una);
+        if (_debug)
+            tcpdprint(_state + " ack:" + inp_ack + " snd_una:" + _snd_una);
 
         // if this segment acknowledges the FIN we sent, go to FIN_WAIT_2
         if (inp_ack >= _snd_una) {
@@ -1202,17 +1167,18 @@ public final class TCP extends IP {
         }
 
         if ((inp_flags & URG) != 0) {
-            if (_debug) tcpdprint(_state + " ignoring URG");
+            if (_debug)
+                tcpdprint(_state + " ignoring URG");
         }
 
         if (inp_len > 0) {
             // Since our API doesn't support half-close, any data received
-            // in this segment will never get read.  Therefore this connection
+            // in this segment will never get read. Therefore this connection
             // will stay in limbo forever, or until the remote times out.
             // To avoid this, we send a RST and blow away the connection.
 
-            //err(state + " port:" + local_port + " half-close inp_len:"+
-            //        inp_len + " rcv_wnd:" + rcv_wnd);
+            // err(state + " port:" + local_port + " half-close inp_len:"+
+            // inp_len + " rcv_wnd:" + rcv_wnd);
 
             outputRst();
             cleanup("Connection aborted");
@@ -1221,7 +1187,7 @@ public final class TCP extends IP {
 
             // Uncomment this if we need to get half-close recvData working.
             // process any data received in this segment.
-            //recvData(pkt);
+            // recvData(pkt);
         }
 
         if ((inp_flags & FIN) != 0) {
@@ -1231,7 +1197,7 @@ public final class TCP extends IP {
             send(ACK, _snd_max, rcv_nxt);
 
             if (_state == State.FIN_WAIT_2) {
-                //state = State.TIME_WAIT;
+                // state = State.TIME_WAIT;
                 cleanup("Connection closed");
             } else {
                 _state = State.CLOSING;
@@ -1244,9 +1210,9 @@ public final class TCP extends IP {
     // we don't implement TIME_WAIT just yet.
     private void doTimeWait(Packet pkt) {
 
-        if (_debug) tcpdprint("TIME_WAIT got segment flags = " + flagsToString(inp_flags));
+        if (_debug)
+            tcpdprint("TIME_WAIT got segment flags = " + flagsToString(inp_flags));
     }
-
 
     private void doLastAck(Packet pkt) throws NetworkException {
 
@@ -1269,26 +1235,28 @@ public final class TCP extends IP {
         }
 
         if (_snd_una == _snd_max) {
-            if (_debug) tcpdprint("LAST_ACK closing connection");
+            if (_debug)
+                tcpdprint("LAST_ACK closing connection");
             cleanup("Connection closed");
         }
     }
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     private void cleanup(String str) throws NetworkException {
 
         _reason = str;
 
-        if (_debug) tcpdprint("cleanup() local:" + _localPort + " reason: " + _reason);
+        if (_debug)
+            tcpdprint("cleanup() local:" + _localPort + " reason: " + _reason);
 
         // If TCP was in LISTEN state, it might have received a
         // connection that is still not accepted by the upper layer.
         // Need to cleanup this connection too.
         if (_state == State.LISTEN && _incomingConnection != null) {
 
-          //err("cleanup pending connection " +
-          //    states[incomingConnection.state] + " port:" + local_port);
+            // err("cleanup pending connection " +
+            // states[incomingConnection.state] + " port:" + local_port);
 
             // To cleanup pending incoming connections, the spec says
             // to send a FIN and go through the usual four way handshake.
@@ -1298,7 +1266,7 @@ public final class TCP extends IP {
             // our SYN if it got lost.)
             if (_incomingConnection._state == State.SYN_RCVD) {
                 // It would be nice to send RST here, but we don't know
-                // what ack or seq values to use.  The peer will retransmit
+                // what ack or seq values to use. The peer will retransmit
                 // and then receive a RST.
                 _incomingConnection.cleanup("Connection closed");
             } else {
@@ -1311,15 +1279,14 @@ public final class TCP extends IP {
         // Update some SNMP stats
         if (_state == State.SYN_SENT || _state == State.SYN_RCVD) {
             tcpAttemptFails++;
-            }
-        else if (_state == State.ESTABLISHED || _state == State.CLOSE_WAIT) {
+        } else if (_state == State.ESTABLISHED || _state == State.CLOSE_WAIT) {
             tcpEstabResets++;
-            }
+        }
 
         _state = State.CLOSED;
 
-         _retransmitTimer.cancelTask();
-        _delayedAckTimer.cancelTask();
+        _retransmitTimer.cancelTask(_retransmitTask);
+        _delayedAckTimer.cancelTask(_delayedAckTask);
 
         if (sendQueue != null) {
             sendQueue.cleanup();
@@ -1338,16 +1305,15 @@ public final class TCP extends IP {
     }
 
     /**
-      * Called (only) when the retransmit timer goes off.
-      * This mainly involves figuring out what state we are in, and retransmitting the packet
-      * that is appropriate in that state.
-      *
-      * @throws NetworkException
+     * Called (only) when the retransmit timer goes off. This mainly involves figuring out what state we are in, and
+     * retransmitting the packet that is appropriate in that state.
+     *
+     * @throws NetworkException
      */
 
     synchronized void retransmit() throws NetworkException {
 
-        // Invalidate the round-trip timer.  rtt must only be calculated
+        // Invalidate the round-trip timer. rtt must only be calculated
         // for non-retransmitted segments.
         rtt_start = 0;
 
@@ -1357,91 +1323,93 @@ public final class TCP extends IP {
             rtx_timeout = RTX_TIMEOUT_MAX;
         }
 
-        if (_debug) tcpdprint("TIMEOUT:" + retransmits + " to:" + rtx_timeout + " local:" +
-            _localPort + " state: " + _state);
+        if (_debug)
+            tcpdprint("TIMEOUT:" + retransmits + " to:" + rtx_timeout + " local:" + _localPort + " state: " + _state);
 
         retransmits++;
         if (retransmits % 5 == 0) {
             Route.checkRoute(_remoteIp);
         } else if (retransmits >= MAX_TIMEOUTS) {
-            _connectFailure = CONN_FAIL_TIMEOUT;        // to remember why connect failed
+            _connectFailure = CONN_FAIL_TIMEOUT; // to remember why connect failed
             cleanup("Connection timed out");
             return;
         }
 
-        if (_debug) tcpdprint("retransmit: " + _state);
+        if (_debug)
+            tcpdprint("retransmit: " + _state);
         switch (_state) {
 
-        case SYN_SENT:
-            // send a new SYN packet.
-            send(SYN, _iss, 0);
-            break;
+            case SYN_SENT:
+                // send a new SYN packet.
+                send(SYN, _iss, 0);
+                break;
 
-        case SYN_RCVD:
-            // send a new SYN|ACK packet.
-            send(SYN|ACK, _iss, rcv_nxt);
-            break;
+            case SYN_RCVD:
+                // send a new SYN|ACK packet.
+                send(SYN | ACK, _iss, rcv_nxt);
+                break;
 
-        case ESTABLISHED:
-        case CLOSE_WAIT:
-            // dump the output queue to the net.
-            outputData(_snd_una, _snd_max);
-            break;
+            case ESTABLISHED:
+            case CLOSE_WAIT:
+                // dump the output queue to the net.
+                outputData(_snd_una, _snd_max);
+                break;
 
-        case FIN_WAIT_1:
-            // it would be cool if we could retransmit SYN here
-            // to handle the SYN_RCVD --> FIN_WAIT_1 transition...
-        case LAST_ACK:
-            // Send any data still in our transmit queue.
-            outputData(_snd_una, _snd_max-1);  // subtract 1 for FIN
-            tcpRetransSegs++;
+            case FIN_WAIT_1:
+                // it would be cool if we could retransmit SYN here
+                // to handle the SYN_RCVD --> FIN_WAIT_1 transition...
+            case LAST_ACK:
+                // Send any data still in our transmit queue.
+                outputData(_snd_una, _snd_max - 1); // subtract 1 for FIN
+                tcpRetransSegs++;
 
-            // send a FIN segment, subtracting 1 for the previously sent FIN
-            send(FIN|ACK, _snd_max-1, rcv_nxt);
-            break;
+                // send a FIN segment, subtracting 1 for the previously sent FIN
+                send(FIN | ACK, _snd_max - 1, rcv_nxt);
+                break;
 
-        default:
-            if (_debug) tcpdprint("BAD RETRANSMIT STATE: " + _state);
+            default:
+                if (_debug)
+                    tcpdprint("BAD RETRANSMIT STATE: " + _state);
 
-            // don't restart the timer.
-            return;
+                // don't restart the timer.
+                return;
         }
 
         tcpRetransSegs++;
 
-        _retransmitTimer.schedule(rtx_timeout);
+        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
     }
 
-
     /**
-     *  This is called (only) when the delayed ACK timer goes off.
-     *  Send an ACK segment.  Don't restart the delayed ACK timer.
+     * This is called (only) when the delayed ACK timer goes off. Send an ACK segment. Don't restart the delayed ACK
+     * timer.
+     *
      * @throws NetworkException
      */
     synchronized void delayedAck() throws NetworkException {
 
-        //err("delayedAck port:"+local_port);
+        // err("delayedAck port:"+local_port);
 
         // We could try to get fancy here about piggybacking this ACK
         // with data, but for now we keep it simple.
         send(ACK, _snd_max, rcv_nxt);
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     protected static int headerHint() {
-        return 14 + 20 /* IP.headerHint() */ + MIN_TCP_HEADER_SIZE;
+        return 14 + 20 /* IP.headerHint() */+ MIN_TCP_HEADER_SIZE;
     }
 
     /**
-     * Establish a TCP connection to a remote endpoint.
-     * Entry point, hence synchronized
-     * @param        addr IP address of remote endpoint
-     * @param        p    port number
-     * @return        port number    if connected
-     *                     TCP.CONN_FAIL_REFUSED if the connection is refused
-     *                     TCP.CONN_FAIL_TIMEOUT if the connection request times out
+     * Establish a TCP connection to a remote endpoint. Entry point, hence synchronized
+     *
+     * @param addr
+     *            IP address of remote endpoint
+     * @param p
+     *            port number
+     * @return port number if connected TCP.CONN_FAIL_REFUSED if the connection is refused TCP.CONN_FAIL_TIMEOUT if the
+     *         connection request times out
      */
     synchronized int connect(int addr, int p) throws InterruptedException, NetworkException, IOException {
 
@@ -1466,17 +1434,18 @@ public final class TCP extends IP {
 
         _iss = chooseISS();
 
-        if (_debug) tcpdprint("connect: ISS: " + _iss);
+        if (_debug)
+            tcpdprint("connect: ISS: " + _iss);
 
         _snd_una = _iss;
-        _snd_max = _iss+1;
+        _snd_max = _iss + 1;
         _snd_wnd = 0;
         rcv_wnd = RECEIVE_WINDOW;
 
         _state = State.SYN_SENT;
         tcpActiveOpens++;
 
-        _retransmitTimer.schedule(rtx_timeout);
+        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
         // Send a SYN segment out the network
         send(SYN, _iss, 0);
@@ -1485,7 +1454,7 @@ public final class TCP extends IP {
         rttStart(_iss);
 
         // now wait for the connection to be established
-        while (_state != State.ESTABLISHED &&  _state != State.CLOSED) {
+        while (_state != State.ESTABLISHED && _state != State.CLOSED) {
             if (!_blocking) {
                 return -ErrorDecoder.Code.EAGAIN.getCode();
             }
@@ -1498,8 +1467,8 @@ public final class TCP extends IP {
     }
 
     /**
-     * Close connection.
-     * Entry point, hence synchronized
+     * Close connection. Entry point, hence synchronized
+     *
      * @param how
      * @return
      * @throws NetworkException
@@ -1521,12 +1490,12 @@ public final class TCP extends IP {
         }
 
         // send a FIN segment
-        send(FIN|ACK, _snd_max, rcv_nxt);
+        send(FIN | ACK, _snd_max, rcv_nxt);
         rttStart(_snd_max);
 
-        _snd_max++;   // add one for FIN
+        _snd_max++; // add one for FIN
 
-        _retransmitTimer.schedule(rtx_timeout);
+        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
         return true;
     }
@@ -1535,7 +1504,7 @@ public final class TCP extends IP {
         Packet pkt = Packet.getTx(_remoteIp, _hdrLen, 0);
         if (pkt != null) {
             try {
-                output(pkt, RST|ACK, _snd_max, rcv_nxt);
+                output(pkt, RST | ACK, _snd_max, rcv_nxt);
             } catch (NetworkException ex) {
             }
         }
@@ -1570,7 +1539,8 @@ public final class TCP extends IP {
         int numBytes = to - from;
         int snd_nxt = from;
 
-        if (_debug) dprint("outputData numBytes:" + numBytes);
+        if (_debug)
+            dprint("outputData numBytes:" + numBytes);
 
         while (numBytes > 0) {
 
@@ -1583,7 +1553,7 @@ public final class TCP extends IP {
                 return;
             }
 
-            output(pkt, ACK|PSH, snd_nxt, rcv_nxt);
+            output(pkt, ACK | PSH, snd_nxt, rcv_nxt);
             rttStart(snd_nxt);
 
             snd_nxt += n;
@@ -1592,8 +1562,8 @@ public final class TCP extends IP {
     }
 
     /**
-     * Write some data to the connection.
-     * Entry point, hence synchronized
+     * Write some data to the connection. Entry point, hence synchronized
+     *
      * @param buf
      * @param off
      * @param len
@@ -1601,10 +1571,10 @@ public final class TCP extends IP {
      * @throws InterruptedException
      * @throws NetworkException
      */
-    synchronized int write(byte buf[], int off, int len)
-        throws InterruptedException, NetworkException {
+    synchronized int write(byte buf[], int off, int len) throws InterruptedException, NetworkException {
 
-        if (_debug) tcpdprint("write length = " + len);
+        if (_debug)
+            tcpdprint("write length = " + len);
 
         if (_state != State.ESTABLISHED && _state != State.CLOSE_WAIT) {
             return -ErrorDecoder.Code.EIO.getCode();
@@ -1623,27 +1593,26 @@ public final class TCP extends IP {
             outputData(_snd_max, _snd_max + bytesAppended);
 
             // start the retransmit timer if necessary.
-            _retransmitTimer.schedule(rtx_timeout);
+            _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
             _snd_max += bytesAppended;
             off += bytesAppended;
             toDo -= bytesAppended;
         }
 
-        if (_debug) tcpdprint("done write");
+        if (_debug)
+            tcpdprint("done write");
         return len;
     }
 
-
-    //----------------------------------------------------------------------
-
+    // ----------------------------------------------------------------------
 
     private void recvData(Packet pkt) throws NetworkException {
 
         _recvQueue.append(pkt);
 
-        rcv_nxt += inp_len;     // advance next expected seq number.
-        rcv_wnd -= inp_len;     // decrement receive window size
+        rcv_nxt += inp_len; // advance next expected seq number.
+        rcv_wnd -= inp_len; // decrement receive window size
 
         if (rcv_wnd < MAXSEGSIZE) {
             _ack_after_read = true;
@@ -1653,20 +1622,20 @@ public final class TCP extends IP {
         // data available.
         syncNotify();
 
-        // Figure out if we need to ACK this segment or not.  Various
+        // Figure out if we need to ACK this segment or not. Various
         // specs say we should ACK every other segment in a stream of
         // full size segments.
         _ack_segment++;
         if (_ack_segment >= ACK_SEGMENTS) {
             send(ACK, _snd_max, rcv_nxt);
         } else {
-             _delayedAckTimer.schedule(DELAYED_ACK_MSEC);
+            _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC);
         }
     }
 
     /**
-     * Read some data from the connection.
-     * Entry point, hence synchronized
+     * Read some data from the connection. Entry point, hence synchronized
+     *
      * @param buf
      * @param off
      * @param len
@@ -1676,9 +1645,7 @@ public final class TCP extends IP {
      * @throws InterruptedIOException
      * @throws NetworkException
      */
-    synchronized int read(byte buf[], int off, int len, int timeout)
-            throws InterruptedException, InterruptedIOException,
-            NetworkException {
+    synchronized int read(byte buf[], int off, int len, int timeout) throws InterruptedException, InterruptedIOException, NetworkException {
 
         if (_state != State.ESTABLISHED) {
             if (_state != State.CLOSE_WAIT || _recvQueue.bytesQueued == 0) {
@@ -1692,6 +1659,7 @@ public final class TCP extends IP {
             }
             final TCP tcp = this;
             final TimeLimitedProc timedProc = new TimeLimitedProc() {
+
                 protected int proc(long remaining) throws InterruptedException {
                     tcp.wait(remaining);
                     if (_recvQueue.bytesQueued > 0 || _state == State.CLOSED) {
@@ -1714,8 +1682,7 @@ public final class TCP extends IP {
         // Only send an ACK in ESTABLISHED state. This is to reduce
         // unnecessary ACKs if we read data in while in CLOSE_WAIT
         // for example.
-        if (_state == State.ESTABLISHED
-                && ((rcv_wnd > MAXSEGSIZE) && _ack_after_read)) {
+        if (_state == State.ESTABLISHED && ((rcv_wnd > MAXSEGSIZE) && _ack_after_read)) {
             _ack_after_read = false;
             send(ACK, _snd_max, rcv_nxt);
         }
@@ -1724,8 +1691,8 @@ public final class TCP extends IP {
     }
 
     /**
-     *  Return the number of bytes immediately available for reading.
-     *  Entry point, hence synchronized
+     * Return the number of bytes immediately available for reading. Entry point, hence synchronized
+     *
      * @return
      */
     synchronized int available() {
@@ -1741,8 +1708,7 @@ public final class TCP extends IP {
     }
 
     /**
-     * Check if input is available.
-     *  Entry point, hence synchronized
+     * Check if input is available. Entry point, hence synchronized
      *
      * @return
      */
@@ -1765,8 +1731,7 @@ public final class TCP extends IP {
     }
 
     /**
-     * Check if output is possible.
-     *  Entry point, hence synchronized
+     * Check if output is possible. Entry point, hence synchronized
      *
      * @return
      */
@@ -1783,11 +1748,11 @@ public final class TCP extends IP {
 
     }
 
-
     /**
-     * Set the state of a new connection to LISTEN.
-     * Entry point, hence synchronized
-     * @param count currently ignored
+     * Set the state of a new connection to LISTEN. Entry point, hence synchronized
+     *
+     * @param count
+     *            currently ignored
      * @return true iff state was NEW and is now LISTEN
      */
     synchronized boolean listen(int count) {
@@ -1807,10 +1772,10 @@ public final class TCP extends IP {
     }
 
     /**
-     * Wait for a new connection to arrive on this instance.
-     * Entry point, hence synchronized
+     * Wait for a new connection to arrive on this instance. Entry point, hence synchronized
+     *
      * @param timeout
-     *                how long to wait (zero means forever)
+     *            how long to wait (zero means forever)
      * @return the new connection or null if non-blocking and no connection
      * @throws InterruptedException
      * @throws InterruptedIOException
@@ -1822,6 +1787,7 @@ public final class TCP extends IP {
             }
             final TCP tcp = this;
             final TimeLimitedProc timedProc = new TimeLimitedProc() {
+
                 protected int proc(long remaining) throws InterruptedException {
                     tcp.wait(remaining);
                     if (_incomingConnection != null || _state == State.CLOSED) {
@@ -1876,9 +1842,10 @@ public final class TCP extends IP {
     }
 
     /**
-     * Bind a port to this connection.
-     * Entry point, hence synchronized.
-     * @param port value to set, zero chooses next available port
+     * Bind a port to this connection. Entry point, hence synchronized.
+     *
+     * @param port
+     *            value to set, zero chooses next available port
      * @return port value
      * @throws IOException
      */
@@ -1896,8 +1863,8 @@ public final class TCP extends IP {
     }
 
     /**
-     * Return local port for this instance.
-     * Entry point, hence synchronized.
+     * Return local port for this instance. Entry point, hence synchronized.
+     *
      * @return the assigned local port or zero if none
      */
     synchronized int getLocalPort() {
@@ -1905,8 +1872,8 @@ public final class TCP extends IP {
     }
 
     /**
-     * Return remote port for this instance.
-     * Entry point, hence synchronized.
+     * Return remote port for this instance. Entry point, hence synchronized.
+     *
      * @return the assigned remote port or zero if none
      */
     synchronized int getRemotePort() {
@@ -1914,14 +1881,13 @@ public final class TCP extends IP {
     }
 
     /**
-     * Return remote address for this instance.
-     * Entry point, hence synchronized.
+     * Return remote address for this instance. Entry point, hence synchronized.
+     *
      * @return the assigned remote address or zero if none
      */
     synchronized int getRemoteAddress() {
         return _remoteIp;
     }
-
 
     static TCP cache = null;
 
@@ -1931,7 +1897,7 @@ public final class TCP extends IP {
         TCP result = null;
 
         if (_debug) {
-              dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
+            dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
         }
 
         if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
@@ -1970,16 +1936,14 @@ public final class TCP extends IP {
         return result;
     }
 
+    // ----------------------------------------------------------------------
 
-    //----------------------------------------------------------------------
+    public static void tcpDestinationUnreachable(int dst_ip, int dst_port, int src_port, int code) {
 
-    public static void tcpDestinationUnreachable(int dst_ip, int dst_port,
-                                                 int src_port, int code) {
+        // err("destUnreach local:" + src_port + " dst_ip:" +
+        // IPAddress.toString(dst_ip) + ":" + dst_port);
 
-        //err("destUnreach local:" + src_port + " dst_ip:" +
-        //    IPAddress.toString(dst_ip) + ":" + dst_port);
-
-        switch(code) {
+        switch (code) {
             //
             // Per rfc1122, we should be blowing away only pcbs in the
             // PROTO_UNREACH and FRAG_REQUIRED states, but we get wedged
@@ -1987,147 +1951,119 @@ public final class TCP extends IP {
             // After we implement the timeout for SYN_SENT state we may want to
             // revisit this code.
             //
-        case ICMP.NET_UNREACHABLE:
-        case ICMP.HOST_UNREACHABLE:
-        case ICMP.PROTO_UNREACHABLE:
-        case ICMP.PORT_UNREACHABLE:
-        case ICMP.FRAG_REQUIRED:
-        case ICMP.SOURCE_ROUTE_FAIL:
-            //
-            // Blow the connection away if we are in SYN_SENT state.
-            //
+            case ICMP.NET_UNREACHABLE:
+            case ICMP.HOST_UNREACHABLE:
+            case ICMP.PROTO_UNREACHABLE:
+            case ICMP.PORT_UNREACHABLE:
+            case ICMP.FRAG_REQUIRED:
+            case ICMP.SOURCE_ROUTE_FAIL:
+                //
+                // Blow the connection away if we are in SYN_SENT state.
+                //
 
-            TCP tcp = TCP.find(src_port, dst_ip, dst_port);
-            if (tcp != null) {
-                if (tcp._state == State.SYN_SENT) {
-                    try {
-                        tcp.cleanup("Destination unreachable");
-                    } catch (NetworkException e) {
+                TCP tcp = TCP.find(src_port, dst_ip, dst_port);
+                if (tcp != null) {
+                    if (tcp._state == State.SYN_SENT) {
+                        try {
+                            tcp.cleanup("Destination unreachable");
+                        } catch (NetworkException e) {
+                        }
                     }
                 }
-            }
-            break;
-        default:
+                break;
+            default:
         }
 
     }
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     private static String flagsToString(int flags) {
 
         String str = "";
 
-        if ((flags & FIN) != 0) str = "FIN ";
-        if ((flags & SYN) != 0) str += "SYN ";
-        if ((flags & RST) != 0) str += "RST ";
-        if ((flags & PSH) != 0) str += "PSH ";
-        if ((flags & ACK) != 0) str += "ACK ";
-        if ((flags & URG) != 0) str += "URG ";
+        if ((flags & FIN) != 0)
+            str = "FIN ";
+        if ((flags & SYN) != 0)
+            str += "SYN ";
+        if ((flags & RST) != 0)
+            str += "RST ";
+        if ((flags & PSH) != 0)
+            str += "PSH ";
+        if ((flags & ACK) != 0)
+            str += "ACK ";
+        if ((flags & URG) != 0)
+            str += "URG ";
 
         return str;
     }
 
     public String toString() {
-        return _debugId + ": " + IPAddress.toString(IP.getLocalAddress()) + ":" +
-                _localPort + "   " + IPAddress.toString(_remoteIp) + ":" +
-                _remotePort + "    " + _snd_wnd + "  " +
-                "n/a  " + rcv_wnd + "  " + _recvQueue.bytesQueued +
-                "  " + _state;
+        return _debugId + ": " + IPAddress.toString(IP.getLocalAddress()) + ":" + _localPort + "   " + IPAddress.toString(_remoteIp) + ":" + _remotePort + "    " + _snd_wnd + "  " + "n/a  " +
+                        rcv_wnd + "  " + _recvQueue.bytesQueued + "  " + _state;
     }
 
-    abstract class TCPTimer extends Timer {
-        private TimerTask _task;
+    static class TCPTimer extends Timer {
+
         private String _name;
+
         TCPTimer(String name) {
-            super(name + "-"  + _debugId, true);
+            super(name, true);
             _name = name;
         }
 
-        /**
-         * Returns a task of the appropriate type for the subclass.
-         * @return
-         */
-        abstract TimerTask getTask();
-
-        /**
-         * Schedules a task of the appropriate type for the subclass iff it is not already scheduled,
-         * which is denoted by _task == null.
-         * @param delay
-         */
-        synchronized void schedule(long delay) {
-            if (_task == null) {
-                schedule(getTask(), delay);
-            }
-        }
-
-        @Override
-        public void schedule(TimerTask task, long delay) {
-            _task = task;
-            if (_debug) {
-                dprint("scheduling " + task + " on " + _name);
-            }
-            super.schedule(task, delay);
-            if (_debug) {
-                dprint("scheduled " + task + " on " + _name);
-            }
-        }
-
-        synchronized void  cancelTask() {
-            if (_task != null) {
+        public  void schedule(TimerTask task, long delay) {
+            if (task != null) {
                 if (_debug) {
-                    dprint("cancelling " + _task + " on " + _name);
+                    dprint("scheduling " + task + " on " + _name);
                 }
-                final boolean status = _task.cancel();
+                super.schedule(task, delay);
                 if (_debug) {
-                    dprint("cancelled " + _task + " on " + _name + " cancellation status:" + status);
+                    dprint("scheduled " + task + " on " + _name);
                 }
-                _task = null;
             }
         }
 
-        synchronized void resetTask() {
-            _task = null;
-        }
-    }
-
-    class RetransmitTimer extends TCPTimer {
-        RetransmitTimer() {
-            super("TCP Retransmit Timer");
-        }
-
-        TimerTask getTask() {
-            return new RetransmitTask(this);
-        }
-    }
-
-    class DelayedAckTimer extends TCPTimer {
-        DelayedAckTimer() {
-            super("TCP DelayedAck Timer");
+        synchronized void cancelTask(TimerTask task) {
+            if (task != null) {
+                if (_debug) {
+                    dprint("cancelling " + task + " on " + _name);
+                }
+                final boolean status = task.cancel();
+                if (_debug) {
+                    dprint("cancelled " + task + " on " + _name + " cancellation status:" + status);
+                }
+            }
         }
 
-        TimerTask getTask() {
-            return new DelayedAckTask(this);
-        }
     }
 
     abstract class TCPTimerTask extends TimerTask {
+
         protected TCPTimer _timer;
-        TCPTimerTask(TCPTimer timer) {
+        protected TCP _tcp;
+
+        TCPTimerTask(TCPTimer timer, TCP tcp) {
+            if(tcp == null) {
+                throw new IllegalArgumentException("tcp object cant be null");
+            }
             _timer = timer;
+            _tcp = tcp;
         }
     }
 
     class RetransmitTask extends TCPTimerTask {
-        RetransmitTask(TCPTimer timer) {
-            super(timer);
+
+        public RetransmitTask(TCPTimer timer, TCP tcp) {
+            super(timer, tcp);
         }
 
         public void run() {
             try {
-                if (_debug) dprint("retransmit timer " + this + " activated");
-                _timer.resetTask();
-                retransmit();
+                if (_debug)
+                    dprint("Enter run");
+                    dprint("retransmit timer " + this + " activated");
+                _tcp.retransmit();
             } catch (NetworkException ex) {
                 return;
             }
@@ -2135,15 +2071,16 @@ public final class TCP extends IP {
     }
 
     class DelayedAckTask extends TCPTimerTask {
-        DelayedAckTask(TCPTimer timer) {
-            super(timer);
+
+        DelayedAckTask(TCPTimer timer, TCP tcp) {
+            super(timer, tcp);
         }
 
         public void run() {
             try {
-                if (_debug) dprint("delayed ack " + this + " activated");
-                _timer.resetTask();
-                delayedAck();
+                if (_debug)
+                    dprint("delayed ack " + this + " activated");
+                _tcp.delayedAck();
             } catch (NetworkException ex) {
                 return;
             }
@@ -2151,18 +2088,17 @@ public final class TCP extends IP {
     }
 
     static class RoundTripTask extends TimerTask {
+
         public void run() {
             rtt_clock++;
         }
     }
-
 
     public static synchronized void report(java.io.PrintStream out) {
 
         out.print("TCP stats\n\n");
         out.print("Local Address       Remote Address    tx wnd tx Q  rx wnd rx Q State\n");
         out.print("------------------- ----------------- ------ ----- ------ ---- -----\n");
-
 
         TCP tcp = tcps;
         while (tcp != null) {
@@ -2171,8 +2107,7 @@ public final class TCP extends IP {
         }
     }
 
-
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     void tcpdprint(String str) {
         if (_debug == true) {
@@ -2190,7 +2125,6 @@ public final class TCP extends IP {
         Debug.println("TCP: [" + Thread.currentThread().getName() + "]: " + mess);
     }
 
-
     //
     // snmp stuff
     //
@@ -2204,64 +2138,63 @@ public final class TCP extends IP {
     private static int tcpInErrs;
     private static int tcpOutRsts;
 
-    public static synchronized int getStatistic(int index){
-        switch(index){
-        case 1:  // tcpRtoAlgorithm
-            return 4;
-        case 2:  // tcpRtoMin
-            return RTX_TIMEOUT_MIN;
-        case 3:  // tcpRtoMax
-            return RTX_TIMEOUT_MAX;
-        case 4:  // tcpMaxConn
-            return -1;
-        case 5:
-            return tcpActiveOpens;
-        case 6:
-            return tcpPassiveOpens;
-        case 7:
-            return tcpAttemptFails;
-        case 8:
-            return tcpEstabResets;
-        case 9:
-            {
-            TCP tcp;
-            int tcpCurrEstab = 0;
-            for(tcp = tcps;tcp != null;tcp = tcp._next)
-                if(tcp._state == State.ESTABLISHED || tcp._state == State.CLOSE_WAIT)
-                    tcpCurrEstab++;
-            return tcpCurrEstab;
+    public static synchronized int getStatistic(int index) {
+        switch (index) {
+            case 1: // tcpRtoAlgorithm
+                return 4;
+            case 2: // tcpRtoMin
+                return RTX_TIMEOUT_MIN;
+            case 3: // tcpRtoMax
+                return RTX_TIMEOUT_MAX;
+            case 4: // tcpMaxConn
+                return -1;
+            case 5:
+                return tcpActiveOpens;
+            case 6:
+                return tcpPassiveOpens;
+            case 7:
+                return tcpAttemptFails;
+            case 8:
+                return tcpEstabResets;
+            case 9: {
+                TCP tcp;
+                int tcpCurrEstab = 0;
+                for (tcp = tcps; tcp != null; tcp = tcp._next)
+                    if (tcp._state == State.ESTABLISHED || tcp._state == State.CLOSE_WAIT)
+                        tcpCurrEstab++;
+                return tcpCurrEstab;
             }
-        case 10:
-            return tcpInSegs;
-        case 11:
-            return tcpOutSegs - tcpOutRsts - tcpRetransSegs;
-        case 12:
-            return tcpRetransSegs;
-        case 14:
-            return tcpInErrs;
-        case 15:
-            return tcpOutRsts;
-        default:
-            return -1;
+            case 10:
+                return tcpInSegs;
+            case 11:
+                return tcpOutSegs - tcpOutRsts - tcpRetransSegs;
+            case 12:
+                return tcpRetransSegs;
+            case 14:
+                return tcpInErrs;
+            case 15:
+                return tcpOutRsts;
+            default:
+                return -1;
         }
     }
 
-    static synchronized int getNumConns(){
+    static synchronized int getNumConns() {
         TCP tcp;
         int numConns;
 
         numConns = 0;
-        for(tcp = tcps;tcp != null;tcp = tcp._next)
+        for (tcp = tcps; tcp != null; tcp = tcp._next)
             numConns++;
         return numConns;
     }
 
-    static synchronized int getConns(int[][] arr){
+    static synchronized int getConns(int[][] arr) {
         int localIP;
         TCP tcp;
         int i;
         localIP = IP.getLocalAddress();
-        for(i=0,tcp = tcps;i<arr.length && tcp != null;i++,tcp = tcp._next){
+        for (i = 0, tcp = tcps; i < arr.length && tcp != null; i++, tcp = tcp._next) {
             arr[i][0] = localIP;
             arr[i][1] = tcp._localPort;
             arr[i][2] = tcp._remoteIp;
@@ -2272,11 +2205,21 @@ public final class TCP extends IP {
     }
 
     /**
-     * Configure the blocking state of this connection.
-     * Entry point, hence synchronized.
+     * Configure the blocking state of this connection. Entry point, hence synchronized.
+     *
      * @param blocking
      */
     synchronized void configureBlocking(boolean blocking) {
         this._blocking = blocking;
+    }
+
+    private synchronized TimerTask getNewRetransmitTask() {
+        _retransmitTask = new RetransmitTask(_retransmitTimer, this);
+        return _retransmitTask;
+    }
+
+    private synchronized TimerTask getNewDelayedAckTask() {
+        _delayedAckTask = new DelayedAckTask(_delayedAckTimer, this);
+        return _delayedAckTask;
     }
 }
