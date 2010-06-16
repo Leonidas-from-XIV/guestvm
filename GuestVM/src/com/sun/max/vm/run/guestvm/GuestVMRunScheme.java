@@ -31,6 +31,7 @@
  */
 package com.sun.max.vm.run.guestvm;
 
+import java.lang.reflect.*;
 import java.util.*;
 import sun.nio.ch.BBNativeDispatcher;
 import sun.rmi.registry.RegistryImpl;
@@ -106,7 +107,11 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     private static void netInit() {
         if (!_netInit) {
             for (ClassActor classActor : _netReinitClasses) {
-                classActor.callInitializer();
+                try {
+                    classActor.callInitializer();
+                } catch (InvocationTargetException ex) {
+                    GuestVMError.unexpected("failed to reinitialize network classes");
+                }
             }
             NetInit.init();
             _netInit = true;
