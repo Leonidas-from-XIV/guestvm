@@ -109,6 +109,10 @@ unsigned long guestvmXen_stackPoolSize(void) {
   return max_threads;
 }
 
+void *guestvmXen_stackPoolSpinLock(void) {
+  return &bitmap_lock;
+}
+
 void *guestvmXen_stackPoolBitmap(void) {
   return alloc_bitmap;
 }
@@ -132,12 +136,12 @@ void set_specifics_destructor(void (*destructor)(void *)) {
 
 static unsigned long allocate_page(unsigned long addr) {
 	unsigned long pfn = virt_to_pfn(allocate_pages(1, STACK_VM));
-	//guk_printk("stack_allocate_page %lx %lx\n", addr, pfn);
+	//ttprintk("stack_allocate_page %lx %lx\n", addr, pfn);
 	return pfn;
 }
 
 
-static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long addr) {
+static long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long addr) {
 	NativeThreadLocals nativeThreadLocals = (NativeThreadLocals) env->data;
 	Address address = (Address) addr;
 	int map = 0;
@@ -168,13 +172,25 @@ static unsigned long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long 
    	    	map = 1;
    	    }
 	}
-	return map ? pfn_to_mfn(allocate_page(addr)) : 0;
+	//if (map) ttprintk("PATS ntl %lx, addr %lx\n", nativeThreadLocals, addr);
+	if (map) {
+		long pfn = allocate_page(addr);
+		if (pfn < 0) {
+			return pfn;
+		} else {
+			return pfn_to_mfn(pfn);
+		}
+	} else {
+		return 0;
+	}
 }
 
 
-void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address);
+int extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address);
 
-/* allocate the virtual memory (only) for a thread stack of size n pages */
+/* Allocate the virtual memory (only) for a thread stack of size n pages.
+ * Return 0 on failure.
+  */
 unsigned long allocate_thread_stack(unsigned long vsize) {
     /*
      * Maxine allocates large (virtual) stacks that limits scaling the number of threads
@@ -200,8 +216,15 @@ unsigned long allocate_thread_stack(unsigned long vsize) {
    * We have to map the top of the stack because initStack does not get called
    * until the thread has actually started running.
    */
-  extend_stack(NULL, stackend - STACK_INCREMENT_SIZE, stackend);
-  return stackbase;
+  //ttprintk("ATS %lx\n", stackbase);
+  if (extend_stack(NULL, stackend - STACK_INCREMENT_SIZE, stackend)) {
+      return stackbase;
+  } else {
+	  spin_lock(&bitmap_lock);
+	  clear_map(alloc_bitmap, slot);
+	  spin_unlock(&bitmap_lock);
+	  return 0;
+  }
 }
 
 void guk_invoke_destroy(void *specifics) {
@@ -229,7 +252,7 @@ void guk_free_thread_stack(void *stack, unsigned long stack_size) {
     spin_unlock(&bitmap_lock);
 }
 
-void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address) {
+int extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_address, unsigned long end_address) {
 	  struct pfn_alloc_env pfn_frame_alloc_env = {
 	    .pfn_alloc = pfn_alloc_alloc
 	  };
@@ -237,12 +260,12 @@ void extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_add
 	    .pfn_alloc = pfn_alloc_thread_stack
 	  };
 	  pfn_thread_stack_env.data = nativeThreadLocals;
-	  build_pagetable(start_address, end_address, &pfn_thread_stack_env, &pfn_frame_alloc_env);
+	  return build_pagetable(start_address, end_address, &pfn_thread_stack_env, &pfn_frame_alloc_env);
 }
 
 void check_stack_protectPages(unsigned long addr, int count);
 
-void guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
+int guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
 	/* At this point, only the top STACK_INCREMENT_SIZE  of the stack has been mapped.
 	 *  There are some additional areas that need mapping.
 	 */
@@ -255,19 +278,26 @@ void guestvmXen_initStack(NativeThreadLocals nativeThreadLocals) {
     };
 
 	pfn_thread_stack_env.data = nativeThreadLocals;
-    build_pagetable(nativeThreadLocals->stackBase, nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE, &pfn_thread_stack_env, &pfn_frame_alloc_env);
+    nativeThreadLocals->stackBlueZone = 0;  // required invariant for pfn_alloc_thread_stack
+
+    if (!build_pagetable(nativeThreadLocals->stackBase, nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE, &pfn_thread_stack_env, &pfn_frame_alloc_env)) {
+    	return 0;
+    }
 
     nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE;
     check_stack_protectPages(nativeThreadLocals->stackBlueZone, 1);
     check_stack_protectPages(nativeThreadLocals->stackYellowZone, 1);
+    return 1;
 }
 
 unsigned long get_pfn_for_address(unsigned long address) {
 	unsigned long pte;
 	long pfn = guk_not11_virt_to_pfn(address, &pte);
 	if (pfn < 0) {
-		guk_xprintk("get_pfn_for_addr %lx, thread %d failed\n", address, current->id);
-		crash_exit();
+		///*guk_x*/ttprintk("get_pfn_for_addr %lx, thread %d failed, pfn %lx, pte %lx\n", address, current->id, pfn, pte);
+		///*guk_x*/ttprintk("crashing\n");
+		guk_xprintk("get_pfn_for_addr %lx, thread %d failed, pfn %lx, pte %lx\n", address, current->id, pfn, pte);
+		crash_exit_backtrace();
 	}
 	return pfn;
 }
@@ -334,5 +364,6 @@ void *thread_stack_pool_dlsym(const char * symbol) {
   else if (strcmp(symbol, "guestvmXen_stackPoolSize") == 0) return guestvmXen_stackPoolSize;
   else if (strcmp(symbol, "guestvmXen_stackPoolBitmap") == 0) return guestvmXen_stackPoolBitmap;
   else if (strcmp(symbol, "guestvmXen_stackRegionSize") == 0) return guestvmXen_stackRegionSize;
+  else if (strcmp(symbol, "guestvmXen_stackPoolSpinLock") == 0) return guestvmXen_stackPoolSpinLock;
   else return 0;
 }
