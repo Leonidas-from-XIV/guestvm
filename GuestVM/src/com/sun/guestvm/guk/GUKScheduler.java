@@ -124,24 +124,6 @@ public class GUKScheduler {
     }
 
     /**
-     * Acquire lock created by createSpinlock.
-     * @param lock
-     */
-    @INLINE
-    public static void spinLock(Pointer lock) {
-        GUK.guk_spin_lock(lock);
-    }
-
-    /**
-     * Release lock created by createSpinlock.
-     * @param lock
-     */
-    @INLINE
-    public static void spinUnlock(Pointer lock) {
-        GUK.guk_spin_unlock(lock);
-    }
-
-    /**
      * Acquire lock created by createSpinlock and disable interrupts (events).
      * @param lock
      */
