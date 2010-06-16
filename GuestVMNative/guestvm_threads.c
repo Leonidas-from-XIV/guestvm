@@ -99,6 +99,9 @@ struct thread* guestvmXen_create_thread(
     // N.B. priority is not supported by the ukernel scheduler, only by the Java scheduler;
 	// stacksize is guaranteed by caller  to be a multiple of page size
 	unsigned long stackbase = allocate_thread_stack(stacksize);
+	if (stackbase == 0) {
+		return 0;
+	}
     return guk_create_thread_with_stack("java_thread", function, 0, (void*) stackbase, stacksize, runArg);
 }
 
