@@ -72,7 +72,11 @@ final class JDK_java_net_Inet4AddressImpl {
 
     @SUBSTITUTE
     InetAddress[] lookupAllHostAddr(String hostname) throws UnknownHostException {
-        final IPAddress[] ipAddresses = DNS.getDNS().lookup(hostname);
+        final DNS dns = DNS.getDNS();
+        if (dns == null) {
+            throw new UnknownHostException("network is unavailable");
+        }
+        final IPAddress[] ipAddresses = dns.lookup(hostname);
         if (ipAddresses == null) {
             throw new UnknownHostException();
         }
@@ -107,7 +111,7 @@ final class JDK_java_net_Inet4AddressImpl {
     private String getHostByIPAddress(IPAddress ipAddress) throws UnknownHostException {
         final String result = DNS.getDNS().reverseLookup(ipAddress);
         if (result == null) {
-            throw new UnknownHostException();
+            throw new UnknownHostException("network is unavailable");
         }
         return result;
     }
