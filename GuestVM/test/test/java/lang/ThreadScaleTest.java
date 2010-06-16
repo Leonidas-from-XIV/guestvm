@@ -33,6 +33,11 @@ package test.java.lang;
 
 import java.util.*;
 
+import com.sun.guestvm.guk.GUKTrace;
+import com.sun.guestvm.test.VmThreadTestHelper;
+
+import test.util.OSSpecific;
+
 /**
  * How many threads can we run?
  *
@@ -63,6 +68,8 @@ public final class ThreadScaleTest extends Thread {
                 _runTime = Integer.parseInt(args[++i]) * 1000;
             } else if (arg.equals("v")) {
                 _verbose = true;
+            }  else if (arg.equals("gt")) {
+                OSSpecific.setTraceState(Integer.parseInt(args[++i]), true);
             }
         }
         // Checkstyle: stop modified control variable check
@@ -71,9 +78,15 @@ public final class ThreadScaleTest extends Thread {
         try {
             while (n < nmax) {
                 ThreadScaleTest tst = new ThreadScaleTest(n);
+                if (_verbose) {
+                    System.out.println("created thread " + n);
+                }
                 threads.add(tst);
                 tst.start();
-                n++;
+                if (_verbose) {
+                    System.out.println("started thread " + n);
+                }
+               n++;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -108,6 +121,10 @@ public final class ThreadScaleTest extends Thread {
 
             }
         }
+        if (_verbose) {
+            System.out.println("thread " + _id + " exiting");
+        }
+
     }
 
 }
