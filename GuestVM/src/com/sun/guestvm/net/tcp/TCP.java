@@ -76,6 +76,7 @@ import java.net.*;
 import java.util.*;
 
 import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.guestvm.guk.GUKTrace;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 import com.sun.guestvm.net.icmp.*;
@@ -290,11 +291,14 @@ public final class TCP extends IP {
     private long _debugId;
     private static long _nextDebugId;
 
+    private static boolean _trace;
+
     /**
      * Initialization of the TCP universe.
      */
     public static void init() {
         _debug = System.getProperty("guestvm.net.tcp.debug") != null;
+        _trace = System.getProperty("guestvm.net.tcp.trace") != null;
         _scratchTCP = new TCP();
     }
 
@@ -375,6 +379,10 @@ public final class TCP extends IP {
     private void output(Packet pkt, int flags, int seq, int ack)
         throws NetworkException {
 
+        if (_trace) {
+            GUKTrace.print1L(Trace.TCP_OUTPUT_ENTER, _debugId);
+        }
+
         tcpOutSegs++;
 
         if ((flags & ACK) != 0) {
@@ -448,6 +456,10 @@ public final class TCP extends IP {
         // We're finished building the TCP header.  Now send it down to IP,
         // passing our time-to-live and type of service.
          IP.output(pkt, _remoteIp, length,  (TTL<<24) | (IP.IPPROTO_TCP<<16), TOS);
+
+         if (_trace) {
+             GUKTrace.print1L(Trace.TCP_OUTPUT_EXIT, _debugId);
+         }
     }
 
 
@@ -460,6 +472,9 @@ public final class TCP extends IP {
      */
     public static synchronized void input(Packet pkt, int src_ip) {
 
+        if (_trace) {
+            GUKTrace.print1L(Trace.TCP_INPUT_ENTER, src_ip);
+        }
         tcpInSegs++;
 
         try {
@@ -590,13 +605,18 @@ public final class TCP extends IP {
                         return;
 
                     default:
-                        if (_debug)
+                        if (_debug) {
                             dprint("unknown state");
+                        }
                 }
             }
         } catch (NetworkException ex) {
             // our callers don't really care
             return;
+        } finally {
+            if (_trace) {
+                GUKTrace.print1L(Trace.TCP_INPUT_EXIT, src_ip);
+            }
         }
     }
 
