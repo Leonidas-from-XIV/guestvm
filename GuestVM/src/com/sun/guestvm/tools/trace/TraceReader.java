@@ -32,9 +32,10 @@
 package com.sun.guestvm.tools.trace;
 
 /**
- * A tool to read and process a trace from the GuestVM thread scheduler.
- * General form of a trace line is:
- * Timestamp CPU Command args
+ * A tool to read and process a trace from the GuestVM microkernel tracing system..
+ * The general form of a trace line is:
+ *
+ * Timestamp CPU Thread Command args
  *
  * @author Mick Jordan
  *

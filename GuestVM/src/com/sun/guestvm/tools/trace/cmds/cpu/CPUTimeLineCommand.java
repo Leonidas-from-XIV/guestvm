@@ -29,9 +29,19 @@
  * designated nationals lists is strictly prohibited.
  * 
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.cpu;
 
 import java.util.*;
+
+import com.sun.guestvm.tools.trace.CPUState;
+import com.sun.guestvm.tools.trace.CPUStateDuration;
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.TimeFormat;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
+import com.sun.guestvm.tools.trace.TraceMain;
+import com.sun.guestvm.tools.trace.TraceReader;
 
 
 public class CPUTimeLineCommand extends CommandHelper implements Command {

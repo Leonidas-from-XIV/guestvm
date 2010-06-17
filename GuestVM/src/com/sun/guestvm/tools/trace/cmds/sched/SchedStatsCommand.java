@@ -29,34 +29,46 @@
  * designated nationals lists is strictly prohibited.
  * 
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.sched;
 
-import java.util.*;
+import java.util.List;
 
-public class CreateThreadInfoCommand extends CommandHelper implements Command {
-    private static final String THREAD_ID = "id=";
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.ThreadSwitchTraceElement;
+import com.sun.guestvm.tools.trace.TimeFormat;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
+
+
+public class SchedStatsCommand extends CommandHelper implements Command {
 
     @Override
     public void doIt(List<TraceElement> traces, String[] args) throws Exception {
-        final String id = stringArgValue(args, THREAD_ID);
-        if (id == null) {
-            for (CreateThreadTraceElement te : CreateThreadTraceElement.getThreadIterable()) {
-                process(traces, te.getId());
-            }
-        } else {
-            process(traces, Integer.parseInt(id));
-        }
-    }
-
-    private void process(List<TraceElement> traces, int id) {
-        for (TraceElement trace : traces) {
-            if (trace.getTraceKind() == TraceKind.CT) {
-                final CreateThreadTraceElement ct = (CreateThreadTraceElement) trace;
-                if (ct.getId() == id) {
-                    System.out.println("Thread " + id + " created on cpu " + ct.getInitialCpu());
+        checkTimeFormat(args);
+        long max = 0;
+        long min = Long.MAX_VALUE;
+        long sum = 0;
+        int calls = 0;
+        ThreadSwitchTraceElement mts = null;
+        for (TraceElement t : traces) {
+            if (t.getTraceKind() == TraceKind.TS) {
+                final ThreadSwitchTraceElement ts = (ThreadSwitchTraceElement) t;
+                calls++;
+                final long schedTime = ts.getSchedTime();
+                sum += schedTime;
+                if (schedTime > max) {
+                    max = schedTime;
+                    mts = ts;
+                } else if (schedTime < min) {
+                    min = schedTime;
                 }
             }
         }
+
+        System.out.println("Schedule stats: calls: " + calls + ", avg: " + TimeFormat.byKind(sum / calls, _timeFormat) +
+                        ", min: " + TimeFormat.byKind(min, _timeFormat) + ", max: " + TimeFormat.byKind(max, _timeFormat));
+        System.out.println("max element: " + mts);
     }
 
 }

@@ -29,9 +29,19 @@
  * designated nationals lists is strictly prohibited.
  * 
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.memory;
 
 import java.util.*;
+
+import com.sun.guestvm.tools.trace.AllocPagesTraceElement;
+import com.sun.guestvm.tools.trace.AllocTraceElement;
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.CreateThreadTraceElement;
+import com.sun.guestvm.tools.trace.MAllocTraceElement;
+import com.sun.guestvm.tools.trace.TimeFormat;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
 
 
 public class AllocByThreadCommand extends CommandHelper implements Command {

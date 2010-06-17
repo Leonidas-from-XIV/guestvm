@@ -29,25 +29,50 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.misc;
 
+import java.io.*;
 import java.util.List;
 
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceMain;
 
-public class PagePoolCommand extends CommandHelper implements Command {
+public class SplitCommand extends CommandHelper implements Command {
+    private static final String OUT_TRACE_FILE = "outfile=";
 
     @Override
     public void doIt(List<TraceElement> traces, String[] args) throws Exception {
-        int maxHwm = 0;
-        for (TraceElement te : traces) {
-            if (te instanceof AllocPagesTraceElement) {
-                final AllocPagesTraceElement apte = (AllocPagesTraceElement) te;
-                if (apte.getHwmAllocPage() > maxHwm) {
-                    maxHwm = apte.getHwmAllocPage();
+        final int cpu = TraceMain.cpuOption();
+        if (cpu < 0) {
+            // TODO split all CPUs
+        } else {
+            PrintStream wr = null;
+            final String outFile = outFile(args);
+            try {
+                if (outFile == null) {
+                    wr = System.out;
+                } else {
+                    wr = new PrintStream(new FileOutputStream(outFile));
+                }
+                for (TraceElement traceElement : traces) {
+                    if (cpu == traceElement.getCpu()) {
+                        wr.println(traceElement);
+                    }
+                }
+            } catch (Exception ex) {
+                System.err.println(ex);
+            } finally {
+                if (wr != null && wr != System.out) {
+                    wr.close();
                 }
             }
         }
-        System.out.println("max hwm " + maxHwm);
     }
 
+    private String outFile(String[] args) {
+        return stringArgValue(args, OUT_TRACE_FILE);
+    }
 }
+

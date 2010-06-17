@@ -29,9 +29,17 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.memory;
 
 import java.util.List;
+
+import com.sun.guestvm.tools.trace.AllocPagesTraceElement;
+import com.sun.guestvm.tools.trace.AllocTraceElement;
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.CreateThreadTraceElement;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
 
 /**
  * Show mallocs that allocate pages.
