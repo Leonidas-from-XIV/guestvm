@@ -134,24 +134,24 @@ void guk_ttprintk0(char * fmt) {
 	guk_ttprintk("%s\n", fmt);
 }
 
-void guk_ttprintk1(char * fmt, int arg) {
-	guk_ttprintk("%s %d\n", fmt, arg);
+void guk_ttprintk1(char * fmt, long arg) {
+	guk_ttprintk("%s %ld\n", fmt, arg);
 }
 
-void guk_ttprintk2(char * fmt, int arg1, int arg2) {
-	guk_ttprintk("%s %d %d\n", fmt, arg1, arg2);
+void guk_ttprintk2(char * fmt, long arg1, long arg2) {
+	guk_ttprintk("%s %ld %ld\n", fmt, arg1, arg2);
 }
 
-void guk_ttprintk3(char * fmt, int arg1, int arg2, int arg3) {
-	guk_ttprintk("%s %d %d %d\n", fmt, arg1, arg2, arg3);
+void guk_ttprintk3(char * fmt, long arg1, long arg2, long arg3) {
+	guk_ttprintk("%s %ld %ld %ld\n", fmt, arg1, arg2, arg3);
 }
 
-void guk_ttprintk4(char * fmt, int arg1, int arg2, int arg3, int arg4) {
-	guk_ttprintk("%s %d %d %d %d\n", fmt, arg1, arg2, arg3, arg4);
+void guk_ttprintk4(char * fmt, long arg1, long arg2, long arg3, long arg4) {
+	guk_ttprintk("%s %ld %ld %ld %ld\n", fmt, arg1, arg2, arg3, arg4);
 }
 
-void guk_ttprintk5(char * fmt, int arg1, int arg2, int arg3, int arg4, int arg5) {
-	guk_ttprintk("%s %d %d %d %d %d\n", fmt, arg1, arg2, arg3, arg4, arg5);
+void guk_ttprintk5(char * fmt, long arg1, long arg2, long arg3, long arg4, long arg5) {
+	guk_ttprintk("%s %ld %ld %ld %ld %ld\n", fmt, arg1, arg2, arg3, arg4, arg5);
 }
 
 extern int guk_domain_id(void);
