@@ -43,8 +43,8 @@ extra_projects=( \
   GNUCP:src \
   GuestVMJDK:src \
   NfsServer:src \
-  GuestVM:src,test \
   MaxineELF:src \
+  GuestVM:src,test \
   GuestVMTele:src \
 )
 
