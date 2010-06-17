@@ -34,7 +34,7 @@ package com.sun.guestvm.test;
 import com.sun.max.vm.reference.Reference;
 import com.sun.max.vm.thread.*;
 import com.sun.guestvm.guk.*;
-
+import com.sun.guestvm.sched.*;
 /**
  *
  * @author Mick Jordan
@@ -63,6 +63,11 @@ public class VmThreadTestHelper {
 
     public static long nativeUKernel() {
         return GUKScheduler.currentThread().toLong();
+    }
+
+    public static int nativeId(Thread t) {
+        final GUKVmThread gvm = (GUKVmThread) VmThread.fromJava(t);
+        return gvm == null ? -1 : gvm.safeNativeId();
     }
 
 }

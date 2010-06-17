@@ -118,8 +118,8 @@ public final class TCP extends IP {
 
     // timer management
     private static final int DELAYED_ACK_MSEC = 50;
-    private static TCPTimer _retransmitTimer = new TCPTimer("Retransmit Timer");
-    private static TCPTimer _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
+    private static TCPTimer _retransmitTimer;
+    private static TCPTimer _delayedAckTimer;
     private TimerTask _retransmitTask;
     private TimerTask _delayedAckTask;
     private TCPRecvQueue _recvQueue;
@@ -262,6 +262,7 @@ public final class TCP extends IP {
     }
 
     private TCP() {
+
         if (rttTimer == null) {
             _random = new Random();
             _startTime = (int) System.currentTimeMillis();
@@ -269,6 +270,8 @@ public final class TCP extends IP {
             rttTimer.scheduleAtFixedRate(new RoundTripTask(), RTT_TICK_MSEC, RTT_TICK_MSEC);
         }
 
+        _retransmitTimer = new TCPTimer("Retransmit Timer");
+        _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
         _state = State.NEW;
         _localPort = 0;
         _debugId = _nextDebugId++;

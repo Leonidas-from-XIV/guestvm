@@ -152,6 +152,13 @@ public class GUKVmThread extends VmThread {
         return nativeThread.asPointer().getShort(ID_OFFSET_AS_SHORT);
     }
 
+    public final int safeNativeId() {
+        if (nativeThread == null) {
+            return -1;
+        }
+        return nativeId();
+    }
+
     public final long getRunningTime() {
         // to get an current reading we need to enter the scheduler
         GUKScheduler.schedule();

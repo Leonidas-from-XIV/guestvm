@@ -51,7 +51,7 @@ static unsigned char nic_name[32];
 static int net_available = 0;
 static int net_started = 0;
 
-typedef void (*GUKNetDeviceCopyPacketMethod)(void *p, int len);
+typedef void (*GUKNetDeviceCopyPacketMethod)(void *p, int len, long ts);
 static GUKNetDeviceCopyPacketMethod copy_packet_method;
 
 /*
@@ -84,7 +84,7 @@ void guk_net_app_main(unsigned char *mac, char *nic) {
 void guk_netif_rx(unsigned char* data, int len) {
   if (net_started) {
 	  struct thread *current;
-    (*copy_packet_method)(data, len);
+    (*copy_packet_method)(data, len, NOW());
     current = guk_not_idle_or_stepped();
     if (current != NULL) {
     	set_need_resched(current);

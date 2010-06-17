@@ -33,6 +33,22 @@ package test.util;
 
 /**
  * Utterly trivial argument processing for simple test programs.
+ * The following keywords are recognised:
+ *
+ * a1 val   set argument a1
+ * a2 val   set argument a2
+ * a3 val   set argument a3
+ * a4 val   set argument a4
+ * op c      set command c
+ * v           set verbose
+ * gt ord    set GUK tracing flag "ord" to true (see {@link GUKTrace.Name}.
+ *
+ * Up to ten sets of command/arguments area support.
+ * Arguments must precede the command and are available in the corresponding array, e.g. {@link _opArgs1}.
+ * Unchanged arguments propagate to subsequent commands.
+ *
+ * The verbose and GUK trace arguments are global. The former sets {@link _verbose} and the latter
+ * is acted upon immediately (and may be repeated with different trace ordinals).
  *
  * @author Mick Jordan
  *
@@ -71,6 +87,9 @@ public final class ArgsHandler {
                 _opArgs4[_opCount] = _opArgs4[_opCount - 1];
             } else if (arg.equals("v")) {
                 _verbose = true;
+            } else if (arg.equals("gt")) {
+                final int ord = Integer.parseInt(args[++i]);
+                OSSpecific.setTraceState(ord, true);
             }
         }
         // Checkstyle: resume modified control variable check

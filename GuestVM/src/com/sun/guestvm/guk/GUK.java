@@ -211,9 +211,9 @@ public final class GUK {
     @C_FUNCTION
     static native int guk_remove_timer(Pointer timer);
     @C_FUNCTION
-    static native void guk_spin_lock(Pointer lock);
+    public static native void guk_spin_lock(Pointer lock);
     @C_FUNCTION
-    static native void guk_spin_unlock(Pointer lock);
+    public static native void guk_spin_unlock(Pointer lock);
     @C_FUNCTION
     static native long guk_spin_lock_irqsave(Pointer lock);
     @C_FUNCTION

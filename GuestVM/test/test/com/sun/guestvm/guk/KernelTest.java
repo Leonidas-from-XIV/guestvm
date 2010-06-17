@@ -45,13 +45,13 @@ import test.util.*;
 
 public class KernelTest {
 
-    static long allocatedObject;
+    static long _allocatedObject;
 
     /**
      * @param args
      */
     public static void main(String[] args) throws Exception {
-         final ArgsHandler h = ArgsHandler.process(args);
+        final ArgsHandler h = ArgsHandler.process(args);
         if (h._opCount == 0) {
             System.out.println("no operations given");
             return;
@@ -197,14 +197,16 @@ public class KernelTest {
                 final GUKVmThread vmThread = (GUKVmThread) VmThreadTestHelper.current();
                 System.out.println("Current Thread running time: " + vmThread.getRunningTime());
             } else if (op.equals("allocateObject")) {
-                Object obj = new Object();
-                allocatedObject = VMTestHelper.toLong(obj);
-                System.out.println("address " + allocatedObject);
+                final Object obj = new Object();
+                _allocatedObject = VMTestHelper.toLong(obj);
+                System.out.println("address " + _allocatedObject);
             } else if (op.equals("sleep")) {
                 try {
                     Thread.sleep(Long.parseLong(opArg1));
                 } catch (InterruptedException ex) {
                 }
+            } else if (op.equals("validateStackPool")) {
+                StackPool.validate();
             } else {
                 System.out.println("command " + op + " not recognized");
             }
@@ -293,7 +295,7 @@ public class KernelTest {
      */
     private static long parseAddr(String s) {
         if (s == null || s.equals("null")) {
-            return allocatedObject;
+            return _allocatedObject;
         } else {
             long r = 0;
             final int l = s.length();

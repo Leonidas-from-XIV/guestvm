@@ -165,7 +165,7 @@ public class GUKPageTables {
             final int index = GUKPageTables.getPTIndex(address, level);
             pte = GUKPageTables.getPTEntryAtIndex(table, index);
             if (!GUKPageTables.isPresent(pte)) {
-                throw new PteNotPresentException("page table entry at index " + index + " in level " + level + " is not present");
+                throw new PteNotPresentException(pte, level, index);
             }
             table = GUKPageTables.getAddressForPte(pte);
             level--;
@@ -219,8 +219,15 @@ public class GUKPageTables {
 
     @SuppressWarnings("serial")
     public static class PteNotPresentException extends RuntimeException {
-        PteNotPresentException(String s) {
-            super(s);
+        public final long _pte;
+        public final int _level;
+        public final int _index;
+        PteNotPresentException(long pte, int level, int index) {
+            super();
+            this._pte = pte;
+            this._level = level;
+            this._index = index;
         }
+
     }
 }
