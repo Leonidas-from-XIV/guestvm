@@ -37,13 +37,24 @@ import com.sun.max.vm.*;
 import com.sun.max.vm.reference.*;
 
 /**
- * Low-level access to the GUK tracing mechanism.
+ * Low-level access to the GUK tracing mechanism. Permits:
+ * <ul>
+ * <li>Setting the value of one of the standard microkernel trace options,
+ * which are hard-coded into the microkernel code.
+ * <li>User defined traces with arguments that use the microkernel
+ * tracing mechanism. Enabling/disabling such traces is not supported
+ * here, but should be handled by a system property in the client code.
+ * </ul>
+
+ *
  * Unfortunately, we can't do the varargs thing (allocation is a no-no).
- * Format strings must be allocated at image build time to allow the
- * associated byte array pointers to be passed to the GKernel without GC concerns.
+ * N.B. Trace name strings must be allocated at image build time to allow the
+ * associated byte array pointers to be passed to the microkernel without GC concerns.
+ * Further, thney mist be explicitly terminated by \0, e.g. "TEST_ENTER\0".
  * All scalar arguments are passed as longs.
  *
- * Values are cached here, so any changes made via back doors won't be observed.
+ * Trace setting values for the standard microkernel trace options are cached here,
+ * so any changes made via back doors won't be observed.
  *
  * @author Mick Jordan
  *
@@ -104,37 +115,42 @@ public class GUKTrace {
         return Reference.fromJava(fmt).toOrigin().plus(_dataOffset);
     }
 
+    /*
+     * The following methods generate traces of the form: "%s %ld %ld ...".
+     */
+
     @INLINE
     public static void print(byte[] fmt) {
         GUK.guk_ttprintk0(toPointer(fmt));
     }
 
     @INLINE
-    public static void print1(byte[] fmt, long arg) {
+    public static void print1L(byte[] fmt, long arg) {
         GUK.guk_ttprintk1(toPointer(fmt), arg);
     }
 
     @INLINE
-    public static void print2(byte[] fmt, long arg1, long arg2) {
+    public static void print2L(byte[] fmt, long arg1, long arg2) {
         GUK.guk_ttprintk2(toPointer(fmt), arg1, arg2);
     }
 
     @INLINE
-    public static void print3(byte[] fmt, long arg1, long arg2, long arg3) {
+    public static void print3L(byte[] fmt, long arg1, long arg2, long arg3) {
         GUK.guk_ttprintk3(toPointer(fmt), arg1, arg2, arg3);
     }
 
     @INLINE
-    public static void print4(byte[] fmt, long arg1, long arg2, long arg3, long arg4) {
+    public static void print4L(byte[] fmt, long arg1, long arg2, long arg3, long arg4) {
         GUK.guk_ttprintk4(toPointer(fmt), arg1, arg2, arg3, arg4);
     }
 
     @INLINE
-    public static void print5(byte[] fmt, long arg1, long arg2, long arg3, long arg4, long arg5) {
+    public static void print5L(byte[] fmt, long arg1, long arg2, long arg3, long arg4, long arg5) {
         GUK.guk_ttprintk5(toPointer(fmt), arg1, arg2, arg3, arg4, arg5);
     }
 
-    public static final byte[] TEST_TRACE = "USER_TT".getBytes();
+    public static final byte[] TEST_TRACE_ENTER = "TEST_ENTER\0".getBytes();
+    public static final byte[] TEST_TRACE_EXIT = "TEST_EXIT\0".getBytes();
 
     public static void xprint(byte[] fmt) {
         print(fmt);
