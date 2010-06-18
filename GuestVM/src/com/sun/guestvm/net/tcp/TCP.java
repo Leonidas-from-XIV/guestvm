@@ -51,15 +51,24 @@
  */
 package com.sun.guestvm.net.tcp;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.BindException;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.sun.guestvm.fs.ErrorDecoder;
-import com.sun.guestvm.net.*;
-import com.sun.guestvm.net.debug.*;
-import com.sun.guestvm.net.icmp.*;
-import com.sun.guestvm.net.ip.*;
+import com.sun.guestvm.guk.GUKTrace;
+import com.sun.guestvm.net.Endpoint;
+import com.sun.guestvm.net.NetworkException;
+import com.sun.guestvm.net.Packet;
+import com.sun.guestvm.net.Route;
+import com.sun.guestvm.net.Trace;
+import com.sun.guestvm.net.debug.Debug;
+import com.sun.guestvm.net.icmp.ICMP;
+import com.sun.guestvm.net.ip.IP;
+import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.util.TimeLimitedProc;
 
 /*
@@ -272,15 +281,15 @@ public final class TCP extends IP {
             rttTimer = new Timer("TCP Round Trip Timer", true);
             rttTimer.scheduleAtFixedRate(new RoundTripTask(), RTT_TICK_MSEC, RTT_TICK_MSEC);
         }
-
-        _retransmitTimer = new TCPTimer("Retransmit Timer");
-        _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
+        if (_retransmitTimer == null) {
+            _retransmitTimer = new TCPTimer("Retransmit Timer");
+        }
+        if (_delayedAckTimer == null) {
+            _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
+        }
         _state = State.NEW;
         _localPort = 0;
         _debugId = _nextDebugId++;
-
-        _retransmitTask = new RetransmitTask(_retransmitTimer, this);
-        _delayedAckTask = new DelayedAckTask(_delayedAckTimer, this);
 
         // cache the TCP packet header length.
         _hdrLen = headerHint();
@@ -338,7 +347,7 @@ public final class TCP extends IP {
     // uncluttered as possible. Any code you add here will likely
     // slow things down.
     private void output(Packet pkt, int flags, int seq, int ack) throws NetworkException {
-		if (_trace) {
+        if (_trace) {
             GUKTrace.print1L(Trace.TCP_OUTPUT_ENTER, _debugId);
         }
         tcpOutSegs++;
@@ -413,9 +422,9 @@ public final class TCP extends IP {
         // We're finished building the TCP header. Now send it down to IP,
         // passing our time-to-live and type of service.
         IP.output(pkt, _remoteIp, length, (TTL << 24) | (IP.IPPROTO_TCP << 16), TOS);
-		if (_trace) {
-             GUKTrace.print1L(Trace.TCP_OUTPUT_EXIT, _debugId);
-         }
+        if (_trace) {
+            GUKTrace.print1L(Trace.TCP_OUTPUT_EXIT, _debugId);
+        }
     }
 
     /**
@@ -2039,7 +2048,7 @@ public final class TCP extends IP {
             }
         }
 
-        synchronized void cancelTask(TimerTask task) {
+        void cancelTask(TimerTask task) {
             if (task != null) {
                 if (_debug) {
                     dprint("cancelling " + task + " on " + _name);
