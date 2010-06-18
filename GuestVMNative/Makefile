@@ -85,6 +85,7 @@ endif
 # NB. '-Wcast-qual' is nasty, so I omitted it.
 CFLAGS := -fno-builtin -Wall -Werror -Wredundant-decls -Wno-format -nostdinc -I$(GCC_INCLUDE)
 CFLAGS += -Wstrict-prototypes -Wnested-externs -Wpointer-arith -Winline
+CFLAGS += -ffixed-r14
 CFLAGS += -D__XEN_INTERFACE_VERSION__=$(XEN_INTERFACE_VERSION)
 
 ASFLAGS = -D__ASSEMBLY__

@@ -37,6 +37,8 @@ import com.sun.max.unsafe.*;
 import com.sun.max.vm.VMConfiguration;
 import com.sun.guestvm.guk.*;
 import com.sun.guestvm.sched.*;
+import com.sun.guestvm.spinlock.guk.GUKSpinLock;
+import com.sun.guestvm.guk.GUKPageTables.PteNotPresentException;
 import com.sun.guestvm.guk.x64.*;
 import com.sun.guestvm.memory.*;
 import com.sun.guestvm.test.VMTestHelper;
@@ -206,7 +208,7 @@ public class KernelTest {
                 } catch (InterruptedException ex) {
                 }
             } else if (op.equals("validateStackPool")) {
-                StackPool.validate();
+                stackPoolValidate();
             } else {
                 System.out.println("command " + op + " not recognized");
             }
@@ -831,6 +833,99 @@ public class KernelTest {
     private static void shrinkHeap(int amount) {
         VMConfiguration.target().heapScheme().decreaseMemory(VMTestHelper.fromInt(amount));
     }
+
+    /**
+     * Validates the page frame mappings of all the thread stacks in the pool.
+     */
+    public static void stackPoolValidate() {
+        final Pointer lock = StackPool.getSpinLock();
+        GUKSpinLock.spinLock(lock);
+        for (int i = 0; i < StackPool.getSize(); i++) {
+            if (StackPool.isAllocated(i)) {
+                GUKSpinLock.spinUnlock(lock);
+                validateStack(i);
+                GUKSpinLock.spinLock(lock);
+            }
+        }
+        GUKSpinLock.spinUnlock(lock);
+    }
+
+    /**
+     * A Java thread stack should have the following format:
+     *
+     * Red zone page: unmapped
+     * Yellow zone page: mapped but not present
+     * Zero or more unmapped pages
+     * Blue zone page: mapped but not present
+     * 7 or more active pages: mapped and present
+     *
+     * The VM thinks the stack base is at the start of the Yellow zone page.
+     * The information on where the blue zone page is currently located is stored
+     * in the NativeThreadLocalsStruct, {@link NativeThreadLocal}, but that
+     * is not accessible from the stack pool.
+     */
+    private static void validateStack(int i) {
+        final long regionSize = StackPool.getRegionSize();
+        final long stackBase = StackPool.getBase().toLong() + i * regionSize;
+        final long stackEnd = stackBase + regionSize;
+        boolean invalid = false;
+        long p = stackBase;
+        System.out.println("Validating stack page frames for slot " + i);
+        check(p, pageStatus(p), PageStatus.UNMAPPED);
+        p += X64VM.PAGE_SIZE;
+        check(p, pageStatus(p), PageStatus.MAPPED_NOT_PRESENT);
+        p += X64VM.PAGE_SIZE;
+        while (p < stackEnd) {
+            PageStatus ps = pageStatus(p);
+            while (p < stackEnd && ps == PageStatus.UNMAPPED) {
+                p += X64VM.PAGE_SIZE;
+                ps = pageStatus(p);
+            }
+            if (p >= stackEnd) {
+                // never found any mapped pages
+                System.out.println("no active pages found");
+                invalid = true;
+                break;
+            }
+            check(p, ps, PageStatus.MAPPED_NOT_PRESENT);
+            p += X64VM.PAGE_SIZE;
+            ps = pageStatus(p);
+            while (p < stackEnd && ps == PageStatus.MAPPED_PRESENT) {
+                p += X64VM.PAGE_SIZE;
+                ps = pageStatus(p);
+            }
+            if (p < stackEnd) {
+                System.out.println("unexpected page state " + ps + ", at " + Long.toHexString(p));
+                invalid = true;
+                break;
+            }
+        }
+        System.out.println("stack page frames are " + (invalid ? "invalid" : "valid"));
+    }
+
+
+    private enum PageStatus {
+        MAPPED_PRESENT,
+        MAPPED_NOT_PRESENT,
+        UNMAPPED
+    }
+
+    private static PageStatus pageStatus(long p) {
+        try {
+            GUKPageTables.getPteForAddress(Address.fromLong(p));
+            return PageStatus.MAPPED_PRESENT;
+        } catch (PteNotPresentException ex) {
+            return ex._pte == 0 ? PageStatus.UNMAPPED : PageStatus.MAPPED_NOT_PRESENT;
+        }
+    }
+
+    private static void check(long p, PageStatus real, PageStatus desired) {
+        if (real != desired) {
+            System.out.println("page at address " + Long.toHexString(p) + " is " + real + ", should be " + desired);
+        }
+    }
+
+
 
     private static void createThread() {
         final Thread sleeper = new Sleeper("sleeper");
