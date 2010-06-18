@@ -29,9 +29,17 @@
  * designated nationals lists is strictly prohibited.
  * 
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.thread;
 
 import java.util.*;
+
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.CreateThreadTraceElement;
+import com.sun.guestvm.tools.trace.ThreadState;
+import com.sun.guestvm.tools.trace.ThreadStateInterval;
+import com.sun.guestvm.tools.trace.TimeFormat;
+import com.sun.guestvm.tools.trace.TraceElement;
 
 /**
  * This command outputs the timeline of a thread's state from creation.

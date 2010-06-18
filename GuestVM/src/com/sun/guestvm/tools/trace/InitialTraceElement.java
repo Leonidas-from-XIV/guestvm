@@ -31,43 +31,13 @@
  */
 package com.sun.guestvm.tools.trace;
 
-import java.io.*;
-import java.util.List;
+/**
+ * Denotes the initial trace element (IT) that defines the start of the trace.
+ *
+ * @author Mick Jordan
+ *
+ */
 
-public class SplitCommand extends CommandHelper implements Command {
-    private static final String OUT_TRACE_FILE = "outfile=";
+public class InitialTraceElement extends TraceElement {
 
-    @Override
-    public void doIt(List<TraceElement> traces, String[] args) throws Exception {
-        final int cpu = TraceMain.cpuOption();
-        if (cpu < 0) {
-            // TODO split all CPUs
-        } else {
-            PrintStream wr = null;
-            final String outFile = outFile(args);
-            try {
-                if (outFile == null) {
-                    wr = System.out;
-                } else {
-                    wr = new PrintStream(new FileOutputStream(outFile));
-                }
-                for (TraceElement traceElement : traces) {
-                    if (cpu == traceElement.getCpu()) {
-                        wr.println(traceElement);
-                    }
-                }
-            } catch (Exception ex) {
-                System.err.println(ex);
-            } finally {
-                if (wr != null && wr != System.out) {
-                    wr.close();
-                }
-            }
-        }
-    }
-
-    private String outFile(String[] args) {
-        return stringArgValue(args, OUT_TRACE_FILE);
-    }
 }
-

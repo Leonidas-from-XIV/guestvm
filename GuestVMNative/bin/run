@@ -38,7 +38,6 @@ mainclass=""
 db_debug="-XX:GUKDebugDB"
 xg_debug="-XX:GUKDebugXG"
 upcalls="-XX:GUKAS"
-upcalls=""
 xtra_args=""
 gukargs=""
 run=1

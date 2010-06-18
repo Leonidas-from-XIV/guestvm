@@ -29,9 +29,19 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.thread;
 
 import java.util.List;
+
+import com.sun.guestvm.tools.trace.CPUState;
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.CreateThreadTraceElement;
+import com.sun.guestvm.tools.trace.ThreadState;
+import com.sun.guestvm.tools.trace.ThreadStateInterval;
+import com.sun.guestvm.tools.trace.TimeFormat;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
 
 /**
  * This command reports on the state of a thread at a given time (default is end of trace)

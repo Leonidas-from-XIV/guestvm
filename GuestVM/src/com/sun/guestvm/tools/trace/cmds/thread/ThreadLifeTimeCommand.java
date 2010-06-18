@@ -29,9 +29,16 @@
  * designated nationals lists is strictly prohibited.
  * 
  */
-package com.sun.guestvm.tools.trace;
+package com.sun.guestvm.tools.trace.cmds.thread;
 
 import java.util.List;
+
+import com.sun.guestvm.tools.trace.Command;
+import com.sun.guestvm.tools.trace.CommandHelper;
+import com.sun.guestvm.tools.trace.CreateThreadTraceElement;
+import com.sun.guestvm.tools.trace.ThreadIdTraceElement;
+import com.sun.guestvm.tools.trace.TraceElement;
+import com.sun.guestvm.tools.trace.TraceKind;
 
 /**
  * This command lists the time a thread was created and the state it is in at a given time

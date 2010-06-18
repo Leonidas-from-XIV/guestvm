@@ -132,7 +132,7 @@ final class StdScheduler extends GUKUpcallHandler {
         final int cpu = thread.getCpu();
         final RunQueue<GUKVmThread> ready = _ready[cpu];
         if (GUKTrace.getTraceState(Name.SCHED)) {
-            GUKTrace.print1(WK, thread.nativeId());
+            GUKTrace.print1L(WK, thread.nativeId());
         }
         ready.lockedInsert(thread);
     }
@@ -141,7 +141,7 @@ final class StdScheduler extends GUKUpcallHandler {
         final int cpu = thread.getCpu();
         final RunQueue<GUKVmThread> ready = _ready[cpu];
         if (GUKTrace.getTraceState(Name.SCHED)) {
-            GUKTrace.print1(BK, thread.nativeId());
+            GUKTrace.print1L(BK, thread.nativeId());
         }
         ready.lock();
         ready.remove(thread);
@@ -369,8 +369,8 @@ final class StdScheduler extends GUKUpcallHandler {
                 _assignNew[cpu] = ideal;
             }
             if (GUKTrace.getTraceState(Name.SCHED)) {
-                GUKTrace.print5(JMR, numActiveThreads, _assignCurrent[0], _assignCurrent[1], _assignCurrent[2], _assignCurrent[3]);
-                GUKTrace.print4(JMA, _assignNew[0], _assignNew[1], _assignNew[2], _assignNew[3]);
+                GUKTrace.print5L(JMR, numActiveThreads, _assignCurrent[0], _assignCurrent[1], _assignCurrent[2], _assignCurrent[3]);
+                GUKTrace.print4L(JMA, _assignNew[0], _assignNew[1], _assignNew[2], _assignNew[3]);
             }
             // rem cpus have to have one more than ideal.
             // If any are in that state already, then that helps
@@ -396,7 +396,7 @@ final class StdScheduler extends GUKUpcallHandler {
                 }
             }
             if (GUKTrace.getTraceState(Name.SCHED)) {
-                GUKTrace.print4(JMB, _assignNew[0], _assignNew[1], _assignNew[2], _assignNew[3]);
+                GUKTrace.print4L(JMB, _assignNew[0], _assignNew[1], _assignNew[2], _assignNew[3]);
             }
             // now migrate threads to meet new assignment
             for (cpu = 0; cpu < _numCpus; cpu++) {
@@ -457,7 +457,7 @@ final class StdScheduler extends GUKUpcallHandler {
         final RunQueue<GUKVmThread> ready2 = _ready[cpu2];
         ready2.insert(t1);
         if (GUKTrace.getTraceState(Name.SCHED)) {
-            GUKTrace.print3(JMM, t1.nativeId(), cpu1, cpu2);
+            GUKTrace.print3L(JMM, t1.nativeId(), cpu1, cpu2);
         }
     }
     private static final byte[] MIGRATE_ERROR = "migratee is null".getBytes();
