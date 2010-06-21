@@ -57,6 +57,7 @@ import java.net.BindException;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
 
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.guk.GUKTrace;
@@ -127,10 +128,13 @@ public final class TCP extends IP {
 
     // timer management
     private static final int DELAYED_ACK_MSEC = 50;
-    private static TCPTimer _retransmitTimer;
-    private static TCPTimer _delayedAckTimer;
+    private static ThreadPoolScheduledTimer _retransmitTimer;
+    private static ThreadPoolScheduledTimer _delayedAckTimer;
     private TimerTask _retransmitTask;
     private TimerTask _delayedAckTask;
+
+    private ScheduledFuture<?> _retransmitFuture;
+    private ScheduledFuture<?> _delayedAckFuture;
     private TCPRecvQueue _recvQueue;
 
     // Used to cache the packet header size for outgoing packets
@@ -282,10 +286,27 @@ public final class TCP extends IP {
             rttTimer.scheduleAtFixedRate(new RoundTripTask(), RTT_TICK_MSEC, RTT_TICK_MSEC);
         }
         if (_retransmitTimer == null) {
-            _retransmitTimer = new TCPTimer("Retransmit Timer");
+            if (System.getProperty("guestvm.net.tcp.retransmit.poolsize") != null) {
+                try {
+                    _retransmitTimer = new ThreadPoolScheduledTimer("Retransmit Timer", Integer.parseInt(System.getProperty("guestvm.net.tcp.retransmit.poolsize")));
+                } catch (NumberFormatException e) {
+                    _retransmitTimer = new ThreadPoolScheduledTimer("Retransmit Timer");
+                }
+            } else {
+                _retransmitTimer = new ThreadPoolScheduledTimer("Retransmit Timer");
+            }
+
         }
         if (_delayedAckTimer == null) {
-            _delayedAckTimer = new TCPTimer("Delayed ACK Timer");
+            if (System.getProperty("guestvm.net.tcp.delayedack.poolsize") != null) {
+                try {
+                    _delayedAckTimer = new ThreadPoolScheduledTimer("Delayed Ack Timer", Integer.parseInt(System.getProperty("guestvm.net.tcp.delayedack.poolsize")));
+                } catch (NumberFormatException e) {
+                    _delayedAckTimer = new ThreadPoolScheduledTimer("Delayed Ack Timer");
+                }
+            } else {
+                _delayedAckTimer = new ThreadPoolScheduledTimer("Delayed Ack Timer");
+            }
         }
         _state = State.NEW;
         _localPort = 0;
@@ -318,8 +339,6 @@ public final class TCP extends IP {
         // This is a simple removal from a double-linked list.
         synchronized (TCP.class) {
             if (this == tcps) {
-                this._retransmitTimer.cancel();
-                this._delayedAckTimer.cancel();
                 tcps = _next;
             } else {
                 _prev._next = _next;
@@ -353,7 +372,7 @@ public final class TCP extends IP {
         tcpOutSegs++;
 
         if ((flags & ACK) != 0) {
-            _delayedAckTimer.cancelTask(_delayedAckTask);
+            _delayedAckTimer.cancelTask(_delayedAckFuture);
             _prev_ack = ack; // remember this ACK for delayed ACK processing.
             _ack_segment = 0; // reset "ack-every-other-segment" counter.
         }
@@ -789,7 +808,7 @@ public final class TCP extends IP {
             if (_snd_una == _snd_max) {
                 // All our data has been acked, so stop retrans timer.
                 // retransmitTimer.stop();
-                _retransmitTimer.cancelTask(_retransmitTask);
+                _retransmitTimer.cancelTask(_retransmitFuture);
             }
 
             // Update the send window. This test prevents old segments
@@ -903,7 +922,7 @@ public final class TCP extends IP {
         // take the initial rto timestamp for this connection.
         rttStart(tcp._iss);
 
-        tcp._retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
+        tcp._retransmitFuture = tcp._retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
     }
 
     private void doSynSent(Packet pkt) throws NetworkException {
@@ -921,7 +940,7 @@ public final class TCP extends IP {
             got_ack = true;
 
             // our SYN is acknowledged, so stop retrans timer.
-            _retransmitTimer.cancelTask(_retransmitTask);
+            _retransmitTimer.cancelTask(_retransmitFuture);
         }
 
         if ((inp_flags & RST) != 0) {
@@ -956,7 +975,7 @@ public final class TCP extends IP {
                     tcpdprint("SYN is acked, going to ESTABLISHED");
                 _state = State.ESTABLISHED;
 
-                _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
+               _delayedAckFuture =  _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
 
                 syncNotify();
 
@@ -1021,7 +1040,7 @@ public final class TCP extends IP {
             tcpdprint("SYN_RCVD got ACK, going to ESTABLISHED");
         _state = State.ESTABLISHED;
 
-        _retransmitTimer.cancelTask(_retransmitTask);
+        _retransmitTimer.cancelTask(_retransmitFuture);
 
         // Tell any threads blocked on accept() or poll() that a new connection
         // is available.
@@ -1079,7 +1098,7 @@ public final class TCP extends IP {
             // acknowledgement for it (we will probably call close()
             // soon which will piggyback an ACK).
             rcv_nxt++;
-            _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
+            _delayedAckFuture =  _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC * 4);
 
             _state = State.CLOSE_WAIT;
 
@@ -1309,8 +1328,8 @@ public final class TCP extends IP {
 
         _state = State.CLOSED;
 
-        _retransmitTimer.cancelTask(_retransmitTask);
-        _delayedAckTimer.cancelTask(_delayedAckTask);
+        _retransmitTimer.cancelTask(_retransmitFuture);
+        _delayedAckTimer.cancelTask(_delayedAckFuture);
 
         if (sendQueue != null) {
             sendQueue.cleanup();
@@ -1401,7 +1420,7 @@ public final class TCP extends IP {
 
         tcpRetransSegs++;
 
-        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
+       _retransmitFuture =  _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
     }
 
     /**
@@ -1469,7 +1488,7 @@ public final class TCP extends IP {
         _state = State.SYN_SENT;
         tcpActiveOpens++;
 
-        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
+        _retransmitFuture = _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
         // Send a SYN segment out the network
         send(SYN, _iss, 0);
@@ -1519,7 +1538,7 @@ public final class TCP extends IP {
 
         _snd_max++; // add one for FIN
 
-        _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
+        _retransmitFuture = _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
         return true;
     }
@@ -1617,7 +1636,7 @@ public final class TCP extends IP {
             outputData(_snd_max, _snd_max + bytesAppended);
 
             // start the retransmit timer if necessary.
-            _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
+           _retransmitFuture =  _retransmitTimer.schedule(getNewRetransmitTask(), rtx_timeout);
 
             _snd_max += bytesAppended;
             off += bytesAppended;
@@ -1653,7 +1672,7 @@ public final class TCP extends IP {
         if (_ack_segment >= ACK_SEGMENTS) {
             send(ACK, _snd_max, rcv_nxt);
         } else {
-            _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC);
+           _delayedAckFuture =  _delayedAckTimer.schedule(getNewDelayedAckTask(), DELAYED_ACK_MSEC);
         }
     }
 
@@ -2064,10 +2083,10 @@ public final class TCP extends IP {
 
     abstract class TCPTimerTask extends TimerTask {
 
-        protected TCPTimer _timer;
+        protected ThreadPoolScheduledTimer _timer;
         protected TCP _tcp;
 
-        TCPTimerTask(TCPTimer timer, TCP tcp) {
+        TCPTimerTask(ThreadPoolScheduledTimer timer, TCP tcp) {
             if(tcp == null) {
                 throw new IllegalArgumentException("tcp object cant be null");
             }
@@ -2078,7 +2097,7 @@ public final class TCP extends IP {
 
     class RetransmitTask extends TCPTimerTask {
 
-        public RetransmitTask(TCPTimer timer, TCP tcp) {
+        public RetransmitTask(ThreadPoolScheduledTimer timer, TCP tcp) {
             super(timer, tcp);
         }
 
@@ -2096,7 +2115,7 @@ public final class TCP extends IP {
 
     class DelayedAckTask extends TCPTimerTask {
 
-        DelayedAckTask(TCPTimer timer, TCP tcp) {
+        DelayedAckTask(ThreadPoolScheduledTimer timer, TCP tcp) {
             super(timer, tcp);
         }
 
