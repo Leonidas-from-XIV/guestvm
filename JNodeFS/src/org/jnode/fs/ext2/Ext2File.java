@@ -106,9 +106,10 @@ public class Ext2File extends AbstractFSFile {
 
         iNode = iNode.syncAndLock();
         synchronized (iNode) {
+            final long fileLength = getLength();
             try {
-                 //if length<getLength(), then the file is truncated
-                if (length < getLength()) {
+                 //if length<fileLength, then the file is truncated
+                if (length < fileLength) {
                     long blockNr = length / blockSize;
                     long blockOffset = length % blockSize;
                     long nextBlock;
@@ -131,15 +132,15 @@ public class Ext2File extends AbstractFSFile {
                     return;
                 }
 
-                //if length>getLength(), then new blocks are allocated for the
+                //if length>fileLength, then new blocks are allocated for the
                 // file
                 //The content of the new blocks is undefined (see the
                 // setLength(long i)
                 //method of java.io.RandomAccessFile
-                if (length > getLength()) {
-                    long len = length - getLength();
+                if (length > fileLength) {
+                    long len = length - fileLength;
                     long blocksAllocated = getLengthInBlocks();
-                    long bytesAllocated = getLength();
+                    long bytesAllocated = fileLength;
                     long bytesCovered = 0;
                     while (bytesCovered < len) {
                         long blockIndex = (bytesAllocated + bytesCovered) / blockSize;

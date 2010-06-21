@@ -412,10 +412,10 @@ public class INode {
      */
     private final void registerBlockIndex(long i, long blockNr)
         throws FileSystemException, IOException {
-        final long blockCount = getSizeInBlocks();
+        final long blockCount = getAllocatedBlockCount();
         final int indirectCount = getIndirectCount();
         long allocatedBlocks = i;
-        if (i != blockCount) {
+        if (i >= blockCount) {
             throw new FileSystemException("Trying to register block " + i +
                     " (counts from 0), when INode contains only " + blockCount + " blocks");
         }
