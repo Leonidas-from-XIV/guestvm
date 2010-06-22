@@ -114,22 +114,27 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
 
     @Override
     public int read(FileDescriptor fdObj, long fileOffset, ByteBuffer... bb) throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public int read(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
         final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
         final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        return read(fdObj, fdInfo, fd, fileOffset, bb);
+    }
+
+    private int read(FileDescriptor fdObj, FdInfo fdInfo, int fd, long fileOffset, ByteBuffer... bbs) throws IOException {
         int bytesRead = 0;
         for (int i = 0; i < bbs.length; i++) {
-            final int result = convertReturnValue(fdInfo._vfs.readBytes(fd, bbs[i], fdInfo._fileOffset), true);
+            final int result = convertReturnValue(fdInfo._vfs.readBytes(fd, bbs[i], fileOffset), true);
             if (result < 0) {
                 return result;
             }
             bytesRead += result;
         }
         return bytesRead;
+    }
+
+    public int read(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
+        final JDK_java_io_util.FdInfo fdInfo = JDK_java_io_util.FdInfo.getFdInfo(fdObj);
+        final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
+        return read(fdObj, fdInfo, fd, fdInfo._fileOffset, bbs);
     }
 
     @Override
