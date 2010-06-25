@@ -57,7 +57,6 @@ public class JDK_java_io_RandomAccessFile {
     private static final int RA_RDWR =   2;
     private static final int RA_SYNC =   4;
     private static final int RA_DSYNC =  8;
-
     @SUBSTITUTE
     private void open(String name, int mode) throws FileNotFoundException {
         int uMode = 0;
@@ -66,14 +65,17 @@ public class JDK_java_io_RandomAccessFile {
         } else if ((mode & RA_RDWR) != 0) {
             uMode = O_RDWR | O_CREAT;
             if ((mode & RA_SYNC) != 0) {
-                GuestVMError.unimplemented("RandomAccessFile SYNC mode");
+                uMode = O_RDWR | O_CREAT;
+                //GuestVMError.unimplemented("RandomAccessFile SYNC mode");
             } else if ((mode & RA_DSYNC) != 0) {
-                GuestVMError.unimplemented("RandomAccessFile DSYNC mode");
+                uMode = O_RDWR | O_CREAT;
+                //GuestVMError.unimplemented("RandomAccessFile DSYNC mode");
             }
         } else {
             GuestVMError.unexpected("RandomAccessFile.open mode: " + mode);
         }
         JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, uMode);
+
     }
 
     @SUBSTITUTE

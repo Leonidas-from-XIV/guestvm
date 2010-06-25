@@ -41,6 +41,8 @@ import org.jnode.fs.FileSystemException;
 import org.jnode.fs.ext2.Ext2File;
 import org.jnode.fs.ext2.Ext2FileSystemType;
 
+import sun.nio.ch.FileChannelImpl;
+
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.UnimplementedFileSystemImpl;
 import com.sun.guestvm.fs.VirtualFileSystem;
@@ -64,6 +66,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     private List<FileData> _openFiles = new ArrayList<FileData>();
     private static final int BUFFER_SIZE = 4096;
     private static Logger _logger;
+
 
     private static class FileData {
 
@@ -388,10 +391,16 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
+        return readBytes(fd, ByteBuffer.wrap(bytes, offset, length), fileOffset);
+    }
+
+    @Override
+    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
         // CheckStyle: stop parameter assignment check
+
         try {
+            int length = bb.limit() - bb.position();
             final FileData fileData = _openFiles.get(fd);
-            final java.nio.ByteBuffer byteBuffer = fileData._byteBuffer;
             final long fsLength = fileData._fsFile.getLength();
             if (fileOffset >= fsLength) {
                 return -1;
@@ -401,19 +410,14 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             }
             int left = length;
             while (left > 0) {
-                byteBuffer.position(0);
                 final int toDo = left > BUFFER_SIZE ? BUFFER_SIZE : left;
-                byteBuffer.limit(toDo);
-                fileData._fsFile.read(fileOffset, byteBuffer);
-                byteBuffer.position(0);
-                byteBuffer.get(bytes, offset, toDo);
+                fileData._fsFile.read(fileOffset, bb);
                 left -= toDo;
-                offset += toDo;
                 fileOffset += toDo;
             }
             return length;
-        } catch (IOException ex) {
-            logWarning(ex);
+        } catch (IOException e) {
+            logWarning(e);
             return -ErrorDecoder.Code.EIO.getCode();
         }
         // CheckStyle: resume parameter assignment check
@@ -531,22 +535,10 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     @Override
     public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
-        return writeBytes(fd, bb.array(), 0, bb.arrayOffset() + bb.limit(), fileOffset);
-    }
-
-    @Override
-    public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
-        return readBytes(fd, bb.array(), 0, bb.arrayOffset() + bb.limit(), fileOffset);
-    }
-
-    @Override
-    public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
         // CheckStyle: stop parameter assignment check
 
         try {
-            if ((offset + length) > bytes.length) {
-                length = bytes.length;
-            }
+            final int length = bb.limit() - bb.position();
             final FileData fileData = _openFiles.get(fd);
             final java.nio.ByteBuffer byteBuffer = fileData._byteBuffer;
             final long currentFileLength = fileData._fsFile.getLength();
@@ -560,19 +552,28 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 byteBuffer.position(0);
                 final int toDo = left > BUFFER_SIZE ? BUFFER_SIZE : left;
                 byteBuffer.limit(toDo);
-                byteBuffer.put(bytes, offset, toDo);
+                final byte[] bytes = new byte[toDo];
+                bb.get(bytes);
+                byteBuffer.put(bytes, 0, toDo);
                 byteBuffer.position(0);
                 fileData._fsFile.write(fileOffset, byteBuffer);
                 left -= toDo;
-                offset += toDo;
                 fileOffset += toDo;
             }
             return length;
-        } catch (IOException ex) {
-            logWarning(ex);
+        } catch (IOException e) {
+            logWarning(e);
             return -ErrorDecoder.Code.EIO.getCode();
         }
-        // CheckStyle: stop parameter assignment check
+        // CheckStyle: resume parameter assignment check
+
+    }
+
+
+
+    @Override
+    public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
+        return writeBytes(fd, ByteBuffer.wrap(bytes, offset, length), fileOffset);
     }
 
     /**
@@ -686,7 +687,11 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
      */
 
     public int lock0(int fd, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        throw new IOException("Ext2FileSystem: locking not available");
+        if(shared) {
+            return FileChannelImpl.LOCKED;
+        }else {
+            return FileChannelImpl.RET_EX_LOCK;
+        }
     }
 
     public void release0(int fd, long pos, long size) throws IOException {

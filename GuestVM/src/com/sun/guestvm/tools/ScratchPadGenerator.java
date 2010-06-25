@@ -59,6 +59,7 @@ import com.sun.guestvm.tools.ext2.Ext2FileTool;
  * disk1.init=<true | false> #Create disk and copy JDK dirs and jars onto it.
  * disk1.mntpoint = <mount point in GuestVM> #The run script if generated will contain the appropriate guestvm.fs.table string based on all disks and mount points
  * disk1.copypaths=<localpath:virtualdiskpath,localpath:virtualdiskpath> #specify files or directories to be copied onto the virtual disk.
+ * disk1.size=<size of the disk in MB, defaults to 256m>
  * disk1.ro=<true|false> #should this be mounted as readonly. if false/null, defaults to auto
  * disk1.ext=<true|false> #Include extensions. Required for NfsServer
  * xenconfig=<the suffix of the xen domain config file.> #This file will be created in the directory ./xmconfigs/ with the name domain_config_suffix
@@ -85,6 +86,7 @@ public class ScratchPadGenerator {
         String _frontEndDevice;
         Map<File, File> _copyPaths;
         boolean _includeExtensions;
+        int _size;
     }
 
     static class XenConfig {
@@ -110,6 +112,7 @@ public class ScratchPadGenerator {
     private static final String DISK_CONFIG_MOUNT_POINT_PROPERTY_SUFFIX = ".mntpoint";
     private static final String DISK_CONFIG_RO_PROPERTY_SUFFIX = ".ro";
     private static final String DISK_CONFIG_EXT_PROPERTY_SUFFIX = ".ext";
+    private static final String DISK_CONFIG_SIZE_PROPERTY_SUFFIX = ".size";
     private static final String DISK_CONFIG_COPYPATHS_PROPERTY_SUFFIX = ".copypaths";
     private static final String RUNSCRIPT_FILE_NAME_PROPERTY = "runscript";
     private static final String GUESTVM_FSTABLE_STRING_SEPARATOR = ";";
@@ -175,6 +178,11 @@ public class ScratchPadGenerator {
                 diskImage._includeExtensions = "true".equals(p.get(propPrefix + DISK_CONFIG_EXT_PROPERTY_SUFFIX));
                 diskImage._mountpoint = p.getProperty(propPrefix + DISK_CONFIG_MOUNT_POINT_PROPERTY_SUFFIX);
                 diskImage._readOnly = "true".equals(p.get(propPrefix + DISK_CONFIG_RO_PROPERTY_SUFFIX));
+                try {
+                    diskImage._size = Integer.parseInt(p.get(propPrefix + DISK_CONFIG_SIZE_PROPERTY_SUFFIX).toString());
+                } catch (Exception e) {
+                    diskImage._size = 256;
+                }
                 if (diskImage._mountpoint == null) {
                     System.err.println("A mount point must be specified for disk" + i);
                     error = true;
@@ -223,7 +231,8 @@ public class ScratchPadGenerator {
 
                 System.out.println("Creating disk file:" + imageFilePath);
                 diskImage._imageFile.delete();
-                Runtime.getRuntime().exec("mkfile 256m " + imageFilePath);
+                System.out.println(String.format("Creating disk of size: %dm",diskImage._size));
+                Runtime.getRuntime().exec(String.format("mkfile %dm %s",diskImage._size,imageFilePath));
                 Ext2FileTool.main(new String[] {"format", "-disk", imageFilePath});
                 // Copy Java onto it.
                 System.out.println("Copying JDK jars");
@@ -273,7 +282,7 @@ public class ScratchPadGenerator {
             System.out.println("Copying files if any");
             if (diskImage._copyPaths != null) {
                 for (Entry<File, File> diskImageCopyPath : diskImage._copyPaths.entrySet()) {
-                    System.out.println("Copying: " + diskImageCopyPath.getKey());
+                    System.out.println("Copying: " + diskImageCopyPath.getKey().getAbsolutePath());
                     if (diskImageCopyPath.getKey().isDirectory()) {
                         Ext2FileTool.main(("mkdir -disk " + imageFilePath + " -ext2path " + diskImageCopyPath.getValue()).split("\\s"));
                         Ext2FileTool.main(("copyin -r -disk " + imageFilePath + " -from " + diskImageCopyPath.getKey().getAbsolutePath() + " -ext2path " + diskImageCopyPath.getValue()).split("\\s"));
