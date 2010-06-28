@@ -29,36 +29,26 @@
  * designated nationals lists is strictly prohibited.
  *
  */
+ /*
+  * Native symbols for Maxine tests.
+  * These are only needed for test programs.
+  */
 
-/*
- * Master interface to Maxine dlsym handling.
- */
+#include <lib.h>
+#include <jni.h>
 
-extern void * maxine_misc_dlsym(const char *symbol);
-extern void * maxine_monitor_dlsym(const char *symbol);
-extern void * maxine_mm_dlsym(const char *symbol);
-extern void * maxine_numerics_dlsym(const char *symbol);
-extern void * maxine_log_dlsym(const char *symbol);
-extern void * maxine_traps_dlsym(const char *symbol);
-extern void * maxine_threads_dlsym(const char *symbol);
-extern void * maxine_time_dlsym(const char *symbol);
-extern void * maxine_tests_dlsym(const char *symbol);
+extern jlong JNICALL
+Java_test_bench_threads_JNI_1invocations_nativework(JNIEnv *env, jclass cls, jlong workload);
+extern jint JNICALL
+Java_jtt_jni_JNI_1OverflowArguments_read1(JNIEnv *env, jclass cls, jlong zfile,
+														jlong zentry, jlong pos, jbyteArray bytes, jint off, jint len);
+extern jint JNICALL
+Java_jtt_jni_JNI_1OverflowArguments_read2(JNIEnv *env, jclass cls, jlong zfile,
+														jlong zentry, jlong pos, jbyteArray bytes, jint off, jint len);
 
-
-void *maxine_dlsym(const char *symbol) {
-  void *result;
-  if ((result = maxine_misc_dlsym(symbol)) ||
-      (result = maxine_threads_dlsym(symbol)) ||
-      (result = maxine_log_dlsym(symbol)) ||
-      (result = maxine_monitor_dlsym(symbol)) ||
-      (result = maxine_mm_dlsym(symbol)) ||
-      (result = maxine_numerics_dlsym(symbol)) ||
-      (result = maxine_time_dlsym(symbol)) ||
-      (result = maxine_traps_dlsym(symbol)) ||
-      (result = maxine_tests_dlsym(symbol))) {
-    return result;
-    } else {
-      return 0;
-    }
+void *maxine_tests_dlsym(const char *symbol) {
+    if (strcmp(symbol, "Java_test_bench_threads_JNI_1invocations_nativework") == 0) return Java_test_bench_threads_JNI_1invocations_nativework;
+    else if (strcmp(symbol, "Java_jtt_jni_JNI_1OverflowArguments_read1") == 0) return Java_jtt_jni_JNI_1OverflowArguments_read1;
+    else if (strcmp(symbol, "Java_jtt_jni_JNI_1OverflowArguments_read2") == 0) return Java_jtt_jni_JNI_1OverflowArguments_read2;
+   else return 0;
 }
-
