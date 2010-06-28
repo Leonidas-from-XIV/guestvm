@@ -104,9 +104,17 @@ public class Ext2FileTool {
             } else if (arg.equals("-l")) {
                 _details = true;
             } else {
-                System.out.println("unknown argument " + arg);
-                usage();
-                return;
+                if (arg.startsWith("-")) {
+                    System.out.println("unknown option " + arg);
+                    usage();
+                    return;
+                } else {
+                    if (fromFile == null) {
+                        fromFile = arg;
+                    } else {
+                        ext2Path = arg;
+                    }
+                }
             }
         }
         // Checkstyle: resume modified control variable check
@@ -147,14 +155,18 @@ public class Ext2FileTool {
             if (m == null) {
                 throw new IOException("path " + ext2Path + " not found");
             }
-            if (command.equals("copyin") || command.equals("copy")) {
+            if (command.equals("copyin") || command.equals("copy") || command.equals("cp")) {
                 if (_recurse) {
-                    copyTree(m, fromFile, ext2Path);
+                    copyInTree(m, fromFile, ext2Path);
                 } else {
                     copyIn(m, fromFile, ext2Path);
                 }
             } else if (command.equals("copyout")) {
-                copyOut(m, fromFile, ext2Path);
+                if (_recurse) {
+                    copyOutTree(m, fromFile, ext2Path);
+                } else {
+                    copyOut(m, fromFile, ext2Path);
+                }
             } else if (command.equals("mkdir")) {
                 mkdir(m, ext2Path);
             } else if (command.equals("mkfile")) {
@@ -290,7 +302,14 @@ public class Ext2FileTool {
         copyInFile(fromFile, fsEntry.getFile());
     }
 
-    private static void copyTree(Match m, String fromFilename, String ext2Path) throws IOException {
+    /**
+     * Copies a file or directory tree from host file system to ext2 filesystem.
+     * @param m
+     * @param fromFilename path on host file system
+     * @param ext2Path path on ext2 file system
+     * @throws IOException
+     */
+    private static void copyInTree(Match m, String fromFilename, String ext2Path) throws IOException {
         final File fromFile = new File(fromFilename);
         if (fromFile.isFile()) {
             copyIn(m, fromFilename, ext2Path);
@@ -306,11 +325,21 @@ public class Ext2FileTool {
             throw new IOException(ext2Path + " is a file, not a directory");
         }
         final FSDirectory fsDir = fsEntry.getDirectory();
-        fsEntry = fsDir.addDirectory(fromFile.getName());
-        copyDir(fromFile, fsEntry.getDirectory());
+        final String subDirName = fromFile.getName();
+        final FSEntry subDir = fsDir.getEntry(subDirName);
+        if (subDir == null) {
+            fsEntry = fsDir.addDirectory(subDirName);
+        }
+        copyInDir(fromFile, fsEntry.getDirectory());
     }
 
-    private static void copyDir(File dir, FSDirectory ext2Dir) throws IOException {
+    /**
+     * Copies a directory tree from host file systemto ext2 file system.
+     * @param dir host file system directory handle
+     * @param ext2Dir ext2 file systemdirectory handle
+     * @throws IOException
+     */
+    private static void copyInDir(File dir, FSDirectory ext2Dir) throws IOException {
         if (_verbose) {
             System.out.println("copying directory " + dir.getAbsolutePath());
         }
@@ -321,12 +350,22 @@ public class Ext2FileTool {
                 final FSEntry fsEntry = ext2Dir.addFile(name);
                 copyInFile(file.getAbsolutePath(), fsEntry.getFile());
             } else {
-                final FSEntry fsEntry = ext2Dir.addDirectory(name);
-                copyDir(file, fsEntry.getDirectory());
+                FSEntry subDir = ext2Dir.getEntry(name);
+                if (subDir == null) {
+                    subDir = ext2Dir.addDirectory(name);
+                }
+                // recursively copy subdirectory
+                copyInDir(file, subDir.getDirectory());
             }
         }
     }
 
+    /**
+     * Copy a single file from host file system to ext2 file system.
+     * @param fileName path to host file system file
+     * @param ext2File handle of ext2 file system file
+     * @throws IOException
+     */
     private static void copyInFile(String fileName, FSFile ext2File) throws IOException {
         if (_verbose) {
             System.out.println("copying file " + fileName);
@@ -355,6 +394,13 @@ public class Ext2FileTool {
         }
     }
 
+    /**
+     * Copies a single file from ext2 file system to host file system or standard output.
+     * @param m
+     * @param toFileName path to host file system file or null for standard output
+     * @param ext2Path path of ext2 file system file or directory
+     * @throws IOException
+     */
     private static void copyOut(Match m, String toFileName, String ext2Path) throws IOException {
         final FSEntry fsEntry = m.matchTail();
         if (fsEntry != null) {
@@ -377,6 +423,12 @@ public class Ext2FileTool {
         }
     }
 
+    /**
+     * Copies a single file from ext2 file system to host file system or standard output.
+     * @param fileName pathname to file in host file system
+     * @param fsFile handle to ext2 file
+     * @throws IOException
+     */
     private static void copyOutFile(String fileName, FSFile fsFile) throws IOException {
         if (fileName != null) {
             BufferedOutputStream os = null;
@@ -392,7 +444,7 @@ public class Ext2FileTool {
             copyOutFileToStream(fsFile, System.out);
         }
     }
-    
+
     private static void copyOutFileToStream(FSFile fsFile, OutputStream os) throws IOException {
         final byte[] buffer = new byte[4096];
         final java.nio.ByteBuffer ext2Buffer = ByteBuffer.allocateDirect(4096);
@@ -411,6 +463,57 @@ public class Ext2FileTool {
             ext2Buffer.get(buffer, 0, n);
             os.write(buffer, 0, n);
             ext2Buffer.position(0);
+        }
+    }
+
+    /**
+     * Copies a file or directory tree from ext2 filesystem to host file system.
+     * @param m
+     * @param fromFilename path on host file system
+     * @param ext2Path path on ext2 file system
+     * @throws IOException
+     */
+    private static void copyOutTree(Match m, String toFilename, String ext2Path) throws IOException {
+        final FSEntry fsEntry = m.matchTail();
+        if (fsEntry != null) {
+            if (fsEntry.isDirectory()) {
+                final File toDir = new File(toFilename);
+                if (!toDir.isDirectory()) {
+                    throw new IOException("directory " + toFilename + " does not exist");
+                }
+                final File toCopyDir = new File(toDir, fsEntry.getName());
+                if (!toCopyDir.exists()) {
+                    toCopyDir.mkdir();
+                }
+                copyOutDir(fsEntry.getDirectory(), toCopyDir);
+            } else {
+                copyOutFile(toFilename, fsEntry.getFile());
+            }
+        } else {
+            throw new IOException(ext2Path + " not found");
+        }
+    }
+
+    /**
+     * Copies all files in ext2 directory to existing host directory.
+     * @param fsDir handle to ext2 file system directory
+     * @param toDir handle to host file system directory
+     */
+    private static void copyOutDir(FSDirectory fsDir, File toDir) throws IOException {
+        final Iterator<? extends FSEntry> iter = fsDir.iterator();
+        while (iter.hasNext()) {
+            final FSEntry childEntry = iter.next();
+            final File hostChildFile = new File(toDir, childEntry.getName());
+            if (childEntry.isFile()) {
+                copyOutFile(hostChildFile.getAbsolutePath(), childEntry.getFile());
+            } else {
+                final String name = childEntry.getName();
+                if (name.equals(".") || name.equals("..")) {
+                    continue;
+                }
+                hostChildFile.mkdir();
+                copyOutDir(childEntry.getDirectory(), hostChildFile);
+            }
         }
     }
 
