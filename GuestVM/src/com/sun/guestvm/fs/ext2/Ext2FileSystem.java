@@ -411,6 +411,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
             int left = length;
             while (left > 0) {
                 final int toDo = left > BUFFER_SIZE ? BUFFER_SIZE : left;
+                bb.limit(bb.position() + toDo);
                 fileData._fsFile.read(fileOffset, bb);
                 left -= toDo;
                 fileOffset += toDo;
