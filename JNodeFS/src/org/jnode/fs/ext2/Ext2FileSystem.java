@@ -177,6 +177,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         // if the filesystem has not been cleanly unmounted, mount it readonly
         if (superblock.getState() == Ext2Constants.EXT2_ERROR_FS) {
             log.info(getDevice().getId() + " Filesystem has not been cleanly unmounted, mounting it readonly");
+            System.err.println(getDevice().getId() + " Filesystem has not been cleanly unmounted, mounting it readonly");
             setReadOnly(true);
         }
 
