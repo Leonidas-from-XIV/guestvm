@@ -33,6 +33,8 @@ resetfield sun.util.calendar.ZoneInfoFile.zoneIDs
 resetfield sun.util.calendar.ZoneInfoFile.excludedIDs
 resetfield sun.util.calendar.ZoneInfoFile.hasNoExcludeList
 resetfield sun.util.calendar.ZoneInfoFile.zoneInfoObjects
+resetfield sun.util.calendar.ZoneInfoFile.ziDir
+reinitclass sun.util.calendar.ZoneInfoFile
 # have to implement java.util.TimeZone.getSystemTimeZoneID if we reset this field.
 # resetfield java.util.TimeZone.defaultTimeZone
 package sun.net.www
