@@ -33,6 +33,7 @@ package com.sun.guestvm.jdk;
 
 import java.lang.management.*;
 import com.sun.max.annotate.*;
+import com.sun.max.vm.Log;
 import com.sun.max.vm.management.ThreadManagement;
 import com.sun.max.vm.thread.VmThread;
 import com.sun.guestvm.error.*;
@@ -83,7 +84,7 @@ final class JDK_sun_management_ThreadImpl {
 
     @SUBSTITUTE
     private static Thread[] findMonitorDeadlockedThreads0() {
-        unimplemented("findMonitorDeadlockedThreads0");
+        Log.println("findMonitorDeadlockedThreads0 not implemented, returning null");
         return null;
     }
 
