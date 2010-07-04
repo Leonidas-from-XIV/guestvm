@@ -44,14 +44,19 @@ package com.sun.guestvm.jdk;
  * @author Mick Jordan
  */
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-import java.util.*;
-import com.sun.max.annotate.*;
+
+import com.sun.max.annotate.CONSTANT_WHEN_NOT_ZERO;
+import com.sun.max.annotate.INLINE;
+import com.sun.max.annotate.METHOD_SUBSTITUTIONS;
+import com.sun.max.annotate.SUBSTITUTE;
 import com.sun.max.vm.actor.holder.ClassActor;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
-import com.sun.max.vm.classfile.constant.*;
+import com.sun.max.vm.actor.member.FieldActor;
+import com.sun.max.vm.classfile.constant.SymbolTable;
+import com.sun.max.vm.object.TupleAccess;
 
 @SuppressWarnings("unused")
 @METHOD_SUBSTITUTIONS(Inflater.class)
@@ -94,7 +99,7 @@ public class JDK_java_util_zip_Inflater {
         final gnu.java.util.zip.Inflater gnuInflater = new gnu.java.util.zip.Inflater(nowrap);
         synchronized (_gnuInflaters) {
             final int index = getIndex();
-            _gnuInflaters.add(index, gnuInflater);
+            _gnuInflaters.set(index, gnuInflater);
             return index;
         }
     }
@@ -160,9 +165,12 @@ public class JDK_java_util_zip_Inflater {
     private void end() {
         final int strm = (int) TupleAccess.readLong(this, strmFieldActor().offset());
         if (strm != 0) {
-            _gnuInflaters.get(strm).end();
-            TupleAccess.writeLong(this, strmFieldActor().offset(), 0);
-            _gnuInflaters.set(strm, null);
+            synchronized (_gnuInflaters) {
+                _gnuInflaters.get(strm).end();
+                TupleAccess.writeLong(this, strmFieldActor().offset(), 0);
+                _gnuInflaters.set(strm, null);
+            }
         }
     }
+
 }
