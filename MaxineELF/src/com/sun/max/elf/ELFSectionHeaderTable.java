@@ -278,7 +278,7 @@ public class ELFSectionHeaderTable {
 
         @Override
         public long getSize() {
-            assert sh_size < Long.MAX_VALUE && sh_size > 0L;
+            assert sh_size < Long.MAX_VALUE;
             return sh_size;
         }
 
@@ -288,7 +288,7 @@ public class ELFSectionHeaderTable {
         }
         @Override
         public int getEntrySize() {
-            assert sh_entsize < Integer.MAX_VALUE && sh_size > 0;
+            assert sh_entsize < Integer.MAX_VALUE;
             return (int) sh_entsize;
         }
 
