@@ -172,7 +172,7 @@ final class JDK_java_net_PlainSocketImpl {
         final TCPEndpoint endpoint = getEndpoint(this);
         switch (cmd) {
             case TCP_NODELAY:
-                _logger.warning("TCP_NODELAY not implemented");
+                endpoint.setNoDelay();
                 break;
 
             case SO_TIMEOUT:

@@ -1932,6 +1932,10 @@ public final class TCP extends IP {
         return _remoteIp;
     }
 
+    void setNoDelay() {
+        // no-op as we don't currently implement Nagle's algorithm
+    }
+
     static TCP cache = null;
 
     // Searches through the list of TCP state objects for a match.

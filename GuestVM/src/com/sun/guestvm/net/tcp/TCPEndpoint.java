@@ -46,7 +46,6 @@ import java.net.*;
 import java.io.*;
 import java.nio.*;
 
-import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.VirtualFileSystem;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.util.*;
@@ -230,6 +229,10 @@ public class TCPEndpoint implements Endpoint {
 
     public void setSendBufferSize(int size) {
 
+    }
+
+    public void setNoDelay() {
+        tcp.setNoDelay();
     }
 
     public void configureBlocking(boolean blocking) {
