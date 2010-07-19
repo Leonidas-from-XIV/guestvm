@@ -76,6 +76,8 @@ public class MXTest {
             return;
         }
 
+        new MyThread(10).start();
+
         try {
             // the singletons
             enterMXBeanCommands("R", RuntimeMXBean.class, ManagementFactory.getRuntimeMXBean());
@@ -195,6 +197,30 @@ public class MXTest {
                 System.out.println("entering " + commandName + " for " + methods[i].toGenericString());
             }
             _commands.put(commandName, new Info(mxbean, methods[i]));
+        }
+    }
+
+    static class MyThread extends Thread {
+        private int depth;
+        MyThread(int depth) {
+            this.depth = depth;
+            setDaemon(true);
+        }
+
+        public void run() {
+            System.out.println("myThread id: " + getId());
+            recurse(depth);
+        }
+
+        private void recurse(int depth) {
+            if (depth > 0) {
+                recurse(depth - 1);
+            } else {
+                int count = 0;
+                while (true) {
+                    count++;
+                }
+            }
         }
     }
 
