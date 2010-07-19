@@ -55,7 +55,7 @@ import com.sun.guestvm.error.*;
 
 final class JDK_sun_management_VMManagementImpl {
 
-    private static String[] _supportedOptions = {"currentThreadCpuTimeSupport", "otherThreadCpuTimeSupport"};
+    private static String[] _supportedOptions = {"currentThreadCpuTimeSupport", "otherThreadCpuTimeSupport", "objectMonitorUsageSupport"};
 
     private static boolean isSupported(String name) {
         for (String s : _supportedOptions) {
