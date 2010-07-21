@@ -51,6 +51,8 @@ import com.sun.guestvm.sched.*;
 import com.sun.guestvm.net.guk.*;
 import com.sun.guestvm.attach.AttachListener;
 import com.sun.guestvm.error.*;
+import com.sun.guestvm.profiler.*;
+
 
 /**
  * This run scheme is used to launch a GuestVM application.
@@ -70,6 +72,8 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     private static boolean _launcherReset;
     private static List<ClassActor> _netReinitClasses = new LinkedList<ClassActor>();
     private static final String RMIREGISTRY_PROPERTY = "guestvm.rmiregistry";
+    private static final String TICK_PROFILER_PROPERTY = "guestvm.profiler";
+    private static final String GUK_TRACE_PROPERTY = "guestvm.guktrace";
 
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
         super(vmConfiguration);
@@ -101,6 +105,8 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             NFSExports.initNFSExports();
             checkRmiRegistry();
             AttachListener.create();
+            checkGUKTrace();
+            checkTickProfiler();
         }
     }
 
@@ -197,5 +203,25 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         }
     }
 
+    private static void checkTickProfiler() {
+        final String prop = System.getProperty(TICK_PROFILER_PROPERTY);
+        if (prop != null) {
+            Tick.create(prop.equals("") ? 0 : Integer.parseInt(prop));
+        }
+    }
 
+    private static void checkGUKTrace() {
+        final String prop = System.getProperty(GUK_TRACE_PROPERTY);
+        if (prop != null) {
+            final String[] parts = prop.split(":");
+            for (String name : parts) {
+                try {
+                    GUKTrace.setTraceState(GUKTrace.Name.valueOf(name), true);
+                } catch (Exception ex) {
+                    System.err.println("no GUK trace element '" + name + "' ignoring");
+                }
+            }
+        }
+
+    }
 }
