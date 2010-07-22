@@ -40,7 +40,7 @@ public class ProtocolAgent {
     private static final String XG = "agent.AgentXG";
     private static String impl = DBRING;
     private static int dbtLevel = 0;
-    private static boolean oneShot = true;
+    private static boolean oneShot = false;
     /**
      * @param args
      */
@@ -59,6 +59,8 @@ public class ProtocolAgent {
                 dbtLevel = Integer.parseInt(args[++i]);
             } else  if (arg.equals("-xg")) {
                 impl = XG;
+            } else if (arg.equals("-qc")) {
+            	oneShot = true;
             }
         }
         // Checkstyle: resume modified control variable check
@@ -97,13 +99,11 @@ public class ProtocolAgent {
     }
 
     static class Handler extends Thread {
-        private Socket socket;
         private DataInputStream in;
         private DataOutputStream out;
         private RIProtocolAdaptor protocol;
 
         Handler(Socket socket) throws Exception {
-            this.socket = socket;
             try {
                 in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                 out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
