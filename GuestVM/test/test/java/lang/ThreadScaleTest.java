@@ -33,21 +33,25 @@ package test.java.lang;
 
 import java.util.*;
 
-import com.sun.guestvm.guk.GUKTrace;
-import com.sun.guestvm.test.VmThreadTestHelper;
-
 import test.util.OSSpecific;
 
 /**
  * How many threads can we run?
+ * Args:
+ * t n     number of threads to (try to) run (default {@value ThreadScaleTest#MAX_THREADS}
+ * s n    how long (secs) should each thread sleep between wakeups (default {@value ThreadScaleTest#DEFAULT_SLEEPTIME}
+ * r n     how long (decs) should each thread run (default {@value ThreadScaleTest#DEFAULT_RUNTIME}
  *
  * @author Mick Jordan
  *
  */
 public final class ThreadScaleTest extends Thread {
 
-    private static int _sleepTime = 10000;
-    private static int _runTime = 50000;
+    private static final int MAX_THREADS = 65536;
+    private static final int DEFAULT_SLEEPTIME = 10;
+    private static final int DEFAULT_RUNTIME = 60;
+    private static int _sleepTime = DEFAULT_SLEEPTIME;
+    private static int _runTime = DEFAULT_RUNTIME;
     private static boolean _verbose;
 
     /**
@@ -55,7 +59,7 @@ public final class ThreadScaleTest extends Thread {
      */
     public static void main(String[] args) {
         int n = 0;
-        int nmax = 65536;
+        int nmax = MAX_THREADS;
 
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
@@ -63,9 +67,9 @@ public final class ThreadScaleTest extends Thread {
             if (arg.equals("t")) {
                 nmax = Integer.parseInt(args[++i]);
             } else if (arg.equals("s")) {
-                _sleepTime = Integer.parseInt(args[++i]) * 1000;
+                _sleepTime = Integer.parseInt(args[++i]);
             } else if (arg.equals("r")) {
-                _runTime = Integer.parseInt(args[++i]) * 1000;
+                _runTime = Integer.parseInt(args[++i]);
             } else if (arg.equals("v")) {
                 _verbose = true;
             }  else if (arg.equals("gt")) {
@@ -73,6 +77,8 @@ public final class ThreadScaleTest extends Thread {
             }
         }
         // Checkstyle: stop modified control variable check
+        _sleepTime *= 1000;
+        _runTime *= 1000;
        final List<Thread> threads = new ArrayList<Thread>();
 
         try {
