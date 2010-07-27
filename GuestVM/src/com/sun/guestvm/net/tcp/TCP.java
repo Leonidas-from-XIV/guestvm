@@ -370,7 +370,6 @@ public final class TCP extends IP {
             GUKTrace.print1L(Trace.TCP_OUTPUT_ENTER, _debugId);
         }
         tcpOutSegs++;
-
         if ((flags & ACK) != 0) {
             _delayedAckTimer.cancelTask(_delayedAckFuture);
             _prev_ack = ack; // remember this ACK for delayed ACK processing.
@@ -453,11 +452,16 @@ public final class TCP extends IP {
      * @param pkt
      * @param src_ip
      */
-    public static synchronized void input(Packet pkt, int src_ip) {
+    public static void input(Packet pkt, int src_ip) {
+        try {
+            TCP tcp = null;
+            int src_port = 0;
+            int dst_port = 0;
 
+        synchronized(TCP.class) {
         tcpInSegs++;
 
-        try {
+
 
             int length = pkt.dataLength();
 
@@ -481,8 +485,8 @@ public final class TCP extends IP {
             }
 
             // get some fundamental fields from the header.
-            int src_port = pkt.getShort(SRCPORT_OFFSET);
-            int dst_port = pkt.getShort(DSTPORT_OFFSET);
+            src_port = pkt.getShort(SRCPORT_OFFSET);
+            dst_port = pkt.getShort(DSTPORT_OFFSET);
 
             inp_seq = pkt.getInt(SEQ_OFFSET);
             inp_ack = pkt.getInt(ACK_OFFSET);
@@ -501,7 +505,7 @@ public final class TCP extends IP {
             }
 
             // find the connection object that belongs to this src/dest tuple.
-            TCP tcp = find(dst_port, src_ip, src_port);
+            tcp = find(dst_port, src_ip, src_port);
 
             if (tcp == null) {
 
@@ -521,11 +525,14 @@ public final class TCP extends IP {
                 }
                 return;
             }
+        }
 
             synchronized (tcp) {
+                State oldState = tcp._state;
                 if (_debug) {
                     if (_debug)
-                        dprint("RCVD " + flagsToString(inp_flags) + "segment in state " + tcp._state);
+                        dprint("RCVD " + flagsToString(inp_flags) + "segment in state " + tcp._state + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
+                                        " wnd:" + inp_wnd + " len:" + inp_len);
                 }
 
                 switch (tcp._state) {
@@ -588,8 +595,11 @@ public final class TCP extends IP {
                         if (_debug)
                             dprint("unknown state");
                 }
+                dprint("Transitioned from state " + oldState + " to state " + ((tcp._listener != null)? tcp._listener._state:tcp._state) + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
+                                    " wnd:" + inp_wnd + " len:" + inp_len);
             }
         } catch (NetworkException ex) {
+            ex.printStackTrace();
             // our callers don't really care
             return;
         } finally {
@@ -1412,7 +1422,7 @@ public final class TCP extends IP {
 
             default:
                 if (_debug)
-                    tcpdprint("BAD RETRANSMIT STATE: " + _state);
+                    tcpdprint("BAD RETRANSMIT STATE: " + this);
 
                 // don't restart the timer.
                 return;
@@ -1950,7 +1960,6 @@ public final class TCP extends IP {
         if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
             result = cache;
         } else {
-
             for (TCP tcp = tcps; tcp != null; tcp = tcp._next) {
                 synchronized (tcp) {
                     if (tcp._localPort != local_port) {
@@ -2108,8 +2117,7 @@ public final class TCP extends IP {
         public void run() {
             try {
                 if (_debug)
-                    dprint("Enter run");
-                    dprint("retransmit timer " + this + " activated");
+                    dprint("retransmit timer " + this + " activated on " + _tcp);
                 _tcp.retransmit();
             } catch (NetworkException ex) {
                 return;
@@ -2126,7 +2134,7 @@ public final class TCP extends IP {
         public void run() {
             try {
                 if (_debug)
-                    dprint("delayed ack " + this + " activated");
+                    dprint("delayed ack " + this + " activated on" + _tcp);
                 _tcp.delayedAck();
             } catch (NetworkException ex) {
                 return;
@@ -2261,6 +2269,10 @@ public final class TCP extends IP {
     }
 
     private synchronized TimerTask getNewRetransmitTask() {
+        if (this._state == State.CLOSED || this._state == State.FIN_WAIT_2) {
+            tcpdprint("BAD RETRANSMIT STATE: " + this + " Not scheduling retransmit ");
+            return null;
+        }
         _retransmitTask = new RetransmitTask(_retransmitTimer, this);
         return _retransmitTask;
     }

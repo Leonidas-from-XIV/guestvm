@@ -44,15 +44,15 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
 
     private static final int DEFAULT_THREAD_POOL_SIZE = 10;
-    private static final ThreadFactory DAEMON_THREAD_FACTORY = new DaemonThreadFactory();
+
     private String _name;
 
     public ThreadPoolScheduledTimer(String name) {
-        super(DEFAULT_THREAD_POOL_SIZE, DAEMON_THREAD_FACTORY);
+        super(DEFAULT_THREAD_POOL_SIZE, new DaemonThreadFactory(name));
         _name = name;
     }
     public ThreadPoolScheduledTimer(String name, int corePoolSize) {
-        super(corePoolSize, DAEMON_THREAD_FACTORY);
+        super(corePoolSize, new DaemonThreadFactory(name));
         _name = name;
     }
 
