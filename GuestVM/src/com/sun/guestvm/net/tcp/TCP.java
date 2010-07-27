@@ -452,16 +452,11 @@ public final class TCP extends IP {
      * @param pkt
      * @param src_ip
      */
-    public static void input(Packet pkt, int src_ip) {
-        try {
-            TCP tcp = null;
-            int src_port = 0;
-            int dst_port = 0;
+    public static synchronized void input(Packet pkt, int src_ip) {
 
-        synchronized(TCP.class) {
         tcpInSegs++;
 
-
+        try {
 
             int length = pkt.dataLength();
 
@@ -485,8 +480,8 @@ public final class TCP extends IP {
             }
 
             // get some fundamental fields from the header.
-            src_port = pkt.getShort(SRCPORT_OFFSET);
-            dst_port = pkt.getShort(DSTPORT_OFFSET);
+            int src_port = pkt.getShort(SRCPORT_OFFSET);
+            int dst_port = pkt.getShort(DSTPORT_OFFSET);
 
             inp_seq = pkt.getInt(SEQ_OFFSET);
             inp_ack = pkt.getInt(ACK_OFFSET);
@@ -505,7 +500,7 @@ public final class TCP extends IP {
             }
 
             // find the connection object that belongs to this src/dest tuple.
-            tcp = find(dst_port, src_ip, src_port);
+            TCP tcp = find(dst_port, src_ip, src_port);
 
             if (tcp == null) {
 
@@ -525,7 +520,7 @@ public final class TCP extends IP {
                 }
                 return;
             }
-        }
+
 
             synchronized (tcp) {
                 State oldState = tcp._state;
