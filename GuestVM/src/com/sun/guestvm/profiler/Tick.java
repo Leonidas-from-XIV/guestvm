@@ -15,7 +15,7 @@ import com.sun.max.unsafe.*;
  * @author Mick Jordan
  *
  */
-public class Tick extends Thread {
+public final class Tick extends Thread {
 
     private static final int DEFAULT_FREQUENCY = 50;
     private static final Random rand = new Random();;
@@ -31,7 +31,7 @@ public class Tick extends Thread {
         jiggle = this.frequency / 8;
         setName("Tick-Profiler");
         setDaemon(true);
-     }
+    }
 
     public static void create(int frequency) {
         new Tick(frequency).start();
@@ -52,12 +52,12 @@ public class Tick extends Thread {
         }
     }
 
-    private static final class StackTraceGatherer extends StopThreadsForOperation {
+    private static final class StackTraceGatherer extends FreezeThreads {
         StackTraceGatherer(Pointer.Predicate p) {
-            super(p);
+            super("Tick Profiler", p);
         }
         @Override
-        public void perform(Pointer threadLocals, Pointer ip, Pointer sp, Pointer fp) {
+        public void doThread(Pointer threadLocals, Pointer ip, Pointer sp, Pointer fp) {
             final VmStackFrameWalker stackFrameWalker = VmThread.fromVmThreadLocals(threadLocals).stackDumpStackFrameWalker();
             stackFrameWalker.inspect(ip, sp, fp, stackFrameDumper);
         }

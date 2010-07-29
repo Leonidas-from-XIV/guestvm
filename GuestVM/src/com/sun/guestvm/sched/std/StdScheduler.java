@@ -32,7 +32,6 @@
 package com.sun.guestvm.sched.std;
 
 import com.sun.max.annotate.*;
-import com.sun.max.lang.Procedure;
 import com.sun.max.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.*;
@@ -98,7 +97,7 @@ final class StdScheduler extends GUKUpcallHandler {
         super.initialize(phase);
     }
 
-    private static class AnalyzeThreadsProcedure implements Procedure<VmThread> {
+    private static class AnalyzeThreadsProcedure implements Pointer.Procedure {
          /*
           * This class finds GC threads and increases their time slice since there is
           * little point in pre-empting a GC thread.
@@ -107,14 +106,15 @@ final class StdScheduler extends GUKUpcallHandler {
         private static final String GCTHREAD_TIMESLICE_PROPERTY = "guestvm.gcthread.timeslice";
         private static final int DEFAULT_GCTHREAD_TIMESLICE = 1000;
 
-        public void run(VmThread thread) {
-            if (thread.isGCThread()) {
+        public void run(Pointer threadLocals) {
+            final VmThread vmThread = VmThread.fromVmThreadLocals(threadLocals);
+            if (vmThread.isGCThread()) {
                 int timeSlice = DEFAULT_GCTHREAD_TIMESLICE;
                 final String p = System.getProperty(GCTHREAD_TIMESLICE_PROPERTY);
                 if (p != null) {
                     timeSlice = Integer.parseInt(p);
                 }
-                GUKScheduler.setThreadTimeSlice(thread, timeSlice);
+                GUKScheduler.setThreadTimeSlice(vmThread, timeSlice);
             }
         }
     }
@@ -122,7 +122,7 @@ final class StdScheduler extends GUKUpcallHandler {
     private static final AnalyzeThreadsProcedure _analyzeThreadsProcedure = new AnalyzeThreadsProcedure();
 
     public void starting() {
-        VmThreadMap.ACTIVE.forAllThreads(null, _analyzeThreadsProcedure);
+        VmThreadMap.ACTIVE.forAllThreadLocals(null, _analyzeThreadsProcedure);
     }
 
     private static final byte[] BK = "BK".getBytes();
