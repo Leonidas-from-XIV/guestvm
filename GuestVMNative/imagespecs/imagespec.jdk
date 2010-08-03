@@ -145,5 +145,6 @@ reinitclass sun.management.VMManagementImpl
 class java.security.cert.Certificate
 
 package com.sun.guestvm.attach
+package com.sun.guestvm.profiler
 
 

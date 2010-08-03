@@ -29,51 +29,29 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.test;
-
-import com.sun.max.unsafe.*;
-import com.sun.max.vm.runtime.*;
-import com.sun.max.vm.reference.Reference;
-import com.sun.max.vm.thread.*;
-import com.sun.guestvm.guk.*;
-import com.sun.guestvm.sched.*;
+package com.sun.guestvm.fs.nfs;
 
 /**
- * Some support classes for tests that involve {@link VmThread}.
- * These must be compiled into the image.
+ * Simple program that runs an Nfs server.
  *
  * @author Mick Jordan
  *
  */
-public class VmThreadTestHelper {
-    public static VmThread current() {
-        return VmThread.current();
-    }
 
-    public static long currentAsAddress() {
-        return Reference.fromJava(VmThread.current()).toOrigin().asAddress().toLong();
-    }
+public class NfsServer {
 
-    public static int idLocal() {
-        return VmThreadLocal.ID.getConstantWord().asAddress().toInt();
-    }
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        while (true) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ex) {
+                break;
+            }
+        }
 
-    public static int idCurrent() {
-        return VmThread.current().id();
     }
-
-    public static long nativeCurrent() {
-        return VmThread.current().nativeThread().asAddress().toLong();
-    }
-
-    public static long nativeUKernel() {
-        return GUKScheduler.currentThread().toLong();
-    }
-
-    public static int nativeId(Thread t) {
-        final GUKVmThread gvm = (GUKVmThread) VmThread.fromJava(t);
-        return gvm == null ? -1 : gvm.safeNativeId();
-    }
-
 
 }

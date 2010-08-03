@@ -84,13 +84,12 @@ final class JDK_sun_management_ThreadImpl {
 
     @SUBSTITUTE
     private static Thread[] findMonitorDeadlockedThreads0() {
-        Log.println("findMonitorDeadlockedThreads0 not implemented, returning null");
-        return null;
+        return ThreadManagement.findMonitorDeadlockedThreads();
     }
 
     @SUBSTITUTE
     private static Thread[] findDeadlockedThreads0() {
-        unimplemented("findDeadlockedThreads0");
+        Log.println("findDeadlockedThreads0 not implemented, returning null");
         return null;
     }
 

@@ -66,8 +66,6 @@ public class GUKVmThreadTest {
                     System.out.println("current thread running time is " + vmThread.getRunningTime());
                 } else if (op.equals("stack")) {
 
-                } else if (op.equals("list")) {
-                    VmThreadMap.ACTIVE.forAllThreads(null, new Lister());
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -76,11 +74,5 @@ public class GUKVmThreadTest {
 
     }
 
-    static class Lister implements Procedure<VmThread> {
-        public void run(VmThread thread) {
-            final GUKVmThread t = (GUKVmThread) thread;
-            System.out.println("id " + t.id() + ", cpu " + t.getCpu());
-        }
-    }
 
 }
