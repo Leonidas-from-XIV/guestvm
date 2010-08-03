@@ -35,14 +35,15 @@ import com.sun.guestvm.guk.*;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.debug.*;
 import com.sun.guestvm.net.device.*;
-import com.sun.guestvm.sched.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.compiler.*;
+import com.sun.max.vm.reference.Reference;
 import com.sun.max.memory.*;
 import com.sun.max.program.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.util.*;
 import com.sun.max.vm.actor.holder.*;
+import com.sun.max.vm.classfile.constant.*;
 
 /**
  * This class provides a singleton object that manages the interaction between the
@@ -110,15 +111,20 @@ public final class GUKNetDevice implements NetDevice {
         }
         _ring = new PacketHandler[_ringSize];
         for (int i = 0; i < _ringSize; i++) {
-            _ring[i] = new PacketHandler(Packet.get(MTU));
+            final PacketHandler p = new PacketHandler(Packet.get(MTU));
+            _ring[i] = p;
         }
     }
 
     private static class PacketHandler {
+        static final int IN_USE = 1;
+        static final int FREE = 0;
+        static final int statusOffset = ClassActor.fromJava(PacketHandler.class).findFieldActor(SymbolTable.makeSymbol("status")).offset();
+        Pointer _self;
         Packet _packet;
         Thread _handlerThread;
         Pointer _completion;
-        volatile boolean _active = true;  // prevents use until handler thread really started
+        volatile int _status = IN_USE;  // prevents use until handler thread really started
         PacketHandler(Packet packet) {
             _packet = packet;
         }
@@ -134,6 +140,7 @@ public final class GUKNetDevice implements NetDevice {
 
         for (int i = 0; i < _ringSize; i++) {
             final PacketHandler packetHandler = _ring[i];
+            _ring[i]._self = Reference.fromJava(packetHandler).toOrigin();
             final DeviceHandler deviceHandler = new DeviceHandler(packetHandler);
             final Thread deviceThread = new Thread(deviceHandler, "NetPacketHandler-" + i);
             deviceThread.setDaemon(true);
@@ -236,7 +243,7 @@ public final class GUKNetDevice implements NetDevice {
         }
 
         public void run() {
-            _packetHandler._active = false;
+            _packetHandler._status = PacketHandler.FREE;
             while (true) {
                 GUKScheduler.waitCompletion(_packetHandler._completion);
                 if (_handler != null) {
@@ -248,7 +255,7 @@ public final class GUKNetDevice implements NetDevice {
                         handlerGateExit();
                     }
                 }
-                _packetHandler._active = false;
+                _packetHandler._status = PacketHandler.FREE;
             }
         }
     }
@@ -272,9 +279,8 @@ public final class GUKNetDevice implements NetDevice {
         PacketHandler packetHandler = null;
         // try to find a free handler
         for (int i = 0; i < _ringSize; i++) {
-            if (!_ring[i]._active) {
+            if (_ring[i]._self.compareAndSwapInt(PacketHandler.statusOffset, PacketHandler.FREE, PacketHandler.IN_USE) == PacketHandler.FREE) {
                 packetHandler = _ring[i];
-                packetHandler._active = true;
                 break;
             }
         }
