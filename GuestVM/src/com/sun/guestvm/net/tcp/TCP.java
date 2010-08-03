@@ -54,10 +54,17 @@ package com.sun.guestvm.net.tcp;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.BindException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Map.Entry;
 import java.util.concurrent.ScheduledFuture;
+
 
 import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.guk.GUKTrace;
@@ -217,7 +224,10 @@ public final class TCP extends IP {
     private static final int MAX_TCP_CONNECTIONS = 20;
 
     // linked list of active TCP objects
-    private static TCP tcps;
+//    private static TCP tcps;
+    //A mapping of localport to the tcp connection object(s), multiple objects will exist in case we are the server side.
+    private static Map<Integer, List<TCP>> connectionsMap;
+
 
     // ----------------------------------------------------------------------
 
@@ -308,6 +318,9 @@ public final class TCP extends IP {
                 _delayedAckTimer = new ThreadPoolScheduledTimer("Delayed Ack Timer");
             }
         }
+        if (connectionsMap == null) {
+            connectionsMap = new CachingMap<Integer, List<TCP>>(1);
+        }
         _state = State.NEW;
         _localPort = 0;
         _debugId = _nextDebugId++;
@@ -323,31 +336,21 @@ public final class TCP extends IP {
         rttvar = RTTVAR_INIT;
     }
 
-    static synchronized TCP get() {
+    static TCP get() {
         final TCP t = new TCP();
-        // stick this new TCP object on the list of active TCP objects
-        if (tcps != null) {
-            t._next = tcps;
-            tcps._prev = t;
-        }
-        tcps = t;
         return t;
     }
 
     // Remove this TCP object from the list of active tcp objects.
     private void recycle() {
-        // This is a simple removal from a double-linked list.
-        synchronized (TCP.class) {
-            if (this == tcps) {
-                tcps = _next;
-            } else {
-                _prev._next = _next;
+        synchronized (connectionsMap) {
+            for (final Iterator<TCP> it = connectionsMap.get(_localPort).iterator(); it.hasNext();) {
+                final TCP t = it.next();
+                if (t == this) {
+                    it.remove();
+                }
             }
-            if (_next != null) {
-                _next._prev = _prev;
-            }
-            _next = null;
-            _prev = null;
+            cleanupEmptyMappings();
         }
     }
 
@@ -452,16 +455,14 @@ public final class TCP extends IP {
      * @param pkt
      * @param src_ip
      */
-    public static void input(Packet pkt, int src_ip) {
+    public synchronized static void input(Packet pkt, int src_ip) {
+
+        tcpInSegs++;
+
         try {
             TCP tcp = null;
             int src_port = 0;
             int dst_port = 0;
-
-        synchronized(TCP.class) {
-        tcpInSegs++;
-
-
 
             int length = pkt.dataLength();
 
@@ -525,13 +526,13 @@ public final class TCP extends IP {
                 }
                 return;
             }
-        }
 
             synchronized (tcp) {
-                State oldState = tcp._state;
+
+//                TCP oldTcp= tcp;
                 if (_debug) {
                     if (_debug)
-                        dprint("RCVD " + flagsToString(inp_flags) + "segment in state " + tcp._state + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
+                        dprint("RCVD " + flagsToString(tcp.inp_flags) + "segment in state " + tcp._state + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
                                         " wnd:" + inp_wnd + " len:" + inp_len);
                 }
 
@@ -595,8 +596,7 @@ public final class TCP extends IP {
                         if (_debug)
                             dprint("unknown state");
                 }
-                dprint("Transitioned from state " + oldState + " to state " + ((tcp._listener != null)? tcp._listener._state:tcp._state) + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
-                                    " wnd:" + inp_wnd + " len:" + inp_len);
+//                dprint("Transitioned from state " + oldTcp+ " to " + tcp);
             }
         } catch (NetworkException ex) {
             ex.printStackTrace();
@@ -647,7 +647,6 @@ public final class TCP extends IP {
     // Trim off segment data that falls before (duplicate) or
     // beyond our receive window.
     private boolean verifySeq(Packet pkt) throws NetworkException {
-
         if (inp_seq > rcv_nxt) {
             if (_debug)
                 tcpdprint("verifySeq: ignoring out of sequence");
@@ -668,7 +667,7 @@ public final class TCP extends IP {
             }
 
             // check if the entire segment is duplicate data
-            if ((todrop > inp_len) || ((todrop == inp_len) && ((inp_flags & FIN) == 0))) {
+            if ((todrop >= inp_len) && ((inp_flags & FIN) == 0)) {
 
                 if (_debug)
                     tcpdprint(_state + " port:" + _localPort + " total duplicate todrop:" + todrop + " rcv_wnd:" + rcv_wnd);
@@ -806,7 +805,7 @@ public final class TCP extends IP {
                 rttUpdate();
             }
 
-            // Advance our unacked send pointer and drop the acknowledged
+            // Advance our unacked send pointer and drop the/ acknowledged
             // data from our send queue.
             sendQueue.drop(inp_ack - _snd_una);
             _snd_una = inp_ack;
@@ -898,7 +897,6 @@ public final class TCP extends IP {
 
         // insert the new incoming connection in our simple queue.
         _incomingConnection = tcp;
-
         // Make a backpointer from the new connection to the listener
         // so that when the new connection completes, the listener
         // can be notified.
@@ -908,7 +906,7 @@ public final class TCP extends IP {
         tcp._remotePort = _remotePort;
         tcp._remoteIp = _remoteIp;
         tcp._localPort = _localPort;
-
+        addToConnections(tcp);
         inp_flags = inp_flags & ~SYN; // remove SYN and
         inp_seq++; // increment past it.
 
@@ -1564,16 +1562,38 @@ public final class TCP extends IP {
 
     }
 
-    static synchronized void closeAll() {
+    static void closeAll() {
         TCP nxt = null;
-        TCP cur = tcps;
-
-        while (cur != null) {
-            nxt = cur._next;
-            if (cur._state == State.ESTABLISHED) {
-                cur.sendUnConditionalRST();
+//        TCP cur = tcps;
+//
+//        while (cur != null) {
+//            nxt = cur._next;
+//            if (cur._state == State.ESTABLISHED) {
+//                cur.sendUnConditionalRST();
+//            }
+//            cur = nxt;
+//        }
+        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : connectionsMap.values()) {
+                for(Iterator<TCP> it=tcpobjects.iterator();it.hasNext();) {
+                    TCP t = it.next();
+                    if(t._state == State.ESTABLISHED) {
+                        it.remove();
+                    }
+                }
             }
-            cur = nxt;
+            cleanupEmptyMappings();
+        }
+    }
+
+    private static void cleanupEmptyMappings() {
+        synchronized(connectionsMap) {
+            for (Iterator<Entry<Integer, List<TCP>>> entryit = connectionsMap.entrySet().iterator();entryit.hasNext();) {
+                Entry<Integer,List<TCP>> entry = entryit.next();
+                if(entry.getValue() == null || entry.getValue().isEmpty()) {
+                    entryit.remove();
+                }
+            }
         }
     }
 
@@ -1861,15 +1881,10 @@ public final class TCP extends IP {
     }
 
     // simple method to find a connection with the given local port.
-    private static synchronized TCP find(int port) {
-        TCP tcp = tcps;
-        while (tcp != null) {
-            if (tcp._localPort == port) {
-                return tcp;
-            }
-            tcp = tcp._next;
+    private static List<TCP> find(int port) {
+        synchronized(connectionsMap) {
+            return connectionsMap.get(port);
         }
-        return null;
     }
 
     // allocate a random number generator for the port number chooser.
@@ -1912,6 +1927,7 @@ public final class TCP extends IP {
         } else {
             throw new BindException("port in use");
         }
+        addToConnections(this);
         return _localPort;
     }
 
@@ -1950,42 +1966,44 @@ public final class TCP extends IP {
 
     // Searches through the list of TCP state objects for a match.
     // Returns the object if found, or null otherwise.
-    private static synchronized final TCP find(int local_port, int remote_ip, int remote_port) {
-        TCP result = null;
+    private static  final TCP find(int local_port, int remote_ip, int remote_port) {
+//        TCP result = null;
 
         if (_debug) {
             dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
         }
 
-        if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
-            result = cache;
-        } else {
-            for (TCP tcp = tcps; tcp != null; tcp = tcp._next) {
-                synchronized (tcp) {
-                    if (tcp._localPort != local_port) {
-                        continue;
-                    }
+        TCP result = null;
+//        if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
+//            result = cache;
+//        } else {
+//        dprint("not found in cache");
+        synchronized (connectionsMap) {
+            List<TCP> results = connectionsMap.get(local_port);
+            if (results != null) {
+                for (TCP tcp : results) {
+                    synchronized (tcp) {
+                        if (tcp._state == State.LISTEN) {
+                            result = tcp;
+                        }
 
-                    if (tcp._state == State.LISTEN) {
+                        if (tcp._remotePort != remote_port) {
+                            continue;
+                        }
+
+                        if (tcp._remoteIp != remote_ip) {
+                            continue;
+                        }
+
+                        // found an exact match
+                         cache = tcp;
                         result = tcp;
+                        break;
                     }
-
-                    if (tcp._remotePort != remote_port) {
-                        continue;
                     }
-
-                    if (tcp._remoteIp != remote_ip) {
-                        continue;
-                    }
-
-                    // found an exact match
-                    cache = tcp;
-                    result = tcp;
-                    break;
                 }
-            }
+//            }
         }
-
         if (_debug) {
             dprint("found: " + result);
         }
@@ -2055,8 +2073,8 @@ public final class TCP extends IP {
     }
 
     public String toString() {
-        return _debugId + ": " + IPAddress.toString(IP.getLocalAddress()) + ":" + _localPort + "   " + IPAddress.toString(_remoteIp) + ":" + _remotePort + "    " + _snd_wnd + "  " + "n/a  " +
-                        rcv_wnd + "  " + _recvQueue.bytesQueued + "  " + _state;
+        return "< " + _debugId + ": " + IPAddress.toString(IP.getLocalAddress()) + ":" + _localPort + "   " + IPAddress.toString(_remoteIp) + ":" + _remotePort + "    " + _snd_wnd + "  " + "n/a  " +
+                        rcv_wnd + "  " + _recvQueue.bytesQueued + "  State " + _state  + " Incoming connection state - " + ((_incomingConnection != null)?_incomingConnection._state:null)+ " > ";
     }
 
     static class TCPTimer extends Timer {
@@ -2118,6 +2136,10 @@ public final class TCP extends IP {
             try {
                 if (_debug)
                     dprint("retransmit timer " + this + " activated on " + _tcp);
+                if(_tcp._state == State.CLOSED) {
+                    dprint("retransmit timer " + "not activated on closed : " + _tcp);
+                    return;
+                }
                 _tcp.retransmit();
             } catch (NetworkException ex) {
                 return;
@@ -2155,10 +2177,13 @@ public final class TCP extends IP {
         out.print("Local Address       Remote Address    tx wnd tx Q  rx wnd rx Q State\n");
         out.print("------------------- ----------------- ------ ----- ------ ---- -----\n");
 
-        TCP tcp = tcps;
-        while (tcp != null) {
-            out.print(tcp.toString() + "\n");
-            tcp = tcp._next;
+        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : connectionsMap.values()) {
+                for (TCP tcp : tcpobjects) {
+                    out.print(tcp.toString() + "\n");
+                    tcp = tcp._next;
+                }
+            }
         }
     }
 
@@ -2193,7 +2218,7 @@ public final class TCP extends IP {
     private static int tcpInErrs;
     private static int tcpOutRsts;
 
-    public static synchronized int getStatistic(int index) {
+    public static int getStatistic(int index) {
         switch (index) {
             case 1: // tcpRtoAlgorithm
                 return 4;
@@ -2212,12 +2237,17 @@ public final class TCP extends IP {
             case 8:
                 return tcpEstabResets;
             case 9: {
-                TCP tcp;
-                int tcpCurrEstab = 0;
-                for (tcp = tcps; tcp != null; tcp = tcp._next)
-                    if (tcp._state == State.ESTABLISHED || tcp._state == State.CLOSE_WAIT)
-                        tcpCurrEstab++;
-                return tcpCurrEstab;
+                synchronized (connectionsMap) {
+                    int tcpCurrEstab = 0;
+                    for (List<TCP> tcpobjects : connectionsMap.values()) {
+                        for (TCP tcp : tcpobjects) {
+                            if (tcp._state == State.ESTABLISHED || tcp._state == State.CLOSE_WAIT) {
+                                tcpCurrEstab++;
+                            }
+                        }
+                    }
+                    return tcpCurrEstab;
+                }
             }
             case 10:
                 return tcpInSegs;
@@ -2239,22 +2269,29 @@ public final class TCP extends IP {
         int numConns;
 
         numConns = 0;
-        for (tcp = tcps; tcp != null; tcp = tcp._next)
-            numConns++;
+        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : connectionsMap.values()) {
+                numConns += tcpobjects.size();
+            }
+        }
         return numConns;
     }
 
-    static synchronized int getConns(int[][] arr) {
+    static int getConns(int[][] arr) {
         int localIP;
-        TCP tcp;
-        int i;
         localIP = IP.getLocalAddress();
-        for (i = 0, tcp = tcps; i < arr.length && tcp != null; i++, tcp = tcp._next) {
-            arr[i][0] = localIP;
-            arr[i][1] = tcp._localPort;
-            arr[i][2] = tcp._remoteIp;
-            arr[i][3] = tcp._remotePort;
-            arr[i][4] = tcp._state.ordinal();
+        int i=0;
+        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : connectionsMap.values()) {
+                for (TCP tcp : tcpobjects) {
+                    arr[i][0] = localIP;
+                    arr[i][1] = tcp._localPort;
+                    arr[i][2] = tcp._remoteIp;
+                    arr[i][3] = tcp._remotePort;
+                    arr[i][4] = tcp._state.ordinal();
+                    i++;
+                }
+            }
         }
         return i;
     }
@@ -2272,13 +2309,27 @@ public final class TCP extends IP {
         if (this._state == State.CLOSED || this._state == State.FIN_WAIT_2) {
             tcpdprint("BAD RETRANSMIT STATE: " + this + " Not scheduling retransmit ");
             return null;
+        } else {
+            tcpdprint("Obtainng retransmit task on " + this);
+            _retransmitTask = new RetransmitTask(_retransmitTimer, this);
+            return _retransmitTask;
         }
-        _retransmitTask = new RetransmitTask(_retransmitTimer, this);
-        return _retransmitTask;
+
     }
 
     private synchronized TimerTask getNewDelayedAckTask() {
         _delayedAckTask = new DelayedAckTask(_delayedAckTimer, this);
         return _delayedAckTask;
+    }
+
+    private static void addToConnections(TCP tcp) {
+        synchronized (connectionsMap) {
+            List<TCP> connectionsList = connectionsMap.get(tcp._localPort);
+            if (connectionsList == null) {
+                connectionsList = new ArrayList<TCP>();
+                connectionsMap.put(tcp._localPort, connectionsList);
+            }
+            connectionsList.add(tcp);
+        }
     }
 }
