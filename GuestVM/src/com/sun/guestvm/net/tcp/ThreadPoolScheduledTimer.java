@@ -58,7 +58,7 @@ public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
 
     public ScheduledFuture<?> schedule(Runnable command, long delay) {
         if (command != null) {
-            TCP.dprint("Scheduling " + command + " on " + this._name);
+            TCP.dprint("Scheduling " + command + " on " + this._name + " with delay " + delay);
             final ScheduledFuture< ? > future = schedule(command, delay, TimeUnit.MILLISECONDS);
             return future;
         } else {

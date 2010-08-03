@@ -269,7 +269,7 @@ public final class TCP extends IP {
 
     private static Random _random;
 
-    // for NIO support, if falsine, read will return EAGAIN rather than block
+    // for NIO support, if false, read will return EAGAIN rather than block
     boolean _blocking = true;
 
     // a unique id to identify the connection when debug tracing
@@ -319,7 +319,7 @@ public final class TCP extends IP {
             }
         }
         if (connectionsMap == null) {
-            connectionsMap = new HashMap<Integer, List<TCP>>();
+            connectionsMap = new CachingMap<Integer, List<TCP>>(1);
         }
         _state = State.NEW;
         _localPort = 0;
@@ -1966,72 +1966,43 @@ public final class TCP extends IP {
 
     // Searches through the list of TCP state objects for a match.
     // Returns the object if found, or null otherwise.
-    private static synchronized final TCP find(int local_port, int remote_ip, int remote_port) {
+    private static  final TCP find(int local_port, int remote_ip, int remote_port) {
 //        TCP result = null;
 
         if (_debug) {
             dprint("finding " + local_port + " " + IPAddress.toString(remote_ip) + ":" + remote_port);
         }
 
+        TCP result = null;
 //        if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
 //            result = cache;
 //        } else {
-//                for (TCP tcp = tcps; tcp != null; tcp = tcp._next) {
-//                    synchronized (tcp) {
-//                        if (tcp._localPort != local_port) {
-//                            continue;
-//                        }
-//
-//                        if (tcp._state == State.LISTEN) {
-//                            result = tcp;
-//                        }
-//
-//                        if (tcp._remotePort != remote_port) {
-//                            continue;
-//                        }
-//
-//                        if (tcp._remoteIp != remote_ip) {
-//                            continue;
-//                        }
-//
-//                        // found an exact match
-//                        cache = tcp;
-//                        result = tcp;
-//                        break;
-//                    }
-//                }
-//
-//        }
-        TCP result = null;
-        if (cache != null && cache._localPort == local_port && cache._remoteIp == remote_ip && cache._remotePort == remote_port) {
-            result = cache;
-        } else {
-            dprint("not found in cache");
-            synchronized (connectionsMap) {
-                List<TCP> results = connectionsMap.get(local_port);
-                if (results != null) {
-                    for (TCP tcp : results) {
-                        synchronized (tcp) {
-                            if (tcp._state == State.LISTEN) {
-                                result = tcp;
-                            }
-
-                            if (tcp._remotePort != remote_port) {
-                                continue;
-                            }
-
-                            if (tcp._remoteIp != remote_ip) {
-                                continue;
-                            }
-
-                            // found an exact match
-                            cache = tcp;
+//        dprint("not found in cache");
+        synchronized (connectionsMap) {
+            List<TCP> results = connectionsMap.get(local_port);
+            if (results != null) {
+                for (TCP tcp : results) {
+                    synchronized (tcp) {
+                        if (tcp._state == State.LISTEN) {
                             result = tcp;
-                            break;
                         }
+
+                        if (tcp._remotePort != remote_port) {
+                            continue;
+                        }
+
+                        if (tcp._remoteIp != remote_ip) {
+                            continue;
+                        }
+
+                        // found an exact match
+                         cache = tcp;
+                        result = tcp;
+                        break;
+                    }
                     }
                 }
-            }
+//            }
         }
         if (_debug) {
             dprint("found: " + result);
