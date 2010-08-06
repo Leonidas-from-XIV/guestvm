@@ -127,21 +127,35 @@ public class DumpProtocol extends CompleteProtocolAdaptor implements Protocol {
         return 0;
     }
 
-    @Override
-    public boolean readRegisters(int threadId, byte[] integerRegisters, int integerRegistersSize, byte[] floatingPointRegisters, int floatingPointRegistersSize, byte[] stateRegisters,
-                    int stateRegistersSize) {
-        try {
-            GuestContext context = xenReader.getGuestContext(tla.getCpu(threadId));
-            context.getCpuUserRegs().canonicalizeTeleIntegerRegisters(integerRegisters);
-            context.getCpuUserRegs().canonicalizeTeleStateRegisters(stateRegisters);
-            System.arraycopy(context.getfpuRegisters(), 0, floatingPointRegisters, 0, floatingPointRegistersSize);
-            return true;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return false;
-    }
+	@Override
+	public boolean readRegisters(int threadId, byte[] integerRegisters,
+			int integerRegistersSize, byte[] floatingPointRegisters,
+			int floatingPointRegistersSize, byte[] stateRegisters,
+			int stateRegistersSize) {
+		GUKThreadListAccess.ThreadInfo threadInfo = tla.getThreadInfo(threadId);
+		if (threadInfo.regsAvail) {
+			System.arraycopy(threadInfo.integerRegisters, 0, integerRegisters, 0, integerRegisters.length);
+			System.arraycopy(threadInfo.floatingPointRegisters, 0, floatingPointRegisters, 0, floatingPointRegisters.length);
+			System.arraycopy(threadInfo.stateRegisters, 0, stateRegisters, 0, stateRegisters.length);
+		} else {
+			assert threadInfo.integerRegisters == integerRegisters;
+			try {
+				GuestContext context = xenReader.getGuestContext(tla
+						.getCpu(threadId));
+				context.getCpuUserRegs().canonicalizeTeleIntegerRegisters(
+						integerRegisters);
+				context.getCpuUserRegs().canonicalizeTeleStateRegisters(
+						stateRegisters);
+				System.arraycopy(context.getfpuRegisters(), 0,
+						floatingPointRegisters, 0, floatingPointRegistersSize);
+				threadInfo.regsAvail = true;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return true;
+	}
 
     @Override
     public int readWatchpointAccessCode() {
