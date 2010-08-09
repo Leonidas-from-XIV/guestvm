@@ -119,7 +119,7 @@ public final class GUKNetDevice implements NetDevice {
     private static class PacketHandler {
         static final int IN_USE = 1;
         static final int FREE = 0;
-        static final int statusOffset = ClassActor.fromJava(PacketHandler.class).findFieldActor(SymbolTable.makeSymbol("status")).offset();
+        static final int statusOffset = ClassActor.fromJava(PacketHandler.class).findFieldActor(SymbolTable.makeSymbol("_status")).offset();
         Pointer _self;
         Packet _packet;
         Thread _handlerThread;
