@@ -528,8 +528,6 @@ public final class TCP extends IP {
             }
 
             synchronized (tcp) {
-
-//                TCP oldTcp= tcp;
                 if (_debug) {
                     if (_debug)
                         dprint("RCVD " + flagsToString(tcp.inp_flags) + "segment in state " + tcp._state + " input src " + IPAddress.toString(src_ip) + ":" + src_port + " dst localhost:" + dst_port + " flags: " + flagsToString(inp_flags) + "seq: " + inp_seq + " ack:" + inp_ack +
@@ -883,6 +881,7 @@ public final class TCP extends IP {
             // There is already a connection pending. Ignore this
             // connection request for now (they will retransmit and
             // hopefully then we will be ready for it).
+            tcpdprint("Connection pending. Ignoring this");
             return;
         }
 
@@ -1962,7 +1961,7 @@ public final class TCP extends IP {
         // no-op as we don't currently implement Nagle's algorithm
     }
 
-    static TCP cache = null;
+//    static TCP cache = null;
 
     // Searches through the list of TCP state objects for a match.
     // Returns the object if found, or null otherwise.
@@ -1996,7 +1995,7 @@ public final class TCP extends IP {
                         }
 
                         // found an exact match
-                         cache = tcp;
+//                         cache = tcp;
                         result = tcp;
                         break;
                     }
