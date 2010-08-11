@@ -226,7 +226,7 @@ public final class TCP extends IP {
     // linked list of active TCP objects
 //    private static TCP tcps;
     //A mapping of localport to the tcp connection object(s), multiple objects will exist in case we are the server side.
-    private static Map<Integer, List<TCP>> connectionsMap;
+    private static Map<Integer, List<TCP>> listenConnectionsMap;
 
 
     // ----------------------------------------------------------------------
@@ -318,9 +318,10 @@ public final class TCP extends IP {
                 _delayedAckTimer = new ThreadPoolScheduledTimer("Delayed Ack Timer");
             }
         }
-        if (connectionsMap == null) {
-            connectionsMap = new CachingMap<Integer, List<TCP>>(1);
+        if (listenConnectionsMap == null) {
+            listenConnectionsMap = new CachingMap<Integer, List<TCP>>(1);
         }
+
         _state = State.NEW;
         _localPort = 0;
         _debugId = _nextDebugId++;
@@ -343,8 +344,10 @@ public final class TCP extends IP {
 
     // Remove this TCP object from the list of active tcp objects.
     private void recycle() {
-        synchronized (connectionsMap) {
-            for (final Iterator<TCP> it = connectionsMap.get(_localPort).iterator(); it.hasNext();) {
+//        synchronized (connectionsMap) {
+            List<TCP> tcpobjects = listenConnectionsMap.get(_localPort);
+            synchronized(tcpobjects) {
+            for (final Iterator<TCP> it = tcpobjects.iterator(); it.hasNext();) {
                 final TCP t = it.next();
                 if (t == this) {
                     it.remove();
@@ -905,7 +908,6 @@ public final class TCP extends IP {
         tcp._remotePort = _remotePort;
         tcp._remoteIp = _remoteIp;
         tcp._localPort = _localPort;
-        addToConnections(tcp);
         inp_flags = inp_flags & ~SYN; // remove SYN and
         inp_seq++; // increment past it.
 
@@ -923,7 +925,7 @@ public final class TCP extends IP {
 
         tcp._state = State.SYN_RCVD;
         tcpPassiveOpens++;
-
+        addToConnections(tcp);
         tcp.send(SYN | ACK, tcp._iss, tcp.rcv_nxt);
 
         // take the initial rto timestamp for this connection.
@@ -1562,7 +1564,6 @@ public final class TCP extends IP {
     }
 
     static void closeAll() {
-        TCP nxt = null;
 //        TCP cur = tcps;
 //
 //        while (cur != null) {
@@ -1572,27 +1573,29 @@ public final class TCP extends IP {
 //            }
 //            cur = nxt;
 //        }
-        synchronized (connectionsMap) {
-            for (List<TCP> tcpobjects : connectionsMap.values()) {
+//        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : listenConnectionsMap.values()) {
+                synchronized(tcpobjects) {
                 for(Iterator<TCP> it=tcpobjects.iterator();it.hasNext();) {
                     TCP t = it.next();
                     if(t._state == State.ESTABLISHED) {
                         it.remove();
                     }
                 }
-            }
+                }
+//            }
             cleanupEmptyMappings();
         }
     }
 
     private static void cleanupEmptyMappings() {
-        synchronized(connectionsMap) {
-            for (Iterator<Entry<Integer, List<TCP>>> entryit = connectionsMap.entrySet().iterator();entryit.hasNext();) {
+//        synchronized(connectionsMap) {
+            for (Iterator<Entry<Integer, List<TCP>>> entryit = listenConnectionsMap.entrySet().iterator();entryit.hasNext();) {
                 Entry<Integer,List<TCP>> entry = entryit.next();
                 if(entry.getValue() == null || entry.getValue().isEmpty()) {
                     entryit.remove();
                 }
-            }
+//            }
         }
     }
 
@@ -1881,9 +1884,9 @@ public final class TCP extends IP {
 
     // simple method to find a connection with the given local port.
     private static List<TCP> find(int port) {
-        synchronized(connectionsMap) {
-            return connectionsMap.get(port);
-        }
+//        synchronized(connectionsMap) {
+            return listenConnectionsMap.get(port);
+//        }
     }
 
     // allocate a random number generator for the port number chooser.
@@ -1977,11 +1980,13 @@ public final class TCP extends IP {
 //            result = cache;
 //        } else {
 //        dprint("not found in cache");
-        synchronized (connectionsMap) {
-            List<TCP> results = connectionsMap.get(local_port);
+//        synchronized (connectionsMap) {
+            List<TCP> results = listenConnectionsMap.get(local_port);
+
             if (results != null) {
+                synchronized(results) {
                 for (TCP tcp : results) {
-                    synchronized (tcp) {
+//                    synchronized (tcp) {
                         if (tcp._state == State.LISTEN) {
                             result = tcp;
                         }
@@ -1998,7 +2003,7 @@ public final class TCP extends IP {
 //                         cache = tcp;
                         result = tcp;
                         break;
-                    }
+//                    }
                     }
                 }
 //            }
@@ -2135,7 +2140,7 @@ public final class TCP extends IP {
             try {
                 if (_debug)
                     dprint("retransmit timer " + this + " activated on " + _tcp);
-                if(_tcp._state == State.CLOSED) {
+                if(_tcp._state == State.CLOSED || _tcp._state == State.FIN_WAIT_2 ) {
                     dprint("retransmit timer " + "not activated on closed : " + _tcp);
                     return;
                 }
@@ -2176,8 +2181,9 @@ public final class TCP extends IP {
         out.print("Local Address       Remote Address    tx wnd tx Q  rx wnd rx Q State\n");
         out.print("------------------- ----------------- ------ ----- ------ ---- -----\n");
 
-        synchronized (connectionsMap) {
-            for (List<TCP> tcpobjects : connectionsMap.values()) {
+//        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : listenConnectionsMap.values()) {
+                synchronized (tcpobjects) {
                 for (TCP tcp : tcpobjects) {
                     out.print(tcp.toString() + "\n");
                     tcp = tcp._next;
@@ -2236,9 +2242,10 @@ public final class TCP extends IP {
             case 8:
                 return tcpEstabResets;
             case 9: {
-                synchronized (connectionsMap) {
+//                synchronized (connectionsMap) {
                     int tcpCurrEstab = 0;
-                    for (List<TCP> tcpobjects : connectionsMap.values()) {
+                    for (List<TCP> tcpobjects : listenConnectionsMap.values()) {
+                        synchronized(tcpobjects) {
                         for (TCP tcp : tcpobjects) {
                             if (tcp._state == State.ESTABLISHED || tcp._state == State.CLOSE_WAIT) {
                                 tcpCurrEstab++;
@@ -2264,12 +2271,12 @@ public final class TCP extends IP {
     }
 
     static synchronized int getNumConns() {
-        TCP tcp;
         int numConns;
 
         numConns = 0;
-        synchronized (connectionsMap) {
-            for (List<TCP> tcpobjects : connectionsMap.values()) {
+//        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : listenConnectionsMap.values()) {
+                synchronized(tcpobjects) {
                 numConns += tcpobjects.size();
             }
         }
@@ -2280,8 +2287,9 @@ public final class TCP extends IP {
         int localIP;
         localIP = IP.getLocalAddress();
         int i=0;
-        synchronized (connectionsMap) {
-            for (List<TCP> tcpobjects : connectionsMap.values()) {
+//        synchronized (connectionsMap) {
+            for (List<TCP> tcpobjects : listenConnectionsMap.values()) {
+                synchronized(tcpobjects) {
                 for (TCP tcp : tcpobjects) {
                     arr[i][0] = localIP;
                     arr[i][1] = tcp._localPort;
@@ -2290,7 +2298,7 @@ public final class TCP extends IP {
                     arr[i][4] = tcp._state.ordinal();
                     i++;
                 }
-            }
+                }
         }
         return i;
     }
@@ -2322,13 +2330,15 @@ public final class TCP extends IP {
     }
 
     private static void addToConnections(TCP tcp) {
-        synchronized (connectionsMap) {
-            List<TCP> connectionsList = connectionsMap.get(tcp._localPort);
+//        synchronized (connectionsMap) {
+            List<TCP> connectionsList = listenConnectionsMap.get(tcp._localPort);
             if (connectionsList == null) {
                 connectionsList = new ArrayList<TCP>();
-                connectionsMap.put(tcp._localPort, connectionsList);
+                listenConnectionsMap.put(tcp._localPort, connectionsList);
             }
+        synchronized (connectionsList) {
             connectionsList.add(tcp);
         }
+//        }
     }
 }

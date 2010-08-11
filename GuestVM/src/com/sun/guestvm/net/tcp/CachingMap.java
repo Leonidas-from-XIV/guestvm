@@ -35,13 +35,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
  * @author Puneeet Lakhina
  *
  */
-public class CachingMap<K, V> extends HashMap<K, V> {
+public class CachingMap<K, V> extends ConcurrentHashMap<K, V> {
 
     /**
      *
