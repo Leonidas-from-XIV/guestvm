@@ -35,12 +35,17 @@ package com.sun.guestvm.net.dns;
  * @author unknown, Mick Jordan (modifications)
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.sun.guestvm.net.*;
-import com.sun.guestvm.net.debug.*;
-import com.sun.guestvm.net.ip.*;
-import com.sun.guestvm.net.udp.*;
+import com.sun.guestvm.net.Packet;
+import com.sun.guestvm.net.debug.Debug;
+import com.sun.guestvm.net.ip.IPAddress;
+import com.sun.guestvm.net.udp.UDP;
+import com.sun.guestvm.net.udp.UDPUpcall;
 
 
 public class DNS implements UDPUpcall {

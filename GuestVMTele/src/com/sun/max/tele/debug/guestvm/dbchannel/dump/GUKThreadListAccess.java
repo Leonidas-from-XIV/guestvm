@@ -34,8 +34,7 @@ import static com.sun.max.vm.thread.VmThreadLocal.NATIVE_THREAD_LOCALS;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.sun.max.program.ProgramError;
 import com.sun.max.program.Trace;
@@ -66,11 +65,19 @@ public class GUKThreadListAccess {
         public final int cpu;
         public long rsp;
         public long rip;
+        // full register cache, available if regsAvail == true;
+        public boolean regsAvail;
+        public byte[] integerRegisters = new byte[128];
+        public byte[] floatingPointRegisters = new byte[128];
+        public byte[] stateRegisters = new byte[16];
 
         ThreadInfo(int id, int flags, int cpu) {
             this.id = id;
             this.flags = flags;
             this.cpu = cpu;
+            Arrays.fill(integerRegisters, (byte) 0);
+            Arrays.fill(floatingPointRegisters, (byte) 0);
+            Arrays.fill(stateRegisters, (byte) 0);
         }
     }
 
@@ -160,18 +167,15 @@ public class GUKThreadListAccess {
                 ThreadInfo threadInfo = new ThreadInfo(id, flags, threadStructBuffer.getInt(CPU_OFFSET));
                 // must add before calling protocol.readRegisters as it calls back to find cpu
                 currentThreadList.add(threadInfo);
+                final ByteBuffer stateRegBuffer = ByteBuffer.wrap(threadInfo.stateRegisters).order(ByteOrder.LITTLE_ENDIAN);
+                final ByteBuffer intRegBuffer = ByteBuffer.wrap(threadInfo.integerRegisters).order(ByteOrder.LITTLE_ENDIAN);
                 long rip;
                 long rsp;
                 if ((flags & RUNNING_FLAG) != 0) {
                     // full register set is available
-                    final byte[] integerRegisters = new byte[128];
-                    final byte[] floatingPointRegisters = new byte[128];
-                    final byte[] stateRegisters = new byte[16];
-                    protocol.readRegisters(id, integerRegisters, integerRegisters.length,
-                            floatingPointRegisters, floatingPointRegisters.length,
-                            stateRegisters, stateRegisters.length);
-                    final ByteBuffer stateRegBuffer = ByteBuffer.wrap(stateRegisters).order(ByteOrder.LITTLE_ENDIAN);
-                    final ByteBuffer intRegBuffer = ByteBuffer.wrap(integerRegisters).order(ByteOrder.LITTLE_ENDIAN);
+                    protocol.readRegisters(id, threadInfo.integerRegisters, threadInfo.integerRegisters.length,
+                    		threadInfo.floatingPointRegisters, threadInfo.floatingPointRegisters.length,
+                    		threadInfo.stateRegisters, threadInfo.stateRegisters.length);
                     rip = stateRegBuffer.getLong(0);
                     rsp = intRegBuffer.getLong(X86_64Registers.IntegerRegister.RSP.getCanonicalIndex());
                 } else {
@@ -181,11 +185,23 @@ public class GUKThreadListAccess {
                 }
                 threadInfo.rip = rip;
                 threadInfo.rsp = rsp;
+                intRegBuffer.putLong(X86_64Registers.IntegerRegister.RSP.getCanonicalIndex(), rsp);
+                stateRegBuffer.putLong(0, rip);
+                threadInfo.regsAvail = true;
             }
             threadStructAddress = threadStructBuffer.getLong(THREAD_LIST_OFFSET);
         }
 
         return currentThreadList;
+    }
+    
+    public ThreadInfo getThreadInfo(int id) {
+    	for (ThreadInfo threadInfo : currentThreadList) {
+    		if (threadInfo.id == id) {
+    			return threadInfo;
+    		}
+    	}
+    	throw new IllegalArgumentException("cannot find thread id " + id);
     }
 
     /**
@@ -194,12 +210,7 @@ public class GUKThreadListAccess {
      * @return the cpu the thread is currently running on.
      */
     public int getCpu(int id) {
-    	for (ThreadInfo threadInfo : currentThreadList) {
-    		if (threadInfo.id == id) {
-    			return threadInfo.cpu;
-    		}
-    	}
-    	throw new IllegalArgumentException("cannot find cpu for thread id " + id);
+    	return getThreadInfo(id).cpu;
     }
 
     private static void zeroBuffer(ByteBuffer bb) {

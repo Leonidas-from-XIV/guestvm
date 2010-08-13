@@ -40,12 +40,24 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DaemonThreadFactory implements ThreadFactory {
 
-    /* (non-Javadoc)
+    private String _name = "Daemon Thread Factory Thread";
+
+    public DaemonThreadFactory(String name) {
+        this._name = name;
+    }
+
+    public DaemonThreadFactory() {
+
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
      */
     @Override
     public Thread newThread(Runnable r) {
-        final Thread t = new Thread(r);
+        final Thread t = new Thread(r, _name);
         t.setDaemon(true);
         return t;
     }
