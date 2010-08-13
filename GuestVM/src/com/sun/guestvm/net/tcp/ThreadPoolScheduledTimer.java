@@ -73,7 +73,7 @@ public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
     public void cancelTask(ScheduledFuture< ? > future) {
         if (future != null) {
             TCP.dprint("Cancelling: Done? " + future.isDone() + " Cancelled? " + future.isCancelled());
-            future.cancel(true);
+            future.cancel(false);
         }
     }
 
