@@ -76,10 +76,10 @@ public final class HeapPool {
             initialHeapSize -= toUnit(initialHeapSize / 100);
         }
         final long maxHeapSize = toUnit(initialHeapSize + extra * 4096);
-        if (!Heap.initialSizeOptionIsPresent()) {
+        if (!Heap.maxHeapSizeOption.isPresent()) {
             Heap.setInitialSize(Size.fromLong(initialHeapSize));
         }
-        if (!Heap.maxSizeOptionIsPresent()) {
+        if (!Heap.initialHeapSizeOption.isPresent()) {
             Heap.setMaxSize(Size.fromLong(maxHeapSize));
         }
     }
