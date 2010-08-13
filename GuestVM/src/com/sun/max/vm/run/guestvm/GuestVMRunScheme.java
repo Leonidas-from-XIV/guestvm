@@ -206,8 +206,40 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     private static void checkTickProfiler() {
         final String prop = System.getProperty(TICK_PROFILER_PROPERTY);
         if (prop != null) {
-            Tick.create(prop.equals("") ? 0 : Integer.parseInt(prop));
+            int interval = 0;
+            int depth = 4;
+            int dumpPeriod = 0;
+            if (prop.length() > 0) {
+                final String[] options = prop.split(",");
+                for (String option : options) {
+                    if (option.startsWith("interval")) {
+                        interval = getTickOption(option);
+                    } else if (option.startsWith("depth")) {
+                        depth = getTickOption(option);
+                    } else if (option.startsWith("dump")) {
+                        dumpPeriod = getTickOption(option);
+                    } else {
+                        tickUsage();
+                    }
+                }
+            }
+            if (interval < 0 || depth < 0) {
+                tickUsage();
+            }
+            Tick.create(interval, depth, dumpPeriod);
         }
+    }
+
+    private static int getTickOption(String s) {
+        final int index = s.indexOf('=');
+        if (index < 0) {
+            return index;
+        }
+        return Integer.parseInt(s.substring(index + 1));
+    }
+
+    private static void tickUsage() {
+        GuestVMError.exit("usage: " + TICK_PROFILER_PROPERTY + "[=interval=i,depth=d,dump=t]");
     }
 
     private static void checkGUKTrace() {
