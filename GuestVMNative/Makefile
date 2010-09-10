@@ -152,6 +152,7 @@ default: $(TARGET)
 
 $(TARGET):  $(OBJS) fdlibmobjs/$(FDLIBMLIBA) $(UKERNEL_OBJ) ${MAXINE_SUBSTRATE}/${LIB_MAXINE} $(LDS)
 	$(LD) $(LDFLAGS_FINAL) $(UKERNEL_OBJ) $(OBJS) fdlibmobjs/$(FDLIBMLIBA) $(LDLIBS) -o $@
+	if [ ! -e ${MAXINE_SUBSTRATE}/maxvm ]; then ln -s `pwd`/guestvm ${MAXINE_SUBSTRATE}/maxvm; fi
 #	gzip -f -9 -c $@ >$@.gz
 
 .PHONY: clean

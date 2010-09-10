@@ -200,10 +200,10 @@ public final class GUKPagePool  implements Runnable {
                 long change = target - _current;
                 if (target > _current) {
                     change = GUKPagePool.increasePagePool(change);
-                    VMConfiguration.target().heapScheme().increaseMemory(Size.fromLong(toBytes(change)));
+                    VMConfiguration.vmConfig().heapScheme().increaseMemory(Size.fromLong(toBytes(change)));
                 } else {
                     change = _current - target;
-                    VMConfiguration.target().heapScheme().decreaseMemory(Size.fromLong(toBytes(change)));
+                    VMConfiguration.vmConfig().heapScheme().decreaseMemory(Size.fromLong(toBytes(change)));
                     long possibleDecrease = GUKPagePool.decreaseablePagePool();
                     if (possibleDecrease > 0) {
                         // keep decrease in heap units

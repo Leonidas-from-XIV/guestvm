@@ -26,33 +26,29 @@ import com.sun.max.program.*;
 import com.sun.max.tele.*;
 import com.sun.max.tele.debug.*;
 import com.sun.max.unsafe.*;
-import com.sun.max.vm.prototype.*;
+import com.sun.max.vm.hosted.BootImage;
+import com.sun.max.vm.hosted.BootImageException;
 
 public class GuestVMTeleVM extends TeleVM {
 
-    public GuestVMTeleVM(File bootImageFile, BootImage bootImage, Classpath sourcepath, String[] commandlineArguments, int processID) throws BootImageException {
-        super(bootImageFile, bootImage, sourcepath, commandlineArguments, processID, null);
-    }
-
-    private GuestVMTeleDomain domain;
-
-    @Override
-    protected TeleProcess createTeleProcess(String[] commandLineArguments, TeleVMAgent agent) throws BootImageException {
-        return attachToTeleProcess(-1);
+    public GuestVMTeleVM(File bootImageFile, BootImage bootImage, Classpath sourcepath, String[] commandlineArguments) throws BootImageException {
+        super(bootImageFile, bootImage, sourcepath, commandlineArguments);
     }
 
     @Override
-    protected TeleProcess attachToTeleProcess(int processID) {
-        if (domain != null) {
-            throw new RuntimeException("Attempt to create multiple GuestVMXenTeleDomains, not allowed.");
-        }
-        domain = new GuestVMTeleDomain(this, bootImage().vmConfiguration.platform(), processID);
-        return domain;
+    protected TeleProcess createTeleProcess(String[] commandLineArguments) throws BootImageException {
+        throw new BootImageException("domain creation not supported from the Inspector");
     }
 
     @Override
-    protected Pointer loadBootImage(TeleVMAgent agent) throws BootImageException {
-        return domain.getBootHeap();
+    protected TeleProcess attachToTeleProcess() {
+        return new GuestVMTeleDomain(this, bootImage().vmConfiguration.platform, targetLocation().id);
+    }
+
+    @Override
+    protected Pointer loadBootImage() throws BootImageException {
+    	// the only reason we override this is to ensure we go via GuestVMDBChannel to get the lock
+        return GuestVMXenDBChannel.getBootHeapStart();
     }
 
 }

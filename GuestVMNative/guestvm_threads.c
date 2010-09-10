@@ -131,7 +131,7 @@ extern void Java_com_sun_max_vm_thread_VmThread_nativeSetPriority(void *env,  vo
 extern void Java_com_sun_max_vm_thread_VmThread_nativeYield(void *env,  void *c);
 extern void Java_com_sun_max_vm_thread_VmThread_nativeInterrupt(void *env,  void *c, void *thread);
 extern int nonJniNativeSleep(long numberOfMilliSeconds);
-extern void nativeSetGlobalThreadAndGCLock(void  *mutex);
+extern void nativeSetGlobalThreadLock(void  *mutex);
 
 void *maxine_threads_dlsym(const char * symbol) {
     if (strcmp(symbol, "nativeThreadCreate") == 0) return nativeThreadCreate;
@@ -147,6 +147,6 @@ void *maxine_threads_dlsym(const char * symbol) {
       return Java_com_sun_max_vm_thread_VmThread_nativeInterrupt;
     else if (strcmp(symbol, "nonJniNativeSleep") == 0) return nonJniNativeSleep;
     else if (strcmp(symbol, "nonJniNativeJoin") == 0) return nonJniNativeJoin;
-    else if (strcmp(symbol, "nativeSetGlobalThreadAndGCLock") == 0) return nativeSetGlobalThreadAndGCLock;
+    else if (strcmp(symbol, "nativeSetGlobalThreadLock") == 0) return nativeSetGlobalThreadLock;
     else return 0;
 }

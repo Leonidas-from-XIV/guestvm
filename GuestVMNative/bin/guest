@@ -42,8 +42,7 @@ extra_projects=( \
   YANFS:src \
   GNUCP:src \
   GuestVMJDK:src \
-  NfsServer:src \
-  MaxineELF:src \
+  NFSServer:src \
   GuestVM:src,test \
   GuestVMTele:src \
 )

@@ -57,7 +57,7 @@ public final class JavaConditionVariable extends ConditionVariable {
     private WaitList _waiters;
 
     static void initialize() {
-        assert MaxineVM.hostOrTarget().phase == MaxineVM.Phase.PRIMORDIAL;
+        assert MaxineVM.isPrimordial();
         GUKScheduler.initialize(MaxineVM.Phase.PRIMORDIAL);
         _scheduler = SchedulerFactory.scheduler();
     }

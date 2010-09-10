@@ -50,8 +50,8 @@
  * thread stack area, starting at 3TB. We use a global bit map to indicate
  * that a given virtual address area is in use or not.
  *
- * N.B. Currently code regions are at 2GB not 3TB because they must be
- * with 2GB of the boot code region.
+ * The boot image code region is remapped to 3TB and dynamic code
+ * regions are mapped beyond that as needed.
  *
  * Author: Mick Jordan, Sun Microsystems Inc.
  */
@@ -64,8 +64,6 @@ static int max_code_regions;
 static DEFINE_SPINLOCK(bitmap_lock);
 
 #define BOOT_CODE_REGION_BASE  (3L * 1024L *1024L * 1024L * 1024L)  // 3TB
-
-#define CODE_REGIONS_BASE  (2L * 1024L *1024L * 1024L)  // 2GB
 
 static unsigned long code_region_base;
 static unsigned long _code_region_size = 0;
@@ -117,7 +115,7 @@ unsigned long allocate_code_region(int n, unsigned long vaddr) {
 	  if (code_region_base == 0) {
 		  init_code_regions(vsize);
 	  }
-	  //guk_printk("allocate_code_region %lx %lx\n", vaddr, n);
+///	  guk_printk("allocate_code_region %lx %lx\n", vaddr, n);
 	  slot = (vaddr - code_region_base) / _code_region_size;
 	  spin_lock(&bitmap_lock);
 	  if (allocated_in_map(alloc_bitmap, slot)) {

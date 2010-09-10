@@ -831,7 +831,7 @@ public class KernelTest {
     }
 
     private static void shrinkHeap(int amount) {
-        VMConfiguration.target().heapScheme().decreaseMemory(VMTestHelper.fromInt(amount));
+        VMConfiguration.vmConfig().heapScheme().decreaseMemory(VMTestHelper.fromInt(amount));
     }
 
     /**

@@ -50,13 +50,13 @@ run=1
 trace=1
 dialog=""
 commandfilearg=""
-xvm=0
 cp=""
 cpb=""
 vmargs=""
 javacmd=`which java`
-channel="-Dmax.ins.guestvm.channel=db,$PWD/guestvm"
-mode="create"
+mode="attachwaiting"
+target=""
+location=""
 
 while [ "$1" != "" ];
 do
@@ -104,20 +104,22 @@ do
     shift
     javacmd=$1
     ;;
+    
   -tcp* )
     type=${1/-/}
     shift
+    target="remote"
+    location=$1
     if [ $type = "tcp.xga" ] ;
     then
         mode="attach"
-        type="tcp.xg"
     fi
-    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=$type,$PWD/guestvm,$1 -Dmax.tele.page.noDirectBuffers=1"
     ;;
   "-dump" )
     shift
-    mode="dump"
-    channel="-Dmax.ins.no.tele -Dmax.ins.guestvm.channel=xen.dump,$PWD/guestvm,$1"
+    mode="attach"
+    target="file"
+    location=$1
     ;;
   "-view" )
     mode="image"
@@ -128,24 +130,12 @@ do
   shift
 done
 
-if [ "$xvm" -eq 0 ] ;
-then
-  BUILD_WS_ROOT="$WS_ROOT"
-  INS_WS_ROOT="$WS_ROOT"
-  IMAGE_WS_ROOT="$WS_ROOT"
-else
-# If we are running Solaris xVM assume that we are cd'ed in the Solaris build image workspace
-# and that the Linux Inspector is in a sibling workpace named $WS_ROOT-linux
-  BUILD_WS_ROOT="$WS_ROOT"
-  INS_WS_ROOT=${WS_ROOT}-linux
-  IMAGE_WS_ROOT="$BUILD_WS_ROOT"
-  # This is to avoid protection issues with the $Proxy*.class files
-  cd $INS_WS_ROOT
-fi
-
+BUILD_WS_ROOT="$WS_ROOT"
+INS_WS_ROOT="$WS_ROOT"
+IMAGE_WS_ROOT="$WS_ROOT"
 MAX=$INS_WS_ROOT/maxine
 
-classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$GUESTVM_ROOT/MaxineELF/bin:$GUESTVM_ROOT/GuestVMTele/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NfsServer/bin:$GUESTVM_ROOT/GNUCP/bin
+classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$GUESTVM_ROOT/GuestVMTele/bin:$GUESTVM_ROOT/GuestVM/bin:$GUESTVM_ROOT/GuestVMBase/bin:$GUESTVM_ROOT/JNodeFS/bin:$GUESTVM_ROOT/YANFS/bin:$GUESTVM_ROOT/NFSServer/bin:$GUESTVM_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
@@ -154,7 +144,7 @@ if [ "$cpb" != "" ] ;
 then
   classpath=${cpb}:${classpath}
 fi
-cmd="$javacmd -d64 $vmargs $channel -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dos.name=GuestVM -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg -mode=$mode"
+cmd="$javacmd -d64 $vmargs -Xbootclasspath/a:$GUESTVM_ROOT/GuestVMJDK/bin -classpath $classpath -Dmax.os=GuestVM -Dmax.os.signalcount=0 -Xms512m -Xmx1024m -Dmax.extended.codebase=com.sun.guestvm com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/guestvm $commandfilearg -mode=$mode -target=$target -location=$location"
 
 if [ "$echocmd" -eq 1 ] ;
 then

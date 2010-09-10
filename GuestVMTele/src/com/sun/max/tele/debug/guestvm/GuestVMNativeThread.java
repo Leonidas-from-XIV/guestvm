@@ -21,7 +21,6 @@
 package com.sun.max.tele.debug.guestvm;
 
 import com.sun.max.tele.debug.*;
-import com.sun.max.tele.debug.guestvm.dbchannel.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.runtime.*;
 
@@ -46,7 +45,7 @@ public class GuestVMNativeThread extends TeleNativeThread {
 
     @Override
     protected boolean updateInstructionPointer(Address address) {
-        return GuestVMXenDBChannel.setInstructionPointer((int) localHandle(), address.toLong()) == 0;
+        return GuestVMXenDBChannel.setInstructionPointer((int) localHandle(), address.toLong());
     }
 
     @Override

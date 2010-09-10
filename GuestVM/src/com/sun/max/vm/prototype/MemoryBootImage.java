@@ -35,6 +35,7 @@ import java.io.*;
 
 import com.sun.max.elf.*;
 import com.sun.max.program.Trace;
+import com.sun.max.vm.hosted.BootImageGenerator;
 
 /**
  * A program to convert a Maxine VM image into a (sequence of) assembler file(s) or ELF file(s).
@@ -123,7 +124,7 @@ public class MemoryBootImage {
             Trace.line(1, "Writing Elf File....");
             final long size = bootImage.length(); // The size of the image file that is stored in a section.
             final ELFHeader imageElfHeader = new ELFHeader();
-            imageElfHeader.WriteHeader64(size);
+            imageElfHeader.writeHeader64(size);
             final ELFSectionHeaderTable imageElfSectionHdr = new ELFSectionHeaderTable(imageElfHeader);
             ELFSymbolTable imageSymTab;
             final BufferedInputStream is = new BufferedInputStream(

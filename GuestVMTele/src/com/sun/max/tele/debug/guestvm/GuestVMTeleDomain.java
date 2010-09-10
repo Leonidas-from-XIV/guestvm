@@ -23,14 +23,11 @@ package com.sun.max.tele.debug.guestvm;
 import java.nio.*;
 import java.util.*;
 
-import javax.swing.*;
-
 import com.sun.max.platform.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.*;
 import com.sun.max.tele.debug.*;
 import com.sun.max.tele.debug.TeleNativeThread.*;
-import com.sun.max.tele.debug.guestvm.dbchannel.*;
 import com.sun.max.tele.memory.*;
 import com.sun.max.tele.page.*;
 import com.sun.max.unsafe.*;
@@ -39,18 +36,13 @@ import com.sun.max.vm.*;
 public class GuestVMTeleDomain extends TeleProcess {
 
     private int domainId;
-    public int domainId() {
-        return domainId;
-    }
-
     private final DataAccess dataAccess;
-
-    private boolean terminated = false;
 
     protected GuestVMTeleDomain(TeleVM teleVM, Platform platform, int id) {
         super(teleVM, platform, ProcessState.STOPPED);
-        GuestVMXenDBChannel.attach(this,id);
-        dataAccess = new PageDataAccess(this, platform.processorKind.dataModel);
+        this.domainId = id;
+        dataAccess = new PageDataAccess(this, platform.dataModel());
+        GuestVMXenDBChannel.attach(this, id);
     }
 
     @Override
@@ -58,16 +50,12 @@ public class GuestVMTeleDomain extends TeleProcess {
         return dataAccess;
     }
 
-    public Pointer getBootHeap() {
-        return GuestVMXenDBChannel.getBootHeapStart();
-    }
-
     @Override
     protected TeleNativeThread createTeleNativeThread(Params params) {
         /* Need to align and skip over the guard page at the base of the stack.
          * N.B. "base" is low address (i.e., actually the end of the stack!).
          */
-        final int pageSize = VMConfiguration.hostOrTarget().platform().pageSize;
+        final int pageSize = VMConfiguration.vmConfig().platform.pageSize;
         final long stackBottom = pageAlign(params.stackRegion.start().toLong(), pageSize) + pageSize;
         final long adjStackSize = params.stackRegion.size().toLong() - (stackBottom - params.stackRegion.start().toLong());
         final TeleFixedMemoryRegion adjStack = new TeleFixedMemoryRegion(vm(), params.stackRegion.regionName(), Address.fromLong(stackBottom), Size.fromLong(adjStackSize));
@@ -83,7 +71,9 @@ public class GuestVMTeleDomain extends TeleProcess {
 
     @Override
     protected void kill() throws OSExecutionRequestException {
-        ProgramWarning.message("unimplemented: " + "cannot kill target domain from Inspector");
+    	if (!TeleVM.isDump()) {
+            ProgramWarning.message("unimplemented: " + "cannot kill target domain from Inspector");
+    	}
     }
 
     // In the current synchronous connection with the target domain, we only ever stop at a breakpoint
@@ -91,13 +81,12 @@ public class GuestVMTeleDomain extends TeleProcess {
 
     @Override
     protected ProcessState waitUntilStopped() {
-        return terminated ? ProcessState.TERMINATED : ProcessState.STOPPED;
+    	return GuestVMXenDBChannel.waitUntilStopped();
     }
 
     @Override
     protected void resume() throws OSExecutionRequestException {
-        final int rrc = GuestVMXenDBChannel.resume(domainId);
-        terminated = rrc != 0;
+    	GuestVMXenDBChannel.resume(domainId);
     }
 
     @Override

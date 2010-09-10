@@ -38,11 +38,9 @@ import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.bytecode.*;
 import com.sun.max.vm.compiler.target.*;
-import com.sun.max.vm.heap.Heap;
 import com.sun.max.vm.runtime.*;
 import com.sun.max.vm.stack.*;
 import com.sun.max.vm.thread.VmThread;
-import com.sun.max.vm.thread.VmThreadMap;
 import com.sun.max.unsafe.*;
 
 /**
@@ -58,7 +56,7 @@ import com.sun.max.unsafe.*;
  * @author Mick Jordan
  *
  */
-public final class Tick implements Runnable {
+public final class Tick extends Thread {
 
     private static final int DEFAULT_FREQUENCY = 50;
     private static final int DEFAULT_DEPTH = 4;
@@ -111,27 +109,34 @@ public final class Tick implements Runnable {
      * Period in milliseconds between dumping the traces to the standard output.
      */
     private static long _dumpPeriod;
+    
+    /**
+     * The profiler thread itself.
+     */
+    private static VmThread _profiler;
 
     /**
      * Create a tick profiler with given measurement period, stack depth and dump period.
      * @param period base period for measurements in millisecs, 0 implies {@value DEFAULT_FREQUENCY}
-     * @param depth stack depth to record, 0 implies {@value DEFAULT_DEPTH}
+     * @param depth stack depth to record, 0 implies {@value DEFAULT_DEPTH}, < 0 implies no limit
      * @param dumpPeriod time in seconds between dumps to standard output, 0 implies never (default)
      */
     public static void create(int period, int depth, int dumpPeriod) {
         _period = period == 0 ? DEFAULT_FREQUENCY : period;
         _jiggle = _period / 8;
-        _maxDepth = depth == 0 ? DEFAULT_DEPTH : depth;
+        _maxDepth = depth == 0 ? DEFAULT_DEPTH : (depth < 0 ? Integer.MAX_VALUE : depth);
         _dumpPeriod = dumpPeriod * 1000000000L;
         _workingStackInfo = new StackInfo(_maxDepth);
         Runtime.getRuntime().addShutdownHook(new InfoOutput());
-        final Thread profiler = new Thread(new Tick(), "Tick-Profiler");
-        profiler.setDaemon(true);
+        final Thread profileThread = new Tick();
+        profileThread.setName("Tick-Profiler");
+        profileThread.setDaemon(true);
         _profiling = true;
-        profiler.start();
+        profileThread.start();
     }
 
     public void run() {
+        _profiler = VmThread.fromJava(this);
         long lastDump = System.nanoTime();
         while (true) {
             try {
@@ -140,16 +145,12 @@ public final class Tick implements Runnable {
                 Thread.sleep(thisPeriod);
                 final long now = System.nanoTime();
                 if (_profiling) {
-                    try {
-                        stackTraceGatherer.run();
-                        if (_dumpPeriod > 0 && now > lastDump + _dumpPeriod) {
-                            InfoOutput.dumpTraces();
-                            lastDump = now;
-                        }
-                        _profileCount++;
-                    } catch (Heap.HoldsGCLockError ex) {
-                        // we could run out of heap and can't GC so just abandon
+                    stackTraceGatherer.submit();
+                    if (_dumpPeriod > 0 && now > lastDump + _dumpPeriod) {
+                        InfoOutput.dumpTraces();
+                        lastDump = now;
                     }
+                    _profileCount++;
                 }
             } catch (InterruptedException ex) {
             }
@@ -159,13 +160,18 @@ public final class Tick implements Runnable {
     /**
      * Encapsulates the basic logic of handling one thread after all threads are frozen.
      */
-    private static final class StackTraceGatherer extends FreezeThreads {
+    private static final class StackTraceGatherer extends VmOperation {
         StackTraceGatherer() {
-            super("Tick Profiler", VmThreadMap.isNotGCOrCurrentThread);
+            super("Tick Profiler", null, Mode.Safepoint);
         }
+        
         @Override
-        public void doThread(Pointer threadLocals, Pointer ip, Pointer sp, Pointer fp) {
-            final VmThread vmThread = VmThread.fromVmThreadLocals(threadLocals);
+        protected boolean operateOnThread(VmThread thread) {
+            return thread != _profiler;
+        }
+        
+        @Override
+        public void doThread(VmThread vmThread, Pointer ip, Pointer sp, Pointer fp) {
             final VmStackFrameWalker stackFrameWalker = vmThread.stackDumpStackFrameWalker();
             _workingStackInfo.reset();
             _workingDepth = 0;
@@ -179,7 +185,7 @@ public final class Tick implements Runnable {
             }
             // Check if this thread had this stack trace before, allocating a new {@link ThreadInfo} instance if not
             final ThreadInfo threadInfo = getThreadInfo(threadInfoList, vmThread);
-            // bump the number of times the given threas has been in this state
+            // bump the number of times the given threads has been in this state
             threadInfo.count++;
         }
     }

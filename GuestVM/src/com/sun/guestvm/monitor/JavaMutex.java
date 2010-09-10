@@ -65,7 +65,7 @@ public final class JavaMutex extends Mutex {
     private WaitList _waiters;
 
     static void initialize() {
-        assert MaxineVM.hostOrTarget().phase == MaxineVM.Phase.PRIMORDIAL;
+        assert MaxineVM.isPrimordial();
         GUKScheduler.initialize(MaxineVM.Phase.PRIMORDIAL);
         _scheduler = SchedulerFactory.scheduler();
     }

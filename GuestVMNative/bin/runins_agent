@@ -38,26 +38,30 @@ WS_ROOT=`dirname $GUESTVM_ROOT`
 
 MAX=$WS_ROOT/maxine
 
+echocmd=0
 port=""
-impl=""
+impl="DB"
 trace=""
 javacmd=`which java`
 
 while [ "$1" != "" ];
 do
-#  echo $1
   case $1 in
+  "-echo" )
+    echocmd=1
+    ;;
   "-port" )
     shift
-    port="-port $1"
+    port="-port=$1"
     ;;
-  "-impl" )
-    shift
-    impl="-impl $1"
+  "-db" )
+    ;;
+  "-xg" )
+    impl="XG"
     ;;
   "-trace" )
     shift
-    trace="-trace $1"
+    trace="-trace=$1"
     ;;
   "-java" )
     shift
@@ -73,4 +77,11 @@ done
 
 classpath=$GUESTVM_ROOT/GuestVMTele/bin:$MAX/Inspector/bin:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin
 
-$javacmd -cp $classpath com.sun.max.tele.debug.guestvm.dbchannel.agent.ProtocolAgent $port $impl $trace $*
+cmd="$javacmd -cp $classpath com.sun.max.tele.channel.agent.InspectorAgent $port -os=GuestVM -os.sub=$impl $trace $*"
+
+if [ "$echocmd" -eq 1 ] ;
+then
+  echo "$cmd"
+fi
+
+$cmd

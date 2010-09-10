@@ -9,10 +9,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/JNodeFS"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVMBase"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/YANFS"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MaxineELF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GNUCP"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVMJDK"/>
 	<classpathentry kind="lib" path="/import/javaguest/solaris/jdk1.6.0_17/lib/tools.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/NfsServer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MaxineELF"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NFSServer"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

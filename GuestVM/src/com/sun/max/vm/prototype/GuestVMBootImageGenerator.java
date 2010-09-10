@@ -38,6 +38,8 @@ import com.sun.max.io.*;
 import com.sun.max.io.Streams.*;
 import com.sun.max.program.*;
 import com.sun.max.program.option.*;
+import com.sun.max.vm.hosted.BootImageGenerator;
+
 import test.com.sun.max.vm.compiler.JavaTester;
 
 public class GuestVMBootImageGenerator {
@@ -121,7 +123,7 @@ public class GuestVMBootImageGenerator {
     private static void buildMaxineImage(String[] arguments)  throws IOException, InterruptedException {
         final String[] generatorArgs = {"-trace=1", "-run=com.sun.max.vm.run.guestvm", "-build=" + BUILD_TYPE.getValue()};
         final String[] defaultSystemProperties = {
-            "max.host.os=GUESTVM",
+            "max.os=GUESTVM",
             "max.vm.run.extendimage.specfile=" + IMAGESPEC_FILE.getValue(),
             "max.allow.all.core.packages",
             "max.extended.codebase=com.sun.guestvm",

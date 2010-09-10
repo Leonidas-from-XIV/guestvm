@@ -46,7 +46,6 @@ import com.sun.cri.bytecode.*;
  *
  */
 
-@SuppressWarnings("unused")
 public class GUKVmThread extends VmThread {
 
     private int _cpu; // cpu the thread is running or scheduled to run on
@@ -154,7 +153,7 @@ public class GUKVmThread extends VmThread {
     }
 
     public final int safeNativeId() {
-        if (nativeThread == null) {
+        if (nativeThread.isZero()) {
             return -1;
         }
         return nativeId();
