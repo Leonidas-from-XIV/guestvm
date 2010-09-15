@@ -38,7 +38,6 @@
 jh=${JAVA_HOME##*/}
 jar=""
 classpath=$CLASSPATH
-vmalloc="-XX:+UseVirtualMemory"
 gukargs=""
 ramdisk=""
 javahome="-Djava.home=/guestvm/java/$jh/jre"
@@ -58,7 +57,7 @@ if [ ! -d $parent/xmconfigs ] ; then
   exit 1
 fi
 
-vmargs="$vmalloc $javahome -Dguestvm.dir=$parent -Dguestvm.pid=$$"
+vmargs="$javahome -Dguestvm.dir=$parent -Dguestvm.pid=$$"
 
 while [ "$1" != "" ] ;
 do
