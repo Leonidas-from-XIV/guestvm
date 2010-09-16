@@ -45,6 +45,7 @@ import org.jnode.fs.ext2.*;
 /**
  * Tools for actions, e.g., format, copyin, copyout, mkdir, mkfile, ls, rm, mv, on an ext2 file system stored in a disk image file.
  *
+ *<pre>
  * Usage:
  * format -disk imagefile
  * copy[in] -disk imagefile -from file -ext2path tofile
@@ -54,6 +55,8 @@ import org.jnode.fs.ext2.*;
  * mkfile -disk imagefile -ext2path file
  * rm -disk imagefile -ext2path file
  * mv -disk imagefile -ext2path file -to file
+ * cat -disk imagefile -ext2path file
+ * </pre>
  *
  * The keyword arguments can be in any order and, if the command is preceded by -c,
  * it can also.
@@ -204,6 +207,7 @@ public class Ext2FileTool {
         System.out.println("  [-c] ls -disk diskfile -ext2path file [-l] [-a] [-r]");
         System.out.println("  [-c] rm -disk diskfile -ext2path file");
         System.out.println("  [-c] mv -disk diskfile -ext2path file -to ex2path2");
+        System.out.println("  [-c] cat -disk diskfile -ext2path file");
     }
 
     private static boolean checkCommand(String command) {

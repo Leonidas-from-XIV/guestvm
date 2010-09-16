@@ -32,15 +32,17 @@
 package com.sun.guestvm.jdk;
 
 /**
- * This version is an almost pure delegation to the GNU Classpath version.
- * All the public methods in java.util.zip.Inflater are substituted and call the
- * GNU version, except those that directly forward to another public method
- * without accessing the implementation state.
- *
- * N.B. This code depends on the implementation of java.util.zip.Inflater.
- * It substitutes the native "init" method and uses the "strm" field to index an
- * array of GNU Inflater instances.
- *
+ * This version is an almost pure delegation to the GNU Classpath version. All the public methods in
+ * java.util.zip.Inflater are substituted and call the GNU version, except those that directly forward to another public
+ * method without accessing the implementation state.
+ * 
+ * N.B. This code depends on the implementation of {@link java.util.zip.Inflater}. We substitutes the native "init"
+ * method and use the field in {@code Inflater} that normally holds the native handle to index an array of GNU Inflater
+ * instances.
+ * 
+ * N.B. The implementation of Inflater changed at JDK1.6.0_19 to use a separate class {@link java.util.zip.ZStreamRef}
+ * to hold the native handle. We support both versions.
+ * 
  * @author Mick Jordan
  */
 
@@ -49,6 +51,7 @@ import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.max.annotate.CONSTANT_WHEN_NOT_ZERO;
 import com.sun.max.annotate.INLINE;
 import com.sun.max.annotate.METHOD_SUBSTITUTIONS;
@@ -64,15 +67,36 @@ public class JDK_java_util_zip_Inflater {
 
     private static List<gnu.java.util.zip.Inflater> _gnuInflaters = new ArrayList<gnu.java.util.zip.Inflater>();
 
+    /**
+     * This always holds the {@link FieldActor} for the native handle that we use to store the index to the GNU inflater.
+     */
     @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _strmFieldActor;
+    private static FieldActor _nativeHandleFieldActor;
 
-    @INLINE
-    static FieldActor strmFieldActor() {
-        if (_strmFieldActor == null) {
-            _strmFieldActor = (FieldActor) ClassActor.fromJava(Inflater.class).findFieldActor(SymbolTable.makeSymbol("strm"));
+    /**
+     * This is {@code null} unless there is a "zsRef" indirection object in {@link java.util.zip.Inflater}.
+     */
+    @CONSTANT_WHEN_NOT_ZERO
+    private static FieldActor _zsRefFieldActor;
+    
+    static FieldActor nativeHandleFieldActor() {
+        if (_nativeHandleFieldActor == null) {
+            final ClassActor inflaterClassActor = ClassActor.fromJava(Inflater.class);
+            _nativeHandleFieldActor = (FieldActor) inflaterClassActor.findFieldActor(SymbolTable.makeSymbol("strm"));
+            if (_nativeHandleFieldActor == null) {
+                // held in "address" field of "zsRef" (ZStreamRef) field
+                try {
+                    _zsRefFieldActor = (FieldActor) inflaterClassActor.findFieldActor(SymbolTable.makeSymbol("zsRef"));
+                    if (_zsRefFieldActor == null) {
+                        throw new NullPointerException();
+                    }
+                    _nativeHandleFieldActor = ClassActor.fromJava(Class.forName("java.util.zip.ZStreamRef")).findFieldActor(SymbolTable.makeSymbol("address"));
+                } catch (Exception ex) {
+                    GuestVMError.unexpected("inconsistency with java.util.zip.Inflater implementation");
+                }
+            }
         }
-        return _strmFieldActor;
+        return _nativeHandleFieldActor;
     }
 
     static int getIndex() {
@@ -87,7 +111,15 @@ public class JDK_java_util_zip_Inflater {
     }
 
     static gnu.java.util.zip.Inflater getGNUInflater(Object inflater) {
-        return _gnuInflaters.get((int) TupleAccess.readLong(inflater, strmFieldActor().offset()));
+        int index;
+        final FieldActor nhf = nativeHandleFieldActor();  // force initialization
+        if (_zsRefFieldActor == null) {
+            index = (int) TupleAccess.readLong(inflater, nhf.offset());
+        } else {
+            final Object zsRef = TupleAccess.readObject(inflater, _zsRefFieldActor.offset());
+            index = (int) TupleAccess.readLong(zsRef, nhf.offset());
+        }
+        return _gnuInflaters.get(index);
     }
 
     @SUBSTITUTE
@@ -163,11 +195,11 @@ public class JDK_java_util_zip_Inflater {
 
     @SUBSTITUTE
     private void end() {
-        final int strm = (int) TupleAccess.readLong(this, strmFieldActor().offset());
+        final int strm = (int) TupleAccess.readLong(this, nativeHandleFieldActor().offset());
         if (strm != 0) {
             synchronized (_gnuInflaters) {
                 _gnuInflaters.get(strm).end();
-                TupleAccess.writeLong(this, strmFieldActor().offset(), 0);
+                TupleAccess.writeLong(this, nativeHandleFieldActor().offset(), 0);
                 _gnuInflaters.set(strm, null);
             }
         }
