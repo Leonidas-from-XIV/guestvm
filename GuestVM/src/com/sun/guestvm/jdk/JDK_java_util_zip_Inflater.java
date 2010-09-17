@@ -33,16 +33,16 @@ package com.sun.guestvm.jdk;
 
 /**
  * This version is an almost pure delegation to the GNU Classpath version. All the public methods in
- * java.util.zip.Inflater are substituted and call the GNU version, except those that directly forward to another public
- * method without accessing the implementation state.
+ * {@link java.util.zip.Inflater} are substituted and call the GNU version, except those that directly forward to
+ * another public method without accessing the implementation state.
  * 
- * N.B. This code depends on the implementation of {@link java.util.zip.Inflater}. We substitutes the native "init"
- * method and use the field in {@code Inflater} that normally holds the native handle to index an array of GNU Inflater
- * instances.
- * 
- * N.B. The implementation of Inflater changed at JDK1.6.0_19 to use a separate class {@link java.util.zip.ZStreamRef}
- * to hold the native handle. We support both versions.
- * 
+ * We use an injected field to store the {@link gnu.java.util.zip.Inflater} instance in the
+ * {@link java.util.zip.Inflater} instance. We are somewhat dependent on the implementation
+ * of {@link java.util.zip.Inflater} but independent of its state, which is good because this
+ * changed in JDK 1.6.0_19. The trick is to substitute the constructor, which allows
+ * us to store the {@link gnu.java.util.zip.Inflater} in the injected field. We can't do this
+ * in the {@code init} method because it is, sigh, {@code static}.
+ *
  * @author Mick Jordan
  */
 
@@ -58,6 +58,7 @@ import com.sun.max.annotate.METHOD_SUBSTITUTIONS;
 import com.sun.max.annotate.SUBSTITUTE;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.FieldActor;
+import com.sun.max.vm.actor.member.InjectedReferenceFieldActor;
 import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.max.vm.object.TupleAccess;
 
@@ -65,75 +66,32 @@ import com.sun.max.vm.object.TupleAccess;
 @METHOD_SUBSTITUTIONS(Inflater.class)
 public class JDK_java_util_zip_Inflater {
 
-    private static List<gnu.java.util.zip.Inflater> _gnuInflaters = new ArrayList<gnu.java.util.zip.Inflater>();
-
     /**
-     * This always holds the {@link FieldActor} for the native handle that we use to store the index to the GNU inflater.
+     * A field of type {@link gnu.java.util.zip.Inflater} injected into {@link java.util.zip.Inflater}.
      */
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _nativeHandleFieldActor;
-
-    /**
-     * This is {@code null} unless there is a "zsRef" indirection object in {@link java.util.zip.Inflater}.
-     */
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _zsRefFieldActor;
+    private static final InjectedReferenceFieldActor<gnu.java.util.zip.Inflater> Inflater_gnuInflater = new InjectedReferenceFieldActor<gnu.java.util.zip.Inflater>(java.util.zip.Inflater.class, gnu.java.util.zip.Inflater.class) {
+    };
     
-    static FieldActor nativeHandleFieldActor() {
-        if (_nativeHandleFieldActor == null) {
-            final ClassActor inflaterClassActor = ClassActor.fromJava(Inflater.class);
-            _nativeHandleFieldActor = (FieldActor) inflaterClassActor.findFieldActor(SymbolTable.makeSymbol("strm"));
-            if (_nativeHandleFieldActor == null) {
-                // held in "address" field of "zsRef" (ZStreamRef) field
-                try {
-                    _zsRefFieldActor = (FieldActor) inflaterClassActor.findFieldActor(SymbolTable.makeSymbol("zsRef"));
-                    if (_zsRefFieldActor == null) {
-                        throw new NullPointerException();
-                    }
-                    _nativeHandleFieldActor = ClassActor.fromJava(Class.forName("java.util.zip.ZStreamRef")).findFieldActor(SymbolTable.makeSymbol("address"));
-                } catch (Exception ex) {
-                    GuestVMError.unexpected("inconsistency with java.util.zip.Inflater implementation");
-                }
-            }
-        }
-        return _nativeHandleFieldActor;
-    }
-
-    static int getIndex() {
-        final int size = _gnuInflaters.size();
-        for (int i = 0; i < size; i++) {
-            if (_gnuInflaters.get(i) == null) {
-                return i;
-            }
-        }
-        _gnuInflaters.add(null);
-        return size;
-    }
-
+    @INLINE
     static gnu.java.util.zip.Inflater getGNUInflater(Object inflater) {
-        int index;
-        final FieldActor nhf = nativeHandleFieldActor();  // force initialization
-        if (_zsRefFieldActor == null) {
-            index = (int) TupleAccess.readLong(inflater, nhf.offset());
-        } else {
-            final Object zsRef = TupleAccess.readObject(inflater, _zsRefFieldActor.offset());
-            index = (int) TupleAccess.readLong(zsRef, nhf.offset());
-        }
-        return _gnuInflaters.get(index);
+       return (gnu.java.util.zip.Inflater) TupleAccess.readObject(inflater, Inflater_gnuInflater.offset());
     }
 
     @SUBSTITUTE
     private static void initIDs() {
     }
+    
+    @SUBSTITUTE(constructor=true)
+    private void constructor(boolean nowrap) {
+        final gnu.java.util.zip.Inflater gnuInflater = new gnu.java.util.zip.Inflater(nowrap);
+        TupleAccess.writeObject(this, Inflater_gnuInflater.offset(), gnuInflater);
+    }
 
     @SUBSTITUTE
     private static long init(boolean nowrap) {
-        final gnu.java.util.zip.Inflater gnuInflater = new gnu.java.util.zip.Inflater(nowrap);
-        synchronized (_gnuInflaters) {
-            final int index = getIndex();
-            _gnuInflaters.set(index, gnuInflater);
-            return index;
-        }
+        // having substituted the constructor this should never be called, but just to be safe! 
+        GuestVMError.unexpected("java.util.zip.Inflater.init should never be called!");
+        return 0;
     }
 
     @SUBSTITUTE
@@ -195,14 +153,9 @@ public class JDK_java_util_zip_Inflater {
 
     @SUBSTITUTE
     private void end() {
-        final int strm = (int) TupleAccess.readLong(this, nativeHandleFieldActor().offset());
-        if (strm != 0) {
-            synchronized (_gnuInflaters) {
-                _gnuInflaters.get(strm).end();
-                TupleAccess.writeLong(this, nativeHandleFieldActor().offset(), 0);
-                _gnuInflaters.set(strm, null);
-            }
-        }
+        getGNUInflater(this).end();
+        TupleAccess.writeObject(this, Inflater_gnuInflater.offset(), null);
     }
-
+    
+    
 }
