@@ -63,20 +63,25 @@ public class FSTable {
     private static final String DEFAULT_TMPDIR = "/tmp";
     private static final String FS_INFO_SEPARATOR = ":";
     private static final String FS_TABLE_SEPARATOR = ";";
+    private static final String FS_OPTIONS_SEPARATOR = ",";
     private static final String READ_ONLY = "ro";
     public static final String AUTO = "auto";
-    private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/java" + FS_INFO_SEPARATOR + READ_ONLY;
+    private static final String SEP_AUTO = FS_INFO_SEPARATOR + AUTO ;
+    private static final String SEP_AUTO_SEP = SEP_AUTO + FS_TABLE_SEPARATOR;
+    private static final String DEFAULT_FS_TABLE_PROPERTY = "ext2" + FS_INFO_SEPARATOR + "/blk/0" + FS_INFO_SEPARATOR + "/guestvm/java" + 
+                                           FS_INFO_SEPARATOR + READ_ONLY + FS_OPTIONS_SEPARATOR + AUTO;
     public static final String TMP_FS_INFO = "heap" + FS_INFO_SEPARATOR + "/heap/0" + FS_INFO_SEPARATOR;
     public static final String IMG_FS_INFO = "img" + FS_INFO_SEPARATOR + "/img/0" + FS_INFO_SEPARATOR;
-    private static final String FS_OPTIONS_SEPARATOR = ",";
     private static final int TYPE_INDEX = 0;
     private static final int DEV_INDEX = 1;
     private static final int MOUNT_INDEX = 2;
     private static final int OPTIONS_INDEX = 3;
 
     private static boolean _initFSTable;
+    private static boolean _initImageAndHeap; // image and heap file systems initialized
     private static boolean _basicInit;
     private static RootFileSystem _rootFS;
+    private static Info[] _infoArray;
 
     public static class Info {
         private String _type;
@@ -163,64 +168,89 @@ public class FSTable {
         }
     }
 
-    private static void initFSTable() {
+    private static void initFSTable(boolean all) {
         if (!_initFSTable) {
-            basicInit();
-            String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
-            if (fsTableProperty == null) {
-                fsTableProperty = DEFAULT_FS_TABLE_PROPERTY;
-            }
-
-            /*  prepend the image and default heap fs */
-            fsTableProperty = IMG_FS_INFO + ImageFileSystem.getPath() + FS_INFO_SEPARATOR + AUTO + FS_TABLE_SEPARATOR + fsTableProperty;
-            String tmpDir = System.getProperty(TMPDIR_PROPERTY);
-            if (tmpDir == null) {
-                tmpDir = DEFAULT_TMPDIR;
-            }
-            fsTableProperty = TMP_FS_INFO + tmpDir + FS_INFO_SEPARATOR + AUTO + FS_TABLE_SEPARATOR + fsTableProperty;
-
-            final String[] entries = fsTableProperty.split(FS_TABLE_SEPARATOR);
-            for (String entry : entries) {
-                final String[] info = fixupNfs(entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH));
-                if (info.length < MOUNT_INDEX || info.length > OPTIONS_INDEX + 1) {
-                    logBadEntry("fs.table entry " + entry + " is malformed");
-                    continue;
+            if (!_initImageAndHeap) {
+                basicInit();
+                String fsTableProperty = System.getProperty(FS_TABLE_PROPERTY);
+                if (fsTableProperty == null) {
+                    fsTableProperty = DEFAULT_FS_TABLE_PROPERTY;
                 }
-                final String type = info[TYPE_INDEX];
-                final String devPath = info[DEV_INDEX];
-                final String mountPath = (info.length <= MOUNT_INDEX || info[MOUNT_INDEX].length() == 0) ? devPath : info[MOUNT_INDEX];
-                if (!mountPath.startsWith("/")) {
-                    logBadEntry("mountpath " + mountPath + " is not absolute");
-                    continue;
+
+                String tmpDir = System.getProperty(TMPDIR_PROPERTY);
+                if (tmpDir == null) {
+                    tmpDir = DEFAULT_TMPDIR;
                 }
-                // check unique mountpaths
-                for (Info fsInfo : _fsTable.keySet()) {
-                    if (fsInfo._mountPath.startsWith(mountPath) || mountPath.startsWith(fsInfo._mountPath)) {
-                        logBadEntry("mountpath " + mountPath + " is not unique");
+                String imageAndTmpTable = IMG_FS_INFO + ImageFileSystem.getPath() + SEP_AUTO_SEP + TMP_FS_INFO + tmpDir + SEP_AUTO;
+
+                /* prepend the image and default heap fs */
+                fsTableProperty = imageAndTmpTable + FS_TABLE_SEPARATOR + fsTableProperty;
+
+                // Check that the mount paths are globally consistent
+                final String[] entries = fsTableProperty.split(FS_TABLE_SEPARATOR);
+                _infoArray = new Info[entries.length];
+                int infoArrayIndex = 0;
+                for (String entry : entries) {
+                    final String[] info = fixupNfs(entry.split(FS_INFO_SEPARATOR, Info.PARTS_LENGTH));
+                    if (info.length < MOUNT_INDEX || info.length > OPTIONS_INDEX + 1) {
+                        logBadEntry("fs.table entry " + entry + " is malformed");
                         continue;
                     }
-                }
-                String[] options = null;
-                if (info.length > OPTIONS_INDEX) {
-                    options = info[OPTIONS_INDEX].split(FS_OPTIONS_SEPARATOR);
-
-                }
-                final Info fsInfo = new Info(type, devPath, mountPath, options);
-                VirtualFileSystem vfs = null;
-                if (fsInfo.autoMount()) {
-                    vfs = initFS(fsInfo);
-                    // this is considered fatal
-                    if (vfs == null) {
-                        logBadEntry("file system " + fsInfo + " cannot be mounted");
+                    final String type = info[TYPE_INDEX];
+                    final String devPath = info[DEV_INDEX];
+                    final String mountPath = (info.length <= MOUNT_INDEX || info[MOUNT_INDEX].length() == 0) ? devPath : info[MOUNT_INDEX];
+                    if (!mountPath.startsWith("/")) {
+                        logBadEntry("mountpath " + mountPath + " is not absolute");
+                        continue;
                     }
-                } else {
-                    // record the info so that a future path lookup will match,
-                    // the fs will be mounted at that point.
-                    _fsTable.put(fsInfo, vfs);
+                    // check unique mount paths
+                    for (Info fsInfo : _fsTable.keySet()) {
+                        if (fsInfo._mountPath.startsWith(mountPath) || mountPath.startsWith(fsInfo._mountPath)) {
+                            logBadEntry("mountpath " + mountPath + " is not unique");
+                            continue;
+                        }
+                    }
+                    String[] options = null;
+                    if (info.length > OPTIONS_INDEX) {
+                        options = info[OPTIONS_INDEX].split(FS_OPTIONS_SEPARATOR);
+
+                    }
+                    _infoArray[infoArrayIndex++] = new Info(type, devPath, mountPath, options);
                 }
+
+                // now mount the image and heap file systems and record that
+                initPartialFSTable(_infoArray, 0, 2);
+                _initImageAndHeap = true;
             }
-            _initFSTable = true;
+            if (all) {
+                initPartialFSTable(_infoArray, 2, _infoArray.length);
+                _initFSTable = true;
+            }
         }
+    }
+
+    /**
+     * Process a range off the file systems to be made available
+     * @param infoArray
+     * @param start
+     * @param end
+     */
+    private static void initPartialFSTable(Info[] infoArray, int start, int end) {
+       for (int i = start; i < end; i++) {
+            final Info fsInfo = infoArray[i];
+            VirtualFileSystem vfs = null;
+            if (fsInfo.autoMount()) {
+                vfs = initFS(fsInfo);
+                // this is considered fatal
+                if (vfs == null) {
+                    logBadEntry("file system " + fsInfo + " cannot be mounted");
+                }
+            } else {
+                // record the info so that a future path lookup will match,
+                // the fs will be mounted at that point.
+                _fsTable.put(fsInfo, vfs);
+            }
+        }        
     }
 
     /*
@@ -292,14 +322,40 @@ public class FSTable {
     }
 
     /**
-     * Return the file system that exports file or null if none do.
+     * Return the file system that exports file or null if none do. This is carefully coded to allow resolution of the
+     * image and heap file systems before everything is initialized. Why? The primary reason is to
+     * allow Ext2
+     * 
      * @param file
      * @return
      */
     public static VirtualFileSystem exports(String path) {
-        if (!_initFSTable) {
-            initFSTable();
+        VirtualFileSystem vfs = null;
+        if (_initFSTable) {
+            vfs = partialExports(path);
+        } else {
+            // try heap and image first
+            if (!_initImageAndHeap) {
+                initFSTable(false);
+            }
+            vfs = partialExports(path);
+            if (vfs != null) {
+                return vfs;
+            }
+            // full initialization and retry
+            initFSTable(true);
+            vfs = partialExports(path);
         }
+        if (vfs == null) {
+            /* We may have been given a path that is above the mount points */
+            if (_rootFS.getMode(path) > 0) {
+                vfs = _rootFS;
+            }
+        }
+        return vfs;
+    }
+        
+   private static VirtualFileSystem partialExports(String path) {
         assert path != null;
         for (Info fsInfo : _fsTable.keySet()) {
             final int mountLength = fsInfo._mountPath.length();
@@ -309,10 +365,6 @@ public class FSTable {
                 }
                 return fsInfo._fs;
             }
-        }
-        /* We may have been given a path that is above the mount points */
-        if (_rootFS.getMode(path) > 0) {
-            return _rootFS;
         }
         return null;
     }
