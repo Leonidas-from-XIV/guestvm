@@ -49,13 +49,12 @@ public interface VirtualFileSystem {
     int O_WRONLY = 1;
     int O_RDWR = 2;
     int O_APPEND = 0x8;
-    int O_CREAT = 0x100;
+    int O_CREAT = 0x40;
     int O_TRUNC = 0x200;
 
     // Unix file modes
     int S_IFMT = 0xF000;
-    int S_IAMB = 0x1FF;
-    int S_IFREG = 0x8000;
+     int S_IFREG = 0x8000;
     int S_IFDIR = 0x4000;
     int S_IREAD = 0x100;
     int S_IWRITE = 0x80;
@@ -70,6 +69,7 @@ public interface VirtualFileSystem {
     int S_IROTH = 0x4;
     int S_IWOTH = 0x2;
     int S_IXOTH = 0x1;
+    int S_IAMB = 0x1FF;
 
     // copied from java.io.FileSystem.java
     int BA_EXISTS    = 0x01;
