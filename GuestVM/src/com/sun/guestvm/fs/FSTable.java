@@ -324,10 +324,11 @@ public class FSTable {
     /**
      * Return the file system that exports file or null if none do. This is carefully coded to allow resolution of the
      * image and heap file systems before everything is initialized. Why? The primary reason is to
-     * allow Ext2
+     * allow the system to boot out of the image file system without initializing any ext2 file systems.
+     * This allows, for example, {@link Ext2FileSystem} to be traced with AspectJ.
      * 
-     * @param file
-     * @return
+     * @param path to match in a file system
+     * @return the {@link VirtualFileSystem} that contains this path or {@code null} if none.
      */
     public static VirtualFileSystem exports(String path) {
         VirtualFileSystem vfs = null;

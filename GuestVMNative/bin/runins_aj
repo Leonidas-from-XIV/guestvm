@@ -43,6 +43,10 @@ while [ "${1:0:1}" = "-" ]; do
     -tp )
       shift
       trace_project=$1
+    ;;
+    * )
+      break
+      ;;
     esac
     shift
 done
@@ -57,4 +61,4 @@ if [ "$trace_project" == "" ]; then
   exit 1
 fi
 
-sudo bin/runins -cp ../$trace_project/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar -java $JAVA_HOME/bin/java $*
+bin/runins -echo -cp ../$trace_project/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar $*
