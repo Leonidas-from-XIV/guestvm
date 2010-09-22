@@ -29,12 +29,16 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.fs;
+package com.sun.guestvm.fs.pipe;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import com.sun.max.annotate.*;
 import com.sun.max.lang.*;
+import com.sun.guestvm.fs.DefaultReadWriteFileSystemImpl;
+import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.guestvm.fs.VirtualFileSystem;
+import com.sun.guestvm.fs.VirtualFileSystemId;
 import com.sun.guestvm.util.*;
 
 /**
