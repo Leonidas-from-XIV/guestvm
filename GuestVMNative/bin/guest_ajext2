@@ -31,4 +31,4 @@
 # 
 # Build an image that AJTrace's the ext2 file system
 #
-bin/guest -specfile imagespecs/imagespec.io.net.tests.aspectj -prefixclasspath $ASPECTJ_HOME/lib/aspectjrt.jar:../AJTraceExt2/bin:../AJTrace/bin -imagevmargs -Xmx2g,-Xms2g,-Dguestvm.ajtrace.off image
+bin/guest_ajimage -ajp AJTraceExt2
