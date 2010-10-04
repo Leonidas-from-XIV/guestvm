@@ -16,14 +16,14 @@ import com.sun.guestvm.ajtrace.AJTrace;
 
 public aspect AJTraceGuestVMNetAll extends AJTrace {
 
-	pointcut dns() : execution(* com.sun.guestvm.net.dns.*.*(..)) || execution(com.sun.guestvm.net.dns.*.new(..));
-	pointcut ip() :   execution(* com.sun.guestvm.net.ip.*.*(..)) || execution(com.sun.guestvm.net.ip.*.new(..));
-	pointcut udp(): execution(* com.sun.guestvm.net.udp.*.*(..)) || execution(com.sun.guestvm.net.udp.*.new(..));
-	pointcut arp(): execution(* com.sun.guestvm.net.arp.*.*(..)) || execution(com.sun.guestvm.net.arp.*.new(..));
-	pointcut tcp(): execution(* com.sun.guestvm.net.tcp.*.*(..)) || execution(com.sun.guestvm.net.tcp.*.new(..));
-	pointcut tcpn(): execution(* com.sun.guestvm.net.tcp.TCP.*.*(..)) || execution(com.sun.guestvm.net.tcp.TCP.*.new(..));
-	pointcut dev(): execution(* com.sun.guestvm.net.guk.GUKNetDevice.transmit(..));
-	pointcut net(): (execution(* com.sun.guestvm.net.*.*(..)) && ! execution(* com.sun.guestvm.net.Packet.inline*(..))) || execution(com.sun.guestvm.net.*.new(..)) ;
+	public pointcut dns() : execution(* com.sun.guestvm.net.dns.*.*(..)) || execution(com.sun.guestvm.net.dns.*.new(..));
+	public pointcut ip() :   execution(* com.sun.guestvm.net.ip.*.*(..)) || execution(com.sun.guestvm.net.ip.*.new(..));
+	public pointcut udp(): execution(* com.sun.guestvm.net.udp.*.*(..)) || execution(com.sun.guestvm.net.udp.*.new(..));
+	public pointcut arp(): execution(* com.sun.guestvm.net.arp.*.*(..)) || execution(com.sun.guestvm.net.arp.*.new(..));
+	public pointcut tcp(): execution(* com.sun.guestvm.net.tcp.*.*(..)) || execution(com.sun.guestvm.net.tcp.*.new(..));
+	public pointcut tcpn(): execution(* com.sun.guestvm.net.tcp.TCP.*.*(..)) || execution(com.sun.guestvm.net.tcp.TCP.*.new(..));
+	public pointcut dev(): execution(* com.sun.guestvm.net.guk.GUKNetDevice.transmit(..));
+	public pointcut net(): (execution(* com.sun.guestvm.net.*.*(..)) && ! execution(* com.sun.guestvm.net.Packet.inline*(..))) || execution(com.sun.guestvm.net.*.new(..)) ;
 	
 	public pointcut execAll() : dns() || ip() || udp() || arp() || tcp() || tcpn() || net() || dev();
 	
