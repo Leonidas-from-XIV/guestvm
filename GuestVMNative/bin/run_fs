@@ -29,7 +29,7 @@
 # including, but not limited to, the denied persons and specially
 # designated nationals lists is strictly prohibited.
 # 
-# variant of run with a configurable disk inaddition to java and scratch
+# variant of run with a configurable disk in addition to java and scratch and sibling guest
 #
 mount="/hadoop"
 debug=""
@@ -56,4 +56,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run $echo $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" $*
+bin/run $echo $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch;sg:/exports:/sg" $*
