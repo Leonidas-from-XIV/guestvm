@@ -32,7 +32,7 @@
 # Variant that supports tracing with AspectJ
 #
 debug=""
-logfile=trace.log
+logfile=ajtrace.log
 logtype=TBSB
 off=""
 cp=""
