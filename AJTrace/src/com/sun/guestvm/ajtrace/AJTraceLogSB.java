@@ -146,9 +146,6 @@ public class AJTraceLogSB extends AJTraceLog {
 	}
 
 	protected void defineMethodLog(int id, String fullName, StringBuilder sb) {
-		if (fullName.equals("com.sun.c1x.alloc.Interval.assignReg")) {
-			System.console();
-		}
 		sb.append("0 M M");
 		sb.append(id);
 		sb.append(' ');

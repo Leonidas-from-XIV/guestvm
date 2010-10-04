@@ -48,13 +48,13 @@ import org.aspectj.lang.Signature;
 
 //@Aspect
 public abstract aspect AJTrace {
-	public static final String TIME_PROPERTY = "guestvm.ajtrace.timing";
+	public static final String WALLTIME_PROPERTY = "guestvm.ajtrace.timing";
 	public static final String CPUTIME_PROPERTY = "guestvm.ajtrace.cputime";
 	public static final String SYSTIME_PROPERTY = "guestvm.ajtrace.systime";
 	public static final String OFF_PROPERTY = "guestvm.ajtrace.off";
 	public static final String FLAG_ERRORS_PROPERTY = "guestvm.ajtrace.flagerrors";
 
-	private static boolean recordTime = false;
+	private static boolean recordWallTime = false;
 	private static boolean recordCputime = false;
 	private static boolean recordSystime = false;
 	protected static boolean off;
@@ -95,7 +95,7 @@ public abstract aspect AJTrace {
 	}
 
 	protected void initProperties() {
-		recordTime = System.getProperty(TIME_PROPERTY) != null;
+		recordWallTime = System.getProperty(WALLTIME_PROPERTY) != null;
 		recordCputime = System.getProperty(CPUTIME_PROPERTY) != null;
 		recordSystime = System.getProperty(SYSTIME_PROPERTY) != null;
 		off = System.getProperty(OFF_PROPERTY) != null;
@@ -167,7 +167,7 @@ public abstract aspect AJTrace {
 			final long threadId = getCurrentThreadName();
 			final int methodId = getMethodName(jp);
 			String[] args = getArgs(jp);
-			traceLog.enter(s.depth++, recordTime ? time() : 0, userTime,
+			traceLog.enter(s.depth++, recordWallTime ? time() : 0, userTime,
 					sysTime, threadId, methodId, args);
 		}
 	}
@@ -193,7 +193,7 @@ public abstract aspect AJTrace {
 				userTime = s.userTime;
 				sysTime = s.sysTime;
 			}
-			traceLog.exit(s.depth, recordTime ? time() : 0, userTime, sysTime,
+			traceLog.exit(s.depth, recordWallTime ? time() : 0, userTime, sysTime,
 					threadId, methodId, result);
 		}
 	}
