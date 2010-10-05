@@ -41,9 +41,11 @@
 #include <lib.h>
 #include <jni.h>
 
-extern void nativeInitialize(JNIEnv env);
+extern void nativeTrapInitialize(void *stubaddr);
+extern void nativeSetTrapTracing(int flag);
 
 void *maxine_traps_dlsym(const char * symbol) {
-	  if (strcmp(symbol, "nativeInitialize") == 0) return nativeInitialize;
+	  if (strcmp(symbol, "nativeTrapInitialize") == 0) return nativeTrapInitialize;
+	  else if (strcmp(symbol, "nativeSetTrapTracing") == 0) return nativeSetTrapTracing;
 	  else return 0;
 }
