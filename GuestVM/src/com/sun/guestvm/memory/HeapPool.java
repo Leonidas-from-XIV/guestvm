@@ -35,6 +35,7 @@ import com.sun.guestvm.guk.GUKBitMap;
 import com.sun.guestvm.guk.GUKPagePool;
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
+import com.sun.max.vm.code.CodeManager;
 import com.sun.max.vm.heap.Heap;
 import com.sun.max.vm.tele.*;
 /**
@@ -66,22 +67,51 @@ public final class HeapPool {
         return GUKBitMap.isAllocated(_bitMap, slot);
     }
 
-    public static void setInitialHeapSize() {
-        // Unless overridden on the command line, we set the heap sizes
-        // based on the current and maximum memory allocated by the hypervisor.
-        final long extra = GUKPagePool.getMaximumReservation() - GUKPagePool.getCurrentReservation();
-        long initialHeapSize = toUnit(GUKPagePool.getFreeBulkPages() * 4096);
-        if (Inspectable.isVmInspected()) {
-            /* some slop for inspectable heap info, should be provided by Inspector not guessed at */
-            initialHeapSize -= toUnit(initialHeapSize / 100);
+    private static class MyHeapSizeInfo extends Heap.HeapSizeInfo {
+        private Size initialSize;
+        private Size maxSize;
+        private boolean set;
+        
+        @Override
+        protected Size getInitialSize() {
+            if (!set) {
+                setHeapSizeInfo();
+            }
+            return initialSize;
         }
-        final long maxHeapSize = toUnit(initialHeapSize + extra * 4096);
-        if (!Heap.maxHeapSizeOption.isPresent()) {
-            Heap.setInitialSize(Size.fromLong(initialHeapSize));
+        
+        @Override
+        protected Size getMaxSize() {
+            if (!set) {
+                setHeapSizeInfo();
+            }
+            return maxSize;
         }
-        if (!Heap.initialHeapSizeOption.isPresent()) {
-            Heap.setMaxSize(Size.fromLong(maxHeapSize));
+        
+        private void setHeapSizeInfo() {
+            // Unless overridden on the command line, we set the heap sizes
+            // based on the current and maximum memory allocated by the hypervisor,
+            // what we have used to date and the code region size (which is managed by the heap)
+            final long extra = GUKPagePool.getMaximumReservation() - GUKPagePool.getCurrentReservation();
+            long initialHeapSize = toUnit(GUKPagePool.getFreeBulkPages() * 4096);
+            initialHeapSize -= toUnit(CodeManager.runtimeCodeRegionSize.getValue().toLong());
+            
+            if (Inspectable.isVmInspected()) {
+                /* some slop for inspectable heap info, should be provided by Inspector not guessed at */
+                initialHeapSize -= toUnit(initialHeapSize / 100);
+            }
+            final long maxHeapSize = toUnit(initialHeapSize + extra * 4096);
+            
+            initialSize = Heap.initialHeapSizeOption.isPresent() ? super.getInitialSize() : Size.fromLong(initialHeapSize);
+            maxSize = Heap.maxHeapSizeOption.isPresent() ? super.getMaxSize() : Size.fromLong(maxHeapSize);
+            set = true;
         }
+    }
+
+    private static Heap.HeapSizeInfo heapSizeInfo = new MyHeapSizeInfo();
+    
+    public static Heap.HeapSizeInfo getHeapSizeInfo() {
+        return heapSizeInfo;
     }
 
     private static final long FOUR_MB_MASK = ~((4 * 1024 * 1024) - 1);

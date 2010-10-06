@@ -40,6 +40,7 @@ import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.object.TupleAccess;
 import com.sun.max.vm.actor.member.*;
+import com.sun.max.vm.heap.Heap;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.*;
@@ -78,7 +79,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     public GuestVMRunScheme(VMConfiguration vmConfiguration) {
         super(vmConfiguration);
     }
-
+    
     @Override
     public void initialize(MaxineVM.Phase phase) {
         if (phase == MaxineVM.Phase.STARTING) {
@@ -88,6 +89,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         super.initialize(phase);
 
         if (MaxineVM.isHosted()) {
+            Heap.registerHeapSizeInfo(HeapPool.getHeapSizeInfo());
             forceSchedulerScheme();
             forceNetReInit();
         }
@@ -171,12 +173,6 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             this.forceLoadPackage(schedulerFactory.substring(0, index));
             this.forceClassInit(schedulerFactory);
         }
-    }
-
-    @Override
-    public void run() throws Throwable {
-        HeapPool.setInitialHeapSize();
-        super.run();
     }
 
     private static void checkRmiRegistry() {
