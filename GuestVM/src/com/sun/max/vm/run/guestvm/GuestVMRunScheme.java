@@ -76,8 +76,9 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
     private static final String TICK_PROFILER_PROPERTY = "guestvm.profiler";
     private static final String GUK_TRACE_PROPERTY = "guestvm.guktrace";
 
-    public GuestVMRunScheme(VMConfiguration vmConfiguration) {
-        super(vmConfiguration);
+    @HOSTED_ONLY
+    public GuestVMRunScheme() {
+        super();
     }
     
     @Override

@@ -20,6 +20,8 @@
  */
 package com.sun.max.tele.debug.guestvm;
 
+import static com.sun.max.platform.Platform.*;
+
 import java.io.*;
 
 import com.sun.max.program.*;
@@ -42,7 +44,7 @@ public class GuestVMTeleVM extends TeleVM {
 
     @Override
     protected TeleProcess attachToTeleProcess() {
-        return new GuestVMTeleDomain(this, bootImage().vmConfiguration.platform, targetLocation().id);
+        return new GuestVMTeleDomain(this, platform(), targetLocation().id);
     }
 
     @Override
