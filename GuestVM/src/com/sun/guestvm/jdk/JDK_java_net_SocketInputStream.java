@@ -42,7 +42,7 @@ import com.sun.guestvm.net.tcp.*;
  */
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.net.SocketInputStream")
+@METHOD_SUBSTITUTIONS(className = "java.net.SocketInputStream")
 final class JDK_java_net_SocketInputStream {
 
     @SUBSTITUTE

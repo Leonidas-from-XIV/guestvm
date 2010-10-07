@@ -43,7 +43,7 @@ import com.sun.max.unsafe.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.nio.Bits")
+@METHOD_SUBSTITUTIONS(className = "java.nio.Bits")
 final class JDK_java_nio_Bits {
 
     @SUBSTITUTE

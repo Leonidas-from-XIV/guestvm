@@ -41,7 +41,7 @@ import com.sun.max.annotate.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.NativeThread")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.NativeThread")
 public class JDK_sun_nio_ch_NativeThread {
 
     // TODO implement these

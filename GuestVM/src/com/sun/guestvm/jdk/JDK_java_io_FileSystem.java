@@ -45,7 +45,7 @@ import com.sun.guestvm.error.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.io.FileSystem")
+@METHOD_SUBSTITUTIONS(className = "java.io.FileSystem")
 public final class JDK_java_io_FileSystem {
 
     private static Object _singleton;

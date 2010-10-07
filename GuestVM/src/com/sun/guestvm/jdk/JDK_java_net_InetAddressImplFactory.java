@@ -43,7 +43,7 @@ import com.sun.max.annotate.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.net.InetAddressImplFactory")
+@METHOD_SUBSTITUTIONS(className = "java.net.InetAddressImplFactory")
 public class JDK_java_net_InetAddressImplFactory {
 
     @SUBSTITUTE

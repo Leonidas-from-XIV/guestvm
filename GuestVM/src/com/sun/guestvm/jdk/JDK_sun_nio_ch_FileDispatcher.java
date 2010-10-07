@@ -51,7 +51,7 @@ import com.sun.guestvm.fs.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.FileDispatcher")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.FileDispatcher")
 final class JDK_sun_nio_ch_FileDispatcher {
 
     @SUBSTITUTE

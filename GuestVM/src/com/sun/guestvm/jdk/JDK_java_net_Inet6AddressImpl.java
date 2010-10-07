@@ -45,7 +45,7 @@ import com.sun.guestvm.error.*;
  *
  */
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.net.Inet6AddressImpl")
+@METHOD_SUBSTITUTIONS(className = "java.net.Inet6AddressImpl")
 public class JDK_java_net_Inet6AddressImpl {
 
     @SUBSTITUTE

@@ -48,7 +48,7 @@ import java.util.logging.Level;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.lang.UNIXProcess")
+@METHOD_SUBSTITUTIONS(className = "java.lang.UNIXProcess")
 public final class JDK_java_lang_UNIXProcess {
     private static Logger _logger;
     private static ExecFileSystem _execFS;

@@ -55,7 +55,7 @@ import com.sun.guestvm.error.GuestVMError;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.PollArrayWrapper")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.PollArrayWrapper")
 public class JDK_sun_nio_ch_PollArrayWrapper {
 
     @SUBSTITUTE

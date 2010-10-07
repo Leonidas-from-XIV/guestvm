@@ -56,7 +56,7 @@ import com.sun.guestvm.logging.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.net.PlainDatagramSocketImpl")
+@METHOD_SUBSTITUTIONS(className = "java.net.PlainDatagramSocketImpl")
 public class JDK_java_net_PlainDatagramSocketImpl {
 
     private static Logger _logger;
