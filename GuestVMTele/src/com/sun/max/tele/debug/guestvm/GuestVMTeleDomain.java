@@ -20,6 +20,8 @@
  */
 package com.sun.max.tele.debug.guestvm;
 
+import static com.sun.max.platform.Platform.*;
+
 import java.nio.*;
 import java.util.*;
 
@@ -31,7 +33,6 @@ import com.sun.max.tele.debug.TeleNativeThread.*;
 import com.sun.max.tele.memory.*;
 import com.sun.max.tele.page.*;
 import com.sun.max.unsafe.*;
-import com.sun.max.vm.*;
 
 public class GuestVMTeleDomain extends TeleProcess {
 
@@ -55,7 +56,7 @@ public class GuestVMTeleDomain extends TeleProcess {
         /* Need to align and skip over the guard page at the base of the stack.
          * N.B. "base" is low address (i.e., actually the end of the stack!).
          */
-        final int pageSize = VMConfiguration.vmConfig().platform.pageSize;
+        final int pageSize = platform().pageSize;
         final long stackBottom = pageAlign(params.stackRegion.start().toLong(), pageSize) + pageSize;
         final long adjStackSize = params.stackRegion.size().toLong() - (stackBottom - params.stackRegion.start().toLong());
         final TeleFixedMemoryRegion adjStack = new TeleFixedMemoryRegion(vm(), params.stackRegion.regionName(), Address.fromLong(stackBottom), Size.fromLong(adjStackSize));
