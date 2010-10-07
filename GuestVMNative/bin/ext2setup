@@ -33,7 +33,9 @@
 #
 
 wsroot=`dirname $PWD`
-dfile="guestvm-disk1.img"
+if [ -n "${DISK}" ] ; then
+  dfile=$DISK
+fi
 cp=$wsroot/GuestVM/bin:$wsroot/GuestVMBase/bin:$wsroot/JNodeFS/bin
 mc=com.sun.guestvm.tools.ext2.Ext2FileTool
 h="-Dguestvm.logging.handler=com.sun.guestvm.logging.SystemOutHandler -Dguestvm.logging.level=WARNING"
@@ -56,6 +58,11 @@ do
   esac
   shift
 done
+
+if [ -z "$dfile" ]; then
+  echo "no disk specified, use -disk or set DISK environment variable"
+  exit 1
+fi
 
 if [ ! -d "$wsroot/GuestVM/bin" ] ;
 then
