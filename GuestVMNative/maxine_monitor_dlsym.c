@@ -49,10 +49,10 @@ extern int nativeMutexUnlock(void *p);
 extern int nativeConditionNotify(void *p, int a);
 extern int Java_com_sun_max_vm_monitor_modal_sync_nat_NativeMutex_nativeMutexLock(void *env, void *c, void* mutex);
 extern int Java_com_sun_max_vm_monitor_modal_sync_nat_NativeConditionVariable_nativeConditionWait(void *env, void *c, void *mutex, void *condition, long timeoutMilliSeconds);
-extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalInit(void);
-extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalWait(void);
-extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalFinalize(void);
-extern void nativeSignalNotify(void);
+extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalInit(void *env, void *c);
+extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalWait(void *env, void *c);
+extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalFinalize(void *env, void *c);
+extern void Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalNotify(void *env, void *c);
 
 void *maxine_monitor_dlsym(char *symbol) {
     if (strcmp(symbol, "nativeMutexSize") == 0) return nativeMutexSize;
@@ -61,8 +61,7 @@ void *maxine_monitor_dlsym(char *symbol) {
     else if (strcmp(symbol, "nativeConditionInitialize") == 0) return nativeConditionInitialize;
     else if (strcmp(symbol, "nativeMutexUnlock") == 0) return nativeMutexUnlock;
     else if (strcmp(symbol, "nativeConditionNotify") == 0) return nativeConditionNotify;
-    else if (strcmp(symbol, "nativeSignalNotify") == 0) return nativeSignalNotify;
-    else if (strcmp(symbol, "Java_com_sun_max_vm_monitor_modal_sync_nat_NativeMutex_nativeMutexLock") == 0)
+     else if (strcmp(symbol, "Java_com_sun_max_vm_monitor_modal_sync_nat_NativeMutex_nativeMutexLock") == 0)
       return Java_com_sun_max_vm_monitor_modal_sync_nat_NativeMutex_nativeMutexLock;
     else if (strcmp(symbol, "Java_com_sun_max_vm_monitor_modal_sync_nat_NativeConditionVariable_nativeConditionWait") == 0)
       return  Java_com_sun_max_vm_monitor_modal_sync_nat_NativeConditionVariable_nativeConditionWait;
@@ -72,5 +71,7 @@ void *maxine_monitor_dlsym(char *symbol) {
     	return Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalWait;
     else if (strcmp(symbol, "Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalFinalize") == 0)
     	return Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalFinalize;
+    else if (strcmp(symbol, "Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalNotify") == 0)
+    	return Java_com_sun_max_vm_runtime_SignalDispatcher_nativeSignalNotify;
     else return 0;
 }

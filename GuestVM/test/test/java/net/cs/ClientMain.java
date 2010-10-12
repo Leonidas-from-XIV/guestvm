@@ -63,6 +63,9 @@ public class ClientMain {
             } else if (arg.equals("time")) {
                 i++;
                 timeToRun = checkForInt(args, i);
+            } else if (arg.equals("iter")) {
+                i++;
+                timeToRun = - checkForInt(args, i);
             } else if (arg.equals("sf")) {
                 i++;
                 serializedDataFile = args[i];
@@ -163,11 +166,14 @@ public class ClientMain {
     }
 
     private static int checkForInt(String[] args, int i) {
-        if ((i < args.length)
-                && (('0' <= args[i].charAt(0)) && args[i].charAt(0) <= '9')) {
-            return Integer.parseInt(args[i]);
-        } else {
-            System.out.println("usage: integer value expected");
+        try {
+            if (i >= args.length) {
+                throw new IllegalArgumentException("insufficient arguments");
+            } else {
+                return Integer.parseInt(args[i]);
+            }
+        } catch (Exception ex) {
+            System.out.println("usage: integer value expected: " + ex);
             System.exit(1);
             return -1;
         }

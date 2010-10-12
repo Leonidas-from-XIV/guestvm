@@ -50,7 +50,7 @@ import com.sun.guestvm.logging.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.Net")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.Net")
 final  class JDK_sun_nio_ch_Net {
 
     private static final int SOCK_STREAM = 2;

@@ -63,7 +63,7 @@ import com.sun.max.vm.compiler.builtin.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.IOUtil")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.IOUtil")
 public class JDK_sun_nio_ch_IOUtil {
 
     private static PipeFileSystem _pipeFS = new PipeFileSystem();

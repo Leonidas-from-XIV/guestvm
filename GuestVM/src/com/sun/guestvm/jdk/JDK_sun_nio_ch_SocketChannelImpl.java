@@ -45,7 +45,7 @@ import com.sun.guestvm.net.Endpoint;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.SocketChannelImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.SocketChannelImpl")
 public class JDK_sun_nio_ch_SocketChannelImpl {
     @SUBSTITUTE
     private static int checkConnect(FileDescriptor fd, boolean block, boolean ready) throws IOException {

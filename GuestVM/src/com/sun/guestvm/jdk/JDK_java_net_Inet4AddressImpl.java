@@ -48,7 +48,7 @@ import com.sun.guestvm.net.ip.IPAddress;
  * @author Mick Jordan
 */
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.net.Inet4AddressImpl")
+@METHOD_SUBSTITUTIONS(className = "java.net.Inet4AddressImpl")
 final class JDK_java_net_Inet4AddressImpl {
 
     static Class<?> _klass;

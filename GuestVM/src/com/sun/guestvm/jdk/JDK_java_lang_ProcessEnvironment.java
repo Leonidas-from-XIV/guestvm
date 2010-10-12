@@ -44,7 +44,7 @@ import com.sun.max.annotate.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.lang.ProcessEnvironment")
+@METHOD_SUBSTITUTIONS(className = "java.lang.ProcessEnvironment")
 public class JDK_java_lang_ProcessEnvironment {
 
     @SUBSTITUTE

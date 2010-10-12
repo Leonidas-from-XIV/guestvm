@@ -42,7 +42,7 @@ import com.sun.max.annotate.*;
  */
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "com.sun.management.UnixOperatingSystem")
+@METHOD_SUBSTITUTIONS(className = "com.sun.management.UnixOperatingSystem")
 
 final class JDK_com_sun_management_UnixOperatingSystem {
 
