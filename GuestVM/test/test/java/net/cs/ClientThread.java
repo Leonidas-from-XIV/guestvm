@@ -43,7 +43,7 @@ public abstract class ClientThread extends Thread {
         _ack = ack;
         if (timeToRun < 0) {
             _iterations = -timeToRun;
-            timeToRun = Long.MAX_VALUE;
+            _timeToRun = Long.MAX_VALUE / 10000;
         } else {
             _timeToRun = timeToRun;
             _iterations = Long.MAX_VALUE;
