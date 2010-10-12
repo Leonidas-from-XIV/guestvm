@@ -43,6 +43,7 @@ public class TCPServer extends ServerThread {
     private OutputStream _out;
 
     public void run() {
+        super.run();
         try {
             final ServerSocket server = new ServerSocket(PORT + _threadNum);
             for (;;) {
