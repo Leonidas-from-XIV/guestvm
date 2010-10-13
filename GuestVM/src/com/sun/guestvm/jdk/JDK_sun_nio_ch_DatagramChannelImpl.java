@@ -45,7 +45,7 @@ import com.sun.guestvm.error.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.DatagramChannelImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.DatagramChannelImpl")
 public class JDK_sun_nio_ch_DatagramChannelImpl {
     @SUBSTITUTE
     private static void initIDs() {

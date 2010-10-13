@@ -43,7 +43,7 @@ import com.sun.max.program.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.lang.Shutdown")
+@METHOD_SUBSTITUTIONS(className = "java.lang.Shutdown")
 public class JDK_java_lang_Shutdown {
 
     @SUBSTITUTE

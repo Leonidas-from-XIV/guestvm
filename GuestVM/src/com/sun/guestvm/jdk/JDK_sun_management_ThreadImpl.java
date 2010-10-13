@@ -49,7 +49,7 @@ import com.sun.guestvm.sched.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.ThreadImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.management.ThreadImpl")
 final class JDK_sun_management_ThreadImpl {
     @SUBSTITUTE
     private static Thread[] getThreads() {

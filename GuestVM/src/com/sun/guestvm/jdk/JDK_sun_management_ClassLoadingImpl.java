@@ -41,7 +41,7 @@ import com.sun.max.vm.*;
  *
  */
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.ClassLoadingImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.management.ClassLoadingImpl")
 final class JDK_sun_management_ClassLoadingImpl {
     @SuppressWarnings("unused")
     @SUBSTITUTE

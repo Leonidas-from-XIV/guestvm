@@ -51,7 +51,7 @@ import com.sun.guestvm.error.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.VMManagementImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.management.VMManagementImpl")
 
 final class JDK_sun_management_VMManagementImpl {
 

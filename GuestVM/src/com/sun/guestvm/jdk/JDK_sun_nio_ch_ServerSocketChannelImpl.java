@@ -79,7 +79,7 @@ import com.sun.guestvm.net.Endpoint;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.nio.ch.ServerSocketChannelImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.nio.ch.ServerSocketChannelImpl")
 final class JDK_sun_nio_ch_ServerSocketChannelImpl {
     @SUBSTITUTE
     private static void listen(FileDescriptor fdObj, int backlog) throws IOException {

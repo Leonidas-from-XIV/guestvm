@@ -57,7 +57,7 @@ public abstract aspect AJTrace {
 	private static boolean recordWallTime = false;
 	private static boolean recordCputime = false;
 	private static boolean recordSystime = false;
-	protected static boolean off;
+	protected static volatile boolean off;
 	protected static boolean flagErrors;
 
 	private static boolean init;
@@ -103,6 +103,7 @@ public abstract aspect AJTrace {
 
 	static class FiniHook extends Thread {
 		public void run() {
+			off = true;
 			traceLog.fini(time());
 		}
 	}

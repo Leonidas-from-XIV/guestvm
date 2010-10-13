@@ -41,7 +41,13 @@ public abstract class ClientThread extends Thread {
         _threadNum = threadNum;
         _sessionData = sessionData;
         _ack = ack;
-        _timeToRun = timeToRun;
+        if (timeToRun < 0) {
+            _iterations = -timeToRun;
+            _timeToRun = Long.MAX_VALUE / 10000;
+        } else {
+            _timeToRun = timeToRun;
+            _iterations = Long.MAX_VALUE;
+        }
         _delay = delay;
         _verbose = verbose;
         _type = type;
@@ -68,6 +74,7 @@ public abstract class ClientThread extends Thread {
     protected  boolean _ack;
     protected byte[] _ackBytes;
     protected long _timeToRun;
+    protected long _iterations;
     protected int _threadNum;
     protected String _host;
     protected long _delay;
@@ -86,7 +93,7 @@ public abstract class ClientThread extends Thread {
         final long endTime = startTime + _timeToRun * 1000;
         long startWriteTime;
         byte[] sessionDataBytes = null;
-        while ((startWriteTime = System.currentTimeMillis()) < endTime) {
+        while ((startWriteTime = System.currentTimeMillis()) < endTime && _iterations > 0) {
             sessionDataBytes = _sessionData.getSessionData();
 
             doSend(sessionDataBytes);
@@ -108,6 +115,7 @@ public abstract class ClientThread extends Thread {
 
                 }
             }
+            _iterations--;
         }
     }
 

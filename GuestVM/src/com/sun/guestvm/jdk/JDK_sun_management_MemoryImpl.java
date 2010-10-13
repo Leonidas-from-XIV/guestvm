@@ -45,7 +45,7 @@ import com.sun.max.vm.management.MemoryManagement;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "sun.management.MemoryImpl")
+@METHOD_SUBSTITUTIONS(className = "sun.management.MemoryImpl")
 final class JDK_sun_management_MemoryImpl {
 
     @SUBSTITUTE

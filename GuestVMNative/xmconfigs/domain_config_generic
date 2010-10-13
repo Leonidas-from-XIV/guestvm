@@ -60,10 +60,7 @@ if os.environ.get("MAXMEM") != None :
 else :
   maxmem = 1024
 
-if os.environ.get("DISK") != None :
-    disk = [os.environ.get("DISK")]
-else :
-  if os.environ.get("DISK0") != None :
+if os.environ.get("DISK0") != None :
     disk = [os.environ.get("DISK0")]
 
 if os.environ.get("DISK1") != None :

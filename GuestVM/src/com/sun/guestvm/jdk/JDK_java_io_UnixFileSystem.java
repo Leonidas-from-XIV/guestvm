@@ -44,7 +44,7 @@ import com.sun.max.annotate.*;
 
 @SuppressWarnings("unused")
 
-@METHOD_SUBSTITUTIONS(hiddenClass = "java.io.UnixFileSystem")
+@METHOD_SUBSTITUTIONS(className = "java.io.UnixFileSystem")
 public final class JDK_java_io_UnixFileSystem {
 
     private JDK_java_io_UnixFileSystem() {
