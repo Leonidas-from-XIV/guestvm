@@ -37,9 +37,12 @@ logtype=TBSB
 wall=""
 cpu=""
 off=""
+args=""
+plargs=""
 cp=""
 agent=""
 logging_config=""
+vmargs=""
 
 if [ -z "${ASPECTJ_HOME}" ]; then
   echo "ASPECTJ_HOME must be set"
@@ -54,6 +57,14 @@ do
   case "$1" in
     "-d" )
       debug="-d"
+      ;;
+    -J* )
+    if [ "$vmargs" = "" ] ;
+    then
+      vmargs=$1
+    else
+      vmargs="$vmargs $1"
+    fi
       ;;
     "-logfile")
       shift
@@ -76,6 +87,12 @@ do
       off="-J-Dguestvm.ajtrace.off"
       logtype="Null"
       ;;
+    "-args" )
+     args="-J-Dguestvm.ajtrace.args"
+      ;;
+    "-plargs" )
+     plargs="-J-Dguestvm.ajtrace.plainargs"
+      ;;
     "-agent")
       agent="-J-javaagent:/guestvm/aspectj/${aspectj_ver}/lib/aspectjweaver.jar"
       ;;
@@ -93,4 +110,4 @@ do
   shift
 done
 
-bin/run_fs $debug $echo -mount /guestvm/aspectj $agent -J-Xbootclasspath/p:/guestvm/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp $wall $cpu  -J-Dguestvm.ajtrace.logfile=$logfile $off $logaj -J-Dguestvm.ajtrace.logclass=com.sun.guestvm.ajtrace.AJTraceLog${logtype} $*
+bin/run_fs $vmargs $debug $echo -mount /guestvm/aspectj $agent -J-Xbootclasspath/p:/guestvm/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp $wall $cpu  $args $plargs -J-Dguestvm.ajtrace.logfile=$logfile $off $logaj -J-Dguestvm.ajtrace.logclass=com.sun.guestvm.ajtrace.AJTraceLog${logtype} $*

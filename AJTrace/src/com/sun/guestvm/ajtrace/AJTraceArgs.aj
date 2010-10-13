@@ -16,7 +16,10 @@ public abstract aspect AJTraceArgs extends AJTrace {
 	protected void initProperties() {
 		super.initProperties();
 		traceArgs = System.getProperty(TRACEARGS_PROPERTY) != null;
-		plainArgs = System.getProperty(PLAINARGS_PROPERTY) != null;		
+		plainArgs = System.getProperty(PLAINARGS_PROPERTY) != null;
+		if (plainArgs) {
+			traceArgs = true;
+		}
 		flagErrors = System.getProperty(FLAG_ERRORS_PROPERTY) != null;
 	}
 	

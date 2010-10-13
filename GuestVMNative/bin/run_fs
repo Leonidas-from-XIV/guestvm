@@ -34,12 +34,22 @@
 mount="/hadoop"
 debug=""
 echo=""
+vmargs=""
+
 while [ "$1" != "" ] ;
 do
   case "$1" in
     "-d" )
       debug="-d"
       ;;
+    -J* )
+    if [ "$vmargs" = "" ] ;
+    then
+      vmargs=$1
+    else
+      vmargs="$vmargs $1"
+    fi
+    ;;
     "-mount")
       shift
       mount=$1
@@ -56,4 +66,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run $echo $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch;sg:/exports:/sg" $*
+bin/run $echo $vmargs $debug -J-Djava.home=/guestvm/java/$jh/jre "-J-Dguestvm.fs.table=ext2:/blk/0:/guestvm/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch;sg:/exports:/sg" $*
