@@ -104,6 +104,7 @@ public class GUKVmThread extends VmThread {
     public static final int R14_SAVE_OFFSET = 192;
 
     // Maxine's typed methods scale the offset according to type
+    public static final int START_RUNNING_TIME_OFFSET_AS_LONG = START_RUNNING_TIME_OFFSET / 8;
     public static final int CUM_RUNNING_TIME_OFFSET_AS_LONG = CUM_RUNNING_TIME_OFFSET / 8;
     public static final int FLAGS_OFFSET_ASINT = FLAGS_OFFSET / 4;
     public static final int CPU_OFFSET_ASINT = CPU_OFFSET / 4;
@@ -159,10 +160,21 @@ public class GUKVmThread extends VmThread {
         return nativeId();
     }
 
+    /**
+     * Gets the cumulative CPU running time for this thread.
+     * @return
+     */
     public final long getRunningTime() {
-        // to get an current reading we need to enter the scheduler
-        GUKScheduler.schedule();
-        return nativeThread.asPointer().getLong(CUM_RUNNING_TIME_OFFSET_AS_LONG);
+        // The CUM_RUNNING_TIME field is only updated on a thread re-schedule so we have to repeat that code here
+        // as we do not want to enter the scheduler!
+        final Pointer ntp = nativeThread.asPointer();
+        // this is the cumulative running time for this cpu when this thread was last scheduled onto the cpu
+        final long start_running_time = ntp.getLong(START_RUNNING_TIME_OFFSET_AS_LONG);
+        // this is the cumulative running time for this cp now
+        final long this_running_time = GUKScheduler.getCPURunningTime(ntp.getInt(CPU_OFFSET_ASINT));
+        // this is the cumulative running time for this thread at the last schedule
+        final long prev_cum_running_time = ntp.getLong(CUM_RUNNING_TIME_OFFSET_AS_LONG);
+        return prev_cum_running_time + (this_running_time - start_running_time);
     }
 
     public int compareTo(GUKVmThread sthread) {

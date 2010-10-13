@@ -38,6 +38,7 @@ import sun.nio.ch.ByteBufferNativeDispatcher;
 
 import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
+import com.sun.guestvm.fs.pipe.PipeFileSystem;
 import com.sun.guestvm.jdk.JDK_java_io_fdActor;
 import com.sun.guestvm.jdk.JDK_java_io_util;
 import com.sun.guestvm.jdk.JDK_java_io_util.FdInfo;

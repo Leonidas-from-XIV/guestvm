@@ -32,7 +32,7 @@
 # Variant that supports debugging a guest with AspectJ tracing
 #
 
-trace_project=""
+ajproject=""
 
 while [ "${1:0:1}" = "-" ]; do
     case $1 in
@@ -40,21 +40,25 @@ while [ "${1:0:1}" = "-" ]; do
       shift
       ASPECTJ_HOME=$1
       ;;
-    -tp )
+    -ajp )
       shift
-      trace_project=$1
+      ajproject=$1
+      ;;
+   * )
+    break
+      ;;
     esac
     shift
-done
+ done
 
 if [ -z "${ASPECTJ_HOME}" ]; then
   echo "ASPECTJ_HOME must be set"
   exit 1
 fi
 
-if [ "$trace_project" == "" ]; then
-  echo "AJ trace project must be set with -tp"
+if [ "$ajproject" == "" ]; then
+  echo "AJ trace project must be set with -ajp"
   exit 1
 fi
 
-sudo bin/runins -cp ../$trace_project/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar -java $JAVA_HOME/bin/java $*
+bin/runins -echo -cp ../$ajproject/bin:../AJTrace/bin:$ASPECTJ_HOME/lib/aspectjrt.jar:$ASPECTJ_HOME/lib/aspectjweaver.jar $*

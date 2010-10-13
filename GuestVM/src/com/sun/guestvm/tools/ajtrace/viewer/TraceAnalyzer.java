@@ -94,6 +94,7 @@ public class TraceAnalyzer extends JPanel {
     public TraceAnalyzer(String[] args) {
         super(new GridLayout(1, 0));
 
+        boolean temp = false;
         try {
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
@@ -103,6 +104,8 @@ public class TraceAnalyzer extends JPanel {
                     DEBUG = true;
                 } else if (arg.equals("-progress")) {
                     PROGRESS = true;
+                } else if (arg.equals("-sort")) {
+                    temp = true;
                 } else if (arg.equals("-time")) {
                     i++;
                     String tf = args[i];
@@ -132,6 +135,13 @@ public class TraceAnalyzer extends JPanel {
             // Create the nodes.
             Map<String, DefaultMutableTreeNode> threadTreeNodes = createNodes(r);
             r.close();
+            
+            if (temp) {
+                for (MethodData methodData : sortedEntriesAndReturns) {
+                    TraceType tt = methodData.ttype;
+                    System.out.println(tt + " " + methodData.depth + " " + (tt == TraceType.Entry ? methodData.entryTimeInfo : methodData.exitTimeInfo) + " " + methodData.thread + " " + methodData.methodName);
+                }
+            }
 
             // JComponent left = null; int count = 0;
             JTabbedPane threadTabPane = new JTabbedPane();
@@ -793,19 +803,15 @@ public class TraceAnalyzer extends JPanel {
                         System.out.println(traceStartTime);
                         break;
                     case Entry:
-                        System.out.println(", d " + md.depth +
-                                        ", [t " + md.entryTimeInfo.wallTime +
-                                        ", u " + md.entryTimeInfo.userUsage +
-                                        ", s " + md.entryTimeInfo.sysUsage + "] " +
+                        System.out.println("d " + md.depth + ", " + 
+                                        md.entryTimeInfo + ", " +
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
                         break;
                     case Return:
-                        System.out.println(", d " + md.depth +
-                                        ", [t " +  md.exitTimeInfo.wallTime + ", " +
-                                        ", u " +  md.exitTimeInfo.userUsage + ", " +
-                                        ", s " +  md.exitTimeInfo.sysUsage + "], " +
+                        System.out.println("d " + md.depth +", " + 
+                                        md.exitTimeInfo + ", " +
                                         md.thread + ", " +
                                         md.methodName +
                                         (md.params==null ? "" : ("(" + md.params + ")")));
@@ -865,6 +871,10 @@ public class TraceAnalyzer extends JPanel {
         for (Map.Entry<String, NodeStack> me : forest.entrySet()) {
             result.put(me.getKey(), me.getValue().nodes.get(0));
         }
+        
+        sortedEntriesAndReturns = new MethodData[entriesAndReturns.size()];
+        entriesAndReturns.toArray(sortedEntriesAndReturns);
+        Arrays.sort(sortedEntriesAndReturns, new MethodDataComparator());
         return result;
     }
 
@@ -887,6 +897,13 @@ public class TraceAnalyzer extends JPanel {
     Map<String,String> paramMap = new HashMap<String,String>();
 
     ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
+    
+    /**
+     * These are unsorted/sorted arrays of all the {@code TraceType#Entry} and {@code TraceType#Return} instances,
+     * used to produce a time-ordered view across all threads.
+     */
+    ArrayList<MethodData> entriesAndReturns = new ArrayList<MethodData>();
+    MethodData[] sortedEntriesAndReturns;
 
     class MethodData {
 
@@ -927,6 +944,10 @@ public class TraceAnalyzer extends JPanel {
                 }
             } else if (ttype == TraceType.Return) {
                 this.exitTimeInfo = timeInfo;
+            }
+            
+            if (ttype == TraceType.Entry || ttype == TraceType.Return) {
+                entriesAndReturns.add(this);
             }
         }
 
@@ -1027,6 +1048,26 @@ public class TraceAnalyzer extends JPanel {
         }
     }
 
+    static class MethodDataComparator implements Comparator<MethodData> {
+        public int compare(MethodData a, MethodData b) {
+            if (a.ttype == TraceType.Entry) {
+                if (b.ttype == TraceType.Entry) {
+                    return a.entryTimeInfo.wallTime < b.entryTimeInfo.wallTime ? -1 : 1;
+                } else {
+                    assert b.ttype == TraceType.Return;
+                    return a.entryTimeInfo.wallTime < b.exitTimeInfo.wallTime ? -1 : 1;
+                }
+            } else {
+                assert a.ttype == TraceType.Return;
+                if (b.ttype == TraceType.Return) {
+                    return a.exitTimeInfo.wallTime < b.exitTimeInfo.wallTime ? -1 : 1;
+                } else {
+                    return a.exitTimeInfo.wallTime < b.entryTimeInfo.wallTime ? -1 : 1;
+                }
+            }
+        }
+    }
+    
     static class TimeInfo {
 
         static interface Adder {
@@ -1049,6 +1090,10 @@ public class TraceAnalyzer extends JPanel {
             this.wallTime = wallTime;
             this.userUsage = userUsage;
             this.sysUsage = sysUsage;
+        }
+        
+        public String toString() {
+            return "[t " + wallTime + ", u " + userUsage + ", s " + sysUsage + "]";
         }
 
         long get(Type t) {

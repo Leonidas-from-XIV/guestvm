@@ -51,13 +51,14 @@ image_override=1
 vm_override=1
 prefix_classpath=""
 specfile=""
+imagevmargs=""
 
 function run_image_override() {
   echo "build guestvm image"
   pushd ../../guk  >/dev/null
   gmake
   popd  >/dev/null
-  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.prototype.GuestVMBootImageGenerator -trace=1 $prefix_classpath $specfile $@
+  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.prototype.GuestVMBootImageGenerator -trace=1 $prefix_classpath $specfile $imagevmargs $@
 }
 
 function run_vm_override() {
@@ -74,6 +75,10 @@ while [ "${1:0:1}" = "-" ]; do
     -specfile )
       shift
       specfile="-specfile=$1"
+      ;;
+    -imagevmargs )
+      shift
+      imagevmargs="-maxineimagevmargs=$1"
       ;;
     esac
     shift

@@ -89,7 +89,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         }
         super.initialize(phase);
 
-        if (MaxineVM.isHosted()) {
+        if (MaxineVM.isHosted() && phase == MaxineVM.Phase.BOOTSTRAPPING) {
             Heap.registerHeapSizeInfo(HeapPool.getHeapSizeInfo());
             forceSchedulerScheme();
             forceNetReInit();
