@@ -34,6 +34,8 @@
 debug=""
 logfile=trace.log
 logtype=TBSB
+wall=""
+cpu=""
 off=""
 cp=""
 agent=""
@@ -64,6 +66,12 @@ do
     "-logaj")
       logging_config="-J-Djava.util.logging.config.file=/scratch/logging.properties"
       ;;
+    "-wall" )
+      wall="-J-Dguestvm.ajtrace.timing"
+      ;;
+    "-cpu" )
+     cpu="-J-Dguestvm.ajtrace.cputime"
+      ;;
     "-off")
       off="-J-Dguestvm.ajtrace.off"
       logtype="Null"
@@ -85,4 +93,4 @@ do
   shift
 done
 
-bin/run_fs $debug $echo -mount /guestvm/aspectj $agent -J-Xbootclasspath/p:/guestvm/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp -J-Dguestvm.ajtrace.timing -J-Dguestvm.ajtrace.cputime  -J-Dguestvm.ajtrace.logfile=/scratch/$logfile $off $logaj -J-Dguestvm.ajtrace.logclass=com.sun.guestvm.ajtrace.AJTraceLog${logtype} $*
+bin/run_fs $debug $echo -mount /guestvm/aspectj $agent -J-Xbootclasspath/p:/guestvm/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp $wall $cpu  -J-Dguestvm.ajtrace.logfile=$logfile $off $logaj -J-Dguestvm.ajtrace.logclass=com.sun.guestvm.ajtrace.AJTraceLog${logtype} $*

@@ -1,26 +1,4 @@
 include imagespec.io.net.tests
-#we put the JRE and ASPECTJ into the image file system to avoid bootstrap issues
-imagefile  /import/javaguest/aspectj-1.6.9/lib /aspectj-1.6.9/lib
-
-imagefile /import/javaguest/linux/jdk1.6.0_20/lib/tools.jar /jdk1.6.0_20/lib/tools.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/rt.jar /jdk1.6.0_20/jre/lib/rt.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/jce.jar /jdk1.6.0_20/jre/lib/jce.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/jsse.jar /jdk1.6.0_20/jre/lib/jsse.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/resources.jar /jdk1.6.0_20/jre/lib/resources.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/charsets.jar /jdk1.6.0_20/jre/lib/charsets.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/management-agent.jar /jdk1.6.0_20/jre/li/management-agent.jar
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/calendars.properties /jdk1.6.0_20/jre/lib/calendars.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/content-types.properties /jdk1.6.0_20/jre/lib/content-types.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/flavormap.properties /jdk1.6.0_20/jre/lib/flavormap.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/logging.properties /jdk1.6.0_20/jre/lib/logging.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/net.properties /jdk1.6.0_20/jre/lib/net.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/psfontj2d.properties /jdk1.6.0_20/jre/lib/psfontj2d.properties 
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/sound.properties /jdk1.6.0_20/jre/lib/sound.properties
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/security /jdk1.6.0_20/jre/lib/security
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/zi /jdk1.6.0_20/jre/lib/zi
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/management /jdk1.6.0_20/jre/lib/management
-imagefile /import/javaguest/linux/jdk1.6.0_20/jre/lib/ext /jdk1.6.0_20/jre/lib/ext
-
 package com.sun.guestvm.ajtrace
 # just to be safe in case some tracing happens during the image build!
 resetfield com.sun.guestvm.ajtrace.AJTrace.init
