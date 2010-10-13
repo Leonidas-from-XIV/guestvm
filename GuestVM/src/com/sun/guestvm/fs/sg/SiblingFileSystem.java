@@ -37,8 +37,10 @@ import java.util.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.memory.Memory;
 import com.sun.max.util.Utf8Exception;
+import com.sun.max.vm.compiler.builtin.StackAllocate;
 import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
+import com.sun.guestvm.guk.x64.X64VM;
 import com.sun.guestvm.jdk.JDK_java_io_UnixFileSystem;
 
 /**
@@ -202,6 +204,7 @@ public final class SiblingFileSystem extends UnimplementedFileSystemImpl impleme
     }
 
     // FileInputStream, FileOutputStream
+    // Max transfer size is one page
 
     @Override
     public int read(int fd, long fileOffset) {
@@ -210,29 +213,43 @@ public final class SiblingFileSystem extends UnimplementedFileSystemImpl impleme
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        // This is where the native code has the edge for now. For smallish arrays it uses C stack allocation
-        // for the place to read the data to.
-        final Pointer nativeBytes = Memory.allocate(Size.fromInt(length));
-        final int result = SiblingFileSystemNatives.readBytes(_handle, fd, nativeBytes, length, fileOffset);
-        Memory.readBytes(nativeBytes, length, bytes, offset);
-        Memory.deallocate(nativeBytes);
-        return result == 0 ? -1 : result;
+        final Pointer nativeBytes = StackAllocate.stackAllocate(4096);
+        int left = length;
+        while (left > 0) {
+            final int toDo = left > X64VM.PAGE_SIZE ? X64VM.PAGE_SIZE : left;
+            final int result = SiblingFileSystemNatives.readBytes(_handle, fd, nativeBytes, toDo, fileOffset);
+            if (result != toDo) {
+                return -1;
+            }
+            Memory.readBytes(nativeBytes, toDo, bytes, offset);
+            left -= toDo;
+            offset += toDo;
+            fileOffset += toDo;
+        }
+        return length;
     }
 
     @Override
     public int write(int fd, int b, long fileOffset) {
         return SiblingFileSystemNatives.write(_handle, fd, b, fileOffset);
     }
-
+    
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = Memory.allocate(Size.fromInt(length));
-        // This is where the native code has the edge for now. For smallish arrays it uses C stack allocation
-        // for the place to copy the data to.
-        Memory.writeBytes(bytes, offset, length, nativeBytes);
-        final int result = SiblingFileSystemNatives.writeBytes(_handle, fd, nativeBytes, length, fileOffset);
-        Memory.deallocate(nativeBytes);
-        return result;
+        final Pointer nativeBytes = StackAllocate.stackAllocate(4096);
+        int left = length;
+        while (left > 0) {
+            final int toDo = left > X64VM.PAGE_SIZE ? X64VM.PAGE_SIZE : left;
+            Memory.writeBytes(bytes, offset, toDo, nativeBytes);
+            final int result = SiblingFileSystemNatives.writeBytes(_handle, fd, nativeBytes, toDo, fileOffset);
+            if (result != toDo) {
+                return -1;
+            }
+            left -= toDo;
+            offset += toDo;
+            fileOffset += toDo;
+        }
+        return length;
     }
 
     @Override
