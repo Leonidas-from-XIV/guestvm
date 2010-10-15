@@ -32,6 +32,9 @@
 package test.java.net.cs;
 
 import java.lang.reflect.Constructor;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 public class ClientMain {
 
@@ -44,6 +47,7 @@ public class ClientMain {
         String serializedDataFile = null;
         int nthreads = 1;
         boolean verbose = false;
+        boolean killServer = false;
         String sdImpl = "test.java.net.cs.Default";
         String protocol = "UDP";
         long delay = 0;
@@ -83,6 +87,8 @@ public class ClientMain {
                 delay = Long.parseLong(args[++i]);
             } else if (arg.equals("type")) {
                 protocol = args[++i];
+            } else if (arg.equals("kill")) {
+                killServer = true;
             }
         }
         // Checkstyle: resume modified control variable check
@@ -90,6 +96,11 @@ public class ClientMain {
         if (host == null) {
             System.err.println("No server host specified");
             System.exit(1);
+        }
+        
+        if (killServer) {
+            killServer(host);
+            return;
         }
 
         try {
@@ -142,6 +153,17 @@ public class ClientMain {
             e.printStackTrace();
         }
 
+    }
+    
+    private static void killServer(String host) {
+        try {
+            DatagramSocket socket = new DatagramSocket();
+            byte[] data = new byte[1];
+            DatagramPacket packet = new DatagramPacket(data, 1, InetAddress.getByName(host), ServerThread.KILL_PORT);
+            socket.send(packet);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**

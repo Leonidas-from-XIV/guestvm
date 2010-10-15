@@ -44,6 +44,7 @@ public abstract class ServerThread extends Thread {
      * Base port number for first server thread.
      */
     public static final int PORT = 10000;
+    public static final int KILL_PORT = 20000;
     /**
      * The data that is returned on an ackowledgement.
      */

@@ -77,7 +77,7 @@ public class TCPServer extends ServerThread {
                             }
                             // CheckStyle: resume inner assignment check
                         } catch (InterruptedIOException e) {
-                            e.printStackTrace();
+                            System.out.println("interrupted");
                             sock.close();
                             return;
                         }
@@ -95,6 +95,9 @@ public class TCPServer extends ServerThread {
                     if (_oneRun) {
                         break;
                     }
+                } catch (InterruptedIOException e) {
+                    System.out.println("interrupted");
+                    return;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

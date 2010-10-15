@@ -34,6 +34,8 @@ package test.java.net.cs;
 // Simple test of Server - simply consumes and discards data
 
 import java.lang.reflect.Constructor;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 
 public class ServerMain {
 
@@ -47,6 +49,7 @@ public class ServerMain {
         boolean syncCheck = true;
         boolean ack = true;
         boolean verbose = false;
+        boolean killThread = false;
         String sdImpl = "test.java.net.cs.Default";
         String protocol = "UDP";
 
@@ -86,10 +89,12 @@ public class ServerMain {
                 sdImpl = args[i];
             } else if (arg.equals("type")) {
                 protocol = args[++i];
+            } else if (arg.equals("kt")) {
+                killThread = true;
             }
         }
         // Checkstyle: resume modified control variable check
-
+        
         try {
             if (serializedDataFile != null) {
                 sessionData = new FileSessionData(serializedDataFile);
@@ -111,6 +116,12 @@ public class ServerMain {
                 consumerThreads[i] = new Consumer(serverThreads[i], blobSize);
 
             }
+            
+            if (killThread) {
+                createKillThread(serverThreads, consumerThreads);
+            }
+
+
             for (int i = 0; i < nthreads; i++) {
                 serverThreads[i].start();
                 consumerThreads[i].start();
@@ -131,6 +142,41 @@ public class ServerMain {
             System.out.println("usage: integer value expected");
             System.exit(1);
             return -1;
+        }
+    }
+    
+    private static void createKillThread(Thread[] serverThreads, Thread[] consumerThreads) {
+        KillThread killThread = new KillThread(serverThreads, consumerThreads);
+        killThread.setName("Kill Thread");
+        killThread.setDaemon(true);
+        killThread.start();
+    }
+    
+    static class KillThread extends Thread {
+        Thread[] serverThreads;
+        Thread[] consumerThreads;
+        
+        KillThread(Thread[] serverThreads, Thread[] consumerThreads) {
+            this.consumerThreads = consumerThreads;
+            this.serverThreads = serverThreads;
+        }
+        
+        public void run() {
+            byte[] data = new byte[1];
+            try {
+                DatagramSocket killSocket = new DatagramSocket(ServerThread.KILL_PORT);
+                DatagramPacket packet = new DatagramPacket(data, 1);
+                killSocket.receive(packet);
+                for (Thread serverThread : serverThreads) {
+                    serverThread.interrupt();
+                }
+                for (Thread consumerThread : serverThreads) {
+                    consumerThread.interrupt();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
         }
     }
 
