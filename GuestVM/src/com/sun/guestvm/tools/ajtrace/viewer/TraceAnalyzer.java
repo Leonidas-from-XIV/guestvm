@@ -47,11 +47,7 @@ import java.awt.event.*;
 import java.text.DecimalFormat;
 
 /**
-<<<<<<< local
- * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial.
-=======
- * A tool to display method traces from the TraceAspect aspect, hacked from Swing Tree tutorial
->>>>>>> other
+ * A tool to display method traces from the {@link AJTrace} aspect, hacked from Swing Tree tutorial
  *
  * @author Mick Jordan
  *
@@ -94,7 +90,9 @@ public class TraceAnalyzer extends JPanel {
     public TraceAnalyzer(String[] args) {
         super(new GridLayout(1, 0));
 
-        boolean temp = false;
+        boolean showSorted = false;
+        boolean showMerged= false;
+        String userDataFile = null;
         try {
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
@@ -105,7 +103,7 @@ public class TraceAnalyzer extends JPanel {
                 } else if (arg.equals("-progress")) {
                     PROGRESS = true;
                 } else if (arg.equals("-sort")) {
-                    temp = true;
+                    showSorted = true;
                 } else if (arg.equals("-time")) {
                     i++;
                     String tf = args[i];
@@ -119,6 +117,10 @@ public class TraceAnalyzer extends JPanel {
                         timeFormat = TimeFormat.Sec;
                     } else
                         throw new Exception("unknown time format: " + tf);
+                } else if (arg.equals("-user")) {
+                    userDataFile = args[++i];
+                } else if (arg.equals("-merge")) {
+                    showMerged = true;
                 }
             }
 
@@ -136,10 +138,41 @@ public class TraceAnalyzer extends JPanel {
             Map<String, DefaultMutableTreeNode> threadTreeNodes = createNodes(r);
             r.close();
             
-            if (temp) {
+            ArrayList<MethodData> userData = null;
+            if (userDataFile != null) {
+                userData = createUserData(userDataFile);
+                for (MethodData methodData : userData) {
+                    System.out.println("U" + methodData.entryTimeInfo + " " + 
+                                    methodData.thread + "(" + methodData.params + ")");
+                }
+            }
+            
+            if (showSorted) {
                 for (MethodData methodData : sortedEntriesAndReturns) {
                     TraceType tt = methodData.ttype;
-                    System.out.println(tt + " " + methodData.depth + " " + (tt == TraceType.Entry ? methodData.entryTimeInfo : methodData.exitTimeInfo) + " " + methodData.thread + " " + methodData.methodName);
+                    System.out.println(tt + " " + methodData.depth + " " + (tt == TraceType.Entry ? methodData.entryTimeInfo : methodData.exitTimeInfo) + " " + 
+                                    methodData.thread + " " + methodData.methodName + (methodData.params==null ? "" : ("(" + methodData.params + ")")));
+                }
+            }
+            
+            if (showMerged) {
+                final MethodData[] mergedData = new MethodData[entriesAndReturns.size() + userData.size()];
+                entriesAndReturns.toArray(mergedData);
+                int ix = entriesAndReturns.size();
+                for (MethodData md : userData) {
+                    mergedData[ix++] = md;
+                }
+                Arrays.sort(mergedData, new MethodDataComparator());
+                for (MethodData methodData : mergedData) {
+                    TraceType tt = methodData.ttype;
+                    if (tt == TraceType.UserData) {
+                        System.out.println("U" + methodData.entryTimeInfo + " " + 
+                                        methodData.thread + "(" + methodData.params + ")");                        
+                    } else {
+                        System.out.println(tt + " " + methodData.depth + " " + (tt == TraceType.Entry ? methodData.entryTimeInfo : methodData.exitTimeInfo) + " " + 
+                                        methodData.thread + " " + methodData.methodName + (methodData.params==null ? "" : ("(" + methodData.params + ")")));
+                        
+                    }
                 }
             }
 
@@ -189,6 +222,39 @@ public class TraceAnalyzer extends JPanel {
 
     private static void usage() {
         System.out.println("usage: -f tracefile [-debug] [-progress] [-time sec | milli | micro | nano]");
+    }
+    
+    private ArrayList<MethodData> createUserData(String userDataFile) throws IOException {
+        ArrayList<MethodData> result = new ArrayList<MethodData>();
+        BufferedReader r = null;
+        try {
+            r = new BufferedReader(new FileReader(userDataFile));
+            int lineNumber = 1;
+            while (true) {
+                final String line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (line.length() == 0) {
+                    continue;
+                }
+                try {
+                result.add(parseLine(line));
+                } catch (Exception ex) {
+                    System.out.println("ignoring unparseable line " + lineNumber);
+                    /// ignore unparseable line
+                }
+                lineNumber++;
+            }
+            return result;
+        } finally {
+            if (r != null) {
+                try {
+                    r.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
     }
 
     class ToolTipRenderer extends DefaultTreeCellRenderer {
@@ -872,9 +938,14 @@ public class TraceAnalyzer extends JPanel {
             result.put(me.getKey(), me.getValue().nodes.get(0));
         }
         
-        sortedEntriesAndReturns = new MethodData[entriesAndReturns.size()];
-        entriesAndReturns.toArray(sortedEntriesAndReturns);
-        Arrays.sort(sortedEntriesAndReturns, new MethodDataComparator());
+        sortedEntriesAndReturns = sortMethodData(entriesAndReturns);
+        return result;
+    }
+    
+    private MethodData[] sortMethodData(ArrayList<MethodData> methodDataArray) {
+        final MethodData[] result = new MethodData[methodDataArray.size()];
+        methodDataArray.toArray(result);
+        Arrays.sort(result, new MethodDataComparator());
         return result;
     }
 
@@ -889,7 +960,7 @@ public class TraceAnalyzer extends JPanel {
     }
 
     enum TraceType {
-        Entry, Return, DefineThread, DefineMethod, DefineParam, StartTime;
+        Entry, Return, DefineThread, DefineMethod, DefineParam, StartTime, UserData;
     }
 
     Map<String,String> threadMap = new HashMap<String,String>();
@@ -963,13 +1034,16 @@ public class TraceAnalyzer extends JPanel {
          */
         MethodData(TraceType ttype, String realName, String shortForm) {
             this.ttype = ttype;
-            this.thread = realName;
             this.methodName = shortForm;
-            if (ttype == TraceType.DefineThread)
+            if (ttype == TraceType.DefineThread) {
+                if (!isUniqueThreadName(realName)) {
+                    realName += "-" + shortForm;
+                }
+                this.thread = realName;
                 threadMap.put(shortForm, realName);
-            else if (ttype == TraceType.DefineParam)
+            } else if (ttype == TraceType.DefineParam) {
                 paramMap.put(shortForm, realName);
-            else if (ttype == TraceType.DefineMethod) {
+            } else if (ttype == TraceType.DefineMethod) {
                 methodMap.put(shortForm, realName);
                 for (MethodData m : forwardRefs) {
                     if (shortForm.equals(m.methodName)) {
@@ -977,6 +1051,34 @@ public class TraceAnalyzer extends JPanel {
                     }
                 }
             }
+        }
+        
+        /**
+         * This variant is used for user data.
+         * @param thread
+         * @param Params
+         */
+        MethodData(String thread, String params, TimeInfo timeInfo) {
+            this.ttype = TraceType.UserData;
+            this.params = params;
+            String shortForm = null;
+            for (Map.Entry<String, String> entry : threadMap.entrySet()) {
+                if (entry.getValue().equals(thread)) {
+                    shortForm = entry.getKey();
+                    break;
+                }
+            }
+            this.entryTimeInfo = timeInfo;
+            this.thread = thread;
+        }
+        
+        private boolean isUniqueThreadName(String name) {
+            for (String userName : threadMap.values()) {
+                if (name.equals(userName)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public String toString() {
@@ -1050,20 +1152,22 @@ public class TraceAnalyzer extends JPanel {
 
     static class MethodDataComparator implements Comparator<MethodData> {
         public int compare(MethodData a, MethodData b) {
-            if (a.ttype == TraceType.Entry) {
-                if (b.ttype == TraceType.Entry) {
+            if (a.ttype == TraceType.Entry || a.ttype == TraceType.UserData) {
+                if (b.ttype == TraceType.Entry || b.ttype == TraceType.UserData) {
                     return a.entryTimeInfo.wallTime < b.entryTimeInfo.wallTime ? -1 : 1;
                 } else {
                     assert b.ttype == TraceType.Return;
                     return a.entryTimeInfo.wallTime < b.exitTimeInfo.wallTime ? -1 : 1;
                 }
-            } else {
-                assert a.ttype == TraceType.Return;
+            } else if (a.ttype == TraceType.Return){
                 if (b.ttype == TraceType.Return) {
                     return a.exitTimeInfo.wallTime < b.exitTimeInfo.wallTime ? -1 : 1;
                 } else {
                     return a.exitTimeInfo.wallTime < b.entryTimeInfo.wallTime ? -1 : 1;
                 }
+            } else {
+                assert false;
+                return 0;
             }
         }
     }
@@ -1220,11 +1324,12 @@ public class TraceAnalyzer extends JPanel {
     private MethodData parseLine(String line) throws Exception {
         // Format, four cases, [] optional
         // 0 S S t start time
-        // 0 D TX name define short name SX for thread name
+        // 0 D TX name define short name TX for thread name
         // 0 M MX name define short name MX for method name
         // 0 P AX name define short name AX for arg/result name
         // d E[t] T M[( ... )] method M entry [at time t,u,s] in thread T, optional args
         // d R[t] M [ (result) ] method M return [at time t,u,s] with optional result
+        // 0 U[t] T user-data user-data on thread T
         // wall time is relative to start time
 
         int s1 = line.indexOf(' ');        // before E/R
@@ -1257,13 +1362,15 @@ public class TraceAnalyzer extends JPanel {
             } else if (ttype.equals("S")) {
                 traceStartTime = Long.parseLong(methodName);
                 return new MethodData(TraceType.StartTime, methodName, thread);
+            } else if (ttype.startsWith("U")) {
+                return new MethodData(thread, params, getTimeInfo(ttype, true));
             } else {
                 throw new Exception("non-D/M trace at depth 0");
             }
         } else {
             // E or R
             TraceType traceType = isReturn(ttype) ? TraceType.Return : TraceType.Entry;
-            TimeInfo timeInfo = getTimeInfo(ttype);
+            TimeInfo timeInfo = getTimeInfo(ttype, false);
             TimeInfo lastTimeInfo = lastTimeInfoMap.get(thread);
             if (timeInfo.userUsage == 0)
                 timeInfo.userUsage = lastTimeInfo.userUsage;
@@ -1278,17 +1385,20 @@ public class TraceAnalyzer extends JPanel {
         }
     }
 
-    private TimeInfo getTimeInfo(String t) {
+    private TimeInfo getTimeInfo(String t, boolean absolute) {
         TimeInfo result = new TimeInfo();
         if (t.length() > 1) {
             int t1 = t.indexOf(',');
             int t2 = t.indexOf(',', t1 + 1);
             if (t1 > 0) {
-                result.wallTime = Long.parseLong(t.substring(1, t1)) + traceStartTime;
+                result.wallTime = Long.parseLong(t.substring(1, t1));
                 result.userUsage = Long.parseLong(t.substring(t1 + 1, t2));
                 result.sysUsage = Long.parseLong(t.substring(t2 + 1));
             } else {
                 result.wallTime = Long.parseLong(t.substring(1));
+            }
+            if (!absolute) {
+                result.wallTime += traceStartTime;
             }
         }
         return result;
