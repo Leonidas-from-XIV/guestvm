@@ -33,47 +33,54 @@ package com.sun.guestvm.net.tcp;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 
 /**
  * @author Puneeet Lakhina
+ * @author Mick Jordan
  *
  */
 public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
 
-    private static final int DEFAULT_THREAD_POOL_SIZE = 10;
+    static final int DEFAULT_THREAD_POOL_SIZE = 10;
 
     private String _name;
+    private Runnable _command;
+    private ScheduledFuture<?> _future;
 
-    public ThreadPoolScheduledTimer(String name) {
-        super(DEFAULT_THREAD_POOL_SIZE, new DaemonThreadFactory(name));
-        _name = name;
+    ThreadPoolScheduledTimer(String name) {
+        this(name, DEFAULT_THREAD_POOL_SIZE);
     }
-    public ThreadPoolScheduledTimer(String name, int corePoolSize) {
+    
+    ThreadPoolScheduledTimer(String name, int corePoolSize) {
         super(corePoolSize, new DaemonThreadFactory(name));
         _name = name;
     }
-
-    public ScheduledFuture<?> schedule(Runnable command, long delay) {
-        if (command != null) {
-            TCP.sdprint("Scheduling " + command + " on " + this._name + " with delay " + delay);
-            final ScheduledFuture< ? > future = schedule(command, delay, TimeUnit.MILLISECONDS);
-            return future;
-        } else {
-            return null;
+    
+    synchronized void scheduleTask(TCP.TCPTimerTask task, long delay) {
+        if (task != null) {
+            if (_future == null) {
+                schedule(task, delay);
+            }
         }
     }
 
-    public String getName() {
+    public void schedule(Runnable command, long delay) {
+            _future = schedule(command, delay, TimeUnit.MILLISECONDS);
+            _command = command;
+            TCP.sdprint("scheduled " + command + " on " + this._name + " with delay " + delay);
+    }
+
+    String getName() {
         return _name;
     }
 
-    public void cancelTask(ScheduledFuture< ? > future) {
-        if (future != null) {
-            TCP.sdprint("Cancelling: Done? " + future.isDone() + " Cancelled? " + future.isCancelled());
-            future.cancel(false);
+    synchronized void cancelTask() {
+        if (_future != null) {
+            TCP.sdprint("cancelling " + _command + " done: " + _future.isDone() + " cancelled: " + _future.isCancelled());
+            _future.cancel(false);
+            _future = null;
         }
     }
 

@@ -40,10 +40,11 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DaemonThreadFactory implements ThreadFactory {
 
-    private String _name = "Daemon Thread Factory Thread";
+    private String _baseName = "Daemon Thread Factory Thread";
+    private int nextId;
 
     public DaemonThreadFactory(String name) {
-        this._name = name;
+        this._baseName = name;
     }
 
     public DaemonThreadFactory() {
@@ -57,7 +58,7 @@ public class DaemonThreadFactory implements ThreadFactory {
      */
     @Override
     public Thread newThread(Runnable r) {
-        final Thread t = new Thread(r, _name);
+        final Thread t = new Thread(r, _baseName + "-" + nextId++);
         t.setDaemon(true);
         return t;
     }

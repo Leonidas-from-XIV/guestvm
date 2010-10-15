@@ -35,20 +35,24 @@ import com.sun.guestvm.net.ip.IPAddress;
 
 
 /**
+ * A unique, immutable, key for a connection that is used in maps.
+ * 
  * @author Puneeet Lakhina
+ * @author Mick Jordan
  *
  */
 public class TCPConnectionKey {
 
-    private int _localPort;
-    private int _remotePort;
-    private long _remoteIp;
+    final private int _localPort;
+    final private int _remotePort;
+    final private long _remoteIp;
 
     public TCPConnectionKey(int localPort,int remotePort, long remoteIp) {
         _localPort = localPort;
         _remotePort = remotePort;
         _remoteIp = remoteIp;
     }
+    
     @Override
     public boolean equals(Object other) {
         if (other != null && other instanceof TCPConnectionKey) {
@@ -74,50 +78,4 @@ public class TCPConnectionKey {
     }
 
 
-    /**
-     * @return the _localPort
-     */
-    public int get_localPort() {
-        return _localPort;
-    }
-
-
-    /**
-     * @param localPort the _localPort to set
-     */
-    public void set_localPort(int localPort) {
-        _localPort = localPort;
-    }
-
-
-    /**
-     * @return the _remotePort
-     */
-    public int get_remotePort() {
-        return _remotePort;
-    }
-
-
-    /**
-     * @param remotePort the _remotePort to set
-     */
-    public void set_remotePort(int remotePort) {
-        _remotePort = remotePort;
-    }
-
-
-    /**
-     * @return the _remoteIp
-     */
-    public long get_remoteIp() {
-        return _remoteIp;
-    }
-
-
-    /**
-     * @param remoteIp the _remoteIp to set
-     */
-    public void set_remoteIp(long remoteIp) {
-        _remoteIp = remoteIp;
-    }
 }
