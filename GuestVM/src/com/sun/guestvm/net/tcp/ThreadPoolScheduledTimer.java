@@ -69,7 +69,9 @@ public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
     public void schedule(Runnable command, long delay) {
             _future = schedule(command, delay, TimeUnit.MILLISECONDS);
             _command = command;
-            TCP.sdprint("scheduled " + command + " on " + this._name + " with delay " + delay);
+            if (TCP._debug){ 
+                TCP.sdprint("scheduled " + command + " on " + this._name + " with delay " + delay);
+            }
     }
 
     String getName() {
@@ -78,7 +80,9 @@ public class ThreadPoolScheduledTimer extends ScheduledThreadPoolExecutor {
 
     synchronized void cancelTask() {
         if (_future != null) {
-            TCP.sdprint("cancelling " + _command + " done: " + _future.isDone() + " cancelled: " + _future.isCancelled());
+            if (TCP._debug){ 
+                TCP.sdprint("cancelling " + _command + " done: " + _future.isDone() + " cancelled: " + _future.isCancelled());
+            }
             _future.cancel(false);
             _future = null;
         }
