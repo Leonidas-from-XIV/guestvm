@@ -178,7 +178,9 @@ public abstract aspect AJTrace {
      * @param resultOrThrowable
      * @param normalReturn
      */
-	protected abstract void doAfterWithReturn(JoinPoint jp, Object resultOrThrowable, boolean normalReturn);
+	protected void doAfterWithReturn(JoinPoint jp, Object resultOrThrowable, boolean normalReturn) {
+	}
+	
 	
 	/**
 	 * Version specific to this aspect where the tracing of arguments is not supported.
