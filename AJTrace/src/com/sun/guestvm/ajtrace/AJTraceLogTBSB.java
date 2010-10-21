@@ -72,6 +72,11 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 	}
 
 	@Override
+	public void defineParam(int id, String fullName) {
+		defineParamLog(id, fullName, _sbtl.get());
+	}
+
+	@Override
 	public void defineMethod(int id, String fullName) {
 		defineMethodLog(id, fullName, _sbtl.get());
 	}
@@ -82,15 +87,23 @@ public class AJTraceLogTBSB extends AJTraceLogBSB {
 	}
 
 	@Override
-	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
-		enterLog(depth, tod, user, sys, threadId, methodId, args, _sbtl.get());
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, Object target, boolean isCons, Object[] args) {
+		enterLog(depth, tod, user, sys, threadId, methodId, target, isCons, args, _sbtl.get());
 
 	}
 
 	@Override
-	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, Object result) {
 		exitLog(depth, tod, user, sys, threadId, methodId, result, _sbtl.get());
 	}
 
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
+		exitLog(depth, tod, user, sys, threadId, methodId, _sbtl.get());
+	}
+
+	public void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args) {
+		callLog(depth, tod, threadId, methodId, target, args, _sbtl.get());
+	}
 
 }

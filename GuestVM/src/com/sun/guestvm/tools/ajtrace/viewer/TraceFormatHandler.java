@@ -29,39 +29,49 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.ajtrace;
+package com.sun.guestvm.tools.ajtrace.viewer;
 
-/**
- * Factory for controlling which subclass of TraceLog is used..
- * 
- * @author Mick Jordan
- *
- */
 
-public class AJTraceLogFactory {
-	private static final String TRACELOG_CLASS_PROPERTY = "guestvm.ajtrace.logclass";
-	private static AJTraceLog singleton;
-	
-	public static AJTraceLog create() {
-		AJTraceLog result = null;
-		final String logClass = System.getProperty(TRACELOG_CLASS_PROPERTY);
-		if (logClass == null) {
-			result = new AJTraceLogSB();
-		} else {
-			try {
-				result = (AJTraceLog) Class.forName(logClass).newInstance();
-			} catch (Exception exception) {
-				System.err.println("Error instantiating " + logClass + ": "
-						+ exception);
-				result = new AJTraceLogSB();
-			}
-		}
-		singleton = result;
-		return result;
-	}
-	
-	public static AJTraceLog getTraceLog() {
-		return singleton;
-	}
+public abstract class TraceFormatHandler {
+    public final  String method;
+    public final int numArgs;
+    public final int param;
+    
+    /**
+     * Define a transform for given parameter of given method.
+     * @param method fully qualified method name
+     * @param numArgs poor man's overloading mechanism
+     * @param param parameter to transform, numbering from 1.
+     */
+    protected TraceFormatHandler(String method, int numArgs, int param) {
+        if (param > numArgs) {
+            throw new IllegalArgumentException("param number " + param + " out of range");
+        }
+        this.method = method;
+        this.numArgs = numArgs;
+        this.param = param;
+    }
+    
+    public abstract String transform(String value);
+    
+    @Override
+    public int hashCode() {
+        return method.hashCode() ^ numArgs;
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        TraceFormatHandler otherHandler = (TraceFormatHandler) other;
+        return method.equals(otherHandler.method) && numArgs == otherHandler.numArgs;
+    }
+    
+    static class Check extends TraceFormatHandler {
+        Check(String method, int numArgs) {
+            super(method, numArgs, numArgs);
+        }
+        public String transform(String value) {
+            return value;
+        }
+        
+    }
 }
-

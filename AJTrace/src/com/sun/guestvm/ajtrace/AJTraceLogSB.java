@@ -32,16 +32,9 @@
 package com.sun.guestvm.ajtrace;
 
 import java.io.*;
+import java.util.*;
 
 /**
- * Legacy format expected by TraceAnalyzer tool.
- * [] means optional
- * 0 S S t                  start time
- * 0 D TX fn               define short name TX for thread fn
- * 0 M MX fn             define short name MX for method fn
- * d E[t] T M              method M entry [at time t,u,s] in thread T
- * d R[t] M                 method M return [at time t,u,s]
- *
  * This implementation is inefficient in that it allocates a StringBuilder per trace and
  * writes it out per trace. So trace log is ordered by time, with thread traces interleaved and
  * no sync required (other than that implicit on the output stream).
@@ -54,11 +47,22 @@ import java.io.*;
 
 public class AJTraceLogSB extends AJTraceLog {
 
+	public static final String NLARGS_PROPERTY = "guestvm.ajtrace.nlargs";
+	public static final String SHORTFORM_PROPERTY = "guestvm.ajtrace.shortargs";
+	
+	private static boolean nlArgs;
+	private static int shortFormLimit = 8;
+	private static Map<String, Integer>  paramMap = new HashMap<String, Integer> ();
+	private static int nextParamId = 1;
 	protected PrintStream _ps;
 	private long _startTime;
 
 	@Override
 	public void init(long startTime) {
+		final String prop = System.getProperty(SHORTFORM_PROPERTY);
+		if (prop != null) {
+			shortFormLimit = Integer.parseInt(prop);
+		}
 		initPS();
 		final StringBuilder sb = new StringBuilder();
 		initLog(startTime, sb);
@@ -155,13 +159,18 @@ public class AJTraceLogSB extends AJTraceLog {
 	}
 
 	@Override
-	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
+	public void enter(int depth, long tod, long user, long sys, long threadId, int methodId, Object target, boolean isCons, Object[] args) {
 		final StringBuilder sb = new StringBuilder();
-		enterLog(depth, tod, user, sys, threadId, methodId, args, sb);
+		enterLog(depth, tod, user, sys, threadId, methodId, target, false, args, sb);
 	}
 
 	protected void enterLog(int depth, long tod, long user, long sys,
-			long threadId, int methodId, String[] args, StringBuilder sb) {
+			long threadId, int methodId, Object target, boolean isCons, Object[] args, StringBuilder sb) {
+	    StringBuilder argsSb = null;
+	    // we do this here in case argument processing generates any short form definitions
+		if (args != null) {
+			argsSb = getArgs(target, isCons, args);
+		}
 		sb.append(depth);
 		sb.append(' ');
 		sb.append('E');
@@ -170,36 +179,27 @@ public class AJTraceLogSB extends AJTraceLog {
 		sb.append(threadId);
 		sb.append(" M");
 		sb.append(methodId);
-		if (args != null) {
-			sb.append('(');
-			for (int i = 0; i < args.length; i++) {
-				String arg = args[i];
-				sb.append(arg);
-				if (i != args.length-1) {
-					sb.append(',');
-				}
-			}
-			sb.append(')');
+		if (argsSb != null) {
+			sb.append(argsSb);
 		}
 		sb.append('\n');
 		checkFlush(sb);
 	}
 
 	@Override
-	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId, Object result) {
 		final StringBuilder sb = new StringBuilder();
 		exitLog(depth, tod, user, sys, threadId, methodId, result, sb);
 	}
 
-	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, String result, StringBuilder sb) {
-		sb.append(depth);
-		sb.append(' ');
-		sb.append('R');
-		appendTime(tod, user, sys, sb);
-		sb.append(" T");
-		sb.append(threadId);
-		sb.append(" M");
-		sb.append(methodId);
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
+		final StringBuilder sb = new StringBuilder();
+		exitLog(depth, tod, user, sys, threadId, methodId, sb);
+	}
+
+	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, Object result, StringBuilder sb) {
+		doExitLogPrefix(false, depth, tod, user, sys, threadId, methodId, sb);
 		if (result != null) {
 			sb.append('(');
 			sb.append(result);
@@ -207,6 +207,50 @@ public class AJTraceLogSB extends AJTraceLog {
 		}
 		sb.append('\n');
 		checkFlush(sb);
+	}
+	
+	protected void exitLog(int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
+		doExitLogPrefix(true, depth, tod, user, sys, threadId, methodId, sb);
+		sb.append('\n');
+		checkFlush(sb);		
+	}
+	
+	private void doExitLogPrefix(boolean isVoidReturn, int depth, long tod, long user, long sys, long threadId, int methodId, StringBuilder sb) {
+		sb.append(depth);
+		sb.append(' ');
+		sb.append(isVoidReturn ? 'V' : 'R');
+		appendTime(tod, user, sys, sb);
+		sb.append(" T");
+		sb.append(threadId);
+		sb.append(" M");
+		sb.append(methodId);
+	}
+	
+	@Override
+    public void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args) {
+		final StringBuilder sb = new StringBuilder();
+        callLog(depth, tod, threadId, methodId, target, args, sb);
+	}
+	
+	protected void callLog(int depth, long tod, long threadId, long methodId, Object target, Object[] args, StringBuilder sb) {
+	    StringBuilder argsSb = null;
+	    // we do this here in case argument processing generates any short form definitions
+		if (args != null) {
+			argsSb = getArgs(target, false, args);
+		}
+		sb.append(depth);
+		sb.append(' ');
+		sb.append('C');
+		appendTime(tod, 0, 0, sb);
+		sb.append(" T");
+		sb.append(threadId);
+		sb.append(" M");
+		sb.append(methodId);
+		if (argsSb != null) {
+			sb.append(argsSb);
+		}
+	    sb.append('\n');
+	    checkFlush(sb);
 	}
 
 	private void appendTime(long tod, long user, long sys,
@@ -220,5 +264,109 @@ public class AJTraceLogSB extends AJTraceLog {
 				sb.append(sys);
 			}
 		}
+	}
+	
+	private StringBuilder getArgs(Object target, boolean isCons, Object[] args) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append('(');
+		sb.append(getParameter(target, isCons));
+		if (args.length > 0) {
+		    sb.append(',');
+		}
+		for (int i = 0; i < args.length; i++) {
+			sb.append(getParameter(args[i], false));
+			if (i != args.length-1) {
+				sb.append(',');
+			}
+		}
+		sb.append(')');		
+		return sb;
+	}
+	
+	private String getParameter(Object value, boolean isCons) {
+		String result = null;
+		if (value == null) {
+			result = "null";
+		} else if (value instanceof String) {
+			result = "\"" + replaceNL((String) value) + "\"";
+		} else if (value instanceof Character) {
+			result = "'" + value + "'";
+		} else if (value instanceof Number || value instanceof Boolean) {
+			result = value.toString();
+		} else {
+			if (isCons || AJTraceArgs.plainArgs) {
+				result = objectToString(value);
+			} else {
+				try {
+			        result = "\"" + replaceNL(customize(value)) + "\"";
+				} catch (Exception ex) {
+					if (AJTrace.flagErrors) {
+					    System.err.println("AJTrace: exception tracing argument");
+					    ex.printStackTrace();
+					}
+					result = "???";
+				}
+			}
+		}
+		if (result.length() >= shortFormLimit) {
+			Integer shortForm = paramMap.get(result);
+			if (shortForm == null) {
+				shortForm = new Integer(nextParamId++);
+				paramMap.put(result, shortForm);
+				defineParam(shortForm, result);
+			}
+			result = "A" + shortForm.toString();
+		}
+		return result;
+	}
+
+	protected String objectToString(Object obj) {
+		// hashcode sometimes fails if object is still in the process of being
+		// initialized yet being passed as an argument to a method (which we are tracing)
+		if (obj == null) {
+			return "null";
+		}
+		String hc = "?";
+		try {
+			hc = Integer.toHexString(obj.hashCode());
+		} catch (Exception ex) {
+			if (AJTrace.flagErrors) {
+				System.err.println("AJTrace: exception calling hashCode");
+				ex.printStackTrace();
+			}
+		}
+		return obj.getClass().getName() + "@" + hc;
+	}
+
+	/**
+	 * Replace newlines with \n
+	 */
+	protected String replaceNL(String  str) {
+		if (!nlArgs) {
+			return str;
+		}
+		String result = str;
+		if (str != null) {
+			int ix = str.indexOf('\n');
+			if (ix >= 0) {
+				int pix = 0;
+				StringBuffer strb = new StringBuffer();
+				while (ix >= 0) {
+					strb.append(str.substring(pix, ix));
+					strb.append('\\');
+					strb.append('n');
+					pix = ix + 1;
+					ix = str.indexOf('\n', pix);
+				}
+				if (pix < str.length())
+					strb.append(str.substring(pix));
+				result = strb.toString();
+			}
+		}
+		return result;
+	}
+
+	protected String customize(Object value) {
+		return value.toString();
 	}
 }

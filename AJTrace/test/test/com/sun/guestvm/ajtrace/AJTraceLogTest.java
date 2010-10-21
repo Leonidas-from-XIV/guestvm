@@ -20,7 +20,7 @@ public class AJTraceLogTest {
 		log.init(System.nanoTime());
 		log.defineThread(1, "myThread");
 		log.defineThread(1, "methodName");
-		log.enter(1, System.nanoTime(), 100, 50, 1, 1, null);
+		log.enter(1, System.nanoTime(), 100, 50, 1, 1, null, false, null);
 		log.exit(1, System.nanoTime(), 105, 55, 1, 1, null);
 		log.fini(System.nanoTime());
 	}

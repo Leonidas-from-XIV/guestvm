@@ -54,14 +54,24 @@ public class AJTraceLogNull extends AJTraceLog {
 
 	@Override
 	public void enter(int depth, long tod, long user, long sys, long threadId,
-			int methodId, String[] args) {
+			int methodId, Object target, boolean isCons, Object[] args) {
 	}
 
 	@Override
 	public void exit(int depth, long tod, long user, long sys, long threadId,
-			int methodId, String result) {
+			int methodId, Object result) {
 	}
 
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId,
+			int methodId) {
+	}
+
+	@Override
+	public void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args) {
+		
+	}
+	
 	@Override
 	public void init(long startTime) {
 	}

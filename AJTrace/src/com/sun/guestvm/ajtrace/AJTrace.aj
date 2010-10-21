@@ -58,7 +58,7 @@ public abstract aspect AJTrace {
 	private static boolean recordCputime = false;
 	private static boolean recordSystime = false;
 	protected static volatile boolean off;
-	protected static boolean flagErrors;
+    static boolean flagErrors;
 
 	private static boolean init;
 	private static boolean inInit;
@@ -98,6 +98,7 @@ public abstract aspect AJTrace {
 		recordWallTime = System.getProperty(WALLTIME_PROPERTY) != null;
 		recordCputime = System.getProperty(CPUTIME_PROPERTY) != null;
 		recordSystime = System.getProperty(SYSTIME_PROPERTY) != null;
+		flagErrors = System.getProperty(FLAG_ERRORS_PROPERTY) != null;
 		off = System.getProperty(OFF_PROPERTY) != null;
 	}
 
@@ -113,6 +114,7 @@ public abstract aspect AJTrace {
 		private long sysTime;
 		int depth = 1;
 		boolean inAdvice;
+		boolean constructorException;
 
 		void getTimes() {
 			userTime = threadMXBean.getCurrentThreadUserTime();
@@ -144,7 +146,59 @@ public abstract aspect AJTrace {
 		doBefore(thisJoinPoint);
 	}
 	
-	protected String[] getArgs(JoinPoint jp) {
+	/*
+	@AfterReturning(pointcut="execAll()", returning="result")
+	public void doAfterWithReturn(JoinPoint jp, Object result) {
+		doAfter(jp, result, true);
+	}
+
+	@AfterThrowing(pointcut="execAll()", throwing="result")
+	public void doAfterWithReturn(JoinPoint jp, Object result) {
+		doAfter(jp, result, false);
+	}
+	*/
+
+	/*
+	 * The returning/throwing versions used to be in {@link AJTraceArgs} as they are only used there.
+	 * However, experimentally, this resulted in the plain form of advice being called first, making
+	 * it impossible to detect the special case of a constructor throwing an exception.
+	 * There may be a way to force the precedence, but I can't find it.
+	 */
+    after() returning(Object result) : execAll() {
+		doAfterWithReturn(thisJoinPoint, result, true);
+    }
+
+    after() throwing(Throwable t) : execAll() {
+		doAfterWithReturn(thisJoinPoint, t, false);
+    }
+    
+    /**
+     * Variant used for after throwing/returning a result for {@link AJTraceArgs}.
+     * @param jp
+     * @param resultOrThrowable
+     * @param normalReturn
+     */
+	protected abstract void doAfterWithReturn(JoinPoint jp, Object resultOrThrowable, boolean normalReturn);
+	
+	/**
+	 * Version specific to this aspect where the tracing of arguments is not supported.
+	 */
+    after() : execAll() {
+    	doAfter(thisJoinPoint);
+    }
+    
+    public pointcut callAll();
+    
+//    void around() : callAll() {
+    before() : callAll() {
+    	doCall(thisJoinPoint);
+    }
+    
+	protected Object[] getArgs(JoinPoint jp) {
+		return null;
+	}
+	
+	protected Object getTarget(JoinPoint jp) {
 		return null;
 	}
 	
@@ -158,6 +212,7 @@ public abstract aspect AJTrace {
 	public void doBefore(JoinPoint jp) {
 		if (preBeforeCheck()) {
 			final State s = state.get();
+			s.inAdvice = true;
 			long userTime = 0;
 			long sysTime = 0;
 			if (recordCputime) {
@@ -167,23 +222,26 @@ public abstract aspect AJTrace {
 			}
 			final long threadId = getCurrentThreadName();
 			final int methodId = getMethodName(jp);
-			String[] args = getArgs(jp);
+			Object target = getTarget(jp);
+			Object[] args = getArgs(jp);
 			traceLog.enter(s.depth++, recordWallTime ? time() : 0, userTime,
-					sysTime, threadId, methodId, args);
+					sysTime, threadId, methodId, target, jp.getKind() == JoinPoint.CONSTRUCTOR_EXECUTION, args);
+			s.inAdvice = false;
 		}
 	}
 
-    after() : execAll() {
-    	doAfter(thisJoinPoint, null);
-    }
-    
     protected boolean preAfterCheck() {
     	return !off;
     }
 
-	protected void doAfter(JoinPoint jp, String result) {
+	protected void doAfter(JoinPoint jp) {
+		doAfterCheckVoid(jp, null, true);
+	}
+	
+	protected void doAfterCheckVoid(JoinPoint jp, Object result, boolean isVoidReturn) {
 		if (preAfterCheck()) {
 			final State s = state.get();
+			s.inAdvice = true;
 			s.depth--;
 			final long threadId = getCurrentThreadName();
 			final int methodId = getMethodName(jp);
@@ -194,11 +252,31 @@ public abstract aspect AJTrace {
 				userTime = s.userTime;
 				sysTime = s.sysTime;
 			}
-			traceLog.exit(s.depth, recordWallTime ? time() : 0, userTime, sysTime,
-					threadId, methodId, result);
+			final long wallTime = recordWallTime ? time() : 0;
+			if (isVoidReturn) {
+				traceLog.exit(s.depth, wallTime, userTime, sysTime, threadId,
+						methodId);
+			} else {
+				traceLog.exit(s.depth, wallTime, userTime, sysTime, threadId,
+						methodId, result);
+			}
+			s.inAdvice = false;
 		}
 	}
-
+	
+	protected void doCall(JoinPoint jp) {
+		if (preBeforeCheck()) {
+			final State s = state.get();
+			s.inAdvice = true;
+			final long threadId = getCurrentThreadName();
+			final int methodId = getMethodName(jp);
+			Object target = getTarget(jp);
+			Object[] args = getArgs(jp);
+			traceLog.call(s.depth - 1, recordWallTime ? time() : 0, threadId, methodId, target, args);
+			s.inAdvice = false;
+		}
+	}
+	
 	private static long time() {
         return System.nanoTime();
 	}

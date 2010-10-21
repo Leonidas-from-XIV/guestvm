@@ -91,14 +91,23 @@ public class AJTraceLogBSB extends AJTraceLogSB {
 	}
 
 	@Override
-	public synchronized void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args) {
-		enterLog(depth, tod, user, sys, threadId, methodId, args, _sb);
+	public synchronized void enter(int depth, long tod, long user, long sys, long threadId, int methodId, Object target, boolean isCons, Object[] args) {
+		enterLog(depth, tod, user, sys, threadId, methodId, target, isCons, args, _sb);
 
 	}
 
 	@Override
-	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result) {
+	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId, Object result) {
 		exitLog(depth, tod, user, sys, threadId, methodId, result, _sb);
 	}
 
+	@Override
+	public synchronized void exit(int depth, long tod, long user, long sys, long threadId, int methodId) {
+		exitLog(depth, tod, user, sys, threadId, methodId, _sb);
+	}
+
+	@Override
+	public void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args) {
+		callLog(depth, tod, threadId, methodId, target, args, _sb);
+	}
 }

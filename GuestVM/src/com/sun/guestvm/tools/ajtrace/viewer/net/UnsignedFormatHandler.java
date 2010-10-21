@@ -29,39 +29,23 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.ajtrace;
+package com.sun.guestvm.tools.ajtrace.viewer.net;
 
-/**
- * Factory for controlling which subclass of TraceLog is used..
- * 
- * @author Mick Jordan
- *
- */
+import com.sun.guestvm.tools.ajtrace.viewer.TraceFormatHandler;
 
-public class AJTraceLogFactory {
-	private static final String TRACELOG_CLASS_PROPERTY = "guestvm.ajtrace.logclass";
-	private static AJTraceLog singleton;
-	
-	public static AJTraceLog create() {
-		AJTraceLog result = null;
-		final String logClass = System.getProperty(TRACELOG_CLASS_PROPERTY);
-		if (logClass == null) {
-			result = new AJTraceLogSB();
-		} else {
-			try {
-				result = (AJTraceLog) Class.forName(logClass).newInstance();
-			} catch (Exception exception) {
-				System.err.println("Error instantiating " + logClass + ": "
-						+ exception);
-				result = new AJTraceLogSB();
-			}
-		}
-		singleton = result;
-		return result;
-	}
-	
-	public static AJTraceLog getTraceLog() {
-		return singleton;
-	}
+
+public class UnsignedFormatHandler extends TraceFormatHandler {
+
+    public UnsignedFormatHandler(String method, int numArgs, int param) {
+        super(method, numArgs, param);
+    }
+    
+    @Override
+    public String transform(String value) {
+        final int x = Integer.parseInt(value);
+        final long lx = (long) x;
+        final long lmx = lx & 0xFFFFFFFFL;
+        return Long.toString(lmx);
+    }
+
 }
-

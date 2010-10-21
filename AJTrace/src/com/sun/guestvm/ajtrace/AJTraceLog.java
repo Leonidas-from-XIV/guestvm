@@ -39,8 +39,10 @@ package com.sun.guestvm.ajtrace;
  * defineThread(s, n)       define short name s for thread n
  * defineMethod(s, n)      define short name s for method n
  * defineParam(s, n)       define short name s for param/result n
- * enter(d, t, th, m, a)      entry to method m in thread th at time t stack depth d (optional args a)
+ * enter(d, t, th, m, t, a)    entry to method m in thread th at time t stack depth d (optional args a)
  * exit(d, t, th, m, r)         exit from method m in thread th at time t stack depth d (optional result r)
+ * exit(d, t, th, m)            exit from method m in thread th at time t stack depth d void result
+ * call(d, t, th, a)             call to method in thread t at depth d (optional args a)
  *
  * @author Mick Jordan
 */
@@ -51,6 +53,8 @@ public abstract class AJTraceLog {
 	public abstract void defineThread(long id, String fullName);
 	public abstract void defineMethod(int id, String fullName);
 	public abstract void defineParam(int id, String fullName);
-	public abstract void enter(int depth, long tod, long user, long sys, long threadId, int methodId, String[] args);
-	public abstract void exit(int depth, long tod, long user, long sys, long threadId, int methodId, String result);
+	public abstract void enter(int depth, long tod, long user, long sys, long threadId, int methodId, Object target, boolean isCons, Object[] args);
+	public abstract void exit(int depth, long tod, long user, long sys, long threadId, int methodId, Object result);
+	public abstract void exit(int depth, long tod, long user, long sys, long threadId, int methodId);
+	public abstract void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args);
 }

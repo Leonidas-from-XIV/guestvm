@@ -69,19 +69,12 @@ public class TCPSendQueue {
     // we can make the send window really small and save memory.
     private static final int maxBufSize = 8760;
 
-    private static boolean checked;
 
     TCPSendQueue(TCP tcp, int size) {
 
-        if (!checked) {
-            debug = System.getProperty("guestvm.net.tcp.debug") != null;
-            checked = true;
-        }
         if (size > maxBufSize) {
             size = maxBufSize;
         }
-
-        //dprint("new size:" + size);
 
         this.tcp = tcp;
         bytesFree = size;
@@ -119,8 +112,6 @@ public class TCPSendQueue {
             len = bytesFree;
         }
 
-        //dprint("appending " + len + " bytes");
-
         int n = len;
         if (n > buf.length - end) {
             n = buf.length - end;
@@ -145,10 +136,10 @@ public class TCPSendQueue {
 
     void drop(int todrop) {
 
-        if (debug) dprint("dropping:" + todrop + " start:" + start + " end:" + end);
+        if (TCP._debug) TCP.tcpdprint(tcp, "dropping:" + todrop + " start:" + start + " end:" + end);
 
         if (bytesFree == buf.length) {
-            if (debug) dprint("can't drop anything");
+            if (TCP._debug) TCP.sdprint("can't drop anything");
             return;
         }
 
@@ -161,12 +152,12 @@ public class TCPSendQueue {
 
         tcp.notify();
 
-        if (debug) dprint("drop() bytesFree:" + bytesFree + " start:" + start + " end:" + end);
+        if (TCP._debug) TCP.tcpdprint(tcp, "drop() bytesFree:" + bytesFree + " start:" + start + " end:" + end);
     }
 
     Packet getPacket(int dest_ip, int pos, int hlen, int dlen) {
 
-        if (debug) dprint("getPacket() pos " + pos);
+        if (TCP._debug) TCP.tcpdprint(tcp, "getPacket() pos " + pos);
 
         Packet pkt = Packet.getTx(dest_ip, hlen, dlen);
         if (pkt == null) {
@@ -199,17 +190,4 @@ public class TCPSendQueue {
         tcp.notify();
     }
 
-    //-------------------------------------------------------------------------
-
-    private static boolean debug = false;
-
-    private static void dprint(String mess) {
-        if (debug == true) {
-            System.err.println("TCPSendQueue: [" + Thread.currentThread().getName() + "]" + mess);
-        }
-    }
-
-    private static void err(String mess) {
-        System.err.println("TCPSendQueue: " + mess);
-    }
 }
