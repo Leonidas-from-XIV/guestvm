@@ -31,42 +31,37 @@
  */
 package com.sun.guestvm.jdk;
 
-import java.lang.reflect.Constructor;
+import static com.sun.guestvm.jdk.AliasCast.*;
+
 import java.net.*;
 
 import com.sun.max.annotate.*;
 import com.sun.max.program.ProgramError;
+import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.heap.Heap;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.ip.*;
 import com.sun.guestvm.net.device.*;
+import com.sun.guestvm.unsafe.UnsafeCast;
 
 /**
  * Substitutions for @see java.net.NetworkInterface.
  * @author Mick Jordan
  *
  */
-@SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(NetworkInterface.class)
 public class JDK_java_net_NetworkInterface {
 
-    static Class<?> _klass;
-    static Constructor<?> _constructor;
-    static boolean _init = false;
-
+    @ALIAS(declaringClass = NetworkInterface.class, name="<init>")
+    private native void init(String name, int index, InetAddress[] addrs);
+    
     static NetworkInterface createNetworkInterface(String name, int index, InetAddress[] addrs) {
-        try {
-            if (!_init) {
-                _klass = Class.forName("java.net.NetworkInterface");
-                _constructor = _klass.getDeclaredConstructor(String.class, int.class, InetAddress[].class);
-                _constructor.setAccessible(true);
-                _init = true;
-            }
-            return (NetworkInterface) _constructor.newInstance(new Object[] {name, index, addrs});
-        } catch (Exception ex) {
-            ProgramError.unexpected("failed to construct java.net.NetworkInterface", ex);
-            return null;
-        }
+        // Use the ALIAS mechanism to avoid reflection
+        final NetworkInterface networkInterface = UnsafeCast.asNetworkInterface(Heap.createTuple(ClassActor.fromJava(NetworkInterface.class).dynamicHub()));
+        JDK_java_net_NetworkInterface thisNetworkInterface = asJDK_java_net_NetworkInterface(networkInterface);
+        thisNetworkInterface.init(name, index, addrs);
+        return networkInterface;
     }
 
     static NetDevice findDevice(String name) {
@@ -85,7 +80,7 @@ public class JDK_java_net_NetworkInterface {
         final NetworkInterface[] result = new NetworkInterface[netDevices.length];
         for (int i = 0; i < netDevices.length; i++) {
             final InetAddress[] inetAddresses = new InetAddress[1];
-            inetAddresses[0] = JDK_java_net_Inet4AddressImpl.createInet4Address(Init.hostName(), Init.getLocalAddress(netDevices[i]).addressAsInt());
+            inetAddresses[0] = JDK_java_net_Inet4AddressImpl .createInet4Address(Init.hostName(), Init.getLocalAddress(netDevices[i]).addressAsInt());
             final NetworkInterface networkInterface = createNetworkInterface(netDevices[i].getNICName(), i, inetAddresses);
             result[i] = networkInterface;
         }
@@ -94,7 +89,6 @@ public class JDK_java_net_NetworkInterface {
 
     @SUBSTITUTE
     private static NetworkInterface getByName0(String name) throws SocketException {
-        final NetDevice[] netDevices = Init.getNetDevices();
         final NetDevice netDevice = findDevice(name);
         if (netDevice != null) {
             final InetAddress[] inetAddresses = new InetAddress[1];
@@ -120,7 +114,7 @@ public class JDK_java_net_NetworkInterface {
 
     @SUBSTITUTE
     private static NetworkInterface getByIndex(int index) {
-        final NetDevice[] netDevices = Init.getNetDevices();
+        //final NetDevice[] netDevices = Init.getNetDevices();
         return null;
     }
 

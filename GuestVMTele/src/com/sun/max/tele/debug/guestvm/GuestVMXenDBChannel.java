@@ -49,7 +49,7 @@ public final class GuestVMXenDBChannel {
     public static synchronized void attach(GuestVMTeleDomain teleDomain, int domId) {
         GuestVMXenDBChannel.teleDomain = teleDomain;
         channelProtocol = (GuestVMTeleChannelProtocol) TeleVM.teleChannelProtocol();
-        channelProtocol.initialize(teleDomain.vm().bootImage().header.threadLocalsAreaSize, false);
+        channelProtocol.initialize(teleDomain.vm().bootImage().header.tlaSize, false);
         // To avoid having to replicate the DB/XG sub-variant on this side of the channel protocol,
         // we always call setNativeAddresses, even though the DB/Dump modes don't need it.
         final File maxvm = new File(teleDomain.vm().vmDirectory(), "maxvm");

@@ -31,69 +31,71 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
+import static com.sun.guestvm.fs.VirtualFileSystem.*;
+
 import java.io.*;
 
-import static com.sun.guestvm.fs.VirtualFileSystem.*;
 import com.sun.guestvm.fs.*;
 
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
 
 /**
- * This is a GuestVM specific substitution for the native methods in FileOutputStream
- * that attempts to do more at the Java level than is done in the standard Hotspot JDK.
+ * This is a GuestVM specific substitution for the native methods in FileOutputStream.
  *
  * @author Mick Jordan
  */
 
-@SuppressWarnings("unused")
-
 @METHOD_SUBSTITUTIONS(FileOutputStream.class)
 final class JDK_java_io_FileOutputStream {
+    
+    @ALIAS(declaringClass = FileOutputStream.class)
+    FileDescriptor fd;
+
     private JDK_java_io_FileOutputStream() {
     }
 
-    @SUBSTITUTE
-    private void open(String name) throws FileNotFoundException {
-        JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, O_WRONLY | O_CREAT | O_TRUNC);
+    @INLINE
+    private static FileDescriptor getFileDescriptor(Object obj) {
+        JDK_java_io_FileOutputStream thisFileOutputStream = asJDK_java_io_FileOutputStream(obj);
+        return thisFileOutputStream.fd;
     }
 
+    @SuppressWarnings("unused")
+    @SUBSTITUTE
+    private void open(String name) throws FileNotFoundException {
+        JavaIOUtil.open(getFileDescriptor(this), name, O_WRONLY | O_CREAT | O_TRUNC);
+    }
+
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void openAppend(String name) throws FileNotFoundException {
-        final int fd = JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, O_WRONLY | O_CREAT | O_APPEND);
+        final int fd = JavaIOUtil.open(getFileDescriptor(this), name, O_WRONLY | O_CREAT | O_APPEND);
         final  VirtualFileSystem vfs = VirtualFileSystemId.getVfsUnchecked(fd);
         VirtualFileSystemOffset.set(fd, vfs.getLength(VirtualFileSystemId.getFd(fd)));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void close0() throws IOException {
-        JDK_java_io_util.close0(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.close0(getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void write(int b) throws IOException {
-        JDK_java_io_util.write(b, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.write(b, getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void writeBytes(byte[] bytes, int offset, int length) throws IOException {
-        JDK_java_io_util.writeBytes(bytes, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.writeBytes(bytes, offset, length, getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void initIDs() {
-    }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fileDescriptorFieldActor;
-
-    @INLINE
-    private FieldActor fileDescriptorFieldActor() {
-        if (_fileDescriptorFieldActor == null) {
-            _fileDescriptorFieldActor = JDK_java_io_fdActor.fileDescriptorFieldActor(getClass());
-        }
-        return _fileDescriptorFieldActor;
     }
 
 }

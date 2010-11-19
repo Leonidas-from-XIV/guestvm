@@ -31,53 +31,59 @@
  */
 package com.sun.guestvm.jdk;
 
-import java.io.*;
-
-import com.sun.guestvm.fs.*;
+import static com.sun.guestvm.jdk.AliasCast.*;
 import static com.sun.guestvm.fs.VirtualFileSystem.*;
 
-import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
+import java.io.*;
 
-import com.sun.guestvm.fs.ErrorDecoder;
+import com.sun.max.annotate.*;
+
+import com.sun.guestvm.fs.*;
 
 /**
- * This is a GuestVM specific substitution for the native methods in FileInputStream
- * that attempts to do more at the Java level than is done in the standard Hotspot JDK.
+ * This is a GuestVM specific substitution for the native methods in FileInputStream.
  *
  * @author Mick Jordan
  */
 
-@SuppressWarnings("unused")
-
 @METHOD_SUBSTITUTIONS(FileInputStream.class)
 final class JDK_java_io_FileInputStream {
+    
+    @ALIAS(declaringClass = FileInputStream.class)
+    FileDescriptor fd;
 
     private JDK_java_io_FileInputStream() {
     }
+    
+    @INLINE
+    private static FileDescriptor getFileDescriptor(Object obj) {
+        JDK_java_io_FileInputStream thisFileInputStream = asJDK_java_io_FileInputStream(obj);
+        return thisFileInputStream.fd;
+    }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void open(String name) throws FileNotFoundException {
-        JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, O_RDONLY);
+        JavaIOUtil.open(getFileDescriptor(this), name, O_RDONLY);
     }
 
     @SUBSTITUTE
     int read() throws IOException {
-        return JDK_java_io_util.read(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        return JavaIOUtil.read(getFileDescriptor(this));
     }
 
     @SUBSTITUTE
     int readBytes(byte[] bytes, int offset, int length) throws IOException {
-        return JDK_java_io_util.readBytes(bytes, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        return JavaIOUtil.readBytes(bytes, offset, length, getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long skip(long n) throws IOException {
         if (n < 0) {
             throw new IOException("skip with negative argument: " + n);
         }
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         final long result = VirtualFileSystemId.getVfs(fd).skip(VirtualFileSystemId.getFd(fd), n, VirtualFileSystemOffset.get(fd));
         if (result < 0) {
             throw new IOException("error in skip: " + ErrorDecoder.getMessage((int) -result));
@@ -87,9 +93,10 @@ final class JDK_java_io_FileInputStream {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int available() throws IOException {
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         final int result = VirtualFileSystemId.getVfs(fd).available(VirtualFileSystemId.getFd(fd), VirtualFileSystemOffset.get(fd));
         if (result < 0) {
             throw new IOException("error in available: " + ErrorDecoder.getMessage(-result));
@@ -100,23 +107,14 @@ final class JDK_java_io_FileInputStream {
 
     @SUBSTITUTE
     void close0() throws IOException {
-        JDK_java_io_util.close0(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.close0(getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void initIDs() {
 
     }
 
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fileDescriptorFieldActor;
-
-    @INLINE
-    private FieldActor fileDescriptorFieldActor() {
-        if (_fileDescriptorFieldActor == null) {
-            _fileDescriptorFieldActor = JDK_java_io_fdActor.fileDescriptorFieldActor(getClass());
-        }
-        return _fileDescriptorFieldActor;
-    }
 
 }

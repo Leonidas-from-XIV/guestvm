@@ -32,8 +32,8 @@
 package com.sun.guestvm.jdk;
 
 import java.io.*;
+
 import com.sun.guestvm.fs.*;
-import com.sun.max.vm.object.TupleAccess;
 
 /**
  * Support methods for FileInputStream, RandomAccessFile.
@@ -49,28 +49,35 @@ import com.sun.max.vm.object.TupleAccess;
 * @author Mick Jordan
  *
  */
-public class JDK_java_io_util {
+public class JavaIOUtil {
 
     /*
      * A helper class for storing the important information extracted by getFdInfo.
      * Instances of this class do not escape the methods that allocate them so
-     * should be implemented on-stack  without allocation.
+     * should be implemented on-stack without allocation.
      */
     public static class FdInfo {
         public int _fd;
         public VirtualFileSystem _vfs;
         public long _fileOffset;
-
-        public static FdInfo getFdInfo(Object fdObj) throws IOException {
-            final FdInfo result = new FdInfo();
-            result._fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-            result._vfs = VirtualFileSystemId.getVfs(result._fd);
-            result._fileOffset = VirtualFileSystemOffset.get(result._fd);
-            return result;
+        
+        private FdInfo(int fd) throws IOException {
+            this._fd = fd;
+            this._vfs = VirtualFileSystemId.getVfs(fd);
+            this._fileOffset = VirtualFileSystemOffset.get(fd);
         }
+
+        public static FdInfo getFdInfo(FileDescriptor fdObj) throws IOException {
+            return new FdInfo(JDK_java_io_FileDescriptor.getFd(fdObj));
+        }
+        
+        public static FdInfo getFdInfo(int fd)  throws IOException {
+            return new FdInfo(fd);
+        }
+        
     }
 
-    static int read(Object fdObj)  throws IOException {
+    static int read(FileDescriptor fdObj)  throws IOException {
         final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
         final int result = fdInfo._vfs.read(VirtualFileSystemId.getFd(fdInfo._fd), fdInfo._fileOffset);
         if (result >= 0) {
@@ -83,7 +90,7 @@ public class JDK_java_io_util {
         return result;
     }
 
-    static int readBytes(byte[] bytes, int offset, int length, Object fdObj) throws IOException {
+    static int readBytes(byte[] bytes, int offset, int length, FileDescriptor fdObj) throws IOException {
         if (bytes == null) {
             throw new NullPointerException();
         }
@@ -104,7 +111,7 @@ public class JDK_java_io_util {
         return result;
     }
 
-    static void write(int b, Object fdObj) throws IOException {
+    static void write(int b, FileDescriptor fdObj) throws IOException {
         final FdInfo fdInfo = FdInfo.getFdInfo(fdObj);
         final int result = fdInfo._vfs.write(VirtualFileSystemId.getFd(fdInfo._fd), b, fdInfo._fileOffset);
         if (result > 0) {
@@ -112,7 +119,7 @@ public class JDK_java_io_util {
         }
     }
 
-    static void writeBytes(byte[] bytes, int offset, int length, Object fdObj) throws IOException {
+    static void writeBytes(byte[] bytes, int offset, int length, FileDescriptor fdObj) throws IOException {
         if (bytes == null) {
             throw new NullPointerException();
         }
@@ -132,7 +139,7 @@ public class JDK_java_io_util {
         }
     }
 
-    static int open(Object fdObj, String name, int flags) throws FileNotFoundException {
+    static int open(FileDescriptor fdObj, String name, int flags) throws FileNotFoundException {
         // You might think that at this point, name would be absolute (or canonical) but not so.
         // We, obviously, assume Unix conventions here.
         if (name.length() > 0 && name.charAt(0) != '/') {
@@ -147,17 +154,17 @@ public class JDK_java_io_util {
         int fd = fs.open(name, flags);
         if (fd >= 0) {
             fd = VirtualFileSystemId.getUniqueFd(fs, fd);
-            TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), fd);
+            JDK_java_io_FileDescriptor.setFd(fdObj, fd);
             return fd;
         } else {
             throw new FileNotFoundException(ErrorDecoder.getFileMessage(-fd, name));
         }
     }
 
-    public static void close0(Object fdObj) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+    public static void close0(FileDescriptor fdObj) throws IOException {
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         if (fd > 0) {
-            TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), -1);
+            JDK_java_io_FileDescriptor.setFd(fdObj, -1);
             close0FD(fd);
         }
     }

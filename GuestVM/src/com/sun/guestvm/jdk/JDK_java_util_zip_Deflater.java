@@ -90,7 +90,7 @@ public class JDK_java_util_zip_Deflater {
     }
 
     static gnu.java.util.zip.Deflater getGNUDeflater(Object deflater) {
-        return _gnuDeflaters.get((int) TupleAccess.readLong(deflater, strmFieldActor().offset()));
+        return _gnuDeflaters.get((int) strmFieldActor().getLong(deflater));
     }
 
     @SUBSTITUTE
@@ -167,10 +167,10 @@ public class JDK_java_util_zip_Deflater {
 
     @SUBSTITUTE
     private void end() {
-        final int strm = (int) TupleAccess.readLong(this, strmFieldActor().offset());
+        final int strm = (int) strmFieldActor().getLong(this);
         if (strm != 0) {
             _gnuDeflaters.get(strm).end();
-            TupleAccess.writeLong(this, strmFieldActor().offset(), 0);
+            strmFieldActor().setLong(this, 0);
             _gnuDeflaters.set(strm, null);
         }
     }

@@ -56,7 +56,7 @@ public class JDK_sun_nio_ch_SocketChannelImpl {
 
     @SUBSTITUTE
     private static void shutdown(FileDescriptor fdObj, int how) throws IOException {
-        final Endpoint endpoint = JDK_java_net_util.get(fdObj);
+        final Endpoint endpoint = JavaNetUtil.get(fdObj);
         endpoint.close(how);
     }
 

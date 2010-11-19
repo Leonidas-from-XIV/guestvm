@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/MaxineELF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/VM"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GuestVM"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/VMDI"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

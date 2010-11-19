@@ -40,6 +40,7 @@ import com.sun.max.vm.bytecode.*;
 import com.sun.max.vm.compiler.target.*;
 import com.sun.max.vm.runtime.*;
 import com.sun.max.vm.stack.*;
+import com.sun.max.vm.stack.StackFrameWalker.Cursor;
 import com.sun.max.vm.thread.VmThread;
 import com.sun.max.unsafe.*;
 
@@ -197,11 +198,12 @@ public final class Tick extends Thread {
     /**
      * Allocation free stack frame analyzer that builds up the {@StackInfo} in {@link Tick#_workingStackInfo}.
      */
-    private static class FrameDumper implements RawStackFrameVisitor {
-        public boolean visitFrame(TargetMethod targetMethod, Pointer ip, Pointer sp, Pointer fp, boolean isTopFrame) {
+    private static class FrameDumper extends RawStackFrameVisitor {
+        public boolean visitFrame(Cursor current, Cursor callee) {
             if (_workingDepth >= _maxDepth) {
                 return false;
             }
+            final TargetMethod targetMethod = current.targetMethod();
             if (targetMethod == null || targetMethod.classMethodActor() == null) {
                 // native frame or stub frame without a class method actor
             } else if (targetMethod.classMethodActor().isTrapStub()) {
@@ -210,7 +212,7 @@ public final class Tick extends Thread {
             } else {
                 final ClassMethodActor classMethodActor = targetMethod.classMethodActor();
                 if (classMethodActor != null) {
-                    return addStackElements(targetMethod, ip);
+                    return addStackElements(targetMethod, current.ip());
                 }
             }
             return true;

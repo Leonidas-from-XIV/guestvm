@@ -31,13 +31,11 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
+
 import java.io.*;
 import sun.nio.ch.FileKey;
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
-import com.sun.max.vm.classfile.constant.*;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -52,54 +50,31 @@ import com.sun.guestvm.fs.*;
  * @author Mick Jordan
  */
 
-/**
- * GuestVM implementation of FileKey
- *
- * A FileKey is a unique id for an open file. On Hotspot/Unix it is represented by
- * the st_dev and st_ino fields returned by the stat system call.
- *
- * On GuestVM we use the VirtualFileSystemId for st_dev and VirtualFileSystem.uniqueId for st_ino.
- *
- * @author Mick Jordan
- *
- */
-
-@SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(FileKey.class)
 public class JDK_sun_nio_ch_FileKey {
+    
+    @SuppressWarnings("unused")
+    @ALIAS(declaringClass = FileKey.class)
+    private long st_dev;
+    
+    @SuppressWarnings("unused")
+    @ALIAS(declaringClass = FileKey.class)
+    private long st_ino;
+    
+    @SuppressWarnings("unused")
+    @SUBSTITUTE
+    private void init(FileDescriptor fdObj) throws IOException {
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
+        JDK_sun_nio_ch_FileKey thisJDK_sun_nio_ch_FileKey = asJDK_sun_nio_ch_FileKey(this);
+        thisJDK_sun_nio_ch_FileKey.st_dev = VirtualFileSystemId.getVfsId(fd);
+        thisJDK_sun_nio_ch_FileKey.st_ino = VirtualFileSystemId.getVfs(fd).uniqueId(VirtualFileSystemId.getFd(fd));
+    }
+
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void initIDs() {
 
     }
 
-    @SUBSTITUTE
-    private void init(FileDescriptor fdObj) throws IOException {
-        final int fd = TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-        TupleAccess.writeLong(this, devFieldActor().offset(), VirtualFileSystemId.getVfsId(fd));
-        final VirtualFileSystem vfs = VirtualFileSystemId.getVfs(fd);
-        TupleAccess.writeLong(this, inoFieldActor().offset(), vfs.uniqueId(VirtualFileSystemId.getFd(fd)));
-    }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _devFieldActor;
-
-    @INLINE
-    static FieldActor devFieldActor() {
-        if (_devFieldActor == null) {
-            _devFieldActor = (FieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_dev"));
-        }
-        return _devFieldActor;
-    }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _inoFieldActor;
-
-    @INLINE
-    static FieldActor inoFieldActor() {
-        if (_inoFieldActor == null) {
-            _inoFieldActor = (FieldActor) ClassActor.fromJava(FileKey.class).findFieldActor(SymbolTable.makeSymbol("st_ino"));
-        }
-        return _inoFieldActor;
-    }
 }

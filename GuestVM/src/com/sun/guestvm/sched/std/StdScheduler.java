@@ -106,8 +106,8 @@ final class StdScheduler extends GUKUpcallHandler {
         private static final String GCTHREAD_TIMESLICE_PROPERTY = "guestvm.gcthread.timeslice";
         private static final int DEFAULT_GCTHREAD_TIMESLICE = 1000;
 
-        public void run(Pointer threadLocals) {
-            final VmThread vmThread = VmThread.fromVmThreadLocals(threadLocals);
+        public void run(Pointer tla) {
+            final VmThread vmThread = VmThread.fromTLA(tla);
             if (vmThread.isGCThread()) {
                 int timeSlice = DEFAULT_GCTHREAD_TIMESLICE;
                 final String p = System.getProperty(GCTHREAD_TIMESLICE_PROPERTY);

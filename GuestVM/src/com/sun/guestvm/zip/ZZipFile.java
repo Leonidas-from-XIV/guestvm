@@ -39,7 +39,6 @@ import com.sun.max.program.ProgramError;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
 import com.sun.max.vm.classfile.constant.*;
 
 /**
@@ -296,7 +295,7 @@ public final class ZZipFile {
             final long time = getInt(_cenBuf, cenIndex + CENTIM);
             // This is the one field we can't set through the ZipEntry interface because
             // setTime converts java time to DOS time and "time" is already DOS time
-            TupleAccess.writeLong(zipEntry, timeFieldActor().offset(), time & 0xFFFFFFFFL);
+            timeFieldActor().setLong(zipEntry, time & 0xFFFFFFFFL);
             final int size = getInt(_cenBuf, cenIndex + CENLEN);
             zipEntry.setCompressedSize(mode == STORED ? size : getInt(_cenBuf, cenIndex + CENSIZ));
             zipEntry.setSize(size);
@@ -305,7 +304,7 @@ public final class ZZipFile {
             String name = zipEntry.getName();
             if (name == null) {
                 name = new String(_cenBuf, cenIndex + CENHDR, getShort(_cenBuf, cenIndex + CENNAM));
-                TupleAccess.writeObject(zipEntry, nameFieldActor().offset(), name);
+                nameFieldActor().setObject(zipEntry, name);
             }
             final int nameLen = name.length();
             final int extraLen = getShort(_cenBuf, cenIndex + CENEXT);
@@ -383,7 +382,7 @@ public final class ZZipFile {
 
     public static String[] getMetaInfEntryNames(Object zipFileObj) {
         final ZipFile zipFile = (ZipFile) zipFileObj;
-        final ZZipFile zzipFile = get(TupleAccess.readLong(zipFile, jzfileFieldActor().offset()));
+        final ZZipFile zzipFile = get(jzfileFieldActor().getLong(zipFile));
         final int size = zzipFile._metaNames.size();
         return zzipFile._metaNames.toArray(new String[size]);
     }

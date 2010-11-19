@@ -60,7 +60,6 @@ import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.FieldActor;
 import com.sun.max.vm.actor.member.InjectedReferenceFieldActor;
 import com.sun.max.vm.classfile.constant.SymbolTable;
-import com.sun.max.vm.object.TupleAccess;
 
 @SuppressWarnings("unused")
 @METHOD_SUBSTITUTIONS(Inflater.class)
@@ -74,7 +73,7 @@ public class JDK_java_util_zip_Inflater {
     
     @INLINE
     static gnu.java.util.zip.Inflater getGNUInflater(Object inflater) {
-       return (gnu.java.util.zip.Inflater) TupleAccess.readObject(inflater, Inflater_gnuInflater.offset());
+       return (gnu.java.util.zip.Inflater) Inflater_gnuInflater.getObject(inflater);
     }
 
     @SUBSTITUTE
@@ -84,7 +83,7 @@ public class JDK_java_util_zip_Inflater {
     @SUBSTITUTE(constructor=true)
     private void constructor(boolean nowrap) {
         final gnu.java.util.zip.Inflater gnuInflater = new gnu.java.util.zip.Inflater(nowrap);
-        TupleAccess.writeObject(this, Inflater_gnuInflater.offset(), gnuInflater);
+        Inflater_gnuInflater.setObject(this, gnuInflater);
     }
 
     @SUBSTITUTE
@@ -154,7 +153,7 @@ public class JDK_java_util_zip_Inflater {
     @SUBSTITUTE
     private void end() {
         getGNUInflater(this).end();
-        TupleAccess.writeObject(this, Inflater_gnuInflater.offset(), null);
+        Inflater_gnuInflater.setObject(this, null);
     }
     
     

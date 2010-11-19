@@ -38,7 +38,6 @@ import sun.rmi.registry.RegistryImpl;
 
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
-import com.sun.max.vm.object.TupleAccess;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.heap.Heap;
 import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
@@ -156,7 +155,7 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         try {
             final FieldActor rfa = ClassActor.fromJava(Class.forName(name)).findLocalStaticFieldActor("nd");
             assert rfa != null;
-            TupleAccess.writeObject(rfa.holder().staticTuple(), rfa.offset(), nd);
+            rfa.setObject(null, nd);
         } catch (ClassNotFoundException ex) {
             GuestVMError.unexpected("problem with Class.forName: " + name);
         }

@@ -31,16 +31,19 @@
  */
 package com.sun.guestvm.jdk;
 
-import java.lang.reflect.Constructor;
+import static com.sun.guestvm.jdk.AliasCast.*;
+
 import java.net.*;
 import java.io.*;
 
 import com.sun.max.annotate.*;
-import com.sun.max.program.ProgramError;
+import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.heap.Heap;
 import com.sun.guestvm.net.dns.*;
 import com.sun.guestvm.net.*;
 import com.sun.guestvm.net.icmp.ICMP;
 import com.sun.guestvm.net.ip.IPAddress;
+import com.sun.guestvm.unsafe.*;
 
 /**
  * GuestVM specific substitutions for @see java.net.Inet4AddressImpl.
@@ -51,23 +54,15 @@ import com.sun.guestvm.net.ip.IPAddress;
 @METHOD_SUBSTITUTIONS(className = "java.net.Inet4AddressImpl")
 final class JDK_java_net_Inet4AddressImpl {
 
-    static Class<?> _klass;
-    static Constructor<?> _constructor;
-    static boolean _init = false;
-
+    @ALIAS(declaringClass = java.net.Inet4Address.class, name="<init>")
+    private native void init(String hostname, int ipAddr);
+    
     static Inet4Address createInet4Address(String hostname, int ipAddr) {
-        try {
-            if (!_init) {
-                _klass = Class.forName("java.net.Inet4Address");
-                _constructor = _klass.getDeclaredConstructor(String.class, int.class);
-                _constructor.setAccessible(true);
-                _init = true;
-            }
-            return (Inet4Address) _constructor.newInstance(new Object[] {hostname, ipAddr});
-        } catch (Exception ex) {
-            ProgramError.unexpected("failed to construct java.net.Inet4Address", ex);
-            return null;
-        }
+        // Use the ALIAS mechanism to avoid reflection
+        final Inet4Address inet4Address = UnsafeCast.asInet4Address(Heap.createTuple(ClassActor.fromJava(Inet4Address.class).dynamicHub()));
+        JDK_java_net_Inet4AddressImpl thisInet4Address = asJDK_java_net_Inet4AddressImpl(inet4Address);
+        thisInet4Address.init(hostname, ipAddr);
+        return inet4Address;
     }
 
     @SUBSTITUTE
