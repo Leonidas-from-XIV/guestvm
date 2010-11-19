@@ -102,6 +102,7 @@ forcemethod com.sun.guestvm.spinlock.guk.DIGUKSpinLock.*
 forcemethod com.sun.guestvm.spinlock.tas.inline.ISpinLock.*
 forcemethod com.sun.guestvm.guk.GUKTrace.xprint
 package com.sun.guestvm.jdk
+package com.sun.guestvm.unsafe
 package com.sun.guestvm.zip
 package com.sun.guestvm.util
 # java.util.logging has bootstrap issues for the low levels

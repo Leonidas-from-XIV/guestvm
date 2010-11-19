@@ -32,19 +32,19 @@ public class TimeLimitedProcTest {
             test(tlp2, timeout);
         }
         if (tests[2]) {
-            identifyTest(1);
+            identifyTest(2);
             testInterrupt(tlp1, timeout);
         }
         if (tests[3]) {
-            identifyTest(1);
+            identifyTest(3);
             testReusable(timeout, new TimeLimitedProc[] {tlp1, tlp2});
         }
         if (tests[4]) {
-            identifyTest(1);
+            identifyTest(4);
             testReusable(timeout, new TimeLimitedProc[] {tlp1, new TimeLimitedProc1()});
         }
         if (tests[5]) {
-            identifyTest(1);
+            identifyTest(5);
             testReusable(timeout, new TimeLimitedProc[] {tlp2, new TimeLimitedProc2()});
         }
     }

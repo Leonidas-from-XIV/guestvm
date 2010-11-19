@@ -61,35 +61,35 @@ final  class JDK_sun_nio_ch_Net {
         int result = -1;
         // TODO reuse
         if (stream) {
-            result = JDK_java_net_util.getFreeIndex(new TCPEndpoint());
+            result = JavaNetUtil.getFreeIndex(new TCPEndpoint());
         } else {
-            result = JDK_java_net_util.getFreeIndex(new UDPEndpoint());
+            result = JavaNetUtil.getFreeIndex(new UDPEndpoint());
         }
         return result;
     }
 
     @SUBSTITUTE
     private static void bind(FileDescriptor fd, InetAddress addr, int port) throws IOException {
-        final Endpoint endpoint = JDK_java_net_util.get(fd);
+        final Endpoint endpoint = JavaNetUtil.get(fd);
         endpoint.bind(IPAddress.byteToInt(addr.getAddress()), port, false);
     }
 
     @SUBSTITUTE
     private static int connect(FileDescriptor fd, InetAddress remote, int remotePort, int trafficClass) throws IOException {
-        final Endpoint endpoint = JDK_java_net_util.get(fd);
+        final Endpoint endpoint = JavaNetUtil.get(fd);
         endpoint.connect(IPAddress.byteToInt(remote.getAddress()), remotePort);
         return 1;
     }
 
     @SUBSTITUTE
     private static int localPort(FileDescriptor fd) {
-        final Endpoint endpoint = JDK_java_net_util.get(fd);
+        final Endpoint endpoint = JavaNetUtil.get(fd);
         return endpoint.getLocalPort();
     }
 
     @SUBSTITUTE
     private static InetAddress localInetAddress(FileDescriptor fd) {
-        final Endpoint endpoint = JDK_java_net_util.get(fd);
+        final Endpoint endpoint = JavaNetUtil.get(fd);
         final int ra = endpoint.getLocalAddress();
         assert ra == 0;
         return JDK_java_net_Inet4AddressImpl.createInet4Address("0.0.0.0", ra);

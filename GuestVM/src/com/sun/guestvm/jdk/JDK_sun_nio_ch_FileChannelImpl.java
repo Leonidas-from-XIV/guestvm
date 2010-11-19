@@ -31,12 +31,10 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
 
 import java.io.*;
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
-import com.sun.max.vm.runtime.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.memory.Memory;
 import com.sun.max.memory.VirtualMemory;
@@ -50,40 +48,29 @@ import com.sun.guestvm.guk.*;
  *
  */
 
-@SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(sun.nio.ch.FileChannelImpl.class)
 public class JDK_sun_nio_ch_FileChannelImpl {
 
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fileDescriptorFileActor;
+    @ALIAS(declaringClass =sun.nio.ch.FileChannelImpl.class)
+    FileDescriptor fd;
+    
 
-    @INLINE
-    static FieldActor fileDescriptorFieldActor() {
-        if (_fileDescriptorFileActor == null) {
-            _fileDescriptorFileActor = JDK_java_io_fdActor.fileDescriptorFieldActor(sun.nio.ch.FileChannelImpl.class);
-        }
-        return  _fileDescriptorFileActor;
-    }
-
-
-    @INLINE
-    private static int getFd(Object fdObj) {
-        return TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
-    }
-
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int lock0(FileDescriptor fdObj, boolean blocking, long pos, long size, boolean shared) throws IOException {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         return VirtualFileSystemId.getVfs(fd).lock0(fd, blocking, pos, size, shared);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void release0(FileDescriptor fdObj, long pos, long size) throws IOException {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         VirtualFileSystemId.getVfs(fd).release0(VirtualFileSystemId.getFd(fd), pos, size);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long map0(int prot, long position, long length) throws IOException {
         /* Unfortunately the notion of a MappedByteBuffer that is is inherently "direct" is
@@ -95,7 +82,7 @@ public class JDK_sun_nio_ch_FileChannelImpl {
         final int len = (int) length;
         final int numPages = len / GUKPagePool.PAGE_SIZE + 1;
         final Pointer p = GUKPagePool.allocatePages(numPages, VirtualMemory.Type.DATA);
-        final int fd = getFd(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        final int fd = JDK_java_io_FileDescriptor.getFd(asJDK_sun_nio_ch_FileChannelImpl(this).fd);
         // this is not optimal, should work with a direct byte buffer, and find a way to give it to caller.
         final byte[] buf = new byte[(int) length];
         final int result = VirtualFileSystemId.getVfs(fd).readBytes(VirtualFileSystemId.getFd(fd), buf, 0, len, position);
@@ -106,21 +93,24 @@ public class JDK_sun_nio_ch_FileChannelImpl {
         return p.toLong();
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static int unmap0(long address, long length) {
         GuestVMError.unimplemented("sun.nio.FileChannelImpl.unmap0");
         return -1;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int force0(FileDescriptor fdObj, boolean metaData) throws IOException {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         return VirtualFileSystemId.getVfs(fd).force0(VirtualFileSystemId.getFd(fd), metaData);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int truncate0(FileDescriptor fdObj, long size) {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         try {
             VirtualFileSystemId.getVfs(fd).setLength(VirtualFileSystemId.getFd(fd), size);
             return 0;
@@ -129,14 +119,16 @@ public class JDK_sun_nio_ch_FileChannelImpl {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long transferTo0(int src, long position, long count, int dst) {
         return -2;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long position0(FileDescriptor fdObj, long offset) {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         if (offset < 0) {
             return VirtualFileSystemOffset.get(fd);
         } else {
@@ -145,9 +137,10 @@ public class JDK_sun_nio_ch_FileChannelImpl {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long size0(FileDescriptor fdObj) {
-        final int fd = getFd(fdObj);
+        final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
         try {
             return VirtualFileSystemId.getVfs(fd).getLength(VirtualFileSystemId.getFd(fd));
         } catch (IOException ex) {
@@ -155,6 +148,7 @@ public class JDK_sun_nio_ch_FileChannelImpl {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static long initIDs() {
         return 4096; // pagesize - should be acquired from GUK

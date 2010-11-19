@@ -34,7 +34,7 @@ package com.sun.guestvm.net;
 import java.io.*;
 import java.nio.*;
 import com.sun.guestvm.fs.*;
-import com.sun.guestvm.jdk.JDK_java_net_util;
+import com.sun.guestvm.jdk.JavaNetUtil;
 
 /**
  * Not really a file system, but ensures that network endpoints are mapped to file descriptors that
@@ -58,20 +58,20 @@ public class EndpointFileSystem extends UnimplementedFileSystemImpl implements V
 
     @Override
     public void configureBlocking(int fd, boolean blocking) {
-        final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+        final Endpoint endpoint = JavaNetUtil.getFromVfsId(fd);
         endpoint.configureBlocking(blocking);
     }
 
     @Override
     public int poll0(int fd, int eventOps, long timeout) {
-        final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+        final Endpoint endpoint = JavaNetUtil.getFromVfsId(fd);
         return endpoint.poll(eventOps, timeout);
     }
 
     @Override
     public int writeBytes(int fd, ByteBuffer bb, long fileOffset) {
         try {
-            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            final Endpoint endpoint = JavaNetUtil.getFromVfsId(fd);
             return endpoint.write(bb);
         } catch (IOException ex) {
             return -ErrorDecoder.Code.EIO.getCode();
@@ -81,7 +81,7 @@ public class EndpointFileSystem extends UnimplementedFileSystemImpl implements V
     @Override
     public int readBytes(int fd, ByteBuffer bb, long fileOffset) {
         try {
-            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            final Endpoint endpoint = JavaNetUtil.getFromVfsId(fd);
             return endpoint.read(bb);
         } catch (IOException ex) {
             return -ErrorDecoder.Code.EIO.getCode();
@@ -91,7 +91,7 @@ public class EndpointFileSystem extends UnimplementedFileSystemImpl implements V
     @Override
     public int close0(int fd) {
         try {
-            final Endpoint endpoint = JDK_java_net_util.getFromVfsId(fd);
+            final Endpoint endpoint = JavaNetUtil.getFromVfsId(fd);
             endpoint.close(Endpoint.SHUT_RDWR);
             return 0;
         } catch (IOException ex) {

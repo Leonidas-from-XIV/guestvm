@@ -35,7 +35,6 @@ import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.*;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.classfile.constant.*;
-import com.sun.max.vm.object.TupleAccess;
 import com.sun.max.vm.jni.*;
 import com.sun.guestvm.error.*;
 
@@ -58,7 +57,7 @@ public class JDK_java_lang_SecurityManager {
         if (_initFieldActor == null) {
             _initFieldActor = (FieldActor) ClassActor.fromJava(SecurityManager.class).findFieldActor(SymbolTable.makeSymbol("initialized"));
         }
-        final boolean initialized = TupleAccess.readBoolean(self, _initFieldActor.offset());
+        final boolean initialized = _initFieldActor.getBoolean(self);
         if (!initialized) {
             throw new SecurityException("security manager not initialized.");
         }

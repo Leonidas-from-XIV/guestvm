@@ -55,7 +55,7 @@ public class VmThreadTestHelper {
     }
 
     public static int idLocal() {
-        return VmThreadLocal.ID.getConstantWord().asAddress().toInt();
+        return VmThreadLocal.ID.load(VmThread.currentTLA()).asAddress().toInt();
     }
 
     public static int idCurrent() {

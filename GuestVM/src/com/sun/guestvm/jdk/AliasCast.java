@@ -31,46 +31,27 @@
  */
 package com.sun.guestvm.jdk;
 
-import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.ClassActor;
-import com.sun.max.vm.heap.Heap;
-import com.sun.cri.bytecode.INTRINSIC;
 import static com.sun.cri.bytecode.Bytecodes.*;
-import com.sun.guestvm.error.*;
+
+import com.sun.cri.bytecode.INTRINSIC;
+
 
 /**
- * GuestVM also uses a UnixFileSystem object as the FileSystem.
- * getFileSystem is native in the Hotspot JDK so we substitute it here.
- *
+ * Collect all the unsafe casts used by clients of {@link ALIAS} methods in the JDK substitution classes.
+ * 
  * @author Mick Jordan
+ *
  */
-
-@METHOD_SUBSTITUTIONS(className = "java.io.FileSystem")
-public final class JDK_java_io_FileSystem {
-
-    private static Object _singleton;
-    
-    @INTRINSIC(UNSAFE_CAST)
-    static native JDK_java_io_FileSystem asThis(Object t);
-   
-    @ALIAS(declaringClassName = "java.io.UnixFileSystem", name="<init>")
-    private native void init();
-
-    @SUBSTITUTE
-    private static/* FileSystem */Object getFileSystem() {
-        // return new UnixFileSystem();
-        if (_singleton == null) {
-            try {
-                final Object fileSystem = Heap.createTuple(ClassActor.fromJava(Class.forName("java.io.UnixFileSystem")).dynamicHub());
-                JDK_java_io_FileSystem thisFileSystem = asThis(fileSystem);
-                thisFileSystem.init();
-                _singleton = fileSystem;
-            } catch (Exception ex) {
-                GuestVMError.unexpected("failed to construct java.io.UnixFileSystem: " + ex);
-                return null;
-            }
-        }
-        return _singleton;
-    }
+final class AliasCast {
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_io_FileDescriptor asJDK_java_io_FileDescriptor(Object obj);    
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_io_FileInputStream asJDK_java_io_FileInputStream(Object obj);
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_io_FileOutputStream asJDK_java_io_FileOutputStream(Object obj);    
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_io_RandomAccessFile asJDK_java_io_RandomAccessFile(Object obj);    
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_net_PlainDatagramSocketImpl asJDK_java_net_PlainDatagramSocketImpl(Object obj);    
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_net_PlainSocketImpl asJDK_java_net_PlainSocketImpl(Object obj);    
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_net_Inet4AddressImpl asJDK_java_net_Inet4AddressImpl(Object obj);
+    @INTRINSIC(UNSAFE_CAST) static native JDK_java_net_NetworkInterface asJDK_java_net_NetworkInterface(Object obj);
+    @INTRINSIC(UNSAFE_CAST) static native JDK_sun_nio_ch_FileChannelImpl asJDK_sun_nio_ch_FileChannelImpl(Object obj);
+    @INTRINSIC(UNSAFE_CAST) static native JDK_sun_nio_ch_FileKey asJDK_sun_nio_ch_FileKey(Object obj);
 
 }

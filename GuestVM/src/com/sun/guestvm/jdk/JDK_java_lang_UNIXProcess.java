@@ -35,7 +35,6 @@ import com.sun.guestvm.fs.exec.*;
 import com.sun.guestvm.guk.GUKExec;
 import com.sun.guestvm.process.*;
 import com.sun.max.annotate.*;
-import com.sun.max.vm.object.TupleAccess;
 import com.sun.guestvm.logging.*;
 
 import java.io.*;
@@ -94,9 +93,9 @@ public final class JDK_java_lang_UNIXProcess {
             throw new IOException("Exec failed");
         } else {
             final int[] fds = execFS.getFds(key);
-            TupleAccess.writeInt(stdinFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[0]);
-            TupleAccess.writeInt(stdoutFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[1]);
-            TupleAccess.writeInt(stderrFd, JDK_java_io_fdActor.fdFieldActor().offset(), fds[2]);
+            JDK_java_io_FileDescriptor.setFd(stdinFd, fds[0]);
+            JDK_java_io_FileDescriptor.setFd(stdoutFd, fds[1]);
+            JDK_java_io_FileDescriptor.setFd(stderrFd, fds[2]);
         }
         return key;
     }

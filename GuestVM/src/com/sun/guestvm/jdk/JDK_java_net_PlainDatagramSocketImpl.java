@@ -31,14 +31,12 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
+import static java.net.SocketOptions.*;
+
 import java.io.*;
 import java.net.*;
-import static java.net.SocketOptions.*;
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.ClassActor;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
-import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.guestvm.error.*;
 import com.sun.guestvm.net.ip.IPAddress;
 import com.sun.guestvm.net.udp.*;
@@ -54,39 +52,54 @@ import com.sun.guestvm.logging.*;
  *
  */
 
-@SuppressWarnings("unused")
-
 @METHOD_SUBSTITUTIONS(className = "java.net.PlainDatagramSocketImpl")
-public class JDK_java_net_PlainDatagramSocketImpl {
+final class JDK_java_net_PlainDatagramSocketImpl {
 
     private static Logger _logger;
+    
+    @ALIAS(declaringClassName = "java.net.DatagramSocketImpl")
+    private FileDescriptor fd;
+    @ALIAS(declaringClassName = "java.net.PlainDatagramSocketImpl")
+    private boolean connected;
+    @ALIAS(declaringClassName = "java.net.PlainDatagramSocketImpl")
+    private int timeout;
 
-    private static Object checkOpen(Object self) throws SocketException {
-        final Object fdObj = TupleAccess.readObject(self, _fileDescriptorFieldActor.offset());
-        if (fdObj == null) {
+    @INLINE
+    private static FileDescriptor getFileDescriptor(Object obj) {
+        JDK_java_net_PlainDatagramSocketImpl thisPlainDatagramSocketImpl =  asJDK_java_net_PlainDatagramSocketImpl(obj);
+        return thisPlainDatagramSocketImpl.fd;
+        
+    }
+    
+    private static FileDescriptor checkOpen(Object obj) throws SocketException {
+        final FileDescriptor fd = getFileDescriptor(obj);
+        if (fd == null) {
             throw new SocketException("socket closed");
         }
-        return fdObj;
+        return fd;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private synchronized void bind0(int lport, InetAddress laddr) throws SocketException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         // TODO fix bind's first argument
         endpoint.bind(0, lport, false);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void send(DatagramPacket p) throws IOException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
         int port;
         int addr;
-        if (TupleAccess.readBoolean(this, _connectedFieldActor.offset())) {
+        JDK_java_net_PlainDatagramSocketImpl thisPlainDatagramSocketImpl =  asJDK_java_net_PlainDatagramSocketImpl(this);
+        if (thisPlainDatagramSocketImpl.connected) {
             port = endpoint.getRemotePort();
             addr = endpoint.getRemoteAddress();
         } else {
@@ -96,26 +109,29 @@ public class JDK_java_net_PlainDatagramSocketImpl {
         endpoint.write(addr, port, buf, off, len, 0);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private synchronized int peek(InetAddress i) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.peek");
         return 0;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private synchronized int peekData(DatagramPacket p) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.peekData");
         return 0;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private synchronized void receive0(DatagramPacket p) throws IOException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         final byte[] buf = p.getData();
         final int off = p.getOffset();
         final int len = p.getLength();
-        final int timeout = TupleAccess.readInt(this, _timeoutFieldActor.offset());
+        final int timeout =   asJDK_java_net_PlainDatagramSocketImpl(this).timeout;
         if (timeout > 0) {
             endpoint.setTimeout(timeout);
         }
@@ -134,61 +150,70 @@ public class JDK_java_net_PlainDatagramSocketImpl {
         p.setLength(n);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void setTimeToLive(int ttl) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.setTimeToLive");
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int getTimeToLive() throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.getTimeToLive");
         return 0;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void setTTL(byte ttl) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.setTTL");
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private byte getTTL() throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.getTTL");
         return 0;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void join(InetAddress inetaddr, NetworkInterface netIf) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.join");
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void leave(InetAddress inetaddr, NetworkInterface netIf) throws IOException {
         GuestVMError.unimplemented("PlainDatagramSocket.leave");
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void datagramSocketCreate() throws SocketException {
-        final Object fdObj = checkOpen(this);
-        final int fd = JDK_java_net_util.getFreeIndex(new UDPEndpoint());
-        TupleAccess.writeInt(fdObj, _fdFieldActor.offset(), fd);
+        final FileDescriptor fdObj = checkOpen(this);
+        final int fd = JavaNetUtil.getFreeIndex(new UDPEndpoint());
+        JDK_java_io_FileDescriptor.setFd(fdObj, fd);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void datagramSocketClose() {
-        final Object fdObj = TupleAccess.readObject(this, _fileDescriptorFieldActor.offset());
+        final FileDescriptor fdObj = getFileDescriptor(this);
         if (fdObj != null) {
-            final int fd = TupleAccess.readInt(fdObj, _fdFieldActor.offset());
+            final int fd = JDK_java_io_FileDescriptor.getFd(fdObj);
             if (fd != -1) {
-                JDK_java_net_util.setNull(fd);
-                TupleAccess.writeInt(fdObj, _fdFieldActor.offset(),  -1);
+                JavaNetUtil.setNull(fd);
+                JDK_java_io_FileDescriptor.setFd(fdObj, -1);
             }
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void socketSetOption(int opt, Object val) throws SocketException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         final int size = (Integer) val;
         switch (opt) {
             case SO_RCVBUF:
@@ -202,10 +227,11 @@ public class JDK_java_net_PlainDatagramSocketImpl {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private Object socketGetOption(int opt) throws SocketException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         switch (opt) {
             case SO_RCVBUF:
                 return endpoint.getRecvBufferSize();
@@ -217,38 +243,25 @@ public class JDK_java_net_PlainDatagramSocketImpl {
         }
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void connect0(InetAddress address, int port) throws SocketException {
-        final Object fdObj = checkOpen(this);
-        final UDPEndpoint endpoint = JDK_java_net_util.getU(TupleAccess.readInt(fdObj, _fdFieldActor.offset()));
+        final FileDescriptor fdObj = checkOpen(this);
+        final UDPEndpoint endpoint = JavaNetUtil.getU(JDK_java_io_FileDescriptor.getFd(fdObj));
         endpoint.connect(IPAddress.byteToInt(address.getAddress()), port);
-        TupleAccess.writeBoolean(this, _connectedFieldActor.offset(), true);
+        asJDK_java_net_PlainDatagramSocketImpl(this).connected = true;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void disconnect0(int family) {
         GuestVMError.unimplemented("PlainDatagramSocket.disconnect0");
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void init() {
-        try {
-            final Class<?> klass = Class.forName("java.net.PlainDatagramSocketImpl");
-            final ClassActor classActor = ClassActor.fromJava(klass);
-            _fileDescriptorFieldActor = JDK_java_io_FileDescriptor.fileDescriptorFieldActor(klass);
-            _fdFieldActor = JDK_java_io_FileDescriptor.fdFieldActor();
-            _connectedFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("connected"));
-            _timeoutFieldActor = (FieldActor) classActor.findFieldActor(SymbolTable.makeSymbol("timeout"));
-            _logger = Logger.getLogger("JDK_java_net_PlainDatagramSocketImpl");
-        } catch (ClassNotFoundException ex) {
-            GuestVMError.unexpected("JDK_java_net_PlainDatagramSocketImpl: failed to load substitutee class");
-        }
+        _logger = Logger.getLogger("java.net.PlainDatagramSocketImpl");
     }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fileDescriptorFieldActor;
-    private static FieldActor _fdFieldActor;
-    private static FieldActor _connectedFieldActor;
-    private static FieldActor _timeoutFieldActor;
 
 }

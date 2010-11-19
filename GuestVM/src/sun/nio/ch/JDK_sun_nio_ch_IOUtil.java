@@ -35,15 +35,16 @@ import java.io.*;
 import java.nio.*;
 
 import sun.nio.ch.ByteBufferNativeDispatcher;
+import sun.nio.ch.NativeDispatcher;
 
 import com.sun.guestvm.error.*;
 import com.sun.guestvm.fs.*;
-import com.sun.guestvm.fs.pipe.PipeFileSystem;
-import com.sun.guestvm.jdk.JDK_java_io_fdActor;
-import com.sun.guestvm.jdk.JDK_java_io_util;
-import com.sun.guestvm.jdk.JDK_java_io_util.FdInfo;
+import com.sun.guestvm.fs.pipe.*;
+import com.sun.guestvm.jdk.JDK_java_io_FileDescriptor;
+import com.sun.guestvm.jdk.JavaIOUtil;
+import com.sun.guestvm.jdk.JavaIOUtil.FdInfo;
 
-import static com.sun.guestvm.jdk.JDK_java_io_util.*;
+import static com.sun.guestvm.jdk.JavaIOUtil.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.compiler.builtin.StackAllocate;
@@ -56,6 +57,7 @@ import com.sun.max.vm.compiler.builtin.*;
  * Substitutions for  @see sun.nio.ch.IOUtil.
  * We substitute more than just the native methods to workaround the code that forces all buffers to be direct
  * at this early stage. Essentially, we want NativeDispatcher to support a ByteBuffer interface.
+ * 
  *
  * @author Mick Jordan
  *
@@ -255,12 +257,12 @@ public class JDK_sun_nio_ch_IOUtil {
 
     @SUBSTITUTE
     static int fdVal(FileDescriptor fdObj) {
-        return TupleAccess.readInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset());
+        return JDK_java_io_FileDescriptor.getFd(fdObj);
     }
 
     @SUBSTITUTE
     static void setfdVal(FileDescriptor fdObj, int value) {
-        TupleAccess.writeInt(fdObj, JDK_java_io_fdActor.fdFieldActor().offset(), value);
+        JDK_java_io_FileDescriptor.setFd(fdObj, value);
     }
 
 }

@@ -38,7 +38,6 @@ import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.FieldActor;
 import com.sun.max.vm.heap.*;
 import com.sun.max.vm.management.*;
-import com.sun.max.vm.object.TupleAccess;
 import com.sun.guestvm.error.*;
 
 /**
@@ -81,7 +80,7 @@ final class JDK_sun_management_VMManagementImpl {
                 final Field field = fields[i];
                 final String fieldName = field.getName();
                 if (fieldName.endsWith("Support")) {
-                    TupleAccess.writeBoolean(staticTuple, FieldActor.fromJava(field).offset(), isSupported(fieldName));
+                    FieldActor.fromJava(field).setBoolean(staticTuple, isSupported(fieldName));
                 }
             }
         } catch (Exception ex) {

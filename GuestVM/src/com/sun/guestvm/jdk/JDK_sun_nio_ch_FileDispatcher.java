@@ -92,7 +92,7 @@ final class JDK_sun_nio_ch_FileDispatcher {
 
     @SUBSTITUTE
     private static void close0(FileDescriptor fd) throws IOException {
-        JDK_java_io_util.close0(fd);
+        JavaIOUtil.close0(fd);
     }
 
     @SUBSTITUTE
@@ -102,7 +102,7 @@ final class JDK_sun_nio_ch_FileDispatcher {
 
     @SUBSTITUTE
     private static void closeIntFD(int fd) throws IOException {
-        JDK_java_io_util.close0FD(fd);
+        JavaIOUtil.close0FD(fd);
     }
 
     @SUBSTITUTE

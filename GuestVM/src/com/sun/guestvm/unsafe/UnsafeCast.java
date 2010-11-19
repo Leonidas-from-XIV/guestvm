@@ -29,41 +29,23 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.jdk;
+package com.sun.guestvm.unsafe;
 
-import java.io.*;
-import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.classfile.constant.*;
+import static com.sun.cri.bytecode.Bytecodes.*;
+
+import java.net.*;
+
+import com.sun.cri.bytecode.INTRINSIC;
 
 /**
- * Utility class for FilDescriptor class field actors.
+ * Encapsulates the use of unsafe casts in VE, similar to {@see com.sun.max.unsafeUnSafe}.
+ * 
  * @author Mick Jordan
  *
  */
 
-public class JDK_java_io_fdActor {
+public final class UnsafeCast {
 
-    /**
-     * Returns a FieldActor for the field named "fd" of type FileDescriptor in given class.
-     * @param klass
-     * @return field actor
-     */
-    static FieldActor fileDescriptorFieldActor(Class<?> klass) {
-        return (FieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
-    }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fdFieldActor;
-
-    /**
-     * Returns an FieldActor for the field "fd" in the FileDescriptorClass.
-     */
-    public static FieldActor fdFieldActor() {
-        if (_fdFieldActor == null) {
-            _fdFieldActor = (FieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
-        }
-        return _fdFieldActor;
-    }
+    @INTRINSIC(UNSAFE_CAST) public static native  Inet4Address asInet4Address(Object obj);
+    @INTRINSIC(UNSAFE_CAST) public static native  NetworkInterface asNetworkInterface(Object obj);
 }

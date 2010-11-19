@@ -42,7 +42,7 @@ public class GuestVMTeleDomain extends TeleProcess {
     protected GuestVMTeleDomain(TeleVM teleVM, Platform platform, int id) {
         super(teleVM, platform, ProcessState.STOPPED);
         this.domainId = id;
-        dataAccess = new PageDataAccess(this, platform.dataModel());
+        dataAccess = new PageDataAccess(this, platform.dataModel);
         GuestVMXenDBChannel.attach(this, id);
     }
 
@@ -115,8 +115,8 @@ public class GuestVMTeleDomain extends TeleProcess {
 
     @Override
     protected void gatherThreads(List<TeleNativeThread> threads) {
-        final Word primordialThreadLocals = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.primordialThreadLocalsOffset));
-        final Word threadLocalsList = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.threadLocalsListHeadOffset));
+        final Word primordialThreadLocals = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.primordialETLAOffset));
+        final Word threadLocalsList = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.tlaListHeadOffset));
         GuestVMXenDBChannel.gatherThreads(threads, threadLocalsList.asAddress().toLong(), primordialThreadLocals.asAddress().toLong());
     }
 

@@ -29,48 +29,14 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.guestvm.jdk;
-
-import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.ClassActor;
-import com.sun.max.vm.heap.Heap;
-import com.sun.cri.bytecode.INTRINSIC;
-import static com.sun.cri.bytecode.Bytecodes.*;
-import com.sun.guestvm.error.*;
 
 /**
- * GuestVM also uses a UnixFileSystem object as the FileSystem.
- * getFileSystem is native in the Hotspot JDK so we substitute it here.
+ * This package contains classes that {@link SUBSTITUTE} the native method definitions in the standard JDK
+ * with Java implementations. Following the convention in Maxine, the class that substitutes methods for the
+ * JDK class x.y.z is named JDK_x_y_z. Other classes, e.g. {@link JavaNetUtil} provide support methods
+ * for the implementations.
  *
  * @author Mick Jordan
+ *
  */
-
-@METHOD_SUBSTITUTIONS(className = "java.io.FileSystem")
-public final class JDK_java_io_FileSystem {
-
-    private static Object _singleton;
-    
-    @INTRINSIC(UNSAFE_CAST)
-    static native JDK_java_io_FileSystem asThis(Object t);
-   
-    @ALIAS(declaringClassName = "java.io.UnixFileSystem", name="<init>")
-    private native void init();
-
-    @SUBSTITUTE
-    private static/* FileSystem */Object getFileSystem() {
-        // return new UnixFileSystem();
-        if (_singleton == null) {
-            try {
-                final Object fileSystem = Heap.createTuple(ClassActor.fromJava(Class.forName("java.io.UnixFileSystem")).dynamicHub());
-                JDK_java_io_FileSystem thisFileSystem = asThis(fileSystem);
-                thisFileSystem.init();
-                _singleton = fileSystem;
-            } catch (Exception ex) {
-                GuestVMError.unexpected("failed to construct java.io.UnixFileSystem: " + ex);
-                return null;
-            }
-        }
-        return _singleton;
-    }
-
-}
+ package com.sun.guestvm.jdk;

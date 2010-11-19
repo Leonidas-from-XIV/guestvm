@@ -40,7 +40,6 @@ import com.sun.guestvm.net.Endpoint;
 import com.sun.guestvm.net.EndpointFileSystem;
 import com.sun.guestvm.net.tcp.TCPEndpoint;
 import com.sun.guestvm.net.udp.UDPEndpoint;
-import com.sun.max.vm.object.TupleAccess;
 
 /**
  * Utility class to support network class substitutions.
@@ -52,7 +51,7 @@ import com.sun.max.vm.object.TupleAccess;
  */
 
 
-public class JDK_java_net_util {
+public class JavaNetUtil {
 
     private static List<Endpoint> _endpoints = new ArrayList<Endpoint>(16);
     private static EndpointFileSystem _endpointFileSystem;
@@ -95,7 +94,7 @@ public class JDK_java_net_util {
     }
 
     static Endpoint get(FileDescriptor fdObj) {
-        return getFromVfsId(TupleAccess.readInt(fdObj, JDK_java_io_FileDescriptor.fdFieldActor().offset()));
+        return getFromVfsId(JDK_java_io_FileDescriptor.getFd(fdObj));
     }
 
     public static Endpoint getFromVfsId(int index) {

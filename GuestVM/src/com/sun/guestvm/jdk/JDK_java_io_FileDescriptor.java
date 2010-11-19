@@ -31,44 +31,38 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
 import java.io.*;
 
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.classfile.constant.*;
 
 /**
  * Substitutions for @see java.io.FileDescriptor.
  * @author Mick Jordan
  *
  */
-@SuppressWarnings("unused")
 
 @METHOD_SUBSTITUTIONS(FileDescriptor.class)
 public class JDK_java_io_FileDescriptor {
 
+    @ALIAS(declaringClass = FileDescriptor.class)
+    int fd;
+    
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void initIDs() {
     }
-
-    /**
-     * Return a @see ReferenceFieldActor for a @see FileDescriptor field named "fd" in the given class.
-     * @param klass
-     * @return the @see ReferenceFieldActor
-     */
-    public static FieldActor fileDescriptorFieldActor(Class<?> klass) {
-        return (FieldActor) ClassActor.fromJava(klass).findFieldActor(SymbolTable.makeSymbol("fd"));
+    
+    @INLINE
+    public static int getFd(FileDescriptor fdObj) {
+        JDK_java_io_FileDescriptor thisFileDescriptor = asJDK_java_io_FileDescriptor(fdObj);
+        return thisFileDescriptor.fd;
     }
 
-    /**
-     * Return an @see FieldActor for the "fd" field in the @see FileDescriptor class.
-     * @return the @see FieldActor
-     */
-    public static FieldActor fdFieldActor() {
-        //_fdFieldActor = (FieldActor) FieldActor.fromJava(Classes.getDeclaredField(getClass(), "fd", int.class));
-        return (FieldActor) ClassActor.fromJava(FileDescriptor.class).findFieldActor(SymbolTable.makeSymbol("fd"));
+    @INLINE
+    public static int setFd(FileDescriptor fdObj, int fd) {
+        JDK_java_io_FileDescriptor thisFileDescriptor = asJDK_java_io_FileDescriptor(fdObj);
+        return thisFileDescriptor.fd = fd;
     }
-
 
 }

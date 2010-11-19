@@ -31,13 +31,13 @@
  */
 package com.sun.guestvm.jdk;
 
+import static com.sun.guestvm.jdk.AliasCast.*;
+import static com.sun.guestvm.fs.VirtualFileSystem.*;
+
 import java.io.*;
 
 import com.sun.max.annotate.*;
 import com.sun.guestvm.error.*;
-import static com.sun.guestvm.fs.VirtualFileSystem.*;
-import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.object.*;
 
 import com.sun.guestvm.fs.*;
 
@@ -48,8 +48,6 @@ import com.sun.guestvm.fs.*;
 
 @METHOD_SUBSTITUTIONS(RandomAccessFile.class)
 
-@SuppressWarnings("unused")
-
 public class JDK_java_io_RandomAccessFile {
 
     // Copied from RandomAccessFile.java (O -> RA because RDONLY differs from standard Unix value (in VirtualFileSystem)
@@ -57,6 +55,17 @@ public class JDK_java_io_RandomAccessFile {
     private static final int RA_RDWR =   2;
     private static final int RA_SYNC =   4;
     private static final int RA_DSYNC =  8;
+    
+    @ALIAS(declaringClass = RandomAccessFile.class)
+    FileDescriptor fd;
+
+    @INLINE
+    private static FileDescriptor getFileDescriptor(Object obj) {
+        JDK_java_io_RandomAccessFile thisRandomAccessFile = asJDK_java_io_RandomAccessFile(obj);
+        return thisRandomAccessFile.fd;
+    }
+
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void open(String name, int mode) throws FileNotFoundException {
         int uMode = 0;
@@ -74,74 +83,72 @@ public class JDK_java_io_RandomAccessFile {
         } else {
             GuestVMError.unexpected("RandomAccessFile.open mode: " + mode);
         }
-        JDK_java_io_util.open(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), name, uMode);
+        JavaIOUtil.open(getFileDescriptor(this), name, uMode);
 
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int read() throws IOException {
-        return JDK_java_io_util.read(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        return JavaIOUtil.read(getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private int readBytes(byte[] b, int offset, int length) throws IOException {
-        return JDK_java_io_util.readBytes(b, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        return JavaIOUtil.readBytes(b, offset, length, getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void write(int b) throws IOException {
-        JDK_java_io_util.write(b, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.write(b, getFileDescriptor(this));
     }
 
     @SUBSTITUTE
     private void writeBytes(byte[] bytes, int offset, int length) throws IOException {
-        JDK_java_io_util.writeBytes(bytes, offset, length, TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.writeBytes(bytes, offset, length, getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long getFilePointer() throws IOException {
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         final long fileOffset = VirtualFileSystemOffset.get(fd);
         return fileOffset;
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void seek(long pos) throws IOException {
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         VirtualFileSystemOffset.set(fd, pos);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private long length() throws IOException {
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         return VirtualFileSystemId.getVfs(fd).getLength(VirtualFileSystemId.getFd(fd));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void setLength(long newLength) throws IOException {
-        final int fd = TupleAccess.readInt(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()), JDK_java_io_fdActor.fdFieldActor().offset());
+        final int fd = JDK_java_io_FileDescriptor.getFd(getFileDescriptor(this));
         VirtualFileSystemId.getVfs(fd).setLength(VirtualFileSystemId.getFd(fd), newLength);
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private void close0() throws IOException {
-        JDK_java_io_util.close0(TupleAccess.readObject(this, fileDescriptorFieldActor().offset()));
+        JavaIOUtil.close0(getFileDescriptor(this));
     }
 
+    @SuppressWarnings("unused")
     @SUBSTITUTE
     private static void initIDs() {
 
-    }
-
-    @CONSTANT_WHEN_NOT_ZERO
-    private static FieldActor _fileDescriptorFieldActor;
-
-    @INLINE
-    private FieldActor fileDescriptorFieldActor() {
-        if (_fileDescriptorFieldActor == null) {
-            _fileDescriptorFieldActor = JDK_java_io_fdActor.fileDescriptorFieldActor(getClass());
-        }
-        return _fileDescriptorFieldActor;
     }
 
 }
