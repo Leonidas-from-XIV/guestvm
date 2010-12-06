@@ -39,6 +39,8 @@ import com.sun.guestvm.fs.ErrorDecoder;
 import com.sun.guestvm.fs.VirtualFileSystemId;
 import com.sun.guestvm.jdk.JavaIOUtil;
 import com.sun.guestvm.jdk.JavaIOUtil.FdInfo;
+import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.actor.member.FieldActor;
 
 /**
  * This is part of the mechanism that replaces the part of the Sun JDK that uses an "address, length"
@@ -55,6 +57,26 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
     private static final int EOF = -1;                       // end of file
     private static final int UNAVAILABLE = -2;      // Nothing available (non-blocking)
     private static final int INTERRUPTED = -3;    // System call interrupted
+
+    public static void resetNativeDispatchers() {
+        final BBNativeDispatcher bbnd = new BBNativeDispatcher();
+        resetNativeDispatcher("sun.nio.ch.DatagramChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.ServerSocketChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SocketChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SinkChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.SourceChannelImpl", bbnd);
+        resetNativeDispatcher("sun.nio.ch.FileChannelImpl", bbnd);
+    }
+
+    private static void resetNativeDispatcher(String name, BBNativeDispatcher nd) {
+        try {
+            final FieldActor rfa = ClassActor.fromJava(Class.forName(name)).findLocalStaticFieldActor("nd");
+            assert rfa != null;
+            rfa.setObject(null, nd);
+        } catch (ClassNotFoundException ex) {
+            GuestVMError.unexpected("problem with Class.forName: " + name);
+        }
+    }
 
     private static int convertReturnValue(int n, boolean reading) throws IOException {
         if (n > 0) {

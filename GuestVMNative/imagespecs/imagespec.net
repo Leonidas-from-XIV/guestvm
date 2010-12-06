@@ -1,4 +1,0 @@
-# Network
-include imagespec.jdk
-include imagespec.java.net
-include imagespec.guestvm.net

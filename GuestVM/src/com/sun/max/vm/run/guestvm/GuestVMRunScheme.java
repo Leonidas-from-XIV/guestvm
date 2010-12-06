@@ -31,16 +31,12 @@
  */
 package com.sun.max.vm.run.guestvm;
 
-import java.lang.reflect.*;
-import java.util.*;
 import sun.nio.ch.BBNativeDispatcher;
 import sun.rmi.registry.RegistryImpl;
 
 import com.sun.max.annotate.*;
-import com.sun.max.vm.actor.holder.*;
-import com.sun.max.vm.actor.member.*;
 import com.sun.max.vm.heap.Heap;
-import com.sun.max.vm.run.extendimage.ExtendImageRunScheme;
+import com.sun.max.vm.run.java.JavaRunScheme;
 import com.sun.max.vm.*;
 import com.sun.guestvm.*;
 import com.sun.guestvm.fs.FSTable;
@@ -66,11 +62,8 @@ import com.sun.guestvm.profiler.*;
  *
  */
 
-public class GuestVMRunScheme extends ExtendImageRunScheme {
+public class GuestVMRunScheme extends JavaRunScheme {
 
-    private static boolean _netInit;
-    private static boolean _launcherReset;
-    private static List<ClassActor> _netReinitClasses = new LinkedList<ClassActor>();
     private static final String RMIREGISTRY_PROPERTY = "guestvm.rmiregistry";
     private static final String TICK_PROFILER_PROPERTY = "guestvm.profiler";
     private static final String GUK_TRACE_PROPERTY = "guestvm.guktrace";
@@ -90,8 +83,6 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
 
         if (MaxineVM.isHosted() && phase == MaxineVM.Phase.BOOTSTRAPPING) {
             Heap.registerHeapSizeInfo(HeapPool.getHeapSizeInfo());
-            forceSchedulerScheme();
-            forceNetReInit();
         }
 
         if (phase == MaxineVM.Phase.PRIMORDIAL) {
@@ -102,8 +93,8 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
             System.setProperty("os.version", Version.ID);
             SchedulerFactory.scheduler().starting();
             GUKPagePool.createTargetMemoryThread(GUKPagePool.getCurrentReservation() * 4096);
-            resetNativeDispatchers();
-            netInit();
+            BBNativeDispatcher.resetNativeDispatchers();
+            NetInit.init();
             NFSExports.initNFSExports();
             checkRmiRegistry();
             AttachListener.create();
@@ -112,67 +103,9 @@ public class GuestVMRunScheme extends ExtendImageRunScheme {
         }
     }
 
-    private static void netInit() {
-        if (!_netInit) {
-            for (ClassActor classActor : _netReinitClasses) {
-                try {
-                    classActor.callInitializer();
-                } catch (InvocationTargetException ex) {
-                    GuestVMError.unexpected("failed to reinitialize network classes");
-                }
-            }
-            NetInit.init();
-            _netInit = true;
-        }
-    }
-
-    @HOSTED_ONLY
-    private void forceNetReInit() {
-        _netReinitClasses.add(doForceInitClass("java.net.NetworkInterface", false));
-        _netReinitClasses.add(doForceInitClass("java.net.PlainDatagramSocketImpl", false));
-        _netReinitClasses.add(doForceInitClass("java.net.PlainSocketImpl", false));
-    }
-
-    @Override
-    protected void resetLauncher(ClassActor launcherClassActor) {
-        // must initialize network before the launcher reset, which accesses the file systems, potentially including NFS
-        netInit();
-        super.resetLauncher(launcherClassActor);
-        _launcherReset = true;
-    }
-
-    void resetNativeDispatchers() {
-        final BBNativeDispatcher bbnd = new BBNativeDispatcher();
-        resetNativeDispatcher("sun.nio.ch.DatagramChannelImpl", bbnd);
-        resetNativeDispatcher("sun.nio.ch.ServerSocketChannelImpl", bbnd);
-        resetNativeDispatcher("sun.nio.ch.SocketChannelImpl", bbnd);
-        resetNativeDispatcher("sun.nio.ch.SinkChannelImpl", bbnd);
-        resetNativeDispatcher("sun.nio.ch.SourceChannelImpl", bbnd);
-        resetNativeDispatcher("sun.nio.ch.FileChannelImpl", bbnd);
-    }
-
-    void resetNativeDispatcher(String name, BBNativeDispatcher nd) {
-        try {
-            final FieldActor rfa = ClassActor.fromJava(Class.forName(name)).findLocalStaticFieldActor("nd");
-            assert rfa != null;
-            rfa.setObject(null, nd);
-        } catch (ClassNotFoundException ex) {
-            GuestVMError.unexpected("problem with Class.forName: " + name);
-        }
-    }
-
     public static boolean launcherInit() {
-        return _launcherReset;
-    }
-
-    @HOSTED_ONLY
-    private void forceSchedulerScheme() {
-        final String schedulerFactory = System.getProperty("guestvm.scheduler.factory.class");
-        if (schedulerFactory != null) {
-            final int index = schedulerFactory.lastIndexOf('.');
-            this.forceLoadPackage(schedulerFactory.substring(0, index));
-            this.forceClassInit(schedulerFactory);
-        }
+        GuestVMError.unexpected("FIX THIS");
+        return false;
     }
 
     private static void checkRmiRegistry() {

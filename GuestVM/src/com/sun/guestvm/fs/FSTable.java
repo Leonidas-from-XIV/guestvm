@@ -39,7 +39,7 @@ import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.console.ConsoleFileSystem;
 import com.sun.guestvm.fs.ext2.Ext2FileSystem;
 import com.sun.guestvm.fs.heap.HeapFileSystem;
-import com.sun.guestvm.fs.image.ImageFileSystem;
+import com.sun.guestvm.fs.image.BootImageFileSystem;
 import com.sun.guestvm.fs.nfs.NfsFileSystem;
 import com.sun.guestvm.fs.sg.SiblingFileSystem;
 
@@ -181,7 +181,7 @@ public class FSTable {
                 if (tmpDir == null) {
                     tmpDir = DEFAULT_TMPDIR;
                 }
-                String imageAndTmpTable = IMG_FS_INFO + ImageFileSystem.getPath() + SEP_AUTO_SEP + TMP_FS_INFO + tmpDir + SEP_AUTO;
+                String imageAndTmpTable = IMG_FS_INFO + BootImageFileSystem.getPath() + SEP_AUTO_SEP + TMP_FS_INFO + tmpDir + SEP_AUTO;
 
                 /* prepend the image and default heap fs */
                 fsTableProperty = imageAndTmpTable + FS_TABLE_SEPARATOR + fsTableProperty;
@@ -287,7 +287,7 @@ public class FSTable {
         } else if (fsInfo._type.equals("sg")) {
             result = SiblingFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         } else if (fsInfo._type.equals("img")) {
-            result = ImageFileSystem.create();
+            result = BootImageFileSystem.create();
         } else if (fsInfo._type.equals("heap")) {
             result = HeapFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         }

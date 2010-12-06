@@ -31,12 +31,15 @@
  */
 package com.sun.guestvm.fs.image;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
+import com.sun.max.annotate.HOSTED_ONLY;
+import com.sun.max.io.Files;
+import com.sun.max.program.ProgramError;
+import com.sun.max.program.Trace;
 import com.sun.max.vm.MaxineVM;
-import com.sun.max.vm.run.extendimage.*;
+import com.sun.guestvm.error.GuestVMError;
 import com.sun.guestvm.fs.*;
 
 /**
@@ -45,17 +48,127 @@ import com.sun.guestvm.fs.*;
  * @author Mick Jordan
  *
  */
-public class ImageFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
+public class BootImageFileSystem extends UnimplementedFileSystemImpl implements VirtualFileSystem {
 
-    private static ImageFileSystem _singleton = new ImageFileSystem();
-    private static Map<String, byte[]> _fileSystem;
+    public static final String BOOTIMAGE_FILESYSTEM_PROPERTY = "guestvm.bootimage.fs.contents";
+    private static BootImageFileSystem _singleton = new BootImageFileSystem();
     private static final int S_IFREG = 0x8000;
     private static final int S_IFDIR = 0x4000;
 
     private static byte[][] _openFiles = new byte[64][];
+    
+    private static String imageFSPrefix = "";
+    private static Map<String, byte[]> _fileSystem = new HashMap<String, byte[]>();
+
+    static {
+        final String prop = System.getProperty(BOOTIMAGE_FILESYSTEM_PROPERTY);
+        if (prop != null) {
+            BufferedReader bs = null;
+            try {
+                bs = new BufferedReader(new FileReader(prop));
+                while (true) {
+                    final String line = bs.readLine();
+                    if (line == null) {
+                        break;
+                    }
+                    if (line.length() == 0 || line.charAt(0) == '#') {
+                        continue;
+                    }
+                    String argument = null;
+                    String command;
+                    final int ix = line.indexOf(' ');
+                    if (ix > 0) {
+                        command = line.substring(0, ix);
+                        argument = line.substring(ix + 1).trim();
+                    } else {
+                        command = line;
+                    }
+                    if (command.equals("path")) {
+                        doImageFile(argument);
+                    } else if (command.equals("prefix")) {
+                        doImagefsPrefix(argument);
+                    } else {
+                        GuestVMError.unexpected("BootImageFileSystem: unknown command: " + command + " in file " + prop);
+                    }
+                }
+            } catch (IOException ex) {
+
+            } finally {
+                if (bs != null) {
+                    try {
+                        bs.close();
+                    } catch (IOException ex) {
+                    }
+                }
+            }
+        }
+    }
+       
+    @HOSTED_ONLY
+    public static void putImageFile(File file, File asFile) {
+        try {
+            String path = asFile.getPath();
+            if (asFile.isAbsolute() || imageFSPrefix.equals("")) {
+                path = imageFSPrefix + path;
+            } else {
+                path = imageFSPrefix + File.separator + path;
+            }
+            _fileSystem.put(path, Files.toBytes(file));
+            Trace.line(1, "added file " + file.getPath() + " to boot image file system as path " + path);
+        } catch (IOException ioException) {
+            ProgramError.unexpected("Error reading from " + file + ": " + ioException);
+        }
+    }
+
+    @HOSTED_ONLY
+    protected static void putDirectory(File dir, File asFile) {
+        final String[] files = dir.list();
+        for (String path : files) {
+            final File child = new File(dir, path);
+            final File asChild = new File(asFile, path);
+            if (child.isDirectory()) {
+                putDirectory(child, asChild);
+            } else {
+                putImageFile(child, asChild);
+            }
+        }
+    }
+    
+    @HOSTED_ONLY
+    protected static void doImageFile(String argument) {
+        String pathName = argument;
+        String asName = argument;
+        final int ix = argument.lastIndexOf(' ');
+        if (ix > 0) {
+            pathName = argument.substring(0, ix);
+            asName = argument.substring(ix + 1);
+        }
+        final File file = new File(pathName);
+        final File asFile = new File(asName);
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                putDirectory(file, asFile);
+            } else {
+                putImageFile(file, asFile);
+            }
+        } else {
+            ProgramError.unexpected("failed to find file: " + argument);
+        }
+    }
+
+    @HOSTED_ONLY
+    protected static void doImagefsPrefix(String argument) {
+        final int last = argument.length() - 1;
+        if (argument.charAt(last) == File.separatorChar) {
+            imageFSPrefix = argument.substring(0, last);
+        } else {
+            imageFSPrefix = argument;
+        }
+        Trace.line(1, "setting boot image file system prefix to " + imageFSPrefix);
+    }
 
     public static String getPath() {
-        return ExtendImageRunScheme.getImageFSPrefix();
+        return imageFSPrefix;
     }
 
     @Override
@@ -73,8 +186,7 @@ public class ImageFileSystem extends UnimplementedFileSystemImpl implements Virt
         return -1;
     }
 
-    public static ImageFileSystem create() {
-        _fileSystem = ExtendImageRunScheme.getImageFS();
+    public static BootImageFileSystem create() {
         return _singleton;
     }
 

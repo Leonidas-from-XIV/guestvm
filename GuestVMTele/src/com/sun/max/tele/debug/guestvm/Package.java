@@ -21,6 +21,7 @@
 package com.sun.max.tele.debug.guestvm;
 
 import com.sun.max.*;
+import com.sun.max.config.MaxPackage;
 
 /**
  * @author Michael Van De Vanter

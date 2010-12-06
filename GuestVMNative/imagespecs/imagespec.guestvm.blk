@@ -1,3 +1,0 @@
-package com.sun.guestvm.blk.device
-package com.sun.guestvm.blk.guk
-forcemethod com.sun.guestvm.blk.guk.GUKBlkDevice.*

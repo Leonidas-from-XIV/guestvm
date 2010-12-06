@@ -34,6 +34,7 @@ package com.sun.max.vm.prototype;
 import java.io.*;
 import java.util.*;
 
+import com.sun.guestvm.fs.image.BootImageFileSystem;
 import com.sun.max.io.*;
 import com.sun.max.io.Streams.*;
 import com.sun.max.program.*;
@@ -44,8 +45,8 @@ import test.com.sun.max.vm.compiler.JavaTester;
 
 public class GuestVMBootImageGenerator {
     private static final OptionSet _options = new OptionSet(true);
-    private static final Option<String> IMAGESPEC_FILE = _options.newStringOption("specfile", "imagespecs/imagespec.io.net.tests",
-                "File containing the image build specification.");
+    private static final Option<String> BOOTIMAGEFS_SPEC_FILE = _options.newStringOption("bootimagefscontents", "bootimagefilespecs/tests",
+                "File defining the content of the boot image file system");
     private static final Option<String> MAINCLASS = _options.newStringOption("mainclass", null,
                 "main class to compile (bound image)");
     private static final Option<Boolean> NO_MAXINE_IMAGE = _options.newBooleanOption("nomaxineimage", false,
@@ -124,9 +125,8 @@ public class GuestVMBootImageGenerator {
         final String[] generatorArgs = {"-trace=1", "-run=com.sun.max.vm.run.guestvm", "-build=" + BUILD_TYPE.getValue()};
         final String[] defaultSystemProperties = {
             "max.os=GUESTVM",
-            "max.vm.run.extendimage.specfile=" + IMAGESPEC_FILE.getValue(),
+            BootImageFileSystem.BOOTIMAGE_FILESYSTEM_PROPERTY + "=" + BOOTIMAGEFS_SPEC_FILE.getValue(),
             "max.allow.all.core.packages",
-            "max.extended.codebase=com.sun.guestvm",
             "max.vmthread.factory.class=com.sun.guestvm.sched.GUKVmThreadFactory",
             "max.mutex.factory.class=" + MUTEX_FACTORY.getValue(),
             "max.conditionvariable.factory.class=" + CONDITIONVARIABLE_FACTORY.getValue(),

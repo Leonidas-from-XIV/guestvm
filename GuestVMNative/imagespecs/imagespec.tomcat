@@ -1,4 +1,0 @@
-include imagespec.io.net.tests
-package com.sun.guestvm.tomcat
-package org.apache.tomcat.jni
-classinit org.apache.tomcat.jni.OS

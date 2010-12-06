@@ -1,0 +1,4 @@
+# Include the class files for some tests
+prefix /guestvm/image
+path ../GuestVM/bin/test /GuestVM/bin/test
+path ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
