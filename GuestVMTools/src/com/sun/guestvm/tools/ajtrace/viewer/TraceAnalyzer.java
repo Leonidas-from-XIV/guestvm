@@ -56,6 +56,7 @@ public class TraceAnalyzer extends JPanel {
     private static boolean DEBUG = false;
     private static int debugLine = -1;
     private static boolean PROGRESS = false;
+    private static boolean GC = false;
 
     enum TimeFormat {
         Nano, Micro, Milli, Sec
@@ -101,6 +102,8 @@ public class TraceAnalyzer extends JPanel {
                     debugLine = Integer.parseInt(args[++i]);
                 } else if (arg.equals("-progress")) {
                     PROGRESS = true;
+                } else if (arg.equals("-gc")) {
+                    GC = true;
                 } else if (arg.equals("-sort")) {
                     showSorted = true;
                 } else if (arg.equals("-time")) {
@@ -143,8 +146,17 @@ public class TraceAnalyzer extends JPanel {
             if (showSorted) {
                 for (MethodData methodData : sortedControlFlowTraces) {
                     TraceType tt = methodData.ttype;
-                    System.out.println(tt + " " + methodData.depth + " " + (TraceType.isReturn(tt)  ? methodData.exitTimeInfo : methodData.entryTimeInfo) + " " + 
-                                    methodData.thread + " " + methodData.methodName + (methodData.params==null ? "" : ("(" + methodData.params + ")")));
+                    TimeMethodData tmd = timeMethodData(methodData);
+                    System.out.print(tt + " " + methodData.depth);
+                    if (tmd != null) {
+                        System.out.print(" " + (TraceType.isReturn(tt)  ? tmd.exitTimeInfo : tmd.entryTimeInfo));
+                    }
+                    System.out.print(" " + 
+                                    methodData.thread + " " + methodData.methodName);
+                    if (methodData instanceof ArgsMethodData) {
+                    	System.out.print("(" + ((ArgsMethodData) methodData).params + ")");
+                    }
+                    System.out.println();
                 }
             }
             
@@ -254,18 +266,24 @@ public class TraceAnalyzer extends JPanel {
 
     }
     
-    private void checkFormatHandler(MethodData md) {
-        TraceFormatHandler test = new TraceFormatHandler.Check(md.methodName, md.params.length);
-        TraceFormatHandler handler = formatHandlerMap.get(test);
-        if (handler == null) {
-            return;
-        } else {
-            if (handler.param > md.params.length) {
-                throw new IllegalArgumentException(md.methodName + " format handler parameter number out of range");
-            }
-            md.params[handler.param - 1] = handler.transform(md.params[handler.param - 1]);
-        }
-    }
+	private void checkFormatHandler(MethodData md) {
+		ArgsMethodData amd = argsMethodData(md);
+		if (amd != null) {
+			TraceFormatHandler test = new TraceFormatHandler.Check(
+					md.methodName, amd.params.length);
+			TraceFormatHandler handler = formatHandlerMap.get(test);
+			if (handler == null) {
+				return;
+			} else {
+				if (handler.param > amd.params.length) {
+					throw new IllegalArgumentException(md.methodName
+							+ " format handler parameter number out of range");
+				}
+				amd.params[handler.param - 1] = handler
+						.transform(amd.params[handler.param - 1]);
+			}
+		}
+	}
 
 
     
@@ -276,8 +294,9 @@ public class TraceAnalyzer extends JPanel {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
             MethodData md = (MethodData) node.getUserObject();
-            if (md.thisArg != null) {
-                setToolTipText(md.thisArg);
+            ArgsMethodData amd = argsMethodData(md);
+            if (amd != null && amd.thisArg != null) {
+                setToolTipText(amd.thisArg);
             } else
                 setToolTipText(null);
             return this;
@@ -384,16 +403,22 @@ public class TraceAnalyzer extends JPanel {
                     return;
 
                 MethodData md = (MethodData) node.getUserObject();
+                ArgsMethodData amd = argsMethodData(md);
                 propsMap.get("Name").setText(md.methodName);
-                propsMap.get("This").setText(md.thisArg == null ? "" : md.thisArg);
-                propsMap.get("Result").setText(md.result == null ? "" : md.result);
-                long tst = timeDisplay == TimeDisplay.WallRel ? traceStartTime : 0;
-                propsMap.get("Entry time").setText(TimeFunctions.formatTime(md.entryTimeInfo.wallTime - tst));
-                propsMap.get("Exit time").setText(md.exitTimeInfo == null ? "?" : TimeFunctions.formatTime(md.exitTimeInfo.wallTime - tst));
-                propsMap.get("Entry cpu").setText("u: " + TimeFunctions.formatTime(md.entryTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(md.entryTimeInfo.sysUsage));
-                propsMap.get("Exit cpu").setText(
-                                md.exitTimeInfo == null ? "?" : "u:" + TimeFunctions.formatTime(md.exitTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(md.exitTimeInfo.sysUsage));
-                propsMap.get("Parameters").setText(md.params == null ? "" : fixNL(md.linearizeParams()));
+                if (amd != null) {
+                    propsMap.get("This").setText(amd.thisArg == null ? "" : amd.thisArg);
+                    propsMap.get("Result").setText(amd.result == null ? "" : amd.result);
+                    propsMap.get("Parameters").setText(amd.params == null ? "" : fixNL(amd.linearizeParams()));
+                }
+                TimeMethodData tmd = timeMethodData(md);
+                if (tmd != null) {
+                    long tst = timeDisplay == TimeDisplay.WallRel ? traceStartTime : 0;
+                    propsMap.get("Entry time").setText(TimeFunctions.formatTime(tmd.entryTimeInfo.wallTime - tst));
+                    propsMap.get("Exit time").setText(tmd.exitTimeInfo == null ? "?" : TimeFunctions.formatTime(tmd.exitTimeInfo.wallTime - tst));
+                    propsMap.get("Entry cpu").setText("u: " + TimeFunctions.formatTime(tmd.entryTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(tmd.entryTimeInfo.sysUsage));
+                    propsMap.get("Exit cpu").setText(
+                                tmd.exitTimeInfo == null ? "?" : "u:" + TimeFunctions.formatTime(tmd.exitTimeInfo.userUsage) + " s:" + TimeFunctions.formatTime(tmd.exitTimeInfo.sysUsage));
+                }
                 JFrame propsFrame = new JFrame("Properties for " + md.methodName);
                 propsFrame.add(propsPanel);
                 propsFrame.pack();
@@ -629,7 +654,8 @@ public class TraceAnalyzer extends JPanel {
 
             protected boolean matchTree(DefaultMutableTreeNode tn, ArrayList<TreePath> result, Pattern pattern) {
                 MethodData md = (MethodData) tn.getUserObject();
-                String toMatch = findWhat == FindWhat.Method ? md.methodName : md.linearizeParams();
+                ArgsMethodData amd = argsMethodData(md);
+                String toMatch = findWhat == FindWhat.Method ? md.methodName : (amd == null ? null : amd.linearizeParams());
                 if (toMatch != null && pattern.matcher(toMatch).matches()) {
                     result.add(new TreePath(tn.getPath()));
                     // to make Find->Next easy we find all the matches always
@@ -810,24 +836,38 @@ public class TraceAnalyzer extends JPanel {
             }
         }
 
-        private TimeInfo timeForNode(DefaultMutableTreeNode tn) {
-            MethodData mymd = (MethodData) tn.getUserObject();
-            long childWall = 0;
-            long childUser = 0;
-            long childSys = 0;
-            Enumeration en = tn.children();
-            while (en.hasMoreElements()) {
-                DefaultMutableTreeNode ctn = (DefaultMutableTreeNode) en.nextElement();
-                MethodData cmd = (MethodData) ctn.getUserObject();
-                childWall += cmd.exitTimeInfo.wallTime - cmd.entryTimeInfo.wallTime;
-                childUser += cmd.exitTimeInfo.userUsage - cmd.entryTimeInfo.userUsage;
-                childSys += cmd.exitTimeInfo.sysUsage - cmd.entryTimeInfo.sysUsage;
-            }
-            long myWall = mymd.exitTimeInfo.wallTime - mymd.entryTimeInfo.wallTime;
-            long myUser = mymd.exitTimeInfo.userUsage - mymd.entryTimeInfo.userUsage;
-            long mySys = mymd.exitTimeInfo.sysUsage - mymd.entryTimeInfo.sysUsage;
-            return new TimeInfo(myWall - childWall, myUser - childUser, mySys - childSys);
-        }
+		private TimeInfo timeForNode(DefaultMutableTreeNode tn) {
+			TimeMethodData mymd = timeMethodData((MethodData) tn
+					.getUserObject());
+			if (mymd != null) {
+				long childWall = 0;
+				long childUser = 0;
+				long childSys = 0;
+				Enumeration en = tn.children();
+				while (en.hasMoreElements()) {
+					DefaultMutableTreeNode ctn = (DefaultMutableTreeNode) en
+							.nextElement();
+					TimeMethodData cmd = timeMethodData((MethodData) ctn
+							.getUserObject());
+					childWall += cmd.exitTimeInfo.wallTime
+							- cmd.entryTimeInfo.wallTime;
+					childUser += cmd.exitTimeInfo.userUsage
+							- cmd.entryTimeInfo.userUsage;
+					childSys += cmd.exitTimeInfo.sysUsage
+							- cmd.entryTimeInfo.sysUsage;
+				}
+				long myWall = mymd.exitTimeInfo.wallTime
+						- mymd.entryTimeInfo.wallTime;
+				long myUser = mymd.exitTimeInfo.userUsage
+						- mymd.entryTimeInfo.userUsage;
+				long mySys = mymd.exitTimeInfo.sysUsage
+						- mymd.entryTimeInfo.sysUsage;
+				return new TimeInfo(myWall - childWall, myUser - childUser,
+						mySys - childSys);
+			} else {
+				return new TimeInfo();
+			}
+		}
     }
 
     static class PopupListener extends MouseAdapter {
@@ -868,6 +908,12 @@ public class TraceAnalyzer extends JPanel {
 
             int lineCount = 1;
             long startTime = System.currentTimeMillis();
+            long incTime = startTime;
+            long lastFreeMemory = 0;
+            if (GC) {
+            	System.gc();
+            	lastFreeMemory = Runtime.getRuntime().freeMemory();
+            }
             while (true) {
                 String line = r.readLine();
                 if (line == null)
@@ -876,10 +922,20 @@ public class TraceAnalyzer extends JPanel {
                     System.console();
                 }
                 MethodData md = parseLine(line);
+                ArgsMethodData amd = argsMethodData(md);
+                TimeMethodData tmd = timeMethodData(md);
                 md.lineNumber = lineCount;
                 lineCount++;
-                if (PROGRESS && (lineCount % 1000 == 0)) {
-                    System.out.println("processed " + lineCount + " lines in " + (System.currentTimeMillis() - startTime));
+                if (PROGRESS && (lineCount % 10000 == 0)) {
+                	final long now = System.currentTimeMillis() ;
+                    System.out.println("processed " + lineCount + " lines in " + (now - startTime) + " inc " + (now - incTime));
+                    incTime = now;
+                    if (GC) {
+                    	System.gc();
+                    	final long freeMemoryNow = Runtime.getRuntime().freeMemory();
+                    	System.out.println("memory per line " + ((lastFreeMemory - freeMemoryNow) / 10000));
+                    	lastFreeMemory = freeMemoryNow;
+                    }
                 }
                 if (DEBUG) {
                     System.out.print("line " + lineCount + ", " + md.ttype + " ");
@@ -891,8 +947,16 @@ public class TraceAnalyzer extends JPanel {
                         case Return:
                         case VoidReturn:
                         case Call:
-                            System.out.println("d " + md.depth + ", " + (TraceType.isReturn(md.ttype) ? md.exitTimeInfo : md.entryTimeInfo) + ", " + md.thread + ", " + md.methodName +
-                                            (md.params == null ? "" : ("(" + md.params + ")")));
+                            System.out.print("d " + md.depth);
+                            if (tmd != null) {
+                            	System.out.print(", " + (TraceType.isReturn(md.ttype) ? tmd.exitTimeInfo : tmd.entryTimeInfo));
+                            }
+                            System.out.print(", " + md.thread + ", " + md.methodName);
+                            if (amd != null) {
+                                System.out.print("(" + amd.params + ")");
+                           	
+                            }
+                            System.out.println();
                             break;
 
                         case DefineThread:
@@ -929,9 +993,15 @@ public class TraceAnalyzer extends JPanel {
                             DefaultMutableTreeNode tn = (DefaultMutableTreeNode) parent.getChildAt(i);
                             MethodData cmd = (MethodData) tn.getUserObject();
                             if (cmd.methodName.equals(md.methodName)) {
-                                cmd.exitTimeInfo = md.exitTimeInfo;
-                                if (md.ttype == TraceType.Return && md.params != null)
-                                    cmd.result = cmd.checkParamMap(md.params[0]);
+                            	TimeMethodData tcmd = timeMethodData(cmd);
+                            	if (tcmd != null) {
+                                    tcmd.exitTimeInfo = tmd.exitTimeInfo;
+                                    if (md.ttype == TraceType.Return && amd != null) {
+                                	   ArgsMethodData acmd = argsMethodData(cmd);
+                                        assert acmd != null;
+                                        acmd.result = acmd.checkParamMap(amd.params[0]);
+                                    }
+                            	}
                                 found = true;
                                 break;
                             }
@@ -957,8 +1027,9 @@ public class TraceAnalyzer extends JPanel {
             // apply formatHandlers
             if (formatHandlerMap.size() > 0) {
             for (MethodData md : controlFlowTraces) {
-                if (md.params != null) {
-                    checkFormatHandler(md);
+            	ArgsMethodData amd = argsMethodData(md);
+                if (amd != null) {
+                    checkFormatHandler(amd);
                 }
             }
             }
@@ -979,7 +1050,9 @@ public class TraceAnalyzer extends JPanel {
     private MethodData[] sortMethodData(ArrayList<MethodData> methodDataArray) {
         final MethodData[] result = new MethodData[methodDataArray.size()];
         methodDataArray.toArray(result);
-        Arrays.sort(result, new MethodDataComparator());
+        if (isTimeMethodData(result[0])) {
+            Arrays.sort(result, new MethodDataComparator());
+        }
         return result;
     }
 
@@ -995,7 +1068,7 @@ public class TraceAnalyzer extends JPanel {
     Map<String,String> paramMap = new HashMap<String,String>();
 
     ArrayList<MethodData> forwardRefs = new ArrayList<MethodData>();
-    ArrayList<MethodData> forwardParamRefs = new ArrayList<MethodData>();
+    ArrayList<ArgsMethodData> forwardParamRefs = new ArrayList<ArgsMethodData>();
     
     /**
      * These are unsorted/sorted arrays of all the {@code TraceType#Entry} and {@code TraceType#Return} instances,
@@ -1011,13 +1084,8 @@ public class TraceAnalyzer extends JPanel {
         int depth;
         String thread;
         String methodName;
-        String[] params;
-        String thisArg;
-        String result;
-        TimeInfo entryTimeInfo;
-        TimeInfo exitTimeInfo;
 
-        MethodData(TraceType ttype, String thread, int depth, String methodName, String params, TimeInfo timeInfo) {
+        MethodData(TraceType ttype, String thread, int depth, String methodName) {
             this.ttype = ttype;
             this.thread = threadMap.get(thread);
             this.depth = depth;
@@ -1027,62 +1095,10 @@ public class TraceAnalyzer extends JPanel {
                 this.methodName = methodName;
                 forwardRefs.add(this);
             }
-            // Handle parameters, if provided
-            if (params == null) {
-                this.params = null;
-            } else {
-                /*
-                 * A method Return trace uses params for the result. For Entry and Call, params includes the this arg,
-                 * (null for a static method call) We separate out the this arg here and check for short forms (which
-                 * may be undefined at this stage).
-                 */
-                final String[] splitParams = params.split(",");
-                if (ttype == TraceType.Return) {
-                    this.params = new String[1];
-                    this.params[0] = checkParamMap(splitParams[0]);
-                } else {
-                    thisArg = checkParamMap(splitParams[0]);
-                    if (splitParams.length == 1) {
-                        // no actual args
-                        this.params = new String[0];
-                    } else {
-                        this.params = new String[splitParams.length - 1];
-                        for (int i = 1; i < splitParams.length; i++) {
-                            this.params[i - 1] = checkParamMap(splitParams[i]);
-                        }
-                    }
-                }
-            }
-            if (ttype == TraceType.Entry || ttype == TraceType.Call) {
-                this.entryTimeInfo = timeInfo;
-            } else if (TraceType.isReturn(ttype)) {
-                this.exitTimeInfo = timeInfo;
-            } else {
-                throw new IllegalArgumentException("illegal trace type: " + ttype);
-            }
 
             controlFlowTraces.add(this);
         }
         
-        /**
-         * Check if arg is a param id, in which case the value is in the map
-         * @param arg
-         * @return
-         */
-        private String checkParamMap(String arg) {
-            if (arg.charAt(0) == 'A') {
-                final String s = paramMap.get(arg);
-                if (s == null) {
-                    forwardParamRefs.add(this);
-                    return arg;
-                } else {
-                    return s;
-                }
-            } else {
-                return arg;
-            }
-        }
-
         /**
          * This variant is used for the DefineXXX variants. N.B. definitions do NOT always precede uses!
          *
@@ -1102,22 +1118,6 @@ public class TraceAnalyzer extends JPanel {
                 }
                 this.thread = realName;
                 threadMap.put(shortForm, realName);
-            } else if (ttype == TraceType.DefineParam) {
-                paramMap.put(shortForm, realName);
-                for (MethodData m : forwardParamRefs) {
-                    // we don't know exactly which param is involved
-                    if (m.thisArg != null && m.thisArg.equals(shortForm)) {
-                        m.thisArg = realName;
-                    }
-                    if (m.result != null && m.result.equals(shortForm)) {
-                        m.result = realName;
-                    }
-                    for (int i = 0; i < m.params.length; i++) {
-                        if (m.params[i].equals(shortForm)) {
-                            m.params[i] = realName;
-                        }
-                    }
-                }
             } else if (ttype == TraceType.DefineMethod) {
                 methodMap.put(shortForm, realName);
                 for (MethodData m : forwardRefs) {
@@ -1137,44 +1137,59 @@ public class TraceAnalyzer extends JPanel {
             return true;
         }
 
-        private String linearizeParams() {
-            final StringBuilder sb = new StringBuilder();
-            boolean first = true;
-            for (String part : params) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.append(',');
-                }
-                sb.append(part);
-            }
-            return sb.toString();
-        }
-        
         public String toString() {
             switch (ttype) {
                 case DefineThread:
                     return thread + " stack root";
 
                 case Entry:
-                    String time = "";
-                    if (entryTimeInfo.wallTime > 0) {
-                        time = displayTime(entryTimeInfo, exitTimeInfo, TimeInfo.Type.WallTime) + " ";
-                        time = time + displayTime(entryTimeInfo, exitTimeInfo, TimeInfo.Type.UserUsage) + " ";
-                        time = time + displayTime(entryTimeInfo, exitTimeInfo, TimeInfo.Type.SysUsage) + " ";
-                    }
-                    String s = time + methodName;
-                    if (params != null)
-                        s += "(" + linearizeParams() + ")";
-                    if (result != null)
-                        s += " returned " + result;
-                    return s;
+                    return methodName;
 
                 default:
                     return "unexpected type " + ttype;
             }
         }
 
+    }
+    
+    class TimeMethodData extends MethodData {
+        TimeInfo entryTimeInfo;
+        TimeInfo exitTimeInfo;
+        
+        TimeMethodData(TraceType ttype, String thread, int depth, String methodName, TimeInfo timeInfo) {
+        	super(ttype, thread, depth, methodName);
+            if (ttype == TraceType.Entry || ttype == TraceType.Call) {
+                this.entryTimeInfo = timeInfo;
+            } else if (TraceType.isReturn(ttype)) {
+                this.exitTimeInfo = timeInfo;
+            } else {
+                throw new IllegalArgumentException("illegal trace type: " + ttype);
+            }
+        	
+        }
+        
+        TimeMethodData(TraceType ttype, String realName, String shortForm) {
+        	super(ttype, realName, shortForm);
+        }
+
+		public String toString() {
+			String s = super.toString();
+			if (ttype == TraceType.Entry) {
+				if (entryTimeInfo.wallTime > 0) {
+					s = displayTime(entryTimeInfo, exitTimeInfo,
+							TimeInfo.Type.WallTime) + " ";
+					s = s
+							+ displayTime(entryTimeInfo, exitTimeInfo,
+									TimeInfo.Type.UserUsage) + " ";
+					s = s
+							+ displayTime(entryTimeInfo, exitTimeInfo,
+									TimeInfo.Type.SysUsage) + " ";
+					s = s + methodName;
+				}
+			}
+			return s;
+		}
+        
         private String displayTime(TimeInfo startInfo, TimeInfo endInfo, TimeInfo.Type tt) {
             String result = null;
             long time = -1;
@@ -1219,9 +1234,155 @@ public class TraceAnalyzer extends JPanel {
             return result;
         }
     }
+    
+    class ArgsMethodData extends TimeMethodData {
+        String[] params;
+        String thisArg;
+        String result;
+    	
+        ArgsMethodData(TraceType ttype, String thread, int depth, String methodName, String params, TimeInfo timeInfo) {
+        	super(ttype, thread, depth, methodName, timeInfo);
+            /*
+             * A method Return trace uses params for the result. For Entry and Call, params includes the this arg,
+             * (null for a static method call) We separate out the this arg here and check for short forms (which
+             * may be undefined at this stage).
+             */
+            final String[] splitParams = params.split(",");
+            if (ttype == TraceType.Return) {
+                this.params = new String[1];
+                this.params[0] = checkParamMap(splitParams[0]);
+            } else {
+                thisArg = checkParamMap(splitParams[0]);
+                if (splitParams.length == 1) {
+                    // no actual args
+                    this.params = new String[0];
+                } else {
+                    this.params = new String[splitParams.length - 1];
+                    for (int i = 1; i < splitParams.length; i++) {
+                        this.params[i - 1] = checkParamMap(splitParams[i]);
+                    }
+                }
+            }
+        }
+        
+        ArgsMethodData(TraceType ttype, String realName, String shortForm) {
+        	super(ttype, realName, shortForm);
+            paramMap.put(shortForm, realName);
+            for (ArgsMethodData m : forwardParamRefs) {
+                // we don't know exactly which param is involved
+                if (m.thisArg != null && m.thisArg.equals(shortForm)) {
+                    m.thisArg = realName;
+                }
+                if (m.result != null && m.result.equals(shortForm)) {
+                    m.result = realName;
+                }
+                for (int i = 0; i < m.params.length; i++) {
+                    if (m.params[i].equals(shortForm)) {
+                        m.params[i] = realName;
+                    }
+                }
+            }
+        }
+
+		/**
+		 * Check if arg is a param id, in which case the value is in the map
+		 * 
+		 * @param arg
+		 * @return
+		 */
+		private String checkParamMap(String arg) {
+			if (arg.charAt(0) == 'A') {
+				final String s = paramMap.get(arg);
+				if (s == null) {
+					forwardParamRefs.add(this);
+					return arg;
+				} else {
+					return s;
+				}
+			} else {
+				return arg;
+			}
+		}
+
+        
+        private String linearizeParams() {
+            final StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (String part : params) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(',');
+                }
+                sb.append(part);
+            }
+            return sb.toString();
+        }
+        
+		public String toString() {
+			String s = super.toString();
+			if (ttype == TraceType.Entry)
+				if (params != null) {
+					s += "(" + linearizeParams() + ")";
+				}
+			if (result != null) {
+				s += " returned " + result;
+			}
+			return s;
+		}
+        
+    }
+    
+    private static boolean isArgsMethodData(MethodData md) {
+    	return md instanceof ArgsMethodData;
+    }
+    
+    private static ArgsMethodData argsMethodData(MethodData md) {
+    	if (isArgsMethodData(md)) {
+    		return (ArgsMethodData) md;
+    	} else {
+    		return null;
+    	}
+    }
+
+    private static boolean isTimeMethodData(MethodData md) {
+    	return md instanceof TimeMethodData;
+    }
+    
+    private static TimeMethodData timeMethodData(MethodData md) {
+    	if (isTimeMethodData(md)) {
+    		return (TimeMethodData) md;
+    	} else {
+    		return null;
+    	}
+    }
+
+    private MethodData createMethodData(TraceType ttype, String thread, int depth, String methodName, String params, TimeInfo timeInfo) {
+    	if (params == null) {
+    		if (timeInfo == null) {
+    			return new MethodData(ttype, thread, depth, methodName);
+    		}
+    		return new TimeMethodData(ttype, thread, depth, methodName, timeInfo);
+    	} else {
+    		return new ArgsMethodData(ttype, thread, depth, methodName, params, timeInfo);
+    	}
+    }
+    
+    private MethodData createMethodData(TraceType ttype, String realName, String shortForm) {
+    	if (ttype == TraceType.DefineParam) {
+    		return new ArgsMethodData(ttype, realName, shortForm);
+    	} else {
+    		return new MethodData(ttype, realName, shortForm);
+    	}
+    }
 
     static class MethodDataComparator implements Comparator<MethodData> {
-        public int compare(MethodData a, MethodData b) {
+        public int compare(MethodData xa, MethodData xb) {
+        	TimeMethodData a = timeMethodData(xa);
+        	TimeMethodData b = timeMethodData(xb);
+        	if (a == null || b == null) {
+        		return 0;
+        	}
             if (a.ttype == TraceType.Entry || a.ttype == TraceType.Call) {
                 if (b.ttype == TraceType.Entry || b.ttype == TraceType.Call) {
                     return a.entryTimeInfo.wallTime < b.entryTimeInfo.wallTime ? -1 : 1;
@@ -1424,14 +1585,14 @@ public class TraceAnalyzer extends JPanel {
         if (depth == 0) {
             if (ttype.equals("D")) {
                 lastTimeInfoMap.put(thread, new TimeInfo());
-                return new MethodData(TraceType.DefineThread, methodName, thread);
+                return createMethodData(TraceType.DefineThread, methodName, thread);
             } else if (ttype.equals("M")) {
-                return new MethodData(TraceType.DefineMethod, methodName, thread);
+                return createMethodData(TraceType.DefineMethod, methodName, thread);
             } else if (ttype.equals("P")) {
-                return new MethodData(TraceType.DefineParam, methodName, thread);
+                return createMethodData(TraceType.DefineParam, methodName, thread);
             } else if (ttype.equals("S")) {
                 traceStartTime = Long.parseLong(methodName);
-                return new MethodData(TraceType.StartTime, methodName, thread);
+                return createMethodData(TraceType.StartTime, methodName, thread);
             } else {
                 throw new Exception("non-D/M trace at depth 0");
             }
@@ -1439,23 +1600,24 @@ public class TraceAnalyzer extends JPanel {
             // E, R, V, C
             TraceType traceType = getTraceType(ttype);
             TimeInfo timeInfo = getTimeInfo(ttype, false);
-            TimeInfo lastTimeInfo = lastTimeInfoMap.get(thread);
-            if (timeInfo.userUsage == 0)
-                timeInfo.userUsage = lastTimeInfo.userUsage;
-            else
-                lastTimeInfo.userUsage = timeInfo.userUsage;
-            if (timeInfo.sysUsage == 0)
-                timeInfo.sysUsage = lastTimeInfo.sysUsage;
-            else
-                lastTimeInfo.sysUsage = timeInfo.sysUsage;
-
-            return new MethodData(traceType, thread, depth, methodName, params, timeInfo);
+            if (timeInfo != null) {
+                TimeInfo lastTimeInfo = lastTimeInfoMap.get(thread);
+                if (timeInfo.userUsage == 0)
+                    timeInfo.userUsage = lastTimeInfo.userUsage;
+                else
+                    lastTimeInfo.userUsage = timeInfo.userUsage;
+                if (timeInfo.sysUsage == 0)
+                    timeInfo.sysUsage = lastTimeInfo.sysUsage;
+                else
+                    lastTimeInfo.sysUsage = timeInfo.sysUsage;
+            }
+            return createMethodData(traceType, thread, depth, methodName, params, timeInfo);
         }
     }
     
     private TimeInfo getTimeInfo(String t, boolean absolute) {
-        TimeInfo result = new TimeInfo();
         if (t.length() > 1) {
+            TimeInfo result = new TimeInfo();
             int t1 = t.indexOf(',');
             int t2 = t.indexOf(',', t1 + 1);
             if (t1 > 0) {
@@ -1468,8 +1630,10 @@ public class TraceAnalyzer extends JPanel {
             if (!absolute) {
                 result.wallTime += traceStartTime;
             }
+            return result;
+        } else {
+        	return null;
         }
-        return result;
     }
 
     private TraceType getTraceType(String token) {
