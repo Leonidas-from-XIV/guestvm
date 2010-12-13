@@ -227,8 +227,21 @@ public abstract aspect AJTrace {
 			Object target = getTarget(jp);
 			Object[] args = getArgs(jp);
 			traceLog.enter(s.depth++, recordWallTime ? time() : 0, userTime,
-					sysTime, threadId, methodId, target, jp.getKind() == JoinPoint.CONSTRUCTOR_EXECUTION, args);
+					sysTime, threadId, methodId, target, getKind(jp) == JoinPoint.CONSTRUCTOR_EXECUTION, args);
 			s.inAdvice = false;
+		}
+	}
+	
+	private String getKind(JoinPoint jp) {
+		try {
+			return jp.getKind();
+		} catch (Exception ex) {
+			if (flagErrors) {
+				System.err.println("AJTrace: exception getting join point kind");
+				ex.printStackTrace();				
+			}
+			// almost certainly due to init cycle in constructor
+			return JoinPoint.CONSTRUCTOR_EXECUTION;
 		}
 	}
 
