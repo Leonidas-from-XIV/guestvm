@@ -73,7 +73,7 @@ public class JDK_java_util_zip_Deflater {
     @INLINE
     static FieldActor strmFieldActor() {
         if (_strmFieldActor == null) {
-            _strmFieldActor = (FieldActor) ClassActor.fromJava(Deflater.class).findFieldActor(SymbolTable.makeSymbol("strm"));
+            _strmFieldActor = (FieldActor) ClassActor.fromJava(Deflater.class).findFieldActor(SymbolTable.makeSymbol("strm"), null);
         }
         return _strmFieldActor;
     }

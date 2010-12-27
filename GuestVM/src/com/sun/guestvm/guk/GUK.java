@@ -35,6 +35,7 @@ import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.vm.*;
 import com.sun.max.vm.actor.holder.ClassActor;
+import com.sun.max.vm.classfile.constant.SymbolTable;
 import com.sun.max.vm.compiler.*;
 import com.sun.max.vm.reference.*;
 import com.sun.max.vm.runtime.*;
@@ -147,7 +148,8 @@ public final class GUK {
     }
 
     public static void initialize() {
-        final Address isCrashingMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(ClassActor.fromJava(GUK.class).findLocalStaticMethodActor("is_crashing"), CallEntryPoint.C_ENTRY_POINT);
+        final Address isCrashingMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(
+                        ClassActor.fromJava(GUK.class).findLocalStaticMethodActor(SymbolTable.makeSymbol("is_crashing")), CallEntryPoint.C_ENTRY_POINT);
         guk_register_is_crashing_method(isCrashingMethodAddress);
     }
 
@@ -160,7 +162,6 @@ public final class GUK {
      * This function is called when GUK is crashing; it's main purpose is to permit a breakpoint
      * to be set here and catch the crash when running under the Inspector.
      */
-    @SuppressWarnings("unused")
     @VM_ENTRY_POINT
     private static void is_crashing() {
 

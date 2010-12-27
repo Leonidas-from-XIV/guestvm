@@ -48,7 +48,7 @@ import com.sun.guestvm.sched.GUKVmThread;
 
 public class ISpinLock {
     private volatile int _lock;
-    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(ISpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock")).offset());
+    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(ISpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock"), null).offset());
 
     @INLINE
     public final void lock() {

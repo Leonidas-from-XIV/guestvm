@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.vm.prototype;
+package com.sun.max.vm.hosted;
 
 import java.io.*;
 

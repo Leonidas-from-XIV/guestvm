@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.vm.guestvm;
+package com.sun.guestvm.vmargs;
 
 import com.sun.max.annotate.*;
 import com.sun.max.vm.MaxineVM;

@@ -38,6 +38,7 @@ import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.FieldActor;
 import com.sun.max.vm.classfile.constant.*;
 import com.sun.max.vm.reference.*;
+import com.sun.max.vm.type.TypeDescriptor;
 
 /**
  * N.B. This code is identical to PFieldSpinLock except for the parent class to get the pre-emption calls inlined.
@@ -53,7 +54,7 @@ import com.sun.max.vm.reference.*;
  */
 public abstract class NPFieldSpinLock extends NPSpinLock {
     protected volatile int _lock;
-    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(ISpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock")).offset());
+    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(NPFieldSpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock"), null).offset());
 
     /**
      * Unlocks and re-enables pre-emption.

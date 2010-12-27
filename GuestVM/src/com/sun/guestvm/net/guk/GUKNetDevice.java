@@ -119,7 +119,7 @@ public final class GUKNetDevice implements NetDevice {
     private static class PacketHandler {
         static final int IN_USE = 1;
         static final int FREE = 0;
-        static final int statusOffset = ClassActor.fromJava(PacketHandler.class).findFieldActor(SymbolTable.makeSymbol("_status")).offset();
+        static final int statusOffset = ClassActor.fromJava(PacketHandler.class).findFieldActor(SymbolTable.makeSymbol("_status"), null).offset();
         Pointer _self;
         Packet _packet;
         Thread _handlerThread;
@@ -150,7 +150,7 @@ public final class GUKNetDevice implements NetDevice {
         }
         // Have to pass the address of copyPacket down to the kernel
         final ClassActor classActor = ClassActor.fromJava(getClass());
-        final Address copyMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(classActor.findLocalStaticMethodActor("copyPacket"), CallEntryPoint.C_ENTRY_POINT);
+        final Address copyMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(classActor.findLocalStaticMethodActor(SymbolTable.makeSymbol("copyPacket")), CallEntryPoint.C_ENTRY_POINT);
         _deviceActive = guestvmXen_netStart(copyMethodAddress);
         _device = this;
     }
@@ -271,7 +271,6 @@ public final class GUKNetDevice implements NetDevice {
      * @param pktLength length of packet
      * @param ts time of this upcall
      */
-    @SuppressWarnings({"unused"})
     @VM_ENTRY_POINT
     @NO_SAFEPOINTS("network packet copy must be atomic")
     private static void copyPacket(Pointer p, int pktLength, long ts) {

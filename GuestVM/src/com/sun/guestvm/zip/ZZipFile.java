@@ -326,7 +326,7 @@ public final class ZZipFile {
     @INLINE
     private static FieldActor timeFieldActor() {
         if (_timeFieldActor == null) {
-            _timeFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("time"));
+            _timeFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("time"), null);
         }
         return _timeFieldActor;
     }
@@ -337,7 +337,7 @@ public final class ZZipFile {
     @INLINE
     private static FieldActor nameFieldActor() {
         if (_nameFieldActor == null) {
-            _nameFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("name"));
+            _nameFieldActor = (FieldActor) ClassActor.fromJava(ZipEntry.class).findFieldActor(SymbolTable.makeSymbol("name"), null);
         }
         return _nameFieldActor;
     }
@@ -375,7 +375,7 @@ public final class ZZipFile {
     @INLINE
     private static FieldActor jzfileFieldActor() {
         if (_jzfileFieldActor == null) {
-            _jzfileFieldActor = (FieldActor) ClassActor.fromJava(ZipFile.class).findFieldActor(SymbolTable.makeSymbol("jzfile"));
+            _jzfileFieldActor = (FieldActor) ClassActor.fromJava(ZipFile.class).findFieldActor(SymbolTable.makeSymbol("jzfile"), null);
         }
         return _jzfileFieldActor;
     }

@@ -31,6 +31,7 @@
  */
 package com.sun.max.vm.run.guestvm;
 
+import com.sun.max.config.BootImagePackage;
 import com.sun.max.vm.*;
 import com.sun.max.vm.run.*;
 
@@ -40,7 +41,7 @@ import com.sun.max.vm.run.*;
  */
 
 
-public class Package extends VMPackage {
+public class Package extends BootImagePackage {
 
     public Package() {
         super();

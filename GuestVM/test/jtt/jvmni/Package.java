@@ -31,12 +31,12 @@
  */
 package jtt.jvmni;
 
-import com.sun.max.vm.*;
+import com.sun.max.config.BootImagePackage;
 
 /**
  * @author Mick Jordan
  */
-public class Package extends VMPackage {
+public class Package extends BootImagePackage {
     public Package() {
         super();
     }

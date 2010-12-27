@@ -58,7 +58,7 @@ function run_image_override() {
   pushd ../../guk  >/dev/null
   gmake
   popd  >/dev/null
-  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.prototype.GuestVMBootImageGenerator -trace=1 $prefix_classpath $specfile $imagevmargs $@
+  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.hosted.GuestVMBootImageGenerator -trace=1 $prefix_classpath $specfile $imagevmargs $@
 }
 
 function run_vm_override() {

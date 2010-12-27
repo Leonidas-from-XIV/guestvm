@@ -55,7 +55,7 @@ public class JDK_java_lang_SecurityManager {
 
     private static boolean check(Object self) {
         if (_initFieldActor == null) {
-            _initFieldActor = (FieldActor) ClassActor.fromJava(SecurityManager.class).findFieldActor(SymbolTable.makeSymbol("initialized"));
+            _initFieldActor = (FieldActor) ClassActor.fromJava(SecurityManager.class).findFieldActor(SymbolTable.makeSymbol("initialized"), null);
         }
         final boolean initialized = _initFieldActor.getBoolean(self);
         if (!initialized) {

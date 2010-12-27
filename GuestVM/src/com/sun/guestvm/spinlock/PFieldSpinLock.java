@@ -53,7 +53,7 @@ import com.sun.max.vm.reference.*;
  */
 public abstract class PFieldSpinLock extends PSpinLock {
     protected volatile int _lock;
-    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(ISpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock")).offset());
+    private static final Offset _lockOffset = Offset.fromInt(ClassActor.fromJava(PFieldSpinLock.class).findFieldActor(SymbolTable.makeSymbol("_lock"), null).offset());
 
     /**
      * Unlocks and re-enables pre-emption.

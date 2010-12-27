@@ -36,11 +36,8 @@ import java.util.*;
 import com.sun.max.annotate.*;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.bytecode.*;
-import com.sun.max.vm.compiler.target.*;
 import com.sun.max.vm.runtime.*;
 import com.sun.max.vm.stack.*;
-import com.sun.max.vm.stack.StackFrameWalker.Cursor;
 import com.sun.max.vm.thread.VmThread;
 import com.sun.max.unsafe.*;
 
@@ -173,10 +170,11 @@ public final class Tick extends Thread {
         
         @Override
         public void doThread(VmThread vmThread, Pointer ip, Pointer sp, Pointer fp) {
+            StackTraceVisitor stv = new StackTraceVisitor.Custom(null, _maxDepth, traceStorage);
             final VmStackFrameWalker stackFrameWalker = vmThread.stackDumpStackFrameWalker();
             _workingStackInfo.reset();
             _workingDepth = 0;
-            stackFrameWalker.inspect(ip, sp, fp, stackFrameDumper);
+            stv.walk(stackFrameWalker, ip, sp, fp);
             // Have we seen this stack before?
             List<ThreadInfo> threadInfoList = stackInfoMap.get(_workingStackInfo);
             if (threadInfoList == null) {
@@ -193,54 +191,25 @@ public final class Tick extends Thread {
 
     private static final StackTraceGatherer stackTraceGatherer = new StackTraceGatherer();
 
-    private static final FrameDumper stackFrameDumper = new FrameDumper();
+    private static final StackTraceVisitor.TraceStorage  traceStorage = new TickTraceStorage();
 
     /**
      * Allocation free stack frame analyzer that builds up the {@StackInfo} in {@link Tick#_workingStackInfo}.
      */
-    private static class FrameDumper extends RawStackFrameVisitor {
-        public boolean visitFrame(Cursor current, Cursor callee) {
-            if (_workingDepth >= _maxDepth) {
-                return false;
-            }
-            final TargetMethod targetMethod = current.targetMethod();
-            if (targetMethod == null || targetMethod.classMethodActor() == null) {
-                // native frame or stub frame without a class method actor
-            } else if (targetMethod.classMethodActor().isTrapStub()) {
-                // Reset the stack trace. We want the trace to start from the trapped frame
-                _workingDepth = 0;
-            } else {
-                final ClassMethodActor classMethodActor = targetMethod.classMethodActor();
-                if (classMethodActor != null) {
-                    return addStackElements(targetMethod, current.ip());
-                }
-            }
-            return true;
-        }
-
-        private boolean addStackElements(TargetMethod targetMethod, Pointer ip) {
-            BytecodeLocation bytecodeLocation = targetMethod.getBytecodeLocationFor(ip, false);
-            if (bytecodeLocation == null) {
-                return addStackElement(targetMethod.classMethodActor().original(), -1/*, ip.minus(targetMethod.codeStart()).toInt()*/);
-            } else {
-            while (bytecodeLocation != null) {
-                final ClassMethodActor classMethodActor = bytecodeLocation.classMethodActor.original();
-                if (classMethodActor.isApplicationVisible() || classMethodActor.isNative()) {
-                    if (!addStackElement(classMethodActor, bytecodeLocation.sourceLineNumber())) {
-                        return false;
-                    }
-                }
-                bytecodeLocation = bytecodeLocation.parent();
-            }
-            }
-            return true;
-        }
-
-        private boolean addStackElement(final ClassMethodActor classMethodActor, int sourceLineNumber) {
+    private static class TickTraceStorage implements StackTraceVisitor.TraceStorage {
+        public boolean add(ClassMethodActor classMethodActor, int sourceLineNumber) {
             _workingStackInfo.stack[_workingDepth].classMethodActor = classMethodActor;
             _workingStackInfo.stack[_workingDepth].lineNumber = sourceLineNumber;
             _workingDepth++;
             return _workingDepth < _maxDepth;
+        }
+        
+        public void clear() {
+            _workingDepth = 0;
+        }
+        
+        public StackTraceElement[] getTrace() {
+            return null;
         }
     }
 
