@@ -1,0 +1,118 @@
+#! /bin/bash
+#
+# Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
+# Clara, California 95054, U.S.A. All rights reserved.
+# 
+# U.S. Government Rights - Commercial software. Government users are
+# subject to the Sun Microsystems, Inc. standard license agreement and
+# applicable provisions of the FAR and its supplements.
+# 
+# Use is subject to license terms.
+# 
+# This distribution may include materials developed by third parties.
+# 
+# Parts of the product may be derived from Berkeley BSD systems,
+# licensed from the University of California. UNIX is a registered
+# trademark in the U.S.  and in other countries, exclusively licensed
+# through X/Open Company, Ltd.
+# 
+# Sun, Sun Microsystems, the Sun logo and Java are trademarks or
+# registered trademarks of Sun Microsystems, Inc. in the U.S. and other
+# countries.
+# 
+# This product is covered and controlled by U.S. Export Control laws and
+# may be subject to the export or import laws in other
+# countries. Nuclear, missile, chemical biological weapons or nuclear
+# maritime end uses or end users, whether direct or indirect, are
+# strictly prohibited. Export or reexport to countries subject to
+# U.S. embargo or to entities identified on U.S. export exclusion lists,
+# including, but not limited to, the denied persons and specially
+# designated nationals lists is strictly prohibited.
+# 
+#
+# Guest VM is a Java virtual machine, so we provide a "java" launch command.
+# However, some users may find the "run" command easier to work with.
+
+# This script sets up java.home to the ext2 disk0 directory implied by JAVA_HOME
+
+jh=${JAVA_HOME##*/}
+jar=""
+classpath=$CLASSPATH
+gukargs=""
+ramdisk=""
+javahome="-Djava.home=/maxve/java/$jh/jre"
+
+# Resolve location of this script
+me="${BASH_SOURCE[0]}"
+while [ -h "$me" ]; do
+    me=`readlink -e "$me"`
+done
+# this assumes this script is in bin that is a sibling of xmconfigs
+parent=`dirname $me`
+parent=`dirname $parent`
+# ensure absolute
+parent=`cd $parent; pwd`
+if [ ! -d $parent/xmconfigs ] ; then
+  echo "no xmconfigs directory in $parent"
+  exit 1
+fi
+
+vmargs="$javahome -Dmax.ve.dir=$parent -Dmax.ve.pid=$$"
+
+while [ "$1" != "" ] ;
+do
+  case "$1" in
+    -cp | -classpath )
+      shift
+      classpath=$1
+      ;;
+    -jar )
+      shift
+      jar=$1
+      ;;
+    -XX:GUK* )
+      if [ "$gukargs" = "" ] ;
+      then
+        gukargs=${1}
+      else
+        gukargs="$gukargs ${1}"
+      fi
+      ;;
+    -D* | -X* | -XX* )
+      if [ "$vmargs" = "" ] ;
+      then
+        vmargs=${1}
+       else
+        vmargs="$vmargs ${1}"
+      fi
+      ;;
+    * )
+      break
+      ;;
+  esac
+  shift
+done
+
+if [ "$jar" == "" ] ;
+then
+  if [ "$classpath" != "" ] ;
+  then
+    cp="-classpath $classpath"
+  fi
+else
+  cp="-jar $jar"
+fi
+
+name=MaxVE-${USER}-$$
+javaxtra=$vmargs $cp $*"
+extra="$gukargs $javaxtra"
+if [ ${#extra} -ge 1023 ] ; then
+  argsfile=".$name-args"
+  echo "${#javaxtra}" > $argsfile
+  echo $javaxtra >> $argsfile
+  extra="$gukargs -XX:GVMRamArgs"
+  ramdisk="ramdisk=$argsfile"
+fi
+export IMAGE_DIR=$parent
+#echo /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
+/usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk

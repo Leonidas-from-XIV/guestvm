@@ -57,7 +57,8 @@ import java.io.IOException;
 
 import java.util.logging.Level;
 
-import com.sun.guestvm.logging.Logger;
+import com.sun.max.ve.logging.Logger;
+
 import org.jnode.fs.ext2.Ext2FileSystem;
 
 /**

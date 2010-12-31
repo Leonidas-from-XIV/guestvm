@@ -58,7 +58,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.*;
+
+import com.sun.max.ve.logging.*;
+
 import org.jnode.driver.ApiNotFoundException;
 import org.jnode.driver.Device;
 import org.jnode.driver.block.BlockDeviceAPI;

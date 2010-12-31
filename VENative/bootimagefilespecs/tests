@@ -1,0 +1,4 @@
+# Include the class files for some tests
+prefix /maxve/image
+path ../VEMain/bin/test /VEMain/bin/test
+path ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output

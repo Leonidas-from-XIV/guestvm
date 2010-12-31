@@ -60,7 +60,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.Logger;
+
+import com.sun.max.ve.logging.Logger;
+
 import org.jnode.fs.FSEntry;
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.spi.AbstractFSDirectory;

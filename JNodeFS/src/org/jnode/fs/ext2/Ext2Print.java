@@ -56,7 +56,9 @@ package org.jnode.fs.ext2;
 import java.nio.ByteBuffer;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.*;
+
+import com.sun.max.ve.logging.*;
+
 import org.jnode.driver.block.BlockDeviceAPI;
 
 /**

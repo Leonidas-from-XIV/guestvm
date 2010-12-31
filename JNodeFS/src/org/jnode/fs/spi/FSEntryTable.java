@@ -62,7 +62,9 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.*;
+
+import com.sun.max.ve.logging.*;
+
 import org.jnode.fs.FSEntry;
 
 /**

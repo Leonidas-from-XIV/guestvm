@@ -59,7 +59,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.*;
+
+import com.sun.max.ve.logging.*;
 
 /**
  * @author Andras Nagy

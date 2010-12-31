@@ -59,7 +59,9 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.Logger;
+
+import com.sun.max.ve.logging.Logger;
+
 import org.jnode.driver.Device;
 import org.jnode.fs.FSDirectory;
 import org.jnode.fs.FSEntry;

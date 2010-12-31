@@ -57,7 +57,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.Logger;
+
+import com.sun.max.ve.logging.Logger;
+
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.ReadOnlyFileSystemException;
 import org.jnode.fs.spi.AbstractFSFile;

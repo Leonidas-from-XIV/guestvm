@@ -56,7 +56,9 @@ package org.jnode.fs.spi;
 import java.io.IOException;
 
 import java.util.logging.Level;
-import com.sun.guestvm.logging.*;
+
+import com.sun.max.ve.logging.*;
+
 import org.jnode.fs.FSAccessRights;
 import org.jnode.fs.FSDirectory;
 import org.jnode.fs.FSEntry;

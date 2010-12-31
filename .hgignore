@@ -1,21 +1,21 @@
 
 syntax: regexp
-^GuestVMNative/objs$
+^VENative/objs$
 ^\.metadata/*
 ^\.settings/*
 ~$
 syntax: regexp
 \.out$
 syntax: regexp
-^GuestVMNative/guestvm$
+^VENative/maxve$
 syntax: glob
-GuestVMNative/guestvm-*
-GuestVMNative/zlibobjs/*
-GuestVMNative/fdlibmobjs/*
+VENative/maxve-*
+VENative/zlibobjs/*
+VENative/fdlibmobjs/*
 YANFS/bin/com/sun/gssapi/dummy/*
 *.class
-GuestVM/bin
-GuestVMBase/bin
-TraceAspect/bin
-NfsServer/bin
+VEMain/bin
+VEBase/bin
+AJTrace/bin
+NFSServer/bin
 *.orig
