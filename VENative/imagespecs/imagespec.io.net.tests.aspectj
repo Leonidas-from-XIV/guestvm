@@ -1,5 +1,0 @@
-include imagespec.io.net.tests
-package com.sun.guestvm.ajtrace
-# just to be safe in case some tracing happens during the image build!
-resetfield com.sun.guestvm.ajtrace.AJTrace.init
-resetfield com.sun.guestvm.ajtrace.AJTrace.inInit

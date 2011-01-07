@@ -1,33 +1,24 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa
- * Clara, California 95054, U.S.A. All rights reserved.
+ * Copyright (c) 2010, 2011, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
- * U.S. Government Rights - Commercial software. Government users are
- * subject to the Sun Microsystems, Inc. standard license agreement and
- * applicable provisions of the FAR and its supplements.
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
  *
- * Use is subject to license terms.
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
- * This distribution may include materials developed by third parties.
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Parts of the product may be derived from Berkeley BSD systems,
- * licensed from the University of California. UNIX is a registered
- * trademark in the U.S.  and in other countries, exclusively licensed
- * through X/Open Company, Ltd.
- *
- * Sun, Sun Microsystems, the Sun logo and Java are trademarks or
- * registered trademarks of Sun Microsystems, Inc. in the U.S. and other
- * countries.
- *
- * This product is covered and controlled by U.S. Export Control laws and
- * may be subject to the export or import laws in other
- * countries. Nuclear, missile, chemical biological weapons or nuclear
- * maritime end uses or end users, whether direct or indirect, are
- * strictly prohibited. Export or reexport to countries subject to
- * U.S. embargo or to entities identified on U.S. export exclusion lists,
- * including, but not limited to, the denied persons and specially
- * designated nationals lists is strictly prohibited.
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package com.sun.max.ve.fs.image;
 
@@ -63,45 +54,60 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
     static {
         final String prop = System.getProperty(BOOTIMAGE_FILESYSTEM_PROPERTY);
         if (prop != null) {
-            BufferedReader bs = null;
-            try {
-                bs = new BufferedReader(new FileReader(prop));
-                while (true) {
-                    final String line = bs.readLine();
-                    if (line == null) {
-                        break;
-                    }
-                    if (line.length() == 0 || line.charAt(0) == '#') {
-                        continue;
-                    }
-                    String argument = null;
-                    String command;
-                    final int ix = line.indexOf(' ');
-                    if (ix > 0) {
-                        command = line.substring(0, ix);
-                        argument = line.substring(ix + 1).trim();
-                    } else {
-                        command = line;
-                    }
-                    if (command.equals("path")) {
-                        doImageFile(argument);
-                    } else if (command.equals("prefix")) {
-                        doImagefsPrefix(argument);
-                    } else {
-                        VEError.unexpected("BootImageFileSystem: unknown command: " + command + " in file " + prop);
-                    }
+            readBootImageFileSystemSpec(prop);
+        }
+    }
+    
+    @HOSTED_ONLY
+    private static void readBootImageFileSystemSpec(String pathName) {
+        BufferedReader bs = null;
+        try {
+            bs = new BufferedReader(new FileReader(pathName));
+            while (true) {
+                final String line = bs.readLine();
+                if (line == null) {
+                    break;
                 }
-            } catch (IOException ex) {
-
-            } finally {
-                if (bs != null) {
-                    try {
-                        bs.close();
-                    } catch (IOException ex) {
+                if (line.length() == 0 || line.charAt(0) == '#') {
+                    continue;
+                }
+                String argument = null;
+                String command;
+                final int ix = line.indexOf(' ');
+                if (ix > 0) {
+                    command = line.substring(0, ix);
+                    argument = line.substring(ix + 1).trim();
+                } else {
+                    command = line;
+                }
+                if (command.equals("path")) {
+                    doImageFile(argument);
+                } else if (command.equals("prefix")) {
+                    doImagefsPrefix(argument);
+                } else if (command.equals("include")) {
+                    if (argument != null) {
+                        readBootImageFileSystemSpec(argument);
                     }
+                } else {
+                    error("unknown command: " + command + " in spec file" + pathName);
+                }
+            }
+        } catch (IOException ex) {
+            error("error reading spec file: " + pathName + ": " + ex);
+        } finally {
+            if (bs != null) {
+                try {
+                    bs.close();
+                } catch (IOException ex) {
                 }
             }
         }
+        
+    }
+    
+    @HOSTED_ONLY
+    private static void error(String m) {
+        VEError.unexpected("BootImageFileSystem: " + m);
     }
        
     @HOSTED_ONLY
@@ -143,6 +149,8 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
             pathName = argument.substring(0, ix);
             asName = argument.substring(ix + 1);
         }
+        pathName = processVars(pathName);
+        asName = processVars(asName);
         final File file = new File(pathName);
         final File asFile = new File(asName);
         if (file.exists()) {
@@ -153,6 +161,37 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
             }
         } else {
             ProgramError.unexpected("failed to find file: " + argument);
+        }
+    }
+    
+    @HOSTED_ONLY
+    private static String processVars(String s) {
+        StringBuilder sb = null;
+        int jx = 0;
+        int ix = 0;
+        while ((ix = s.indexOf("${")) >= 0) {
+            if (sb == null) {
+                sb = new StringBuilder(s.length());
+            }
+            sb.append(s.substring(jx, ix));
+            jx = s.indexOf('}');
+            if (jx < 0) {
+                error("malformed variable");
+            }
+            final String var = s.substring(ix + 1, jx);
+            final String pvar = System.getProperty(var);
+            if (pvar == null) {
+                error("no system property: " + var);
+            }
+            sb.append(pvar);
+            jx++;
+            ix = jx;
+        }
+        if (sb == null) {
+            return s;
+        } else {
+            sb.append(s.substring(jx));
+            return sb.toString();
         }
     }
 
