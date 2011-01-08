@@ -1,4 +1,4 @@
-package com.sun.max.ajtrace;
+package com.oracle.labs.ajtrace;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;

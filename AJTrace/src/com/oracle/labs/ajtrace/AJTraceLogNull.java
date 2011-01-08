@@ -29,30 +29,54 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.ajtrace;
-
-import java.io.*;
+package com.oracle.labs.ajtrace;
 
 /**
- * Manages creation of log file.
- * 
+ * The null logger.
+ *
  * @author Mick Jordan
  *
  */
 
-public class AJTraceLogFile {
-	public static final String LOGFILE_PROPERTY = "ajtrace.logfile";
-	
-	public static OutputStream create() {
-		final String tracelogfile = System.getProperty(LOGFILE_PROPERTY);
-		if (tracelogfile != null) {
-			try {
-				return new FileOutputStream(tracelogfile);
-			} catch (IOException ex) {
-				System.err.println("unable to open ajtrace logfile " + tracelogfile + ": " + ex);
-			}
-		}
-		return null;
+public class AJTraceLogNull extends AJTraceLog {
+
+	@Override
+	public void defineMethod(int id, String fullName) {
 	}
 
+	@Override
+	public void defineThread(long id, String fullName) {
+	}
+
+	@Override
+	public void defineParam(int id, String fullName) {
+	}
+
+	@Override
+	public void enter(int depth, long tod, long user, long sys, long threadId,
+			int methodId, Object target, boolean isCons, Object[] args) {
+	}
+
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId,
+			int methodId, Object result) {
+	}
+
+	@Override
+	public void exit(int depth, long tod, long user, long sys, long threadId,
+			int methodId) {
+	}
+
+	@Override
+	public void call(int depth, long tod, long threadId, long methodId, Object target, Object[] args) {
+		
+	}
+	
+	@Override
+	public void init(long startTime) {
+	}
+
+	@Override
+	public void fini(long endTime) {
+	}
 }

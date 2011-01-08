@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.ajtrace;
+package com.oracle.labs.ajtrace;
 
 /**
  * This version buffers the trace logs in a single pre-allocated buffer, and hence must synchronize

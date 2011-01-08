@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.ajtrace;
+package com.oracle.labs.ajtrace;
 
 import java.util.*;
 /**

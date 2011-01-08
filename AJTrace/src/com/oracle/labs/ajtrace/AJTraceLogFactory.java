@@ -29,7 +29,7 @@
  * designated nationals lists is strictly prohibited.
  *
  */
-package com.sun.max.ajtrace;
+package com.oracle.labs.ajtrace;
 
 /**
  * Factory for controlling which subclass of TraceLog is used..
