@@ -20,12 +20,21 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package test.java.net.cs;
+package com.oracle.labs.ajtrace.tools.viewer.net;
 
-import com.oracle.labs.ajtrace.AJTrace;
+import com.oracle.labs.ajtrace.tools.viewer.TraceFormatHandler;
+import com.sun.max.ve.net.ip.IPAddress;
 
-public aspect AJTraceTestNetCS extends AJTrace {
 
-	public pointcut execAll(): execution (* test.java.net.cs.*.*(..));
+public class IPAddressFormatHandler extends TraceFormatHandler {
+
+    public IPAddressFormatHandler(String method, int numArgs, int param) {
+        super(method, numArgs, param);
+    }
+    
+    @Override
+    public String transform(String value) {
+        return IPAddress.toString(Integer.parseInt(value));
+    }
 
 }

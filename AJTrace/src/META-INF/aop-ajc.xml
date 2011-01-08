@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <aspectj>
 	<aspects>
-		<aspect name="com.sun.guestvm.ajtrace.AJTrace"/>
+		<aspect name="com.oracle.labs.ajtrace.AJTrace"/>
 	</aspects>
 </aspectj>

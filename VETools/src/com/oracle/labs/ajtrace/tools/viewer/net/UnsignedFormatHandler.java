@@ -20,12 +20,23 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package test.java.net.cs;
+package com.oracle.labs.ajtrace.tools.viewer.net;
 
-import com.oracle.labs.ajtrace.AJTrace;
+import com.oracle.labs.ajtrace.tools.viewer.TraceFormatHandler;
 
-public aspect AJTraceTestNetCS extends AJTrace {
 
-	public pointcut execAll(): execution (* test.java.net.cs.*.*(..));
+public class UnsignedFormatHandler extends TraceFormatHandler {
+
+    public UnsignedFormatHandler(String method, int numArgs, int param) {
+        super(method, numArgs, param);
+    }
+    
+    @Override
+    public String transform(String value) {
+        final int x = Integer.parseInt(value);
+        final long lx = (long) x;
+        final long lmx = lx & 0xFFFFFFFFL;
+        return Long.toString(lmx);
+    }
 
 }

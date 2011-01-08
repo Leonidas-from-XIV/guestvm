@@ -8,7 +8,7 @@
 			<attribute name="org.eclipse.ajdt.aspectpath" value="org.eclipse.ajdt.aspectpath"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/VEMain/src/com/sun/max/ve/net/tcp">
+	<classpathentry kind="lib" path="/VEMain/bin/com/sun/max/ve/net">
 		<attributes>
 			<attribute name="org.eclipse.ajdt.inpath" value="org.eclipse.ajdt.inpath"/>
 		</attributes>

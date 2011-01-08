@@ -20,12 +20,26 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package test.java.net.cs;
+package com.oracle.labs.ajtrace.max.ve.fs.ext2;
 
 import com.oracle.labs.ajtrace.AJTrace;
 
-public aspect AJTraceTestNetCS extends AJTrace {
+/**
+ * Pointcuts to trace almost everything in the ext2 file system stack.
+ * Obviously the AJTrace system itself must operate independent from
+ * ext2 for this to work (avoid bootstrap circularities).
+ * 
+ * @author Mick Jordan
+ *
+ */
 
-	public pointcut execAll(): execution (* test.java.net.cs.*.*(..));
+public aspect AJTraceMaxVEFSExt2 extends AJTrace {
+
+	pointcut dev(): execution(* com.sun.max.ve.blk.guk.GUKBlkDevice.read(..)) || execution(* com.sun.max.ve.blk.guk.GUKBlkDevice.write(..));
+	pointcut fs_ext2(): execution(* com.sun.max.ve.fs.ext2.*.*(..));
+	
+	pointcut jnode(): execution(* org.jnode..*.*(..));
+	
+	public pointcut execAll() : dev() || fs_ext2() || jnode();
 
 }

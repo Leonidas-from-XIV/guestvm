@@ -20,12 +20,24 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package test.java.net.cs;
+package com.oracle.labs.ajtrace.max.ve.net.tcp;
 
-import com.oracle.labs.ajtrace.AJTrace;
+import com.oracle.labs.ajtrace.*;
 
-public aspect AJTraceTestNetCS extends AJTrace {
-
-	public pointcut execAll(): execution (* test.java.net.cs.*.*(..));
-
+/**
+ * Pointcuts to the TCP stack.
+ * 
+ * @author Mick Jordan
+ *
+ */
+public aspect AJTraceMaxVENetTCP extends AJTraceArgs {
+	pointcut tcpignore(): execution(* com.sun.max.ve.net.tcp.TCP.*print(..)) || execution(* com.sun.max.ve.net.tcp.TCP.*String(..)) || 
+	                               execution(* com.sun.max.ve.net.tcp.TCP.*.*String(..)) || execution(* com.sun.max.ve.net.tcp.TCP.toUnsigned(..)) ||
+	                               execution(* com.sun.max.ve.net.tcp.TCP.*SWITCH_TABLE*(..)) || execution(* com.sun.max.ve.net.tcp.TCP.access$*(..)) ||
+	                               execution(* com.sun.max.ve.net.tcp.TCPConnectionKey.*(..)) || execution(com.sun.max.ve.net.tcp.TCPConnectionKey.new(..));
+	pointcut tcp(): execution(* com.sun.max.ve.net.tcp..*(..)) || execution(com.sun.max.ve.net.tcp..new(..));
+	
+    public pointcut execAll() : tcp() && !tcpignore();
+	
 }
+

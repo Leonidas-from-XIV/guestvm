@@ -5,5 +5,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/VEMain"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JNodeFS"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Base"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AJTrace"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
