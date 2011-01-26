@@ -24,7 +24,7 @@
 # Variant that supports tracing with AspectJ in the image file system
 #
 debug=""
-logfile=ajtrace.log
+logfile=/sg/ajtrace.log
 logtype=TBSB
 off=""
 cp=""
@@ -36,8 +36,7 @@ if [ -z "${ASPECTJ_HOME}" ]; then
   exit 1
 fi
 
-aspectj_ver=${ASPECTJ_HOME##*/}
-aspectj_root=/maxve/image/$aspectj_ver
+aspectj_root=/maxve/image/aspectj
 mount="/user"
 
 echo=""
@@ -85,4 +84,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run $echo $debug -J-Djava.home=/maxve/image/$jh/jre "-J-Dmax.ve.fs.table=ext2:/blk/1:${mount};sg:/exports:/sg" $agent -J-Xbootclasspath/p:$aspectj_root/lib/aspectjrt.jar $logging_config $cp -J-Dajtrace.timing -J-Dajtrace.cputime  -J-Dajtrace.logfile=/sg/$logfile $off $logaj -J-Dajtrace.logclass=com.sun.max.ajtrace.AJTraceLog${logtype} $*
+bin/run_fs $echo $debug -javahome /maxve/image/$jh/jre $agent -J-Xbootclasspath/p:$aspectj_root/lib/aspectjrt.jar:/maxve/image/AJTrace/bin $logging_config $cp -J-Dajtrace.timing -J-Dajtrace.cputime  -J-Dajtrace.logfile=$logfile $off $logaj -J-Dajtrace.logclass=com.oracle.labs.ajtrace.AJTraceLog${logtype} $*

@@ -21,7 +21,7 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 #
-# A script that extends the Maxine "max" script to allow Guest VM to be built
+# A script that extends the Maxine "max" script to allow Maxine VE to be built
 # Author: Mick Jordan
 
 pushd .. >/dev/null
@@ -43,14 +43,15 @@ image_override=1
 vm_override=1
 prefix_classpath=""
 specfile=""
-imagevmargs=""
+imageargs=""
+cps="-opt=com.sun.max.vm.cps.b.c.d.e.amd64.target.AMD64CPSCompiler"
 
 function run_image_override() {
   echo "build Maxine Virtual Edition image"
   pushd ../../guk  >/dev/null
   gmake
   popd  >/dev/null
-  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.hosted.VEBootImageGenerator -trace=1 $prefix_classpath $specfile $imagevmargs $@
+  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.hosted.VEBootImageGenerator -trace=1 $prefix_classpath $specfile $imageargs $@
 }
 
 function run_vm_override() {
@@ -68,9 +69,22 @@ while [ "${1:0:1}" = "-" ]; do
       shift
       specfile="-specfile=$1"
       ;;
-    -imagevmargs )
+    -imageargs )
       shift
-      imagevmargs="-maxineimagevmargs=$1"
+      if [ "$imageargs" = "" ] ;
+      then
+        imageargs="-maxineimageargs=$1"
+      else
+        imageargs="$imageargs $1"
+      fi
+      ;;
+    -cps )
+      if [ "$imageargs" = "" ] ;
+      then
+        imageargs="-maxineimageargs=$cps"
+      else
+        imageargs="$imageargs $cps"
+      fi
       ;;
     -* )
       break
@@ -78,4 +92,4 @@ while [ "${1:0:1}" = "-" ]; do
     esac
     shift
 done
-. ../../maxine/bin/max $@ -maxineimageargs="-opt=com.sun.max.vm.cps.b.c.d.e.amd64.target"
+. ../../maxine/bin/max $@

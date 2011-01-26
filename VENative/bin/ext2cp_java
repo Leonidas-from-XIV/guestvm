@@ -66,6 +66,7 @@ java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/lib
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre/lib
+java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre/lib/amd64
 
 # create a fake java executable to keep certain apps happy
 java -classpath $cp $h $mc mkdir -disk $dfile -ext2path $ext2jh/jre/bin
@@ -103,3 +104,6 @@ java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/management -ext2p
 
 #ext
 java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/ext -ext2path $todir
+
+# instrument library - must exist even though content irrelevant
+java -classpath $cp $h $mc copyin -r -disk $dfile -from ${dir}/amd64/libinstrument.so $todir/amd64

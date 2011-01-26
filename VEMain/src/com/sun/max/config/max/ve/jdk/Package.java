@@ -63,7 +63,8 @@ public class Package extends BootImagePackage {
     
     public Package() {
         super(packages);
-        String className = "java.net..InetAddress";
+        String className = "java.net.InetAddress";
+        Extensions.registerClassForReInit(className);
         String[] fields = new String[] {"nameService", "addressCache", "negativeCache",
                         "addressCacheInit", "unknown_array", "impl", "lookupTable"};
         for (String fieldName : fields) {

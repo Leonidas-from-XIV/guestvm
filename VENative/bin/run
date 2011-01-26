@@ -55,7 +55,8 @@ if [ ! -d $parent/xmconfigs ] ; then
   exit 1
 fi
 
-vmargs="$javahome -Dmax.ve.dir=$parent -Dmax.ve.pid=$$"
+fst="ext2:/blk/0:/maxve/java:ro,auto"
+vmargs="-Dmax.ve.dir=$parent -Dmax.ve.pid=$$"
 
 function show_help() {
   echo "run the Maxine Virtual Edition image
@@ -76,7 +77,9 @@ options:
   -memory <n>   set initial domain memory to n (default: from config file)
   -maxmem <n>   set maximum domain memory to n (default: from config file)
   -jar <file>   extract main class from jar file
-  -js           enable the Java thread scheduler"
+  -js           enable the Java thread scheduler
+  -fstable fst  set max.ve.fs.table=fst
+  -javahome jh  set java.home=jh"
 }
 
 while [ "$1" != "" ] ;
@@ -124,6 +127,14 @@ do
   -n )
     echocmd=1
     run=0
+    ;;
+  -fstable )
+    shift
+    fst=$1
+    ;;
+  -javahome )
+    shift
+    javahome=$1
     ;;
   -J-XX:GUK* )
     if [ "$gukargs" = "" ] ;
@@ -229,6 +240,17 @@ if [ $help -eq 1 ] ; then
   show_help
   exit 0
 fi
+
+if [ -z "$javahome" ]; then
+  if [ -z "$JAVA_HOME" ] ; then
+    echo "JAVA_HOME or -javahome must be set"
+    exit 1
+  else
+    javahome=/maxve/java/${JAVA_HOME##*/}/jre
+  fi
+fi
+
+vmargs="-Djava.home=$javahome -Dmax.ve.fs.table=$fst $vmargs"
 
 if [ "$name" == "" ] ; then
   if [ "$mainclass" != "" ] ; then

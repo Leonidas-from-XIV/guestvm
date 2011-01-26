@@ -24,7 +24,7 @@
 # Variant that supports tracing with AspectJ
 #
 debug=""
-logfile=trace.log
+logfile=/scratch/ajtrace.log
 logtype=TBSB
 wall=""
 cpu=""
@@ -102,4 +102,4 @@ do
   shift
 done
 
-bin/run_fs $vmargs $debug $echo -mount /maxve/aspectj $agent -J-Xbootclasspath/p:/maxve/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp $wall $cpu  $args $plargs -J-Dajtrace.logfile=$logfile $off $logaj -J-Dajtrace.logclass=com.sun.max.ajtrace.AJTraceLog${logtype} $*
+bin/run_fs $vmargs $debug $echo -mount /maxve/aspectj $agent -J-Xbootclasspath/p:/maxve/aspectj/$aspectj_ver/lib/aspectjrt.jar $logging_config $cp $wall $cpu  $args $plargs -J-Dajtrace.logfile=$logfile $off $logaj -J-Dajtrace.logclass=com.oracle.labs.ajtrace.AJTraceLog${logtype} $*

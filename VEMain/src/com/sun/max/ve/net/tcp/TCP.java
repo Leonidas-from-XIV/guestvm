@@ -105,7 +105,7 @@ import com.sun.max.ve.util.TimeLimitedProc;
  * The backlog queue for incoming connections is currently of length 1. This needs fixing.
  * 
  * This version expects to its debug tracing using AspectJ {@link AJTrace} package, which requires a build using, e.g., 
- *  the AJTraceNetTCP project. AJTrace has explicit support for tracing the entry and exit to a given set of methods,
+ *  the AJTraceVENetTCP project. AJTrace has explicit support for tracing the entry and exit to a given set of methods,
  *  with argument tracing. The explicit {@link #trace} calls in this package are supplementary to that, and are controlled
  *  by the {@value DEBUG_PROPERTY} system property. The intention is that the explicit tracing code has essentially zero 
  *  overhead when disabled. Note that, currently, setting {@value DEBUG_PROPERTY} in a non AspectJ build, will 
@@ -332,10 +332,14 @@ public final class TCP extends IP {
     private void remove() {
         TCPConnectionKey ckey = new TCPConnectionKey(_localPort,_remotePort,_remoteIp);
         if (establishedConnectionsMap.get(ckey) == this) {
-            thisdprint("removing from established connections");
+            if (_debug) {
+                thisdprint("removing from established connections");
+            }
             establishedConnectionsMap.remove(ckey);
         } else if (listenConnectionsMap.get(_localPort) == this){
-            thisdprint("removing from listen connections");
+            if (_debug) {
+                thisdprint("removing from listen connections");
+            }
             listenConnectionsMap.remove(_localPort);
         } else {
             thisdprint("remove failed");
@@ -422,8 +426,9 @@ public final class TCP extends IP {
         int cksum = pkt.cksum(-12, length + 12);
         pkt.putShort(cksum, CKSUM_OFFSET);
 
-        if (_debug)
+        if (_debug) {
              thisdprint("output: flags:" + flagsToString(flags) + "; seq:" + seq + "; ack:" + toUnsigned(ack));
+        }
 
         // We're finished building the TCP header. Now send it down to IP,
         // passing our time-to-live and type of service.
@@ -653,8 +658,9 @@ public final class TCP extends IP {
             // check if the entire segment is duplicate data
             if ((todrop >= inp_len) && ((inp_flags & FIN) == 0)) {
 
-                if (_debug)
-                    thisdprint("total duplicate todrop:" + todrop); 
+                if (_debug) {
+                    thisdprint("total duplicate todrop:" + todrop);
+                }
 
                 // Entire segment is duplicate. The remote probably
                 // never got our ACK, so send another.
@@ -868,8 +874,9 @@ public final class TCP extends IP {
         // May want to move this get() into TCPEndpoint.
         TCP tcp = get();
         if (tcp == null) {
-            if (_debug)
+            if (_debug) {
                 thisdprint("LISTEN: no more connections");
+            }
             tcp.outputRst();
             return;
         }

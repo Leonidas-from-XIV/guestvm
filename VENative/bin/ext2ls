@@ -1,6 +1,5 @@
-#! /bin/bash
 #
-# Copyright (c) 2010, 2011, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -21,40 +20,28 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 #
-# Runs an NFS server on all the file systems 
+# Recrusive listing of an ext2 file system disk
 #
-mount="/user"
-debug=""
-echo=""
-vmargs=""
-while [ "$1" != "" ] ;
+# Resolve location of this script
+    me="${BASH_SOURCE[0]}"
+    while [ -h "$me" ]; do
+        me=`readlink -e "$me"`
+    done
+
+me_dir=`dirname $me`
+. $me_dir/ext2setup
+
+ext2dir="/"
+
+while [ "$1" != "" ];
 do
-  case "$1" in
-    "-d" )
-      debug="-d"
-      ;;
-    "-mount")
-      shift
-      mount=$1
-      ;;
-    "-echo" )
-      echo="-echo"
-      ;;
-  -J* )
-    if [ "$vmargs" = "" ] ;
-    then
-      vmargs=${1}
-    else
-      vmargs="$vmargs ${1}"
-    fi
-    ;;
-    *)
-      break
-      ;;
+  case $1 in
+   -dir )
+   shift
+   ext2dir=$1
+   ;;
   esac
   shift
 done
 
-jh=${JAVA_HOME##*/}
-
-bin/run $echo $debug $vmargs -J-Djava.home=/maxve/java/$jh/jre "-J-Dmax.ve.fs.table=ext2:/blk/0:/maxve/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" "-J-Dmax.ve.nfs.exports=/maxve/java:/maxve/exports/java;${mount}:/maxve/exports/${mount};/scratch:/maxve/exports/scratch" -J-Xbootclasspath/a:/maxve/java/nfs_server/bin com.sun.max.ve.fs.nfs.NfsServer $*
+java -classpath $cp $h $mc ls -disk $dfile -ext2path $ext2dir -r -l -a

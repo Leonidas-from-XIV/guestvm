@@ -45,6 +45,8 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
     private static BootImageFileSystem _singleton = new BootImageFileSystem();
     private static final int S_IFREG = 0x8000;
     private static final int S_IFDIR = 0x4000;
+    @HOSTED_ONLY
+    private static Set<File> includeSet = new HashSet<File>();
 
     private static byte[][] _openFiles = new byte[64][];
     
@@ -54,15 +56,17 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
     static {
         final String prop = System.getProperty(BOOTIMAGE_FILESYSTEM_PROPERTY);
         if (prop != null) {
-            readBootImageFileSystemSpec(prop);
+            readBootImageFileSystemSpec(new File(prop));
         }
     }
     
     @HOSTED_ONLY
-    private static void readBootImageFileSystemSpec(String pathName) {
+    private static void readBootImageFileSystemSpec(File specFile) {
+        final File parent = specFile.getParentFile();
+        includeSet.add(specFile);
         BufferedReader bs = null;
         try {
-            bs = new BufferedReader(new FileReader(pathName));
+            bs = new BufferedReader(new FileReader(specFile));
             while (true) {
                 final String line = bs.readLine();
                 if (line == null) {
@@ -86,14 +90,20 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
                     doImagefsPrefix(argument);
                 } else if (command.equals("include")) {
                     if (argument != null) {
-                        readBootImageFileSystemSpec(argument);
+                        File f = new File(argument);
+                        if (!f.isAbsolute()) {
+                            f = new File(parent, argument);
+                        }
+                        if (!includeSet.contains(f)) {
+                            readBootImageFileSystemSpec(f);
+                        }
                     }
                 } else {
-                    error("unknown command: " + command + " in spec file" + pathName);
+                    error("unknown command: " + command + " in spec file" + specFile);
                 }
             }
         } catch (IOException ex) {
-            error("error reading spec file: " + pathName + ": " + ex);
+            error("error reading spec file: " + specFile + ": " + ex);
         } finally {
             if (bs != null) {
                 try {
@@ -169,7 +179,7 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
         StringBuilder sb = null;
         int jx = 0;
         int ix = 0;
-        while ((ix = s.indexOf("${")) >= 0) {
+        while ((ix = s.indexOf("${", jx)) >= 0) {
             if (sb == null) {
                 sb = new StringBuilder(s.length());
             }
@@ -178,10 +188,13 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
             if (jx < 0) {
                 error("malformed variable");
             }
-            final String var = s.substring(ix + 1, jx);
-            final String pvar = System.getProperty(var);
+            final String var = s.substring(ix + 2, jx);
+            String pvar = System.getProperty(var);
             if (pvar == null) {
-                error("no system property: " + var);
+                pvar = System.getenv(var);
+            }
+            if (pvar == null) {
+                error("no system property or environment variable: " + var);
             }
             sb.append(pvar);
             jx++;

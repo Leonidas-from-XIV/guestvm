@@ -22,10 +22,9 @@
  */
 package com.sun.max.tele.debug.maxve;
 
-import static com.sun.max.platform.Platform.*;
-
 import java.io.*;
 
+import com.sun.max.platform.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.*;
 import com.sun.max.tele.debug.*;
@@ -46,7 +45,7 @@ public class MaxVETeleVM extends TeleVM {
 
     @Override
     protected TeleProcess attachToTeleProcess() {
-        return new MaxVETeleDomain(this, platform(), targetLocation().id);
+        return new MaxVETeleDomain(this, Platform.platform(), targetLocation().id);
     }
 
     @Override
