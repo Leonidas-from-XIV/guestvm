@@ -1,7 +1,0 @@
-<aspectj>
-<aspects>
-<aspect name="test.java.net.cs.AJTraceVETestNetCS"/>
-</aspects>
-<weaver options="-verbose">
-</weaver>
-</aspectj>
