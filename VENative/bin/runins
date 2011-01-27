@@ -124,7 +124,7 @@ INS_WS_ROOT="$WS_ROOT"
 IMAGE_WS_ROOT="$WS_ROOT"
 MAX=$INS_WS_ROOT/maxine
 
-classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$MAXVE_ROOT/VETele/bin:$MAXVE_ROOT/VEMain/bin:$MAXVE_ROOT/VEBase/bin:$MAXVE_ROOT/JNodeFS/bin:$MAXVE_ROOT/YANFS/bin:$MAXVE_ROOT/NFSServer/bin:$MAXVE_ROOT/GNUCP/bin
+classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Inspector/NB3B.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$MAXVE_ROOT/VETele/bin:$MAXVE_ROOT/VEMain/bin:$MAXVE_ROOT/VEBase/bin:$MAXVE_ROOT/JNodeFS/bin:$MAXVE_ROOT/YANFS/bin:$MAXVE_ROOT/NFSServer/bin:$MAXVE_ROOT/GNUCP/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
