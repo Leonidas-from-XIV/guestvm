@@ -23,7 +23,7 @@
 package com.sun.max.ve;
 
 /**
- * Class that identifies the version of Guest VM.
+ * Class that identifies the version of Maxine Virtual Edition.
  *
  * @author Mick Jordan
  *
