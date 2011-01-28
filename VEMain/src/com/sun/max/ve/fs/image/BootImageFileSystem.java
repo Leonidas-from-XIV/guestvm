@@ -90,6 +90,7 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
                     doImagefsPrefix(argument);
                 } else if (command.equals("include")) {
                     if (argument != null) {
+                        argument = processVars(argument);
                         File f = new File(argument);
                         if (!f.isAbsolute()) {
                             f = new File(parent, argument);
