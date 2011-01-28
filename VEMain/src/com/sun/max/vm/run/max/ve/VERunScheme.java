@@ -45,9 +45,8 @@ import com.sun.max.vm.*;
  * This run scheme is used to launch a Maxine VE application.
  * It performs some important initialization prior to the loading
  * of the application's main method.
- *
- * At image build time, it also forces the loading of the classes
- * in the chosen scheduler scheme.
+ * 
+ * It also closes down the file systems on VM termination.
  *
  * @author Mick Jordan
  *
@@ -91,6 +90,8 @@ public class VERunScheme extends JavaRunScheme {
             AttachListener.create();
             checkGUKTrace();
             checkTickProfiler();
+        } else if (phase == MaxineVM.Phase.TERMINATING) {
+            FSTable.close();
         }
     }
 
