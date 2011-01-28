@@ -37,6 +37,7 @@ extra_projects=( \
   NFSServer:src \
   VEMain:src,test \
   VETele:src \
+  VETools:src \
 )
 
 image_override=1
