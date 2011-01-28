@@ -311,7 +311,7 @@ public class VEBootImageGenerator {
             stdout.close();
             stdin.close();
             if (exitValue != 0) {
-                ProgramError.unexpected("execution of command failed: " + command + " [exit code = " + exitValue + "]");
+                ProgramError.unexpected("execution of command: " + Arrays.toString(command) + " failed [exit code = " + exitValue + "]");
             }
         } finally {
             process.destroy();
