@@ -28,28 +28,48 @@ import java.util.*;
 /**
  * A stress test for file I/O.
  * First we create a tree of files of known sizes and content.
- * Then we spawn a given number of threads to read files at random,
+ * Each level in the tree has a random number number of sub-directories
+ * limited by {@link #_maxDirs} and a random number of files, limited by
+ * {@link #_maxFiles}, or a random size, limited by {@link _maxFileSize}.
+ * The tree has depth given by {@link _depth}.
+ * 
+ * Then we spawn a given number of threads to read {@link #_numReads}  files at random,
  * checking the content. Optionally, we can also create writer threads that
- * create additional files.
+ * create and write an additional {@link FileStressTest#_numWriteTrees} trees.
+ * 
+ * Args:
+ * <pre>
+ * r n        number of readers (default 1)
+ * w n       number of writers (default 0)
+ * d n       maximum directory tree depth (default 5)
+ * mf n      maximum number of files per directory (default 10)
+ * mfs n    maximum file size (default 64k)
+ * md n    maximum number of sub-directories per directory
+ * nr n      number of files read by reader thread
+ * nw n     number of trees created by writer thread
+ * root p   path name for root of tree (default /scratch)
+ * v          verbose output
+ * </pre>
  *
  * @author Mick Jordan
  *
  */
 public class FileStressTest {
 
-    private static final int MAXFILESIZE = 16384;
+    private static int _maxFileSize = 64 * 1024;
     private static Map<String, byte[]> _fileTable = new HashMap<String, byte[]>();
     private static String[] _fileList;
     private static Random _rand;
     private static int _createSeed = 467349;
     private static int _readSeed = 756433;
     private static boolean _verbose;
+    private static boolean _veryVerbose;
     private static String _rootName = "/scratch";
     private static int _maxFiles = 10;
     private static int _maxDirs = 3;
     private static int _depth = 5;
     private static int _numReads = 1000;
-    private static int _numWrites = 50;
+    private static int _numWriteTrees = 1;
     /**
      * @param args
      */
@@ -67,22 +87,35 @@ public class FileStressTest {
                 _depth = Integer.parseInt(args[++i]);
             } else if (arg.equals("mf")) {
                 _maxFiles = Integer.parseInt(args[++i]);
+            } else if (arg.equals("ms")) {
+                _maxFileSize = Integer.parseInt(args[++i]);
             } else if (arg.equals("md")) {
                 _maxDirs = Integer.parseInt(args[++i]);
-            } else if (arg.equals("root")) {
+            } else if (arg.equals("nr")) {
+                _numReads = Integer.parseInt(args[++i]);
+            } else if (arg.equals("nw")) {
+                _numWriteTrees = Integer.parseInt(args[++i]);
+          } else if (arg.equals("root")) {
                 _rootName = args[++i];
             } else if (arg.equals("v")) {
                 _verbose = true;
+            } else if (arg.equals("vv")) {
+                _veryVerbose = true;
+            } else {
+                System.out.println("unknown option: " + arg);
+                System.exit(1);
             }
         }
         _rand = new Random(_createSeed);
         final File root = new File(_rootName + "/d0");
         root.mkdir();
+        final long beforeCreate = System.currentTimeMillis();
         createTree(root, _depth, _maxDirs, _maxFiles);
+        final long afterCreate = System.currentTimeMillis();
         _fileList = new String[_fileTable.size()];
         _fileTable.keySet().toArray(_fileList);
         if (_verbose) {
-            System.out.println("created " + _fileTable.size() + " files");
+            System.out.println("created " + _fileTable.size() + " files in " + (afterCreate - beforeCreate) + "ms");
         }
 
         final Thread[] readers = new Thread[numReaders];
@@ -93,7 +126,7 @@ public class FileStressTest {
             readers[r].start();
         }
         for (int w = 0; w < numWriters; w++) {
-            writers[w] = new Writer();
+            writers[w] = new Writer(w);
             writers[w].setName("Writer-" + w);
             writers[w].start();
         }
@@ -137,10 +170,10 @@ public class FileStressTest {
     private static void createFile(File parent, int key) throws IOException {
         final File file = new File(parent, "f" + key);
         final FileOutputStream wr = new FileOutputStream(file);
-        final int size = _rand.nextInt(MAXFILESIZE);
+        final int size = _rand.nextInt(_maxFileSize);
         final byte[] data = new byte[size];
         _rand.nextBytes(data);
-        if (_verbose) {
+        if (_veryVerbose) {
             System.out.println("createFile " + file.getAbsolutePath());
         }
         try {
@@ -159,18 +192,24 @@ public class FileStressTest {
         public void run() {
             int numReads = _numReads;
             Random rand = new Random(_readSeed + _id *17);
+            final long start = System.currentTimeMillis();
             while (numReads > 0) {
                 final int index = rand.nextInt(_fileList.length);
                 FileInputStream in = null;
                 final String name = _fileList[index];
-                if (_verbose) {
+                if (_veryVerbose) {
                     System.out.println(Thread.currentThread().getName() + ": reading " + name);
                 }
                 try {
                     in = new FileInputStream(name);
                     final byte[] writtenData = _fileTable.get(name);
                     final byte[] readData = new byte[writtenData.length];
+                    final long beforeRead = System.nanoTime();
                     final int n = in.read(readData);
+                    final long afterRead = System.nanoTime();
+                    if (_veryVerbose) {
+                        System.out.println(Thread.currentThread().getName() + ": read in " + (afterRead - beforeRead) + "ns");
+                    }
                     if (n != writtenData.length) {
                         throw new IOException("length mismatch on file " + name + ", size " + writtenData.length + ", read " + n);
                     }
@@ -191,15 +230,23 @@ public class FileStressTest {
                 }
                 numReads--;
             }
+            if (_verbose) {
+                System.out.println(Thread.currentThread().getName() + ": total read time: " + (System.currentTimeMillis() - start));
+            }
         }
     }
 
     static class Writer extends Thread {
+        private int me;
+        
+        Writer(int me) {
+            this.me = me;
+        }
+        
         public void run() {
-            int d = 0;
-            int numWrites = _numWrites;
+            int numWrites = _numWriteTrees;
             while (numWrites > 0) {
-                File root = new File(_rootName + "/w" + d);
+                File root = new File(_rootName + "/w" + me + "_" + numWrites);
                 try {
                     if (_verbose) {
                         System.out.println(Thread.currentThread().getName() + " creating tree at " + root.getAbsolutePath());
@@ -209,8 +256,8 @@ public class FileStressTest {
                 } catch (IOException ex) {
                     System.out.println(Thread.currentThread().getName() + ": " + ex);
                 }
+                numWrites--;
             }
-            numWrites--;
         }
     }
 
