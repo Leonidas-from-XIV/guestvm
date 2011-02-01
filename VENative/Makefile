@@ -103,6 +103,8 @@ ifeq ($(TARGET_ARCH),x86_64)
   endif
 CFLAGS += -m64 -mno-red-zone -fpic -fno-reorder-blocks
 CFLAGS += -fno-asynchronous-unwind-tables
+# This is for Maxine includes
+CFLAGS += -Dw64 
 LDFLAGS += -m elf_x86_64
 TARGET_ARCH_DIR = x86
 EXTRA_INC += $(TARGET_ARCH_DIR)/$(TARGET_ARCH)
