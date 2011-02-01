@@ -33,9 +33,7 @@
 #include <trace.h>
 #include <spinlock.h>
 #include <bitmap.h>
-
-typedef unsigned long Address;
-typedef unsigned long Size;
+#include <threadLocals.h>
 
 /*
  * Code to handle the allocation and mapping of Java thread stacks.
@@ -47,32 +45,6 @@ typedef unsigned long Size;
  *
  * Author: Mick Jordan
  */
-
-/* This is a copy from maxine/threadLocals.h.
- * We can't include that header directly because it pulls in inappropriate host-dependent
- * include files. That should be fixed.
- */
-typedef struct {
-    Address stackBase;
-    Size stackSize;
-    Address handle;    // e.g. pthread_self()
-    Address tlBlock;
-    Address tlBlockSize;
-    Address stackYellowZone; // unmapped to cause a trap on access
-    Address stackRedZone;    // unmapped always - fatal exit if accessed
-
-    /*
-     * The blue zone is a page that is much closer to the base of the stack and is optionally protected.
-     * This can be used, e.g., to determine the actual stack size needed by a thread, or to avoid
-     * reserving actual real memory until it is needed.
-     */
-    Address stackBlueZone;
-
-    /*
-     * Place to hang miscellaneous OS dependent record keeping data.
-     */
-    void *osData;  //
-} NativeThreadLocalsStruct, *NativeThreadLocals;
 
 /**
  * A Java thread stack should have the following format, low to high:
