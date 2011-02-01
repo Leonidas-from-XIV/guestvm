@@ -166,11 +166,11 @@ public final class MaxVEXenDBChannel {
 
     public static synchronized boolean activateWatchpoint(int domainId, TeleWatchpoint teleWatchpoint) {
         final WatchpointSettings settings = teleWatchpoint.getSettings();
-        return channelProtocol.activateWatchpoint(teleWatchpoint.memoryRegion().start().toLong(), teleWatchpoint.memoryRegion().size().toLong(), true, settings.trapOnRead, settings.trapOnWrite, settings.trapOnExec);
+        return channelProtocol.activateWatchpoint(teleWatchpoint.memoryRegion().start().toLong(), teleWatchpoint.memoryRegion().nBytes(), true, settings.trapOnRead, settings.trapOnWrite, settings.trapOnExec);
     }
 
     public static synchronized boolean deactivateWatchpoint(int domainId, TeleFixedMemoryRegion memoryRegion) {
-        return channelProtocol.deactivateWatchpoint(memoryRegion.start().toLong(), memoryRegion.size().toLong());
+        return channelProtocol.deactivateWatchpoint(memoryRegion.start().toLong(), memoryRegion.nBytes());
     }
 
     public static synchronized long readWatchpointAddress(int domainId) {

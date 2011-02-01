@@ -60,8 +60,8 @@ public class MaxVETeleDomain extends TeleProcess {
          */
         final int pageSize = platform().pageSize;
         final long stackBottom = pageAlign(params.stackRegion.start().toLong(), pageSize) + pageSize;
-        final long adjStackSize = params.stackRegion.size().toLong() - (stackBottom - params.stackRegion.start().toLong());
-        final TeleFixedMemoryRegion adjStack = new TeleFixedMemoryRegion(vm(), params.stackRegion.regionName(), Address.fromLong(stackBottom), Size.fromLong(adjStackSize));
+        final long adjStackSize = params.stackRegion.nBytes() - (stackBottom - params.stackRegion.start().toLong());
+        final TeleFixedMemoryRegion adjStack = new TeleFixedMemoryRegion(vm(), params.stackRegion.regionName(), Address.fromLong(stackBottom), adjStackSize);
         params.stackRegion = adjStack;
         return new MaxVENativeThread(this, params);
     }
