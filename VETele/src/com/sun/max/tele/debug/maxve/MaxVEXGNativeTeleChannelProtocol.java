@@ -112,8 +112,8 @@ public class MaxVEXGNativeTeleChannelProtocol  extends MaxVENativeTeleChannelPro
     }
 
     @Override
-    public boolean gatherThreads(Object teleDomain, Object threadSequence, long threadLocalsList, long primordialThreadLocals) {
-        return nativeGatherThreads(teleDomain, threadSequence, threadLocalsList, primordialThreadLocals);
+    public boolean gatherThreads(Object teleDomain, Object threadSequence, long threadLocalsList) {
+        return nativeGatherThreads(teleDomain, threadSequence, threadLocalsList, 0);
     }
 
     @Override

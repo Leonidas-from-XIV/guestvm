@@ -126,8 +126,8 @@ public final class MaxVEXenDBChannel {
         return length;
     }
 
-    public static synchronized void gatherThreads(List<TeleNativeThread> threads, long threadLocalsList, long primordialThreadLocals) {
-        channelProtocol.gatherThreads(teleDomain, threads, threadLocalsList, primordialThreadLocals);
+    public static synchronized void gatherThreads(List<TeleNativeThread> threads, long threadLocalsList) {
+        channelProtocol.gatherThreads(teleDomain, threads, threadLocalsList);
     }
 
     public static synchronized boolean resume(int domainId) {

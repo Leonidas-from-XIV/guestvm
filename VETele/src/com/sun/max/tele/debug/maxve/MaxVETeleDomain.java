@@ -117,9 +117,8 @@ public class MaxVETeleDomain extends TeleProcess {
 
     @Override
     protected void gatherThreads(List<TeleNativeThread> threads) {
-        final Word primordialThreadLocals = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.primordialETLAOffset));
         final Word threadLocalsList = dataAccess().readWord(vm().bootImageStart().plus(vm().bootImage().header.tlaListHeadOffset));
-        MaxVEXenDBChannel.gatherThreads(threads, threadLocalsList.asAddress().toLong(), primordialThreadLocals.asAddress().toLong());
+        MaxVEXenDBChannel.gatherThreads(threads, threadLocalsList.asAddress().toLong());
     }
 
     @Override

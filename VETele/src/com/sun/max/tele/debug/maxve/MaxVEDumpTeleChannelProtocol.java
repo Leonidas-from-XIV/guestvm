@@ -103,9 +103,9 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
     }
 
     @Override
-    public boolean gatherThreads(Object teleDomainObject, Object threadSequence, long threadLocalsList, long primordialThreadLocals) {
+    public boolean gatherThreads(Object teleDomainObject, Object threadSequence, long threadLocalsList) {
         // we use the GUKThreadListAccess class
-        return tla.gatherThreads(teleDomainObject, threadSequence, threadLocalsList, primordialThreadLocals);
+        return tla.gatherThreads(teleDomainObject, threadSequence, threadLocalsList);
      }
 
     @Override

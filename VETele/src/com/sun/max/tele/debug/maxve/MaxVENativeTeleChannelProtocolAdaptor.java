@@ -55,7 +55,7 @@ public abstract class MaxVENativeTeleChannelProtocolAdaptor implements MaxVETele
     }
     
     @Override
-    public int gatherThreads(long threadLocalsList, long primordialThreadLocals) {
+    public int gatherThreads(long threadLocalsList) {
         ProgramError.unexpected("TeleChannelProtocol.gatherThreads(int, int) should not be called in this configuration");
         return 0;
     }
