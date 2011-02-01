@@ -23,30 +23,44 @@
 package test.java.lang;
 
 
-public class RecurseTest {
+public class RecurseTest extends Thread {
 
     private static long _count;
     private static long _depth;
    /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         _depth = Long.MAX_VALUE;
+        boolean newThread = false;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (arg.equals("d")) {
                 _depth = Long.parseLong(args[++i]) * 1000;
+            } else if (arg.equals("t")) {
+                newThread = true;
             }
         }
         // Checkstyle: resume modified control variable check
+        
+        if (newThread) {
+            final Thread t = new RecurseTest();
+            t.start();
+            t.join();
+        } else {
+            new RecurseTest().run();
+        }
+        System.out.println("max recurse depth: " + _count);
+
+    }
+    
+    public void run()  {
         try {
             recurse();
         } catch (StackOverflowError ex) {
             System.out.println(ex);
-        }
-        System.out.println("max recurse depth: " + _count);
-
+        }        
     }
 
     private static void recurse() {
