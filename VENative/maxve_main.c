@@ -40,6 +40,11 @@ extern void init_thread_stacks(void);
 extern void init_code_regions(void);
 extern int image_load(char *file);
 extern unsigned long image_heap(void);
+extern struct thread* maxve_create_thread(
+        void (*function)(void *),
+        unsigned long stacksize,
+        int priority,
+        void *runArg);
 
 
 static char* argv[64]; // place to store canonical command line **argv
@@ -95,6 +100,7 @@ static char *process_arg(char *arg, int len) {
 // If the args exceed the 1024 Xen limit they will have been placed in a file and passed as a ramdisk.
 #define RAMARGS "-XX:GVMRamArgs"
 
+ // This is the start method for the main Maxine VE thread
 static void maxine_start(void *p) {
   struct app_main_args *aargs = (struct app_main_args *)p;
   int argc = 0;
@@ -139,24 +145,20 @@ static void maxine_start(void *p) {
 	  /* This seems to avoid a startup bug involving xm and the console */
 	  guk_sleep(500);
   }
-  init_thread_stacks();
   maxine(argc, argv, NULL);
   free(aargs);
   ok_exit();
 }
 
+#define MAXINE_STACK_SIZE 256 * 1024
 
 int guk_app_main(struct app_main_args *args) {
     struct app_main_args *aargs;
 
     aargs = xmalloc(struct app_main_args);
     memcpy(aargs, args, sizeof(struct app_main_args));
-
-    /* The primordial Maxine thread needs a larger stack that a typical ukernel thread
-     * because it executes quite a lot of Java code during initialization.
-     */
-    void *stack = (void *)allocate_pages(16, STACK_VM);
-    guk_create_thread_with_stack("maxine", maxine_start, UKERNEL_FLAG, stack, (PAGE_SIZE * 16), aargs);
+    init_thread_stacks();
+    maxve_create_thread(maxine_start, MAXINE_STACK_SIZE, 0, aargs);
     return 0;
 }
 
