@@ -27,6 +27,7 @@ public class RecurseTest extends Thread {
 
     private static long _count;
     private static long _depth;
+    private static long _reportDepth = 1000;
    /**
      * @param args
      */
@@ -37,9 +38,11 @@ public class RecurseTest extends Thread {
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (arg.equals("d")) {
-                _depth = Long.parseLong(args[++i]) * 1000;
+                _depth = Long.parseLong(args[++i]);
             } else if (arg.equals("t")) {
                 newThread = true;
+            } else if (arg.equals("r")) {
+                _reportDepth = Long.parseLong(args[++i]);
             }
         }
         // Checkstyle: resume modified control variable check
@@ -65,7 +68,7 @@ public class RecurseTest extends Thread {
 
     private static void recurse() {
         if (_count++ <= _depth) {
-            if (_count % 1000 == 0) {
+            if (_count % _reportDepth == 0) {
                 System.out.println("recurse depth: " + _count);
             }
             recurse();

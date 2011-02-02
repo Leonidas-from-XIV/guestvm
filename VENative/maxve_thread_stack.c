@@ -121,7 +121,7 @@ static long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long addr) {
 	int map = 0;
 	/*
 	 * This is called back from build_pagetable in all phases of the stack setup.
-	 * In the first phase, the initial stack allocation, the NativeThreadLocals is NULL
+	 * In the first phase, the initial stack allocation, nativeThreadLocals->stackBase == NULL
 	 * and we are just mapping the Yellow and Blue zones to get started.
 	 * We could map the Yellow after the thread is running in initStack, but mapping it
 	 * eagerly makes sure that all memory allocation is done before the thread is run,
@@ -199,6 +199,7 @@ unsigned long allocate_thread_stack(unsigned long vsize) {
 	  clear_map(alloc_bitmap, slot);
 	  spin_unlock(&bitmap_lock);
   }
+  // We only needed the NativeThreadLocals for extend_stack, Maxine will allocate a new one.
   free(ntl);
   return result;
 }
@@ -287,7 +288,7 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
 }
 
 void maxve_blue_zone_trap(NativeThreadLocals nativeThreadLocals) {
-  //guk_printk("blue zone trap bz %lx, yz %lx", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
+  //guk_printk("blue zone trap bz %lx, yz %lx\n", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
   guk_remap_page_pfn(nativeThreadLocals->stackBlueZone, get_pfn_for_address(nativeThreadLocals->stackBlueZone));
   lower_blue_zone(nativeThreadLocals);
 }
