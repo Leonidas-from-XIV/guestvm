@@ -212,11 +212,15 @@ public class BootImageFileSystem extends UnimplementedFileSystemImpl implements 
     @HOSTED_ONLY
     protected static void doImagefsPrefix(String argument) {
         final int last = argument.length() - 1;
-        if (argument.charAt(last) == File.separatorChar) {
-            imageFSPrefix = argument.substring(0, last);
-        } else {
-            imageFSPrefix = argument;
+        final String argImageFSPrefix = argument.charAt(last) == File.separatorChar ? argument.substring(0, last) : argument;
+        if (imageFSPrefix.length() != 0) {
+            if (!imageFSPrefix.equals(argImageFSPrefix)) {
+                ProgramError.unexpected("inconsistent definitions of image file system prefix: " + imageFSPrefix + ", " + argImageFSPrefix);
+            } else {
+                return;
+            }
         }
+        imageFSPrefix = argImageFSPrefix;
         Trace.line(1, "setting boot image file system prefix to " + imageFSPrefix);
     }
 

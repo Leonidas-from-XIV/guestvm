@@ -20,8 +20,6 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 #
-# Include the class files for some tests
+# define image file system prefix
 
-include prefix
-path ../VEMain/bin/test /VEMain/bin/test
-path ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
+prefix /maxve/image
