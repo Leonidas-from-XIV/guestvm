@@ -1,4 +1,26 @@
 /*
+ * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+/*
  * $Id: BlockBitmap.java 4975 2009-02-02 08:30:52Z lsantha $
  *
  * Copyright (C) 2003-2009 JNode.org
@@ -20,6 +42,8 @@
  
 package org.jnode.fs.ext2;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Andras Nagy
  */
@@ -32,7 +56,7 @@ public class BlockBitmap extends FSBitmap {
      * Ext2FileSystem.testAndSetBlock() is synchronized to the bitmap block it
      * operates on.
      */
-    protected static BlockReservation testAndSetBlock(byte[] data, int index) {
+    protected static BlockReservation testAndSetBlock(ByteBuffer data, int index) {
         if (isFree(data, index)) {
             setBit(data, index);
             // do preallocation
@@ -47,6 +71,11 @@ public class BlockBitmap extends FSBitmap {
             return new BlockReservation(false, -1, -1);
     }
 
+    @Deprecated
+    protected static BlockReservation testAndSetBlock(byte[] data, int index) {
+        return testAndSetBlock(ByteBuffer.wrap(data), index);
+    }
+    
     /**
      * Find free blocks in the bitmap. First check for a whole byte of free
      * blocks (0x00) in the bitmap, then check for any free bit. If a block is
@@ -59,7 +88,7 @@ public class BlockBitmap extends FSBitmap {
      * Ext2FileSystem.findFreeBlocks() is synchronized to the bitmap block it
      * operates on.
      */
-    protected static BlockReservation findFreeBlocks(byte[] data, int metadataLength) {
+    protected static BlockReservation findFreeBlocks(ByteBuffer data, int metadataLength) {
         // BlockReservation result;
         int nonfullBitmap = -1; // points to a nonfull byte in the bitmap
 
@@ -67,15 +96,15 @@ public class BlockBitmap extends FSBitmap {
         // table)
         int first = (int) Ext2Utils.ceilDiv(metadataLength, 8);
 
-        for (int i = first; i < data.length; i++) {
-            if (data[i] == 0x00) {
+        for (int i = first; i < data.remaining(); i++) {
+            if (data.get(i) == 0x00) {
                 // allocate the block and do preallocation
                 // preallocate a fixed number of blocks (7)
-                data[i] = (byte) 0xFF;
+                data.put(i, (byte) 0xFF);
                 return new BlockReservation(true, ((long) i) * 8, 7);
             }
 
-            if ((nonfullBitmap == -1) && (data[i] != 0xFF))
+            if ((nonfullBitmap == -1) && (data.get(i) != 0xFF))
                 nonfullBitmap = i;
         }
 
@@ -88,7 +117,7 @@ public class BlockBitmap extends FSBitmap {
 
         // a free bit has been found:
         for (int i = 0; i < 8; i++)
-            if (isFree(data[nonfullBitmap], i)) {
+            if (isFree(data.get(nonfullBitmap), i)) {
                 setBit(data, nonfullBitmap, i);
                 int block = nonfullBitmap * 8 + i;
                 //do preallocation:
@@ -101,5 +130,10 @@ public class BlockBitmap extends FSBitmap {
             }
 
         return new BlockReservation(false, -1, -1);
+    }
+
+    @Deprecated
+    protected static BlockReservation findFreeBlocks(byte[] data, int metadataLength) {
+        return findFreeBlocks(ByteBuffer.wrap(data), metadataLength);
     }
 }

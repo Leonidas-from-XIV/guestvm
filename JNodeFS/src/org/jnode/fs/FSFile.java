@@ -1,4 +1,26 @@
 /*
+ * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+/*
  * $Id: FSFile.java 4975 2009-02-02 08:30:52Z lsantha $
  *
  * Copyright (C) 2003-2009 JNode.org
@@ -51,20 +73,22 @@ public interface FSFile extends FSObject {
     public void setLength(long length) throws IOException;
 
     /**
-     * Read <code>len</code> bytes from the given position. The read data is
-     * read fom this file starting at offset <code>fileOffset</code> and
-     * stored in <code>dest</code> starting at offset <code>ofs</code>.
+     * Read a given number of bytes from the file position specified by <code>fileOffset</code>.
+     * The number of bytes to read is defined by <code>dest.remaining()</code> and
+     * are stored starting at <code>dest.position()</code>.
+     * N.B. <code>dest.position()</code> is changed by the method.
      * 
-     * @param fileOffset
-     * @param dest
+     * @param fileOffset offset in file to start reading
+     * @param dest byte buffer in which to store read data
      * @throws IOException
      */
     public void read(long fileOffset, ByteBuffer dest) throws IOException;
 
     /**
-     * Write <code>len</code> bytes to the given position. The data is read
-     * from <code>src</code> starting at offset <code>ofs</code> and written
-     * to this file starting at offset <code>fileOffset</code>.
+     * Write a given number of bytes to the file position specified by <code>fileOffset</code>.
+     * The number of bytes to write is defined by <code>dest.remaining()</code> and
+     * are accessed starting at <code>dest.position()</code>.
+     * N.B. <code>dest.position()</code> is changed by the method.
      * 
      * @param fileOffset
      * @param src

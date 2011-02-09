@@ -70,7 +70,7 @@ import org.jnode.fs.FileSystemException;
  * @author Andras Nagy
  */
 public class Ext2DirectoryRecord {
-	private final Logger log = Logger.getLogger(getClass().getName());
+	private static final Logger log = Logger.getLogger(Ext2DirectoryRecord.class.getName());
     /*
      * private int iNodeNr; private int recLen; private short nameLen; private
      * short type; private StringBuffer name;

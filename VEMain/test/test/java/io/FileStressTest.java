@@ -48,6 +48,9 @@ import java.util.*;
  * nr n      number of files read by reader thread
  * nw n     number of trees created by writer thread
  * root p   path name for root of tree (default /scratch)
+ * ff f         file filler, f=r for random, f=n for pathname (default random)
+ * nc        no create step, recover file tree from file system (ff=n required on original create)
+ * ss         same random number seed for readers (default different)
  * v          verbose output
  * </pre>
  *
@@ -62,20 +65,23 @@ public class FileStressTest {
     private static Random _rand;
     private static int _createSeed = 467349;
     private static int _readSeed = 756433;
+    private static boolean sameReaderSeed;
     private static boolean _verbose;
     private static boolean _veryVerbose;
     private static String _rootName = "/scratch";
+    private static final String ROOT_NAME = "/d0";
     private static int _maxFiles = 10;
     private static int _maxDirs = 3;
     private static int _depth = 5;
     private static int _numReads = 1000;
     private static int _numWriteTrees = 1;
-    /**
-     * @param args
-     */
-    public static void main(String[] args)  throws Exception {
+    private static FileFiller fileFiller;
+    
+    public static void main(String[] args) throws Exception {
         int numReaders = 1;
         int numWriters = 0;
+        String fileFillerOption = "r";
+        boolean create = true;
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
@@ -95,28 +101,48 @@ public class FileStressTest {
                 _numReads = Integer.parseInt(args[++i]);
             } else if (arg.equals("nw")) {
                 _numWriteTrees = Integer.parseInt(args[++i]);
-          } else if (arg.equals("root")) {
+            } else if (arg.equals("root")) {
                 _rootName = args[++i];
             } else if (arg.equals("v")) {
                 _verbose = true;
             } else if (arg.equals("vv")) {
                 _veryVerbose = true;
+            } else if (arg.equals("ff")) {
+                fileFillerOption = args[++i];
+            } else if (arg.equals("nc")) {
+                create = false;
+                fileFillerOption = "n";
+            } else if (arg.equals("ss")) {
+                sameReaderSeed = true;
             } else {
                 System.out.println("unknown option: " + arg);
                 System.exit(1);
             }
         }
         _rand = new Random(_createSeed);
-        final File root = new File(_rootName + "/d0");
-        root.mkdir();
-        final long beforeCreate = System.currentTimeMillis();
-        createTree(root, _depth, _maxDirs, _maxFiles);
-        final long afterCreate = System.currentTimeMillis();
+        if (fileFillerOption.equals("n")) {
+            fileFiller = new PathnameFileFiller();
+        } else if (fileFillerOption.equals("r")) {
+            fileFiller = new RandomFileFiller(_rand);
+        } else {
+            System.out.println("unknown file filler option: " + fileFillerOption);
+            System.exit(1);
+        }
+
+        if (create) {
+            final File root = new File(_rootName + ROOT_NAME);
+            root.mkdir();
+            final long beforeCreate = System.currentTimeMillis();
+            createTree(root, _depth, _maxDirs, _maxFiles);
+            final long afterCreate = System.currentTimeMillis();
+            if (_verbose) {
+                System.out.println("created " + _fileTable.size() + " files in " + (afterCreate - beforeCreate) + "ms");
+            }
+        } else {
+            recoverFileList();
+        }
         _fileList = new String[_fileTable.size()];
         _fileTable.keySet().toArray(_fileList);
-        if (_verbose) {
-            System.out.println("created " + _fileTable.size() + " files in " + (afterCreate - beforeCreate) + "ms");
-        }
 
         final Thread[] readers = new Thread[numReaders];
         final Thread[] writers = new Thread[numWriters];
@@ -166,13 +192,32 @@ public class FileStressTest {
             }
         }
     }
+    
+    private static void recoverFileList() {
+        readDirs(new File(_rootName + ROOT_NAME));
+    }
+    
+    private static void readDirs(File dir) {
+        if (_veryVerbose) {
+            System.out.println("reading directory " + dir.getAbsolutePath());
+        }
+        final File[] children = dir.listFiles();
+        for (File child : children) {
+            if (child.isDirectory()) {
+                readDirs(child);
+            } else {
+                final byte[] data = new byte[(int) child.length()];
+                _fileTable.put(child.getAbsolutePath(), fileFiller.fillData(child, data));
+            }
+        }
+    }
 
     private static void createFile(File parent, int key) throws IOException {
         final File file = new File(parent, "f" + key);
         final FileOutputStream wr = new FileOutputStream(file);
         final int size = _rand.nextInt(_maxFileSize);
         final byte[] data = new byte[size];
-        _rand.nextBytes(data);
+        fileFiller.fillData(file, data);
         if (_veryVerbose) {
             System.out.println("createFile " + file.getAbsolutePath());
         }
@@ -183,6 +228,35 @@ public class FileStressTest {
             wr.close();
         }
     }
+    
+    static abstract class FileFiller {
+        abstract byte[] fillData(Object obj, byte[] data);
+    }
+    
+    static class RandomFileFiller extends FileFiller {
+        private Random rand;
+        
+        RandomFileFiller(Random rand) {
+            this.rand = rand;
+        }
+        
+        byte[] fillData(Object obj, byte[] data) {
+            rand.nextBytes(data);
+            return data;
+        }
+    }
+    
+    static class PathnameFileFiller extends FileFiller {
+        byte[] fillData(Object obj, byte[] data) {
+            File file = (File) obj;
+            final byte[] bytes = file.getAbsolutePath().getBytes();
+            final int bytesLength = bytes.length;
+            for (int i = 0; i < data.length; i++) {
+                data[i] = bytes[i % bytesLength];
+            }
+            return data;
+        }
+    }
 
     static class Reader extends Thread {
         private int _id;
@@ -191,7 +265,7 @@ public class FileStressTest {
         }
         public void run() {
             int numReads = _numReads;
-            Random rand = new Random(_readSeed + _id *17);
+            Random rand = new Random(sameReaderSeed ? _readSeed : _readSeed + _id *17);
             final long start = System.currentTimeMillis();
             while (numReads > 0) {
                 final int index = rand.nextInt(_fileList.length);

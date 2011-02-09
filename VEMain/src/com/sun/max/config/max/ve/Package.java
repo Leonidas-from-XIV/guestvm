@@ -40,6 +40,7 @@ public class Package extends BootImagePackage {
         Extensions.registerVMEntryPoint("com.sun.max.ve.net.Packet", null);
         Extensions.registerVMEntryPoint("com.sun.max.ve.net.guk.GUKNetDevice", "copyPacket");
         Extensions.registerVMEntryPoint("com.sun.max.ve.blk.guk.GUKBlkDevice", null);
+        Extensions.registerVMEntryPoint("com.sun.max.ve.memory.PageDirectByteBuffer", "allocateDirect");
         Extensions.resetField("com.sun.max.ve.logging.Logger", "_singleton");
    }
         

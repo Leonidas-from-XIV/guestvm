@@ -22,6 +22,10 @@
  */
 package com.sun.max.ve.blk.guk;
 
+import java.nio.ByteBuffer;
+
+import sun.nio.ch.DirectBuffer;
+
 import com.sun.max.memory.Memory;
 import com.sun.max.memory.VirtualMemory;
 import com.sun.max.unsafe.*;
@@ -84,39 +88,54 @@ public final class GUKBlkDevice implements BlkDevice {
 
 // CheckStyle: stop parameter assignment check
 
-/**
- * If we changed the interface to use ByteBuffers AND the caller used "direct"
- * (i.e. native) buffers, we could avoid both synchronization and copying, as
- * GUK can handle concurrent writes and can handle more the one page of data.
- *
- * {@link com.sun.max.ve.blk.device.BlkDevice#write(int, long, byte[], int, int)}
- */
-    public synchronized long write(long address, byte[] data, int offset, int length) {
+    public synchronized long write(long devAddress, ByteBuffer data) {
         if (_available) {
-            int left = length;
-            while (left > 0) {
-                final int toDo = left > _pageSize ? _pageSize : left;
-                Memory.writeBytes(data, offset, toDo, _writeBuffer);
-                nativeWrite(_id, address, _writeBuffer, toDo);
-                left -= toDo;
-                offset += toDo;
+            int left = data.remaining();
+            assert (left & 511) == 0;
+            if (data.isDirect()) {
+                DirectBuffer directData = (DirectBuffer) data;
+                nativeWrite(_id, devAddress, Address.fromLong(directData.address()).asPointer(), left);
+                return left;
+            } else {
+                assert data.hasArray();
+                int offset = data.arrayOffset();
+                long bytesWritten = 0;
+                while (left > 0) {
+                    final int toDo = left > _pageSize ? _pageSize : left;
+                    Memory.writeBytes(data.array(), offset, toDo, _writeBuffer);
+                    nativeWrite(_id, devAddress, _writeBuffer, toDo);
+                    left -= toDo;
+                    offset += toDo;
+                    bytesWritten += toDo;
+                }
+                return bytesWritten;
             }
-            return length;
         }
         return -1;
     }
 
-    public synchronized long read(long address, byte[] data, int offset, int length) {
+    public synchronized long read(long devAddress, ByteBuffer data) {
         if (_available) {
-            int left = length;
-            while (left > 0) {
-                final int toDo = left > _pageSize ? _pageSize : left;
-                nativeRead(_id, address, _readBuffer, toDo);
-                Memory.readBytes(_readBuffer, toDo, data, offset);
-                left -= toDo;
-                offset += toDo;
+            int left = data.remaining();
+            assert (left & 511) == 0;
+            if (data.isDirect()) {
+                DirectBuffer directData = (DirectBuffer) data;
+                nativeRead(_id, devAddress, Address.fromLong(directData.address()).asPointer(), left);
+                return left;
+            } else {
+                assert data.hasArray();
+                int offset = data.arrayOffset();
+                long bytesRead = 0;
+                while (left > 0) {
+                    final int toDo = left > _pageSize ? _pageSize : left;
+                    nativeRead(_id, devAddress, _readBuffer, toDo);
+                    Memory.readBytes(_readBuffer, toDo, data.array(), offset);
+                    left -= toDo;
+                    offset += toDo;
+                    bytesRead += toDo;
+                }
+                return bytesRead;
             }
-            return length;
         }
         return -1;
     }

@@ -43,8 +43,11 @@
 package org.jnode.fs.ext2;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import java.util.logging.Level;
+
+import org.jnode.util.ByteBufferUtils;
 
 import com.sun.max.ve.logging.Logger;
 
@@ -54,7 +57,7 @@ import com.sun.max.ve.logging.Logger;
  */
 public class GroupDescriptor {
     public static final int GROUPDESCRIPTOR_LENGTH = 32;
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(GroupDescriptor.class.getName());
 
     private byte data[];
     private Ext2FileSystem fs;
@@ -78,10 +81,10 @@ public class GroupDescriptor {
         long baseBlock = fs.getSuperblock().getFirstDataBlock() + 1;
         long blockOffset = (groupNr * GROUPDESCRIPTOR_LENGTH) / fs.getBlockSize();
         long offset = (groupNr * GROUPDESCRIPTOR_LENGTH) % fs.getBlockSize();
-        byte[] blockData = fs.getBlock(baseBlock + blockOffset);
+        ByteBuffer blockData = fs.readBlock(baseBlock + blockOffset);
 
         // data = new byte[GROUPDESCRIPTOR_LENGTH];
-        System.arraycopy(blockData, (int) offset, data, 0, GROUPDESCRIPTOR_LENGTH);
+        ByteBufferUtils.buffercopy(blockData, (int) offset, data, 0, GROUPDESCRIPTOR_LENGTH);
         this.groupNr = groupNr;
         this.fs = fs;
         setDirty(false);
@@ -160,9 +163,9 @@ public class GroupDescriptor {
                 long pos = groupNr * GROUPDESCRIPTOR_LENGTH;
                 block += pos / fs.getBlockSize();
                 long offset = pos % fs.getBlockSize();
-                byte[] blockData = fs.getBlock(block);
+                ByteBuffer blockData = fs.readBlock(block);
                 // update the block with the new group descriptor
-                System.arraycopy(data, 0, blockData, (int) offset, GROUPDESCRIPTOR_LENGTH);
+                ByteBufferUtils.buffercopy(data, 0, blockData, (int) offset, GROUPDESCRIPTOR_LENGTH);
                 fs.writeBlock(block, blockData, true);
             }
             setDirty(false);

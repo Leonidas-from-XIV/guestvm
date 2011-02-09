@@ -22,6 +22,7 @@
  */
 package test.com.sun.max.ve.blk;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.sun.max.ve.blk.device.*;
 import com.sun.max.ve.blk.guk.*;
@@ -32,6 +33,7 @@ public class DeviceTest {
     static final int SEED = 24793;
     static int _runTime = 10;
     static boolean _done;
+    static boolean _native;
 
     /**
      * @param args
@@ -65,6 +67,8 @@ public class DeviceTest {
                 filler = (Filler) (Class.forName("test.com.sun.max.ve.blk.DeviceTest$" + fillerName + "Filler").newInstance());
             } else if (arg.equals("t")) {
                 _runTime = Integer.parseInt(args[++i]);
+            } else if (arg.equals("n")) {
+                _native = true;
             }
         }
         // Checkstyle: resume modified control variable check
@@ -145,7 +149,7 @@ public class DeviceTest {
         }
         for (int i = 0; i < sectors; i++) {
             filler.fill(data, null);
-            device.write(i * sectorSize, data, 0, data.length);
+            device.write(i * sectorSize, ByteBuffer.wrap(data));
             if (_verbose) {
                 System.out.println("wrote sector " + i);
             }
@@ -162,7 +166,7 @@ public class DeviceTest {
     }
 
     private static void readSector(BlkDevice device, byte[] data, byte[] checkData, int sector, Filler filler, Object xtra) {
-        device.read(sector * device.getSectorSize(), data, 0, data.length);
+        device.read(sector * device.getSectorSize(), ByteBuffer.wrap(data));
         filler.fill(checkData, xtra);
         for (int j = 0; j < data.length; j++) {
             if (data[j] != checkData[j]) {
@@ -197,18 +201,26 @@ public class DeviceTest {
 
     private static void read(BlkDevice device, long sector) {
         final int sectorSize = device.getSectorSize();
-        final byte[] data = new byte[sectorSize];
-        device.read(sector * sectorSize, data, 0, sectorSize);
+        ByteBuffer byteBuffer = allocateBuffer(sectorSize);
+        device.read(sector * sectorSize, byteBuffer);
         System.out.println("Contents of sector " + sector);
         int c = 0;
         for (int j = 0; j < sectorSize; j++) {
-            System.out.print(" 0x" + Integer.toHexString(data[j] & 0xFF));
+            System.out.print(" 0x" + Integer.toHexString(byteBuffer.get(j) & 0xFF));
             if (c++ == 16) {
                 System.out.println();
                 c = 0;
             }
         }
         System.out.println();
+    }
+    
+    private static ByteBuffer allocateBuffer(int size) {
+        if (_native) {
+            return ByteBuffer.allocateDirect(size);
+        } else {
+            return ByteBuffer.allocate(size);
+        }
     }
 
 }

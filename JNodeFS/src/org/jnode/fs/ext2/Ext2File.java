@@ -61,7 +61,7 @@ public class Ext2File extends AbstractFSFile {
 
     INode iNode;
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(Ext2File.class.getName());
 
     public Ext2File(INode iNode) {
         super(iNode.getExt2FileSystem());
@@ -163,36 +163,30 @@ public class Ext2File extends AbstractFSFile {
         }
     }
 
-    /**
-     * @see org.jnode.fs.FSFile#read(long, byte[], int, int)
-     */
-    //public void read(long fileOffset, byte[] dest, int off, int len)
-    public void read(long fileOffset, ByteBuffer destBuf) throws IOException {
-        final int len = destBuf.remaining();
-        final int off = 0;
-        //TODO optimize it also to use ByteBuffer at lower level
-        final ByteBufferUtils.ByteArray destBA = ByteBufferUtils.toByteArray(destBuf);
-        final byte[] dest = destBA.toArray();
+     public void read(long fileOffset, ByteBuffer destBuf) throws IOException {
+        final int toRead = destBuf.remaining();
 
         iNode = iNode.syncAndLock();
         synchronized (iNode) {
             try {
-                if (len + off > getLength())
+                long fileLength = getLength();
+                if (toRead + fileOffset > fileLength)
                     throw new IOException("Can't read past the file!");
                 long blockSize = iNode.getExt2FileSystem().getBlockSize();
+                long lastBlockNr = (fileLength - 1) / blockSize;
                 long bytesRead = 0;
-                while (bytesRead < len) {
+                while (bytesRead < toRead) {
                     long blockNr = (fileOffset + bytesRead) / blockSize;
                     long blockOffset = (fileOffset + bytesRead) % blockSize;
-                    long copyLength = Math.min(len - bytesRead, blockSize - blockOffset);
+                    long copyLength = Math.min(toRead - bytesRead, blockSize - blockOffset);
 
                     if (log.isLoggable(Level.FINEST)) {
                         doLog(Level.FINEST, "blockNr: "+blockNr+", blockOffset: "+blockOffset+
                     		      ", copyLength: "+copyLength+", bytesRead: "+bytesRead);
                     }
 
-                    System.arraycopy(iNode.getDataBlock(blockNr), (int) blockOffset, dest, off + (int) bytesRead,
-                            (int) copyLength);
+                    ByteBuffer blockBuffer = iNode.getDataBlock(blockNr, lastBlockNr - blockNr);
+                    ByteBufferUtils.buffercopy(blockBuffer, (int) blockOffset, destBuf, (int) bytesRead, (int) copyLength, false);
 
                     bytesRead += copyLength;
                 }
@@ -205,8 +199,6 @@ public class Ext2File extends AbstractFSFile {
                 iNode.decLocked();
             }
         }
-
-        destBA.refreshByteBuffer();
     }
 
     /**
@@ -220,10 +212,8 @@ public class Ext2File extends AbstractFSFile {
     public void write(long fileOffset, ByteBuffer srcBuf) throws IOException {
         final int len = srcBuf.remaining();
         final int off = 0;
-        //TODO optimize it also to use ByteBuffer at lower level
-        final byte[] src = ByteBufferUtils.toArray(srcBuf);
-
-        if (getFileSystem().isReadOnly()) {
+        
+        if (fileSystem.isReadOnly()) {
             throw new ReadOnlyFileSystemException("write in readonly filesystem");
         }
 
@@ -233,7 +223,7 @@ public class Ext2File extends AbstractFSFile {
                 if (fileOffset > getLength())
                     throw new IOException("Can't write beyond the end of the file! (fileOffset: " + fileOffset +
                             ", getLength()" + getLength());
-                if (off + len > src.length)
+                if (off + len > srcBuf.remaining())
                     throw new IOException("src is shorter than what you want to write");
 
                 if (log.isLoggable(Level.FINEST)) {
@@ -252,13 +242,13 @@ public class Ext2File extends AbstractFSFile {
                     //If only a part of the block is written, then read the
                     //block and update its contents with the data in src. If the
                     //whole block is overwritten, then skip reading it.
-                    byte[] dest;
+                    ByteBuffer destBuf;
                     if (!((blockOffset == 0) && (copyLength == blockSize)) && (blockIndex < blocksAllocated))
-                        dest = iNode.getDataBlock(blockIndex);
+                        destBuf = iNode.getDataBlock(blockIndex);
                     else
-                        dest = new byte[(int) blockSize];
+                        destBuf = ByteBuffer.allocate((int) blockSize);
 
-                    System.arraycopy(src, (int) (off + bytesWritten), dest, (int) blockOffset, (int) copyLength);
+                    ByteBufferUtils.buffercopy(srcBuf, (int) (off + bytesWritten), destBuf, (int) blockOffset, (int) copyLength, true);
 
                     //allocate a new block if needed
                     if (blockIndex >= blocksAllocated) {
@@ -273,7 +263,7 @@ public class Ext2File extends AbstractFSFile {
                     }
 
                     //write the block
-                    iNode.writeDataBlock(blockIndex, dest);
+                    iNode.writeDataBlock(blockIndex, destBuf);
 
                     bytesWritten += copyLength;
                 }
@@ -310,6 +300,6 @@ public class Ext2File extends AbstractFSFile {
     }
 
     private void doLog(Level level, String msg) {
-        log.log(level, getFileSystem().getDevice().getId() + " " + msg);
+        log.log(level, fileSystem.getDevice().getId() + " " + msg);
     }
 }

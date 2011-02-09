@@ -43,6 +43,7 @@
 package org.jnode.fs.ext2;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import java.util.logging.Level;
@@ -50,6 +51,7 @@ import java.util.logging.Level;
 import com.sun.max.ve.logging.Logger;
 
 import org.jnode.fs.FileSystemException;
+import org.jnode.fs.ext2.cache.SingleBlock;
 import org.jnode.fs.ext2.exception.UnallocatedBlockException;
 
 /**
@@ -61,7 +63,7 @@ import org.jnode.fs.ext2.exception.UnallocatedBlockException;
 public class INode {
     public static final int INODE_LENGTH = 128;
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(INode.class.getName());
 
     /**
      * the data constituting the inode itself
@@ -89,12 +91,14 @@ public class INode {
      * @param fs
      * @param desc
      */
-    public INode(Ext2FileSystem fs, INodeDescriptor desc) {
+    public INode(Ext2FileSystem fs, INodeDescriptor desc, boolean read) throws IOException, FileSystemException {
         this.fs = fs;
         this.desc = desc;
         this.data = new byte[INODE_LENGTH];
         locked = 0;
-        //log.setLevel(Level.INFO);
+        if (read) {
+            desc.getINodeTable().getInodeData(desc.getIndex(), data);
+        }
     }
 
     public void read(byte[] data) {
@@ -208,7 +212,7 @@ public class INode {
      */
     private final long indirectRead(long dataBlockNr, long offset, int indirectionLevel)
         throws IOException {
-        byte[] data = fs.getBlock(dataBlockNr);
+        ByteBuffer data = fs.readBlock(dataBlockNr);
         if (indirectionLevel == 1)
             //data is a (simple) indirect block
             return Ext2Utils.get32(data, (int) offset * 4);
@@ -249,7 +253,7 @@ public class INode {
         if (log.isLoggable(Level.FINEST)) {
             doLog(Level.FINEST, "indirectWrite(blockNr=" + dataBlockNr + ", offset=" + offset + "...)");
         }
-        byte[] data = fs.getBlock(dataBlockNr);
+        ByteBuffer data = fs.readBlock(dataBlockNr);
         if (indirectionLevel == 1) {
             //data is a (simple) indirect block
             Ext2Utils.set32(data, (int) offset * 4, value);
@@ -299,7 +303,7 @@ public class INode {
             return;
         }
 
-        byte[] data = fs.getBlock(dataBlockNr);
+        ByteBuffer data = fs.readBlock(dataBlockNr);
 
         long blockIndex = offset
                 / /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
@@ -377,17 +381,26 @@ public class INode {
     }
 
     /**
-     * Read the ith block of the inode (i is a sequential index from the
-     * beginning of the file, and not an absolute block number)
-     *
-     * @param i
-     * @return @throws
-     *         IOException
+     * Read n'th data block and return its data as a byte buffer.
+     * @param n a sequential index from the beginning of the file, starting at zero
+     * @return {@link ByteBuffer} containing data in block
+     * @throws IOException
      */
-    public byte[] getDataBlock(long i) throws IOException {
-        return fs.getBlock(getDataBlockNr(i));
+    public ByteBuffer getDataBlock(long n) throws IOException {
+        return fs.readBlock(getDataBlockNr(n));
     }
-
+    
+    /**
+     * Similar to {@link #getDataBlock(long n)} but provides a maximum prefetch value.
+     * @param n
+     * @param maxPreFetch
+     * @return
+     * @throws IOException
+     */    
+    public ByteBuffer getDataBlock(long i, long maxPreFetch) throws IOException {
+        return fs.readBlock(getDataBlockNr(i), maxPreFetch);
+    }
+    
     /**
      * A new block has been allocated for the inode, so register it (the
      * <code>i</code> th block of the inode is the block at
@@ -628,7 +641,7 @@ public class INode {
      * @param i
      * @param data
      */
-    public void writeDataBlock(long i, byte[] data) throws IOException {
+    public void writeDataBlock(long i, ByteBuffer data) throws IOException {
         //see if the block is already reserved for the inode
         long blockCount = getAllocatedBlockCount();
 

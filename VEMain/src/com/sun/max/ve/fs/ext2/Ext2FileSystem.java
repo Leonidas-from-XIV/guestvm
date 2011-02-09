@@ -64,7 +64,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
 
     private List<FileData> _openFiles = new ArrayList<FileData>();
     private static final int BUFFER_SIZE = 4096;
-    private static Logger _logger;
+    private static Logger _logger = Logger.getLogger(Ext2FileSystem.class.getName());
 
 
     private static class FileData {
@@ -96,9 +96,6 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
     }
 
     private Ext2FileSystem(Device device, String mountPath, boolean readOnly) throws FileSystemException, IOException {
-        if (_logger == null) {
-            _logger = Logger.getLogger(getClass().getName());
-        }
         final Ext2FileSystemType fsType = new Ext2FileSystemType();
         _rootEntry = fsType.create(device, readOnly).getRootEntry();
         _root = _rootEntry.getDirectory();
@@ -398,24 +395,20 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         // CheckStyle: stop parameter assignment check
 
         try {
-            int length = bb.limit() - bb.position();
+            int toRead = bb.remaining();
             final FileData fileData = _openFiles.get(fd);
             final long fsLength = fileData._fsFile.getLength();
-            if (fileOffset >= fsLength) {
+            final int available = (int) (fsLength - fileOffset);
+            if (available <= 0) {
                 return -1;
             }
-            if (length > (fsLength - fileOffset)) {
-                length = (int) (fsLength - fileOffset);
+            // make sure we don't try to read past the end of the file
+            if (toRead > available) {
+                bb.limit(bb.limit() - (toRead - available));
+                toRead = available;
             }
-            int left = length;
-            while (left > 0) {
-                final int toDo = left > BUFFER_SIZE ? BUFFER_SIZE : left;
-                bb.limit(bb.position() + toDo);
-                fileData._fsFile.read(fileOffset, bb);
-                left -= toDo;
-                fileOffset += toDo;
-            }
-            return length;
+            fileData._fsFile.read(fileOffset, bb);
+            return toRead;
         } catch (IOException e) {
             logWarning(e);
             return -ErrorDecoder.Code.EIO.getCode();

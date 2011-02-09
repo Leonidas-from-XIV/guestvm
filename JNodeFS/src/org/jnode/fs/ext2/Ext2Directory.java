@@ -68,16 +68,16 @@ public class Ext2Directory extends AbstractFSDirectory {
 
     private Ext2Entry entry;
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(Ext2Directory.class.getName());
 
     /**
      * @param entry
      *            the Ext2Entry representing this directory
      */
     public Ext2Directory(Ext2Entry entry) throws IOException {
-        super((Ext2FileSystem) entry.getFileSystem());
+        super((Ext2FileSystem) entry.fileSystem);
         this.iNode = entry.getINode();
-        Ext2FileSystem fs = (Ext2FileSystem) entry.getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) entry.fileSystem;
         this.entry = entry;
         //log.setLevel(Level.FINEST);
         boolean readOnly;
@@ -110,7 +110,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         INode newINode;
         Ext2DirectoryRecord dr;
         Ext2Entry newEntry;
-        Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         try {
             int rights =
                     0xFFFF & (Ext2Constants.EXT2_S_IRWXU | Ext2Constants.EXT2_S_IRWXG | Ext2Constants.EXT2_S_IRWXO);
@@ -171,7 +171,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         // the FSDirectory interface
         INode newINode;
         Ext2DirectoryRecord dr;
-        Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         try {
             int rights =
                     0xFFFF & (Ext2Constants.EXT2_S_IRWXU | Ext2Constants.EXT2_S_IRWXG | Ext2Constants.EXT2_S_IRWXO);
@@ -192,7 +192,7 @@ public class Ext2Directory extends AbstractFSDirectory {
     }
 
     public void deleteEntry(String name, boolean deleteContents)  throws IOException {
-        Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         Ext2DirectoryRecord dr = new Ext2DirectoryRecord(fs, 0, Ext2Constants.EXT2_FT_REG_FILE, name);
         // Setting iNode to 0 effectively removes the record
         //TODO reclamation of file space iff deleteContents == true
@@ -206,7 +206,7 @@ public class Ext2Directory extends AbstractFSDirectory {
     }
 
     public void renameEntry(String oldName, String newName)  throws IOException {
-        Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         Ext2DirectoryRecord oldDr = new Ext2DirectoryRecord(fs, -1, Ext2Constants.EXT2_FT_REG_FILE, oldName);
         Ext2DirectoryRecord newDr = new Ext2DirectoryRecord(fs, -1, Ext2Constants.EXT2_FT_REG_FILE, newName);
         try {
@@ -238,7 +238,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         //TODO: access rights, file type, UID and GID should be passed through
         // the FSDirectory interface
         Ext2DirectoryRecord dr;
-        Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+        Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         try {
             dr = new Ext2DirectoryRecord(fs, iNodeNr, fileType, linkName);
             addDirectoryRecord(dr);
@@ -283,7 +283,7 @@ public class Ext2Directory extends AbstractFSDirectory {
                     rec = iterator.nextDirectoryRecord();
                 }
 
-                Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+                Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
                 if (rec != null) {
                     long lastPos = rec.getFileOffset();
                     long lastLen = rec.getRecLen();
@@ -473,25 +473,24 @@ public class Ext2Directory extends AbstractFSDirectory {
         public Ext2FSEntryIterator(INode iNode) throws IOException {
             //read itself as a file
             Ext2File directoryFile = new Ext2File(iNode);
-            //read the whole directory
+            //read the whole directory and make a snapshot of contents for the iteration
 
             data = ByteBuffer.allocate((int) directoryFile.getLength());
             directoryFile.read(0, data);
-            //data = new byte[(int) directoryFile.getLength()];
-            //directoryFile.read(0, data, 0, (int) directoryFile.getLength());
 
             index = 0;
         }
 
         public boolean hasNext() {
             Ext2DirectoryRecord dr = null;
-            Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+            Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
             try {
                 do {
                     if (index >= iNode.getSize())
                         return false;
 
-                    //TODO optimize it also to use ByteBuffer at lower level
+                    //TODO this is somewhat wasteful, as we make a copy of the
+                    // directory entry, but it is only used to create the Ext2Entry in next.
                     dr = new Ext2DirectoryRecord(fs, data.array(), index, index);
                     index += dr.getRecLen();
                     //inode nr=0 means the entry is unused, so skip those
@@ -513,10 +512,10 @@ public class Ext2Directory extends AbstractFSDirectory {
             }
 
             Ext2DirectoryRecord dr = current;
-            Ext2FileSystem fs = (Ext2FileSystem) getFileSystem();
+            Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
             current = null;
             try {
-                return new Ext2Entry(((Ext2FileSystem) getFileSystem()).getINode(dr.getINodeNr()),
+                return new Ext2Entry(fs.getINode(dr.getINodeNr()),
                         dr.getName(), dr.getType(), fs, Ext2Directory.this);
             } catch (IOException e) {
                 throw new NoSuchElementException("Root cause: " + e.getMessage());
@@ -568,7 +567,7 @@ public class Ext2Directory extends AbstractFSDirectory {
             entries.add(entry);
         }
 
-        FSEntryTable table = new FSEntryTable((AbstractFileSystem) getFileSystem(), entries);
+        FSEntryTable table = new FSEntryTable((AbstractFileSystem) fileSystem, entries);
 
         return table;
     }
@@ -585,6 +584,6 @@ public class Ext2Directory extends AbstractFSDirectory {
     }
 
     private void doLog(Level level, String msg) {
-        log.log(level, getFileSystem().getDevice().getId() + " " + msg);
+        log.log(level, fileSystem.getDevice().getId() + " " + msg);
     }
 }

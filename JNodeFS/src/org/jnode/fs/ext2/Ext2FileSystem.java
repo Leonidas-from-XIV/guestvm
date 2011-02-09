@@ -57,9 +57,7 @@ import org.jnode.fs.FSEntry;
 import org.jnode.fs.FSFile;
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.ReadOnlyFileSystemException;
-import org.jnode.fs.ext2.cache.Block;
-import org.jnode.fs.ext2.cache.BlockCache;
-import org.jnode.fs.ext2.cache.INodeCache;
+import org.jnode.fs.ext2.cache.*;
 import org.jnode.fs.spi.*;
 
 /**
@@ -79,7 +77,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
 
     private INodeCache inodeCache;
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(Ext2FileSystem.class.getName());
 
     // private Object groupDescriptorLock;
     // private Object superblockLock;
@@ -90,6 +88,11 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
     /** if true, writeBlock() does not return until the block is written to disk */
     private boolean SYNC_WRITE = true;
 
+    private static final String MAX_PREFETCH_PROPERTY = "max.ve.fs.ext2.maxprefetch";
+    private static int DEFAULT_MAX_PREFETCH = 7;
+    
+    private int globalMaxPreFetch;
+    
     /**
      * Constructor for Ext2FileSystem in specified readOnly mode
      *
@@ -97,10 +100,11 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
      */
     public Ext2FileSystem(Device device, boolean readOnly, Ext2FileSystemType type) throws FileSystemException {
         super(device, readOnly, type);
-        //log.setLevel(Level.FINEST);
 
-        blockCache = new BlockCache(50, (float) 0.75);
         inodeCache = new INodeCache(50, (float) 0.75);
+        
+        final String maxPreFetchProperty = System.getProperty(MAX_PREFETCH_PROPERTY);
+        globalMaxPreFetch = maxPreFetchProperty == null ? DEFAULT_MAX_PREFETCH : Integer.parseInt(maxPreFetchProperty);
 
         // groupDescriptorLock = new Object();
         // superblockLock = new Object();
@@ -118,6 +122,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             // superblock = new Superblock(data, this);
             superblock = new Superblock();
             superblock.read(data.array(), this);
+            blockCache = new BlockCache(superblock.getBlockSize());
 
             // read the group descriptors
             groupCount = (int) Ext2Utils.ceilDiv(superblock.getBlocksCount(), superblock.getBlocksPerGroup());
@@ -206,6 +211,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             // create the superblock
             superblock = new Superblock();
             superblock.create(blockSize, this);
+            blockCache = new BlockCache(superblock.getBlockSize());
 
             // create the group descriptors
             groupCount = (int) Ext2Utils.ceilDiv(superblock.getBlocksCount(), superblock.getBlocksPerGroup());
@@ -353,56 +359,63 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
      * so at any point in time it has to be sure that no two copies of the same
      * block are stored in the cache.
      *
-     * @return data block nr
+     * @return <code>ByteBuffer</code> for the block
      */
-    protected byte[] getBlock(long nr) throws IOException {
+    protected ByteBuffer readBlock(long nr, long maxPreFetch) throws IOException {
         if (isClosed())
             throw new IOException("FS closed (fs instance: " + this + ")");
-        //log.log(Level.FINEST, "blockCache size: "+blockCache.size());
 
         int blockSize = superblock.getBlockSize();
-        Block result;
+        Block block;
 
-        Integer key = new Integer((int) (nr));
         synchronized (blockCache) {
             // check if the block has already been retrieved
-            if (blockCache.containsKey(key)) {
-                result = blockCache.get(key);
-                return result.getData();
+            if ((block = blockCache.get(nr)) != null) {
+                return block.getBuffer();
+            } else {
+                block = blockCache.getBlock(this, nr, (int) Math.min(maxPreFetch, globalMaxPreFetch));
             }
         }
 
-        // perform the time-consuming disk read outside of the synchronized
-        // block
+        if (log.isLoggable(Level.FINEST)) {
+            log.log(Level.FINEST, getDevice().getId() + " reading block " + nr + " (offset: " + nr * blockSize
+                           + ") from disk");
+        }
+        // perform the time-consuming disk read outside of the synchronized block
         // advantage:
         // -the lock is held for a shorter time, so other blocks that are
         // already in the cache can be returned immediately and
         // do not have to wait for a long disk read
         // disadvantage:
-        // -a single block can be retrieved more than once. However,
-        // the block will be put in the cache only once in the second
+        // -a single block can be retrieved multiply by concurrent threads. 
+        // However, the block will be put in the cache only once in the second
         // synchronized block
-        ByteBuffer data = ByteBuffer.allocate(blockSize);
-        if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, getDevice().getId() + " reading block " + nr + " (offset: " + nr * blockSize
-                           + ") from disk");
-        }
-        getApi().read(nr * blockSize, data);
+        getApi().read(nr * blockSize, block.getBuffer());
 
         // synchronize again
         synchronized (blockCache) {
-            // check if the block has already been retrieved
-            if (!blockCache.containsKey(key)) {
-                result = new Block(this, nr, data.array());
-                blockCache.put(key, result);
-                return result.getData();
+            // check if the block has been retrieved by a concurrent thread
+            if (!blockCache.contains(nr)) {
+                block = blockCache.put(block);
             } else {
                 // it is important to ALWAYS return the block that is in
                 // the cache (it is used in synchronization)
-                result = blockCache.get(key);
-                return result.getData();
+                blockCache.releaseBlock(block);
+                block = blockCache.get(nr);
+                
             }
+            return block.getBuffer();
         }
+    }
+
+    /**
+     * Similar to {@link #readBlock(long, int) but zero prefetch.
+     * @param nr
+     * @return
+     * @throws IOException
+     */
+    protected ByteBuffer readBlock(long nr) throws IOException {
+        return readBlock(nr, 0);
     }
 
     /**
@@ -416,6 +429,10 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
      * @throws IOException
      */
     public void writeBlock(long nr, byte[] data, boolean forceWrite) throws IOException {
+        writeBlock(nr, ByteBuffer.wrap(data), forceWrite);
+    }
+    
+    public void writeBlock(long nr, ByteBuffer dataBuf, boolean forceWrite) throws IOException {
         if (isClosed())
             throw new IOException("FS closed");
 
@@ -424,19 +441,15 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
 
         Block block;
 
-        Integer key = new Integer((int) nr);
         int blockSize = superblock.getBlockSize();
         // check if the block is in the cache
         synchronized (blockCache) {
-            if (blockCache.containsKey(key)) {
-                block = blockCache.get(key);
+            if ((block = blockCache.get(nr)) != null) {
                 // update the data in the cache
-                block.setData(data);
+                block.setBuffer(dataBuf);
                 if (forceWrite || SYNC_WRITE) {
-                    // write the block to disk
-                    ByteBuffer dataBuf = ByteBuffer.wrap(data, 0, blockSize);
-                    getApi().write(nr * blockSize, dataBuf);
-                    // timedWrite(nr, data);
+                    // write the block to disk, using the direct buffer
+                    getApi().write(nr * blockSize, block.getBuffer());
                     block.setDirty(false);
 
                     if (log.isLoggable(Level.FINEST)) {
@@ -448,7 +461,6 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
                 // If the block was not in the cache, I see no reason to put it
                 // in the cache when it is written.
                 // It is simply written to disk.
-                ByteBuffer dataBuf = ByteBuffer.wrap(data, 0, blockSize);
                 getApi().write(nr * blockSize, dataBuf);
                 // timedWrite(nr, data);
             }
@@ -534,8 +546,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
 
         // get the part of the inode table that contains the inode
         INodeTable iNodeTable = iNodeTables[group];
-        INode result = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, group, index));
-        result.read(iNodeTable.getInodeData(index));
+        INode result = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, group, index), true);
 
         synchronized (inodeCache) {
             // check if the inode is still not in the cache
@@ -578,7 +589,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         // reading it
         // and synchronizing to it
         synchronized (blockCache) {
-            byte[] bitmap = getBlock(groupDescriptors[group].getBlockBitmap());
+            ByteBuffer bitmap = readBlock(groupDescriptors[group].getBlockBitmap());
             synchronized (bitmap) {
                 BlockReservation result = BlockBitmap.testAndSetBlock(bitmap, index);
                 // update the block bitmap
@@ -630,7 +641,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         INodeTable iNodeTable = iNodeTables[preferredBlockBroup];
         // byte[] iNodeData = new byte[INode.INODE_LENGTH];
         int iNodeNr = res.getINodeNr((int) superblock.getINodesPerGroup());
-        INode iNode = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, groupNr, res.getIndex()));
+        INode iNode = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, groupNr, res.getIndex()), false);
         iNode.create(fileFormat, accessRights, uid, gid);
         // trigger a write to disk
         iNode.update();
@@ -667,7 +678,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             // reading it
             // and synchronizing to it
             synchronized (blockCache) {
-                byte[] bitmap = getBlock(gdesc.getInodeBitmap());
+                ByteBuffer bitmap = readBlock(gdesc.getInodeBitmap());
 
                 synchronized (bitmap) {
                     INodeReservation result = INodeBitmap.findFreeINode(bitmap);
@@ -763,7 +774,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         // reading it
         // and synchronizing to it
         synchronized (blockCache) {
-            byte[] bitmap = getBlock(gdesc.getBlockBitmap());
+            ByteBuffer bitmap = readBlock(gdesc.getBlockBitmap());
 
             // at any time, only one copy of the Block exists in the cache, so
             // it is
@@ -815,10 +826,9 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         BlockReservation result;
 
         // synchronize to the blockCache to avoid flushing the block between
-        // reading it
-        // and synchronizing to it
+        // reading it and synchronizing to it
         synchronized (blockCache) {
-            byte[] bitmapBlock = getBlock(gdesc.getBlockBitmap());
+            ByteBuffer bitmapBlock = readBlock(gdesc.getBlockBitmap());
 
             // at any time, only one copy of the Block exists in the cache, so
             // it is
@@ -828,8 +838,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
                 result = BlockBitmap.findFreeBlocks(bitmapBlock, metadataLength);
 
                 // if the reservation was successful, write the bitmap data to
-                // disk
-                // within the same synchronized block
+                // disk within the same synchronized block
                 if (result.isSuccessful()) {
                     writeBlock(groupDescriptors[group].getBlockBitmap(), bitmapBlock, true);
                     modifyFreeBlocksCount(group, -1 - result.getPreallocCount());
@@ -936,7 +945,12 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         INodeTable iNodeTable = iNodeTables[0];
         // byte[] iNodeData = new byte[INode.INODE_LENGTH];
         int iNodeNr = Ext2Constants.EXT2_ROOT_INO;
-        INode iNode = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, 0, iNodeNr - 1));
+        INode iNode = null;
+        try {
+            iNode = new INode(this, new INodeDescriptor(iNodeTable, iNodeNr, 0, iNodeNr - 1), false);
+        } catch (FileSystemException ex) {
+            // can't happen
+        }
         int rights = 0xFFFF & (Ext2Constants.EXT2_S_IRWXU | Ext2Constants.EXT2_S_IRWXG | Ext2Constants.EXT2_S_IRWXO);
         iNode.create(Ext2Constants.EXT2_S_IFDIR, rights, 0, 0);
         // trigger a write to disk

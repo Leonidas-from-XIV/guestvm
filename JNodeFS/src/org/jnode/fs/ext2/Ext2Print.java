@@ -54,7 +54,7 @@ import org.jnode.driver.block.BlockDeviceAPI;
  * @author Andras Nagy
  */
 public class Ext2Print {
-    private static final Logger log = Logger.getLogger("EXT2");
+    private static final Logger log = Logger.getLogger(Ext2Print.class.getName());
 
     public static String hexFormat(int i) {
         String pad = "00000000";

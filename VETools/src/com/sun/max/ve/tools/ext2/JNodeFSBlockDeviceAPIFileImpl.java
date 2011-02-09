@@ -26,6 +26,7 @@ import java.io.*;
 import java.nio.*;
 import org.jnode.driver.block.*;
 import org.jnode.partitions.PartitionTableEntry;
+import org.jnode.util.ByteBufferUtils;
 
 /**
  * An implementation of the JNode block device file system API that uses a host file.
@@ -53,20 +54,21 @@ public class JNodeFSBlockDeviceAPIFileImpl implements FSBlockDeviceAPI {
     }
     public void read(long devOffset, ByteBuffer dest) throws IOException {
         _ra.seek(devOffset);
-        final boolean ha = dest.hasArray();
-        assert ha;
-        final int ao = dest.arrayOffset();
-        final byte[] b = dest.array();
-        _ra.readFully(b, ao, b.length);
+        final int len = dest.remaining();
+        final byte[] b = new byte[len];
+        _ra.readFully(b, 0, b.length);
+        ByteBufferUtils.buffercopy(b, 0, dest, 0, len);
     }
+    
     public void write(long devOffset, ByteBuffer src) throws IOException {
         _ra.seek(devOffset);
-        final boolean ha = src.hasArray();
-        assert ha;
-        final int ao = src.arrayOffset();
-        final byte[] b = src.array();
-        _ra.write(b, ao, b.length);
+        // src is direct
+        final int len = src.remaining();
+        final byte[] b = new byte[len];
+        ByteBufferUtils.buffercopy(src, 0, b, 0, len);
+        _ra.write(b, 0, b.length);
     }
+    
     public  void flush() throws IOException {
         _ra.close();
     }

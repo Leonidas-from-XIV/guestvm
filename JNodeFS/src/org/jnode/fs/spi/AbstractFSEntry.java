@@ -241,7 +241,7 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
         if (!isFile())
             throw new IOException(getName() + " is not a file");
 
-        return ((AbstractFileSystem<?>) getFileSystem()).getFile(this);
+        return ((AbstractFileSystem<?>) fileSystem).getFile(this);
     }
 
     /**
@@ -254,7 +254,7 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
         if (!isDirectory())
             throw new IOException(getName() + " is not a directory");
 
-        return ((AbstractFileSystem<?>) getFileSystem()).getDirectory(this);
+        return ((AbstractFileSystem<?>) fileSystem).getDirectory(this);
     }
 
     /**

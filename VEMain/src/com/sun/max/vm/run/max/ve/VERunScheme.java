@@ -22,6 +22,8 @@
  */
 package com.sun.max.vm.run.max.ve;
 
+import org.jnode.fs.ext2.cache.ByteBufferFactory;
+
 import sun.nio.ch.BBNativeDispatcher;
 import sun.rmi.registry.RegistryImpl;
 
@@ -32,6 +34,7 @@ import com.sun.max.ve.error.*;
 import com.sun.max.ve.fs.FSTable;
 import com.sun.max.ve.fs.nfs.NFSExports;
 import com.sun.max.ve.guk.*;
+import com.sun.max.ve.logging.Logger;
 import com.sun.max.ve.memory.HeapPool;
 import com.sun.max.ve.net.guk.*;
 import com.sun.max.ve.profiler.*;
@@ -68,6 +71,9 @@ public class VERunScheme extends JavaRunScheme {
         if (phase == MaxineVM.Phase.STARTING) {
             // make sure we have console output in case of exceptions
             FSTable.basicInit();
+            // install our custom direct byte buffer factory
+            System.setProperty(ByteBufferFactory.BYTEBUFFER_FACTORY_CLASS_PROPERTY_NAME, "org.jnode.fs.ext2.cache.PageByteBufferFactory");
+            Logger.resetLogger();
         }
         super.initialize(phase);
 

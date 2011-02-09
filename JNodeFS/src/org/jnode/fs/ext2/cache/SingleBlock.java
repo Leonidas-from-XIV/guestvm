@@ -43,6 +43,7 @@
 package org.jnode.fs.ext2.cache;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import java.util.logging.Level;
 
@@ -51,40 +52,37 @@ import com.sun.max.ve.logging.Logger;
 import org.jnode.fs.ext2.Ext2FileSystem;
 
 /**
+ * Stores the data associated with a block.
+ * Used as the value in the {@link BlockCache block cache}.
+ * For performance reasons, we now use {@link DirectByteBuffer direct byte buffers}.
+ * The actual direct byte buffer is allocated by {@link BlockCache} from a pool.
+ * 
  * @author Andras Nagy
+ * @author Mick Jordan
  */
-public class Block {
-    private final Logger log = Logger.getLogger(getClass().getName());
+public class SingleBlock extends Block {
+    private static final Logger log = Logger.getLogger(SingleBlock.class.getName());
 
-    protected byte[] data;
-    boolean dirty = false;
-    protected Ext2FileSystem fs;
-    protected long blockNr;
 
-    public Block(Ext2FileSystem fs, long blockNr, byte[] data) {
-        this.data = data;
-        this.fs = fs;
-        this.blockNr = blockNr;
-        // log.setLevel(Level.FINEST);
+    public SingleBlock(Ext2FileSystem fs, long blockNr, ByteBuffer data) {
+        super(fs, blockNr, data);
     }
 
     /**
-     * Returns the data.
-     *
-     * @return byte[]
-     */
-    public byte[] getData() {
-        return data;
-    }
-
-    /**
-     * Sets the data.
-     *
+     * Updates the data. Since we want to preserve the invariant that the byte
+     * buffer is direct, we copy the data to the byte buffer.
+     * 
      * @param data The data to set
      */
-    public void setData(byte[] data) {
-        this.data = data;
-        dirty = true;
+    public void setBuffer(ByteBuffer data) {
+        if (this.buffer != data) {
+            final int srcPos = data.position();
+            final int pos = this.buffer.position();
+            this.buffer.put(data);
+            this.buffer.position(pos);
+            data.position(srcPos);
+            dirty = true;
+        }
     }
 
     /**
@@ -92,28 +90,20 @@ public class Block {
      */
     public void flush() throws IOException {
         if (dirty) {
-            fs.writeBlock(blockNr, data, true);
+            fs.writeBlock(blockNr, buffer, true);
             if (log.isLoggable(Level.FINEST)) {
                 log.log(Level.FINEST, "BLOCK FLUSHED FROM CACHE");
             }
         }
     }
-
-    /**
-     * Get the dirty flag.
-     *
-     * @return the dirty flag
-     */
-    public boolean isDirty() {
-        return dirty;
-    }
-
-    /**
-     * Set the dirty flag.
-     * @param b
-     */
-    public void setDirty(boolean b) {
-        dirty = b;
+    
+    @Override
+    public String toString() {
+        String result =  "SB:" + super.toString();
+        if (parent != null) {
+            result += ";" + parent.toString();
+        }
+        return result;
     }
 
 }

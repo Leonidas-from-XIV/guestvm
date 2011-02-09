@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -20,43 +20,15 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.sun.max.ve.blk.device;
+package org.jnode.fs.ext2.cache;
 
 import java.nio.ByteBuffer;
 
-/**
- * Generic interface to block devices.
- *
- * @author Mick Jordan
- *
- */
-public interface BlkDevice {
+public class DefaultByteBufferFactory extends ByteBufferFactory {
 
-    /**
-     * Return the number of sectors on this device.
-     * @return number of sectors
-     */
-    int getSectors();
+    @Override
+    public ByteBuffer allocate(int cap) {
+        return ByteBuffer.allocateDirect(cap);
+    }
 
-    /**
-     * Return the sector size.
-     * @return the sector size
-     */
-    int getSectorSize();
-
-    /**
-     * Write bytes to given address on this device.
-     * @param devAddress
-     * @param data byte buffer containing data to write
-     * @return number of bytes written
-     */
-    long write(long devAddress, ByteBuffer data);
-
-    /**
-     * Read bytes from given address on this device.
-     * @param devAddress
-     * @param data byte buffer to place data read
-     * @return number of bytes read
-     */
-    long read(long devAddress, ByteBuffer data);
 }

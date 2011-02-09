@@ -74,21 +74,13 @@ public final  class JNodeFSBlockDeviceAPIBlkImpl implements FSBlockDeviceAPI {
     @Override
     public void read(long devOffset, ByteBuffer dest) throws IOException {
         check();
-        final boolean ha = dest.hasArray();
-        assert ha;
-        final int ao = dest.arrayOffset();
-        final byte[] b = dest.array();
-        _blkDevice.read(devOffset, b, ao, b.length);
+        _blkDevice.read(devOffset, dest);
     }
 
     @Override
     public void write(long devOffset, ByteBuffer src) throws IOException {
         check();
-        final boolean ha = src.hasArray();
-        assert ha;
-        final int ao = src.arrayOffset();
-        final byte[] b = src.array();
-        _blkDevice.write(devOffset, b, ao, b.length);
+        _blkDevice.write(devOffset, src);
     }
 
     private void check() throws IOException {

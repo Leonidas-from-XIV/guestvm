@@ -62,7 +62,7 @@ import org.jnode.fs.spi.*;
  */
 public class Ext2Entry extends AbstractFSEntry {
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private static final Logger log = Logger.getLogger(Ext2Entry.class.getName());
     private INode iNode = null;
     private int type;
 

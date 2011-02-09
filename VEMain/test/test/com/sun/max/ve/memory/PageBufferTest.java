@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -20,43 +20,29 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.sun.max.ve.blk.device;
+package test.com.sun.max.ve.memory;
 
-import java.nio.ByteBuffer;
+import java.nio.*;
+import com.sun.max.ve.memory.PageDirectByteBuffer;
 
-/**
- * Generic interface to block devices.
- *
- * @author Mick Jordan
- *
- */
-public interface BlkDevice {
 
-    /**
-     * Return the number of sectors on this device.
-     * @return number of sectors
-     */
-    int getSectors();
+public class PageBufferTest {
+    private static final int BLOCKSIZE = 4096;
+    private static final int NBLOCKS= 8;
+    
 
-    /**
-     * Return the sector size.
-     * @return the sector size
-     */
-    int getSectorSize();
+    public static void main(String[] args) {
+        ByteBuffer parent = PageDirectByteBuffer.allocateDirect(BLOCKSIZE * NBLOCKS);
+        System.out.println("parent: " + parent.toString());
+        ByteBuffer[] subBlocks = new ByteBuffer[NBLOCKS];
+        for (int i = 0; i < NBLOCKS; i++) {
+                parent.position(i * BLOCKSIZE);
+                subBlocks[i] = parent.slice();
+                subBlocks[i].limit(BLOCKSIZE);
+                System.out.println("subBlock[" + i + "]: " + subBlocks[i].toString());
+        }
+        parent.position(0);
 
-    /**
-     * Write bytes to given address on this device.
-     * @param devAddress
-     * @param data byte buffer containing data to write
-     * @return number of bytes written
-     */
-    long write(long devAddress, ByteBuffer data);
+    }
 
-    /**
-     * Read bytes from given address on this device.
-     * @param devAddress
-     * @param data byte buffer to place data read
-     * @return number of bytes read
-     */
-    long read(long devAddress, ByteBuffer data);
 }
