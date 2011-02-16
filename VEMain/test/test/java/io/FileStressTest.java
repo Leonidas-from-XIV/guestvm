@@ -24,6 +24,9 @@ package test.java.io;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+
+import com.sun.max.ve.logging.*;
 
 /**
  * A stress test for file I/O.
@@ -51,6 +54,7 @@ import java.util.*;
  * ff f         file filler, f=r for random, f=n for pathname (default random)
  * nc        no create step, recover file tree from file system (ff=n required on original create)
  * ss         same random number seed for readers (default different)
+ * nm       do not try to match file content (useful when operating on arbitrary file systems)
  * v          verbose output
  * </pre>
  *
@@ -69,13 +73,14 @@ public class FileStressTest {
     private static boolean _verbose;
     private static boolean _veryVerbose;
     private static String _rootName = "/scratch";
-    private static final String ROOT_NAME = "/d0";
     private static int _maxFiles = 10;
     private static int _maxDirs = 3;
     private static int _depth = 5;
     private static int _numReads = 1000;
     private static int _numWriteTrees = 1;
     private static FileFiller fileFiller;
+    private static boolean noMatch;
+    private static Logger logger = Logger.getLogger(FileStressTest.class.getName());
     
     public static void main(String[] args) throws Exception {
         int numReaders = 1;
@@ -106,12 +111,15 @@ public class FileStressTest {
             } else if (arg.equals("v")) {
                 _verbose = true;
             } else if (arg.equals("vv")) {
+                _verbose = true;
                 _veryVerbose = true;
             } else if (arg.equals("ff")) {
                 fileFillerOption = args[++i];
             } else if (arg.equals("nc")) {
                 create = false;
                 fileFillerOption = "n";
+            } else if (arg.equals("nm")) {
+                noMatch = true;
             } else if (arg.equals("ss")) {
                 sameReaderSeed = true;
             } else {
@@ -130,8 +138,10 @@ public class FileStressTest {
         }
 
         if (create) {
-            final File root = new File(_rootName + ROOT_NAME);
-            root.mkdir();
+            final File root = new File(_rootName);
+            if (!root.exists()) {
+                root.mkdir();
+            }
             final long beforeCreate = System.currentTimeMillis();
             createTree(root, _depth, _maxDirs, _maxFiles);
             final long afterCreate = System.currentTimeMillis();
@@ -194,7 +204,12 @@ public class FileStressTest {
     }
     
     private static void recoverFileList() {
-        readDirs(new File(_rootName + ROOT_NAME));
+        File root = new File(_rootName);
+        if (!root.exists()) {
+            System.out.println("root " + root + " does not exist");
+            System.exit(1);
+        }
+        readDirs(root);
     }
     
     private static void readDirs(File dir) {
@@ -272,7 +287,9 @@ public class FileStressTest {
                 FileInputStream in = null;
                 final String name = _fileList[index];
                 if (_veryVerbose) {
-                    System.out.println(Thread.currentThread().getName() + ": reading " + name);
+                    final String msg = Thread.currentThread().getName() + ": reading " + name;
+                    System.out.println(msg);
+                    logger.log(Level.INFO,msg);
                 }
                 try {
                     in = new FileInputStream(name);
@@ -287,9 +304,11 @@ public class FileStressTest {
                     if (n != writtenData.length) {
                         throw new IOException("length mismatch on file " + name + ", size " + writtenData.length + ", read " + n);
                     }
-                    for (int i = 0; i < n; i++) {
-                        if (readData[i] != writtenData[i]) {
-                            throw new IOException("read mismatch on file " + name + ", wrote " + writtenData[i] + ", read " + readData[i]);
+                    if (!noMatch) {
+                        for (int i = 0; i < n; i++) {
+                            if (readData[i] != writtenData[i]) {
+                                throw new IOException("read mismatch on file " + name + ", wrote " + writtenData[i] + ", read " + readData[i]);
+                            }
                         }
                     }
                 } catch (Exception ex) {
@@ -305,7 +324,7 @@ public class FileStressTest {
                 numReads--;
             }
             if (_verbose) {
-                System.out.println(Thread.currentThread().getName() + ": total read time: " + (System.currentTimeMillis() - start));
+                System.out.println(Thread.currentThread().getName() + ": total read time: " + (System.currentTimeMillis() - start) + "ms");
             }
         }
     }

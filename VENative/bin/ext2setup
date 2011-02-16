@@ -30,7 +30,7 @@ if [ -n "${DISK}" ] ; then
 fi
 cp=$wsroot/VEMain/bin:$wsroot/VEBase/bin:$wsroot/VETools/bin:$wsroot/JNodeFS/bin
 mc=com.sun.max.ve.tools.ext2.Ext2FileTool
-h="-Dmax.ve.logging.handler=com.sun.max.ve.logging.SystemOutHandler -Dmax.ve.logging.level=WARNING"
+h="-Dmax.ve.logging.handler=com.sun.max.ve.logging.SystemOutLogHandler -Dmax.ve.logging.level=WARNING"
 
 while [ "$1" != "" ];
 do

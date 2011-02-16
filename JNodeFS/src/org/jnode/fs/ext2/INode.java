@@ -51,7 +51,7 @@ import java.util.logging.Level;
 import com.sun.max.ve.logging.Logger;
 
 import org.jnode.fs.FileSystemException;
-import org.jnode.fs.ext2.cache.SingleBlock;
+import org.jnode.fs.ext2.cache.Block;
 import org.jnode.fs.ext2.exception.UnallocatedBlockException;
 
 /**
@@ -59,11 +59,12 @@ import org.jnode.fs.ext2.exception.UnallocatedBlockException;
  * written by the INodeTable (which is accessible through desc.getINodeTable().
  *
  * @author Andras Nagy
+ * @author Mick Jordan
  */
 public class INode {
     public static final int INODE_LENGTH = 128;
 
-    private static final Logger log = Logger.getLogger(INode.class.getName());
+    private static final Logger logger = Logger.getLogger(INode.class.getName());
 
     /**
      * the data constituting the inode itself
@@ -83,8 +84,8 @@ public class INode {
      */
     INodeDescriptor desc = null;
 
-    private Ext2FileSystem fs;
-
+    public final Ext2FileSystem fs;
+    
     /**
      * Create an INode object from an existing inode on the disk.
      *
@@ -101,18 +102,13 @@ public class INode {
         }
     }
 
-    public void read(byte[] data) {
-        System.arraycopy(data, 0, this.data, 0, INODE_LENGTH);
-        setDirty(false);
-    }
-
     /**
      * Create a new INode object from scratch
      */
     public void create(int fileFormat, int accessRights, int uid, int gid) {
         long time = System.currentTimeMillis() / 1000;
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "TIME:                " + time);
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER,deviceString() + Long.toString(time));
         }
 
         setUid(uid);
@@ -127,8 +123,6 @@ public class INode {
         //TODO: set other pesistent parameters?
 
         setDirty(true);
-
-        //log.setLevel(Level.FINEST);
     }
 
     public int getINodeNr() {
@@ -144,8 +138,8 @@ public class INode {
      * be saved to the disk
      */
     public void flush() throws IOException, FileSystemException {
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "flush called for inode " + getINodeNr());
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER,deviceString() + Integer.toString(getINodeNr()));
         }
 
         freePreallocatedBlocks();
@@ -162,8 +156,8 @@ public class INode {
     protected synchronized void update() throws IOException {
         try {
             if (dirty) {
-                if (log.isLoggable(Level.FINEST)) {
-                    doLog(Level.FINEST, " ** updating inode **");
+                if (logger.isLoggable(Level.FINER)) {
+                    logger.log(Level.FINER,deviceString() + Integer.toString(getINodeNr()));
                 }
                 desc.getINodeTable().writeInodeData(desc.getIndex(), data);
                 dirty = false;
@@ -182,10 +176,6 @@ public class INode {
      */
     protected long getGroup() {
         return desc.getGroup();
-    }
-
-    public Ext2FileSystem getExt2FileSystem() {
-        return fs;
     }
 
     /**
@@ -212,16 +202,21 @@ public class INode {
      */
     private final long indirectRead(long dataBlockNr, long offset, int indirectionLevel)
         throws IOException {
-        ByteBuffer data = fs.readBlock(dataBlockNr);
-        if (indirectionLevel == 1)
+        Block block = fs.readBlock(dataBlockNr);
+        final ByteBuffer data = block.getBuffer();
+        if (indirectionLevel == 1) {
             //data is a (simple) indirect block
-            return Ext2Utils.get32(data, (int) offset * 4);
+            long result = Ext2Utils.get32(data, (int) offset * 4);
+            block.unlock();
+            return result;
+        }
 
         long blockIndex = offset
                 / /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
         long blockOffset = offset
                 % /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
         long blockNr = Ext2Utils.get32(data, (int) blockIndex * 4);
+        block.unlock();
 
         return indirectRead(blockNr, blockOffset, indirectionLevel - 1);
     }
@@ -244,44 +239,44 @@ public class INode {
      * Parse the indirect blocks of level <code>indirectionLevel</code> and
      * register the address of the <code>offset</code> th block. Also see
      * indirectRead().
-     *
-     * @param allocatedBlocks:
-     *            (the number of blocks allocated so far)-1
+     * 
+     * @param allocatedBlocks: (the number of blocks allocated so far)-1
      */
     private final void indirectWrite(long dataBlockNr, long offset, long allocatedBlocks,
             long value, int indirectionLevel) throws IOException, FileSystemException {
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "indirectWrite(blockNr=" + dataBlockNr + ", offset=" + offset + "...)");
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE,deviceString() + "bn: " + dataBlockNr + ", ic: " + indirectionLevel + ", offset: " + offset);
         }
-        ByteBuffer data = fs.readBlock(dataBlockNr);
+        final Block block = fs.readBlock(dataBlockNr);
+        ByteBuffer data = block.getBuffer();
         if (indirectionLevel == 1) {
-            //data is a (simple) indirect block
+            // data is a (simple) indirect block
             Ext2Utils.set32(data, (int) offset * 4, value);
-            //write back the updated block
+            // write back the updated block
             fs.writeBlock(dataBlockNr, data, false);
-            return;
-        }
-
-        long blockNr;
-        long blockIndex = offset
-                / /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
-        long blockOffset = offset
-                % /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
-        if (blockOffset == 0) {
-            //need to reserve the indirect block itself
-            blockNr = findFreeBlock(allocatedBlocks++);
-            Ext2Utils.set32(data, (int) blockIndex * 4, blockNr);
-            fs.writeBlock(dataBlockNr, data, false);
-
-            //need to blank the block so that e2fsck does not complain
-            byte[] zeroes = new byte[fs.getBlockSize()]; //blank the block
-            Arrays.fill(zeroes, 0, fs.getBlockSize(), (byte) 0);
-            fs.writeBlock(blockNr, zeroes, false);
+            block.unlock();
         } else {
-            blockNr = Ext2Utils.get32(data, (int) blockIndex * 4);
-        }
+            long blockNr;
+            long blockIndex =
+                    offset / /* (long) Math. */pow(getIndirectCount(), indirectionLevel - 1);
+            long blockOffset =
+                    offset % /* (long) Math. */pow(getIndirectCount(), indirectionLevel - 1);
+            if (blockOffset == 0) {
+                // need to reserve the indirect block itself
+                blockNr = findFreeBlock(allocatedBlocks++);
+                Ext2Utils.set32(data, (int) blockIndex * 4, blockNr);
+                fs.writeBlock(dataBlockNr, data, false);
 
-        indirectWrite(blockNr, blockOffset, allocatedBlocks, value, indirectionLevel - 1);
+                // need to blank the block so that e2fsck does not complain
+                byte[] zeroes = new byte[fs.getBlockSize()]; // blank the block
+                Arrays.fill(zeroes, 0, fs.getBlockSize(), (byte) 0);
+                fs.writeBlock(blockNr, zeroes, false);
+            } else {
+                blockNr = Ext2Utils.get32(data, (int) blockIndex * 4);
+            }
+            block.unlock();
+            indirectWrite(blockNr, blockOffset, allocatedBlocks, value, indirectionLevel - 1);
+        }
     }
 
     /**
@@ -294,22 +289,23 @@ public class INode {
      */
     private final void indirectFree(long dataBlockNr, long offset, int indirectionLevel)
         throws IOException, FileSystemException {
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "indirectFree(datablockNr=" + dataBlockNr + ", offset="
-                    + offset + ", ind=" + indirectionLevel + ")");
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE,deviceString() + "bn: " + dataBlockNr + ", ic: " + indirectionLevel + ", offset: " + offset);
         }
         if (indirectionLevel == 0) {
             fs.freeBlock(dataBlockNr);
             return;
         }
 
-        ByteBuffer data = fs.readBlock(dataBlockNr);
+        final Block block = fs.readBlock(dataBlockNr);
+        ByteBuffer data = block.getBuffer();
 
         long blockIndex = offset
                 / /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
         long blockOffset = offset
                 % /*(long) Math.*/pow(getIndirectCount(), indirectionLevel - 1);
         long blockNr = Ext2Utils.get32(data, (int) blockIndex * 4);
+        block.unlock();
 
         indirectFree(blockNr, blockOffset, indirectionLevel - 1);
 
@@ -344,13 +340,13 @@ public class INode {
             throw new IOException("Trying to read block " + i + " (counts from 0), while" +
                     " INode contains only " + blockCount + " blocks");
         }
+        
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE,deviceString() + "bn: " + i + ", bc: " + blockCount + ", ic: " + indirectCount);
+        }
 
         //get the direct blocks (0; 11)
         if (i < 12) {
-            if (log.isLoggable(Level.FINEST)) {
-                doLog(Level.FINEST, "getDataBlockNr(): block nr: "
-                        + Ext2Utils.get32(data, 40 + (int) i * 4));
-            }
             return Ext2Utils.get32(data, 40 + (int) i * 4);
         }
 
@@ -379,26 +375,42 @@ public class INode {
         //shouldn't get here
         throw new IOException("Internal FS exception: getDataBlockIndex(i=" + i + ")");
     }
-
-    /**
-     * Read n'th data block and return its data as a byte buffer.
-     * @param n a sequential index from the beginning of the file, starting at zero
-     * @return {@link ByteBuffer} containing data in block
-     * @throws IOException
-     */
-    public ByteBuffer getDataBlock(long n) throws IOException {
-        return fs.readBlock(getDataBlockNr(n));
-    }
     
     /**
-     * Similar to {@link #getDataBlock(long n)} but provides a maximum prefetch value.
-     * @param n
-     * @param maxPreFetch
+     * Read n'th data block and return it.
+     * @param n index of block to read, in the range 0 - nl
+     * @param nr index of the last block the caller could usefully access
+     * @param nl the last block in the file
+     * @param sequential true iff the caller is reading sequentially
      * @return
      * @throws IOException
      */    
-    public ByteBuffer getDataBlock(long i, long maxPreFetch) throws IOException {
-        return fs.readBlock(getDataBlockNr(i), maxPreFetch);
+    public Block getDataBlock(long n, long nr, long nl, boolean sequential) throws IOException {
+        /*
+         * The nr parameter effectively makes this a getDataBlocks call; however,
+         * everything is done in terms of a single block partly for historical reasons 
+         * and partly to simplify cache management.
+         * However, the ability to prefetch and to read ahead means we only pay a small
+         * price for doing things a block at a time.
+         * 
+         * If we are not reading sequentially, then we prefetch nr - n, as that is all the caller can use,
+         * and we don't know where the next read will be.
+         * 
+         * If we are reading sequentially then we prefetch nl - n, This likely will be reduced to the
+         * maximum block transfer count but, in that case, a read ahead request should be issued.
+         */
+        int preFetch = (int) (sequential ? nl - n : nr - n);
+        final Block result =  fs.readBlock(getDataBlockNr(n), preFetch);
+        return result;
+    }
+    
+    /**
+     * @param n 
+     * @return {@link ByteBuffer} containing data in block
+     * @throws IOException
+     */
+    public Block getDataBlock(long n) throws IOException {
+        return getDataBlock(n, n, n, false);
     }
     
     /**
@@ -424,8 +436,8 @@ public class INode {
                     " (counts from 0), when INode contains only " + blockCount + " blocks");
         }
 
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "registering block #" + blockNr);
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER,deviceString() + Long.toString(blockNr));
         }
 
         setDirty(true);
@@ -446,8 +458,6 @@ public class INode {
                 //first time it is used
                 indirectBlockNr = findFreeBlock(allocatedBlocks++);
                 Ext2Utils.set32(data, 40 + 12 * 4, indirectBlockNr);
-
-                //log.log(Level.FINEST, "reserved indirect block: "+indirectBlockNr);
 
                 //need to blank the block so that e2fsck does not complain
                 byte[] zeroes = new byte[fs.getBlockSize()]; //blank the block
@@ -474,9 +484,6 @@ public class INode {
                 doubleIndirectBlockNr = findFreeBlock(allocatedBlocks++);
                 Ext2Utils.set32(data, 40 + 13 * 4, doubleIndirectBlockNr);
 
-                //log.log(Level.FINEST, "reserved double indirect block:
-                // "+doubleIndirectBlockNr);
-
                 //need to blank the block so that e2fsck does not complain
                 byte[] zeroes = new byte[fs.getBlockSize()]; //blank the block
                 Arrays.fill(zeroes, 0, fs.getBlockSize(), (byte) 0);
@@ -501,9 +508,6 @@ public class INode {
                 //need to reserve the triple indirect block itself
                 tripleIndirectBlockNr = findFreeBlock(allocatedBlocks++);
                 Ext2Utils.set32(data, 40 + 13 * 4, tripleIndirectBlockNr);
-
-                //log.log(Level.FINEST, "reserved triple indirect block:
-                // "+tripleIndirectBlockNr);
 
                 //need to blank the block so that e2fsck does not complain
                 byte[] zeroes = new byte[fs.getBlockSize()]; //blank the block
@@ -530,12 +534,12 @@ public class INode {
     private void freePreallocatedBlocks() throws FileSystemException, IOException {
         int preallocCount = desc.getPreallocCount();
         if (preallocCount > 0) {
-            if (log.isLoggable(Level.FINEST)) {
-                doLog(Level.FINEST,  "freeing preallocated blocks");
+            if (logger.isLoggable(Level.FINER)) {
+                logger.log(Level.FINER,deviceString() + Integer.toString(preallocCount));
             }
         } else {
-            if (log.isLoggable(Level.FINEST)) {
-                doLog(Level.FINEST, "no preallocated blocks in the inode");
+            if (logger.isLoggable(Level.FINER)) {
+                logger.log(Level.FINER,deviceString() + "no allocated blocks");
             }
             return;
         }
@@ -685,8 +689,8 @@ public class INode {
 
         long newBlock = findFreeBlock(i);
 
-        if (log.isLoggable(Level.FINEST)) {
-           doLog(Level.FINEST, "allocated new block " + newBlock);
+        if (logger.isLoggable(Level.FINER)) {
+           logger.log(Level.FINER,deviceString() + Long.toString(newBlock));
         }
 
         desc.setLastAllocatedBlockIndex(i);
@@ -723,7 +727,7 @@ public class INode {
             lastBlock = getDataBlockNr(index - 1);
         if (lastBlock != -1) {
             for (int i = 1; i < 16; i++) {
-                reservation = getExt2FileSystem().testAndSetBlock(lastBlock + i);
+                reservation = fs.testAndSetBlock(lastBlock + i);
                 if (reservation.isSuccessful()) {
                     desc.setPreallocBlock(reservation.getBlock() + 1);
                     desc.setPreallocCount(reservation.getPreallocCount());
@@ -737,7 +741,7 @@ public class INode {
             }
 
             for (int i = -15; i < 0; i++) {
-                reservation = getExt2FileSystem().testAndSetBlock(lastBlock + i);
+                reservation = fs.testAndSetBlock(lastBlock + i);
                 if (reservation.isSuccessful()) {
                     desc.setPreallocBlock(reservation.getBlock() + 1);
                     desc.setPreallocCount(reservation.getPreallocCount());
@@ -754,7 +758,7 @@ public class INode {
         //then check the current block group from the beginning
         //(threshold=1 means: find is successul if at least one free block is
         // found)
-        reservation = getExt2FileSystem().findFreeBlocks(desc.getGroup(), 1);
+        reservation = fs.findFreeBlocks(desc.getGroup(), 1);
         if (reservation.isSuccessful()) {
             desc.setPreallocBlock(reservation.getBlock() + 1);
             desc.setPreallocCount(reservation.getPreallocCount());
@@ -769,14 +773,14 @@ public class INode {
         // space,
         //but take a note if a non-full group is found
         long nonfullBlockGroup = -1;
-        for (int i = 0; i < getExt2FileSystem().getGroupCount(); i++) {
+        for (int i = 0; i < fs.getGroupCount(); i++) {
             if (i == desc.getGroup()) {
                 continue;
             }
             long threshold =
-                    (getExt2FileSystem().getSuperblock().getBlocksPerGroup() *
+                    (fs.getSuperblock().getBlocksPerGroup() *
                             Ext2Constants.EXT2_BLOCK_THRESHOLD_PERCENT) / 100;
-            reservation = getExt2FileSystem().findFreeBlocks(i, threshold);
+            reservation = fs.findFreeBlocks(i, threshold);
             if (reservation.isSuccessful()) {
                 desc.setPreallocBlock(reservation.getBlock() + 1);
                 desc.setPreallocCount(reservation.getPreallocCount());
@@ -796,7 +800,7 @@ public class INode {
         // is found,
         //then check if there was any nonfull group
         if (nonfullBlockGroup != -1) {
-            reservation = getExt2FileSystem().findFreeBlocks(desc.getGroup(), 1);
+            reservation = fs.findFreeBlocks(desc.getGroup(), 1);
             if (reservation.isSuccessful()) {
                 desc.setPreallocBlock(reservation.getBlock() + 1);
                 desc.setPreallocCount(reservation.getPreallocCount());
@@ -814,7 +818,6 @@ public class INode {
     // **************** other persistent inode data *******************
     public synchronized int getMode() {
         int iMode = Ext2Utils.get16(data, 0);
-        //log.log(Level.FINEST, "INode.getIMode(): "+Ext2Print.hexFormat(iMode));
         return iMode;
     }
 
@@ -853,7 +856,7 @@ public class INode {
      * @return
      */
     public long getSizeInBlocks() {
-        return Ext2Utils.ceilDiv(getSize(), getExt2FileSystem().getBlockSize());
+        return Ext2Utils.ceilDiv(getSize(), fs.getBlockSize());
     }
 
     public synchronized long getAtime() {
@@ -918,8 +921,8 @@ public class INode {
     }
 
     public synchronized void setBlocks(long count) {
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "setBlocks(" + count + ")");
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER,deviceString() + ", count: " + Long.toString(count));
         }
         Ext2Utils.set32(data, 28, count);
         setDirty(true);
@@ -1042,9 +1045,9 @@ public class INode {
             return iNode;
         }
     }
-
-    private void doLog(Level level, String msg) {
-        log.log(level, fs.getDevice().getId() + " " + msg);
+    
+    private String deviceString() {
+        return fs.getDevice().getId() + ", ";
     }
 
 }

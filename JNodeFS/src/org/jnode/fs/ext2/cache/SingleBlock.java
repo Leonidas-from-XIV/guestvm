@@ -61,8 +61,6 @@ import org.jnode.fs.ext2.Ext2FileSystem;
  * @author Mick Jordan
  */
 public class SingleBlock extends Block {
-    private static final Logger log = Logger.getLogger(SingleBlock.class.getName());
-
 
     public SingleBlock(Ext2FileSystem fs, long blockNr, ByteBuffer data) {
         super(fs, blockNr, data);
@@ -91,8 +89,8 @@ public class SingleBlock extends Block {
     public void flush() throws IOException {
         if (dirty) {
             fs.writeBlock(blockNr, buffer, true);
-            if (log.isLoggable(Level.FINEST)) {
-                log.log(Level.FINEST, "BLOCK FLUSHED FROM CACHE");
+            if (BlockCache.logger.isLoggable(Level.INFO)) {
+                BlockCache.logger.log(Level.INFO, this.toString());
             }
         }
     }

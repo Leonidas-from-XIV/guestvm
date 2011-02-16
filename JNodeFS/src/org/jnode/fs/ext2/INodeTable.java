@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 import org.jnode.fs.FileSystemException;
+import org.jnode.fs.ext2.cache.Block;
 import org.jnode.util.ByteBufferUtils;
 
 /**
@@ -103,7 +104,7 @@ public class INodeTable {
      * @throws FileSystemException
      * @throws IOException
      */
-    private ByteBuffer getINodeTableBlock(int blockNo) throws FileSystemException, IOException {
+    private Block getINodeTableBlock(int blockNo) throws FileSystemException, IOException {
         if (blockNo < blockCount) {
             final int b = blockNo / PREFETCH_SIZE;
             if (!prefetchBitSet.get(b)) {
@@ -149,8 +150,10 @@ public class INodeTable {
             int blockNo = (index * INode.INODE_LENGTH + indexCopied) / blockSize;
             int blockOffset = (index * INode.INODE_LENGTH + indexCopied) % blockSize;
             int copyLength = Math.min(blockSize - blockOffset, INode.INODE_LENGTH);
-            ByteBufferUtils.buffercopy(getINodeTableBlock(blockNo), blockOffset, data, indexCopied,
+            final Block block = getINodeTableBlock(blockNo);
+            ByteBufferUtils.buffercopy(block.getBuffer(), blockOffset, data, indexCopied,
                     copyLength);
+            block.unlock();
             indexCopied += copyLength;
         }
     }
@@ -166,10 +169,11 @@ public class INodeTable {
             int blockNo = (index * INode.INODE_LENGTH + indexCopied) / blockSize;
             int blockOffset = (index * INode.INODE_LENGTH + indexCopied) % blockSize;
             int copyLength = Math.min(blockSize - blockOffset, INode.INODE_LENGTH);
-            ByteBuffer originalBlock = getINodeTableBlock(blockNo);
-            ByteBufferUtils.buffercopy(data, indexCopied, originalBlock, blockOffset, copyLength);
+            Block originalBlock = getINodeTableBlock(blockNo);
+            ByteBufferUtils.buffercopy(data, indexCopied, originalBlock.getBuffer(), blockOffset, copyLength);
             indexCopied += copyLength;
-            writeINodeTableBlock(originalBlock, blockNo);
+            writeINodeTableBlock(originalBlock.getBuffer(), blockNo);
+            originalBlock.unlock();
         }
     }
 }

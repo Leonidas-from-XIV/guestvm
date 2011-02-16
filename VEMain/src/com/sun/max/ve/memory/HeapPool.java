@@ -22,10 +22,14 @@
  */
 package com.sun.max.ve.memory;
 
+import static com.sun.max.vm.VMOptions.register;
+
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.ve.guk.GUKBitMap;
 import com.sun.max.ve.guk.GUKPagePool;
+import com.sun.max.vm.MaxineVM;
+import com.sun.max.vm.VMSizeOption;
 import com.sun.max.vm.code.CodeManager;
 import com.sun.max.vm.heap.Heap;
 import com.sun.max.vm.tele.*;
@@ -63,6 +67,8 @@ public final class HeapPool {
         private Size maxSize;
         private boolean set;
         
+        private static final VMSizeOption maxDirectBufferSize = register(new VMSizeOption("-XX:MaxDirectBufferSize", Size.M.times(16), "Virtual memory to reserve for direct buffers."), MaxineVM.Phase.PRISTINE);
+        
         @Override
         protected Size getInitialSize() {
             if (!set) {
@@ -85,7 +91,8 @@ public final class HeapPool {
             // what we have used to date and the code region size (which is managed by the heap)
             final long extra = GUKPagePool.getMaximumReservation() - GUKPagePool.getCurrentReservation();
             long initialHeapSize = toUnit(GUKPagePool.getFreeBulkPages() * 4096);
-            initialHeapSize -= toUnit(CodeManager.runtimeCodeRegionSize.getValue().toLong());
+            initialHeapSize -= toUnit(CodeManager.runtimeCodeRegionSize.getValue().toLong()) +
+                                           toUnit(maxDirectBufferSize.getValue().toLong());
             
             if (Inspectable.isVmInspected()) {
                 /* some slop for inspectable heap info, should be provided by Inspector not guessed at */

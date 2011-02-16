@@ -48,7 +48,6 @@ import java.util.logging.Level;
 
 import com.sun.max.ve.logging.Logger;
 
-import org.jnode.fs.FSDirectory;
 import org.jnode.fs.spi.*;
 
 /**
@@ -62,7 +61,7 @@ import org.jnode.fs.spi.*;
  */
 public class Ext2Entry extends AbstractFSEntry {
 
-    private static final Logger log = Logger.getLogger(Ext2Entry.class.getName());
+    private static final Logger logger = Logger.getLogger(Ext2Entry.class.getName());
     private INode iNode = null;
     private int type;
 
@@ -71,15 +70,10 @@ public class Ext2Entry extends AbstractFSEntry {
         this.iNode = iNode;
         this.type = type;
 
-	//log.setLevel(Level.INFO);
-
-	if (log.isLoggable(Level.FINEST)) {
-	    log.log(Level.FINEST, "Ext2Entry(iNode, name): name="+name+
-		    (isDirectory()?" is a directory ":"")+
-		    (isFile()?" is a file ":""));
-	}
+	    if (logger.isLoggable(Level.FINE)) {
+	        logger.log(Level.FINE, "name: " + name + ", type: " + type);
+        }
     }
-
     public long getLastChanged() throws IOException {
         return iNode.getCtime();
     }

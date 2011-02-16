@@ -95,14 +95,14 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
         return path;
     }
 
-    private Ext2FileSystem(Device device, String mountPath, boolean readOnly) throws FileSystemException, IOException {
+    private Ext2FileSystem(Device device, String mountPath, String[] options) throws FileSystemException, IOException {
         final Ext2FileSystemType fsType = new Ext2FileSystemType();
-        _rootEntry = fsType.create(device, readOnly).getRootEntry();
+        _rootEntry = fsType.create(device, options).getRootEntry();
         _root = _rootEntry.getDirectory();
         _mountPath = mountPath;
         _mountPathPrefixIndex = _mountPath.split(File.separator).length;
     }
-
+    
     /**
      * Access Ext2 file system on block device. devPath syntax: /blk/N
      *
@@ -110,7 +110,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
      *            block device path
      * @return
      */
-    public static Ext2FileSystem create(String devPath, String mountPath, boolean readOnly) {
+    public static Ext2FileSystem create(String devPath, String mountPath, String[] options) {
         final int index = devPath.lastIndexOf('/');
         if (index > 0) {
             try {
@@ -121,7 +121,7 @@ public final class Ext2FileSystem extends UnimplementedFileSystemImpl implements
                 }
                 final Device device = new Device("fsdev:" + devPath + ":" + mountPath);
                 device.registerAPI(FSBlockDeviceAPI.class, blkDevice);
-                return new Ext2FileSystem(device, mountPath, readOnly);
+                return new Ext2FileSystem(device, mountPath, options);
             } catch (NumberFormatException ex) {
                 return null;
             } catch (FileSystemException ex) {

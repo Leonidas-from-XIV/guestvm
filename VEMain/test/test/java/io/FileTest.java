@@ -36,6 +36,14 @@ public class FileTest {
     private static RandomAccessFile _raFile;
     private static int _bufSize = 128;
     private static boolean _binary;
+    private static boolean _reflect;
+    
+    enum ReadMode {
+        SINGLE,
+        ARRAY,
+        BUFFERED,
+        ALL
+    }
 
     public static void main(String[] args) {
         final String[] fileNames = new String[10];
@@ -63,6 +71,8 @@ public class FileTest {
                 _binary = true;
             } else if (arg.equals("a")) {
                 append = true;
+            } else if (arg.equals("r")) {
+                _reflect = true;
             }
         }
         // Checkstyle: resume modified control variable check
@@ -155,16 +165,20 @@ public class FileTest {
                     }
                 } else if (op.equals("readStdin")) {
                     readStdin();
-                } else if (op.equals("readFile")) {
-                    readFile(fileName, true);
+                } else if (op.equals("readFile")) {                    
+                    readFile(fileName, ReadMode.ARRAY);
+                } else if (op.equals("readFileSingle")) {
+                    readFile(fileName, ReadMode.SINGLE);
+                } else if (op.equals("readFileAll")) {
+                    readFile(fileName, ReadMode.ALL);
+                } else if (op.equals("readFileBuf")) {
+                    readFile(fileName, ReadMode.BUFFERED);
                 } else if (op.equals("copyFile")) {
                     copyFile(fileName, fileNames2[j]);
                 } else if (op.equals("copyFiles")) {
                     copyFiles(new File(fileName), new File(fileNames2[j]));
                 } else if (op.equals("compareFile")) {
                     compareFile(fileName, fileNames2[j]);
-                } else if (op.equals("readFileSingle")) {
-                    readFile(fileName, false);
                 } else if (op.equals("writeFile")) {
                     writeFile(fileName, true, append);
                 } else if (op.equals("writeFileSingle")) {
@@ -260,18 +274,19 @@ public class FileTest {
 
     }
 
-    private static void readFile(String fileName, boolean array) {
-        System.out.println("readFile  " + fileName + " " + (array ? "multiple" : "single"));
-        FileInputStream fs = null;
+    private static void readFile(String fileName, ReadMode readMode) {
+        System.out.println("readFile  " + fileName + " " + readMode);
+        InputStream is = null;
         try {
-            fs = new FileInputStream(fileName);
-            readStream(fs, array);
+            FileInputStream fs = new FileInputStream(fileName);
+            is = readMode == ReadMode.BUFFERED ? new BufferedInputStream(fs) : fs;
+            readStream(fileName, is, readMode);
         } catch (IOException ex) {
             System.out.println(ex);
         } finally {
-            if (fs != null) {
+            if (is != null) {
                 try {
-                    fs.close();
+                    is.close();
                 } catch (Exception ex) {
                 }
             }
@@ -280,7 +295,7 @@ public class FileTest {
 
     private static void readStdin() {
         try {
-            readStream(System.in, false);
+            readStream(null, System.in, ReadMode.SINGLE);
         } catch (IOException ex) {
             System.out.println(ex);
         }
@@ -305,29 +320,42 @@ public class FileTest {
         }
     }
 
-    private static void readStream(InputStream fs, boolean array) throws IOException {
-        if (array) {
+    private static void readStream(String fileName, InputStream fs, ReadMode readMode) throws IOException {
+        long now = System.currentTimeMillis();
+        int totalRead = 0;
+        if (readMode == ReadMode.ARRAY || readMode == ReadMode.BUFFERED) {
             int n;
             final byte[] buf = new byte[_bufSize];
             while ((n = fs.read(buf)) != -1) {
-                System.out.write(buf, 0, n);
+                if (_reflect) {
+                    System.out.write(buf, 0, n);
+                }
+                totalRead += n;
             }
-        } else {
+        } else if (readMode == ReadMode.SINGLE) {
             int b;
             int i = 0;
             while ((b = fs.read()) != -1) {
-                if (_binary) {
-                    System.out.print(b);
-                    if ((i++ % 32) == 0) {
-                        System.out.println();
+                if (_reflect) {
+                    if (_binary) {
+                        System.out.print(b);
+                        if ((i++ % 32) == 0) {
+                            System.out.println();
+                        } else {
+                            System.out.write(' ');
+                        }
                     } else {
-                        System.out.write(' ');
+                        System.out.write(b);
                     }
-                } else {
-                    System.out.write(b);
                 }
+                totalRead++;
             }
+        } else if (readMode == ReadMode.ALL) {
+            final File file = new File(fileName);
+            final byte[] buf = new byte[(int) file.length()];
+            totalRead = fs.read(buf);
         }
+        System.out.println("read " + totalRead + " bytes in " + (System.currentTimeMillis() - now) + "ms");
     }
 
     private static void copyFile(String fileName, String toFile) {

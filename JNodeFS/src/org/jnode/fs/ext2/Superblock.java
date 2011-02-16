@@ -50,6 +50,7 @@ import java.util.logging.Level;
 import com.sun.max.ve.logging.Logger;
 
 import org.jnode.fs.FileSystemException;
+import org.jnode.fs.ext2.cache.Block;
 import org.jnode.util.ByteBufferUtils;
 
 /**
@@ -193,20 +194,20 @@ public class Superblock {
             if (log.isLoggable(Level.FINEST)) {
                 log.log(Level.FINEST, "Updating superblock copies");
             }
-            ByteBuffer oldData;
+            Block oldDataBlock;
 
             // update the main copy
             if (getFirstDataBlock() == 0) {
-                oldData = fs.readBlock(0);
+                oldDataBlock = fs.readBlock(0);
                 // the block size is an integer multiply of 1024, and if
                 // getFirstDataBlock==0, it's
                 // at least 2048 bytes
-                ByteBufferUtils.buffercopy(data, 0, oldData, 1024, SUPERBLOCK_LENGTH);
+                ByteBufferUtils.buffercopy(data, 0, oldDataBlock.getBuffer(), 1024, SUPERBLOCK_LENGTH);
             } else {
-                oldData = fs.readBlock(getFirstDataBlock());
-                ByteBufferUtils.buffercopy(data, 0, oldData, 0, SUPERBLOCK_LENGTH);
+                oldDataBlock = fs.readBlock(getFirstDataBlock());
+                ByteBufferUtils.buffercopy(data, 0, oldDataBlock.getBuffer(), 0, SUPERBLOCK_LENGTH);
             }
-            fs.writeBlock(getFirstDataBlock(), oldData, true);
+            fs.writeBlock(getFirstDataBlock(), oldDataBlock.getBuffer(), true);
 
             // update the other copies
             for (int i = 1; i < fs.getGroupCount(); i++) {
@@ -215,13 +216,14 @@ public class Superblock {
                     continue;
 
                 long blockNr = getFirstDataBlock() + i * getBlocksPerGroup();
-                oldData = fs.readBlock(blockNr);
+                oldDataBlock = fs.readBlock(blockNr);
                 setBlockGroupNr(i);
                 // update the old contents with the new superblock
-                ByteBufferUtils.buffercopy(data, 0, oldData, 0, SUPERBLOCK_LENGTH);
-                fs.writeBlock(blockNr, oldData, true);
+                ByteBufferUtils.buffercopy(data, 0, oldDataBlock.getBuffer(), 0, SUPERBLOCK_LENGTH);
+                fs.writeBlock(blockNr, oldDataBlock.getBuffer(), true);
             }
 
+            oldDataBlock.unlock();
             setBlockGroupNr(0);
             setDirty(false);
         }
@@ -229,8 +231,13 @@ public class Superblock {
     }
 
     // this field is only written during format (so no synchronization issues here)
+    // @CONSTANT_WHEN_NOT_ZERO
+    private long iNodesCount;
     public long getINodesCount() {
-        return Ext2Utils.get32(data, 0);
+        if (iNodesCount == 0) {
+            iNodesCount = Ext2Utils.get32(data, 0);
+        }
+        return iNodesCount;
     }
 
     public void setINodesCount(long count) {
@@ -239,8 +246,13 @@ public class Superblock {
     }
 
     // this field is only written during format (so no synchronization issues here)
+    // @CONSTANT_WHEN_NOT_ZERO
+    private long blocksCount;
     public long getBlocksCount() {
-        return Ext2Utils.get32(data, 4);
+        if (blocksCount == 0) {
+            blocksCount = Ext2Utils.get32(data, 4);
+        }
+        return blocksCount;
     }
 
     public void setBlocksCount(long count) {

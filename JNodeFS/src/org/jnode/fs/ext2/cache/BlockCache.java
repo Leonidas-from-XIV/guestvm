@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
+ * or visit www.oracle.com if you need additional FINErmation or have any
  * questions.
  */
 /*
@@ -44,11 +44,9 @@ package org.jnode.fs.ext2.cache;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import java.util.logging.Level;
@@ -59,62 +57,55 @@ import com.sun.max.ve.logging.*;
 
 /**
  * The file system block cache.
- * The maximum size can be controlled by the system property {@value CACHE_SIZE_PROPERTY}.
- * A {@link SingleBlock} stores its data using a {@link DirectByteBuffer}, a pool of which is maintained here.
  * 
- * Not explicitly synchronized, so all callers must synchronize on the instance before calling.
+ * A {@link SingleBlock} stores its data using a {@link DirectByteBuffer}, a pool of which is managed
+ * by some subclass of {@link ByteBufferFactory}.
+ * 
+ * Public methods are not explicitly synchronized, but all callers *must* synchronize on the instance 
+ * before calling.
+ * 
+ * The basic cache actions can be logged by setting <code>-Dorg.jnode.fs.ext2.cache.Blockcache.level=FINE</code>.
+ * Hits and misses can be logged with <code>level=FINER</code>
  * 
  * @author Andras Nagy
  * @author Mick Jordan
  */
 public final class BlockCache {
-    private static final Logger log = Logger.getLogger(BlockCache.class.getName());
-    private static final String CACHE_SIZE_PROPERTY = "max.ve.fs.ext2.cachesize";
-    private static final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024;
+    static final Logger logger = Logger.getLogger(BlockCache.class.getName());
     
     private int maxCacheSize;
     private int maxCacheSizeInBlocks;
     private static ByteBufferFactory byteBufferFactory;
     private LinkedHashMap<Long, Block> cache;
     private int blockSize;
+    private int cushion;
     private BufferManager bufferManager;
 
-    public BlockCache(int blockSize) {
+    public BlockCache(int cacheSize, int blockSize, int maxTransferCount) {
         this.blockSize = blockSize;
-        maxCacheSize = getCacheSize();
+        // a heuristic to avoid running out of buffers before blocks are put in the cache but
+        // allocated for the data transfer
+        this.cushion = maxTransferCount * (4 * Runtime.getRuntime().availableProcessors());
+        
+        maxCacheSize = cacheSize;
+        if ((maxCacheSize % blockSize) != 0) {
+            maxCacheSize += blockSize - (maxCacheSize % blockSize);
+        }
         maxCacheSizeInBlocks = maxCacheSize / blockSize;
         cache = new CacheMap();
         byteBufferFactory = ByteBufferFactory.create();
         if (byteBufferFactory ==  null) {
-            log.log(Level.SEVERE, "failed to create ByteBufferFactory");
+            logger.log(Level.SEVERE, "failed to create ByteBufferFactory");
         }
         bufferManager = new CVMBufferManager();        
     }
     
-    private int getCacheSize() {
-        String cacheSizeProperty = System.getProperty(CACHE_SIZE_PROPERTY);
-        int result = DEFAULT_CACHE_SIZE;
-        if (cacheSizeProperty != null) {
-            int scale =1;
-            final int len = cacheSizeProperty.length();
-            switch (cacheSizeProperty.charAt(len - 1)) {
-                case 'm': case 'M': scale = 1024 * 1024; break;
-                case 'k': case 'K': scale = 1024; break;
-                default:
-            }
-            if (scale > 1) {
-                cacheSizeProperty = cacheSizeProperty.substring(0, len - 1);
-            }
-            result = Integer.parseInt(cacheSizeProperty) * scale;
-            if (result % blockSize != 0) {
-                result = (result + blockSize) / blockSize;
-            }
-        }
-        return result;
-    }
-
     public Block put(Block block) {
         Block result = block;
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, block.toString());
+        }
+        
         if (block instanceof MultiBlock) {
             SingleBlock[] subBlocks = ((MultiBlock) block).getSubBlocks();
             for (SingleBlock subBlock : subBlocks) {
@@ -122,7 +113,7 @@ public final class BlockCache {
             }
             result = subBlocks[0];
         } else {
-          cache.put(block.blockNr, block);
+            cache.put(block.blockNr, block);
         }
         return result;
     }
@@ -132,7 +123,14 @@ public final class BlockCache {
     }
     
     public Block get(long blockNr) {
-        return cache.get(blockNr);
+        final Block result = cache.get(blockNr);
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, (result ==  null ? "miss " : "hit ") + blockNr);
+        }
+        if (result != null) {
+            result.accessCount++;
+        }
+        return result;
     }
     
     public boolean contains(long blockNr) {
@@ -141,31 +139,39 @@ public final class BlockCache {
     
     /**
      * Get a {@link Block}  for I/O and subsequent placement in the cache.
-     * If <code>preFetchCount</code> is non-zero then attempt to get a buffer large enough
-     * for <code>preFetchCount + 1</code> blocks.
+     * Pre-fetching is supported by passing a value for <code>maxBlocks</code>
+     * that is greater than one. Note there is no guarantee that a buffer 
+     * of size <code>maxBlocks</code> is available but the buffer will
+     * accommodate at least one block.
      * @param fs
-     * @param blockNr
-     * @param preFetchCount
+     * @param blockNr block number that will be read into this block
+     * @param maxBlocks the maximum number of blocks to allocate the buffer for
      * @return
      */
-    public Block getBlock(Ext2FileSystem fs, long blockNr, int preFetchCount) {
-        ByteBuffer buffer = bufferManager.allocateBuffer(1 + preFetchCount);
+    public Block getBlock(Ext2FileSystem fs, long blockNr, int maxBlocks) {
+        ByteBuffer buffer = bufferManager.allocateBuffer(maxBlocks);
         final int nBlocks = buffer.remaining() / blockSize;
         return nBlocks == 1 ? new SingleBlock(fs, blockNr, buffer) : new MultiBlock(fs, blockNr, buffer, blockSize);
     }
     
     /**
-     * Release a {@link Block} that was allocated by {@#getBlock} but not placed in the cache.
+     * Release a {@link Block} that was allocated by {@#getBlock} but not placed in the cache,
+     * because some other thread got there first.
      * @param block
      */
     public void releaseBlock(Block block) {
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, block.toString());
+        }        
         bufferManager.recycleBuffer((block.getBuffer()));
     }
     
-
     /**
      * Map from fs block numbers to {@link Block} instances, utilising the LRU
      * feature of {@link LinkedHashMap} to recycle blocks when the cache fills up.
+     * The map maintains the LRU ordering (at modest cost) and we maintain
+     * the access count. Note that in the steady state the cache is always full so
+     * {@link LinkedHashMap#removeEldestEntry} will be called on *every* put.
      */
     class CacheMap extends LinkedHashMap<Long, Block> {
         
@@ -174,31 +180,40 @@ public final class BlockCache {
         }
         
         @Override
-        protected synchronized boolean removeEldestEntry(Map.Entry<Long, Block> eldest) {
-            if (cache.size() >= maxCacheSizeInBlocks) {
-                try {
-                    Block block = eldest.getValue();
-                    block.flush();
-                    
-                    if (log.isLoggable(Level.FINEST)) {
-                        log.log(Level.FINEST, "BlockCache.removeEldestEntry: " + block);
-                    }
-                    
-                    // recycle the byte buffer                    
-                    if (block.parent != null) {
-                        for (SingleBlock singleBlock : ((MultiBlock) block.parent).getSubBlocks()) {
-                            this.remove(singleBlock.blockNr);
-                        }
-                        bufferManager.recycleBuffer(block.parent.getBuffer());
-                        return false;
-                    } else {
-                        bufferManager.recycleBuffer(block.getBuffer());
-                        return true;
-                    }
-                } catch (IOException e) {
-                    log.log(Level.SEVERE, "Exception when flushing a block from the cache", e);
+        protected boolean removeEldestEntry(Map.Entry<Long, Block> eldest) {
+            if (bufferManager.freeBuffers() < cushion) {
+                Block block = eldest.getValue();
+                
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.log(Level.FINE, block.toString());
                 }
-                return true;
+
+                // if this block or any sub-block of the parent MultiBlock is locked, can't remove
+                if (block.locked || (block.parent != null && block.parent.locked)) {
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, "locked");
+                    }
+                    return false;
+                }
+                
+                try {
+                    block.flush();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Exception when flushing a block from the cache", e);
+                    return false;
+                }
+
+                // recycle the byte buffer
+                if (block.parent != null) {
+                    for (SingleBlock singleBlock : ((MultiBlock) block.parent).getSubBlocks()) {
+                        this.remove(singleBlock.blockNr);
+                    }
+                    bufferManager.recycleBuffer(block.parent.getBuffer());
+                    return false;
+                } else {
+                    bufferManager.recycleBuffer(block.getBuffer());
+                    return true;
+                }
             } else {
                 return false;
             }
@@ -207,7 +222,8 @@ public final class BlockCache {
     
     private abstract class BufferManager {
         abstract ByteBuffer allocateBuffer(int nBlocks);
-        abstract void recycleBuffer(ByteBuffer buffer);  
+        abstract void recycleBuffer(ByteBuffer buffer);
+        abstract int freeBuffers();
     }
     
     /**
@@ -219,10 +235,12 @@ public final class BlockCache {
      * in an array for recycling.
      */
     private class CVMBufferManager extends BufferManager {
-        private BitSet bufferBitMap;
+        private BitSet bufferBitMap; // 1 bit per block
         private ByteBuffer masterBuffer;
         private ByteBuffer[] buffers;
         private int bitMapSize;
+        int freeBuffers;
+        int waiterCount;
 
         public CVMBufferManager() {
             masterBuffer = byteBufferFactory.allocate(maxCacheSize);
@@ -230,20 +248,48 @@ public final class BlockCache {
             buffers = new ByteBuffer[bitMapSize];
             bufferBitMap = new BitSet(bitMapSize);
             bufferBitMap.set(0, bitMapSize);
+            freeBuffers = bitMapSize;
         }
         
         ByteBuffer allocateBuffer(int nBlocks) {
-            int b = findBlocks(nBlocks);
-            if (b < 0) {
-                b = findBlocks(1);
-                nBlocks = 1;
-            }
-            assert b >= 0;
+            int aBlocks;   // number actually allocated
+            int b = 0;       // when >= 0 slot in buffer array/slice list
+            do {                
+                b = findBlocks(nBlocks);
+                if (b < 0) {
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, "failed to find " + nBlocks + ", max " + (-b - 1) + ", free " +
+                                logFreeBlocks());
+                    }
+                    aBlocks = -b - 1;
+                    if (aBlocks == 0) {
+                        // We ran out despite the cushion
+                        waiterCount++;
+                        try {
+                            // release blockCache lock and wait
+                            BlockCache.this.wait();
+                        } catch (InterruptedException ex) {
+                        }
+                        waiterCount--;
+                    } else {
+                        // this will succeed; it's less than requested but we'll take it.
+                        // an alternative would be to retry for the requested amount 
+                        // by changing previous conditional.
+                        b = findBlocks(aBlocks);
+                    }
+                } else {
+                    // got what we requested
+                    aBlocks = nBlocks;
+                }
+            } while (b < 0);
+
             masterBuffer.position(b * blockSize);
             ByteBuffer result = masterBuffer.slice();
-            result.limit(nBlocks * blockSize);
+            result.limit(aBlocks * blockSize);
+            assert buffers[b] == null;
             buffers[b] = result;
             masterBuffer.position(0);
+            freeBuffers -= aBlocks;
             return result;
         }
         
@@ -253,20 +299,60 @@ public final class BlockCache {
                     int nBlocks = buffer.remaining() / blockSize;
                     bufferBitMap.set(i, i + nBlocks);
                     buffers[i] = null;
+                    freeBuffers += nBlocks;
+                    if (waiterCount > 0) {
+                        BlockCache.this.notifyAll();
+                    }
                     return;
                 }
             }
             assert false;
         }
         
+        int freeBuffers() {
+            return freeBuffers;
+        }
+        
         /**
-         * Tries to find n contiguous blocks.
+         * Tries to find n contiguous blocks using best fit, then first fit.
          * 
          * @param n
-         * @return
+         * @return index of first free block or -(n + 1) if not found, where n is largest
          */
         private int findBlocks(int n) {
-            // first fit
+            boolean best = true;
+            int max = 0;
+            while (true) {
+                 int i = 0;
+                while (i < bitMapSize) {
+                    int j = bufferBitMap.nextSetBit(i);
+                    if (j < 0) {
+                        break;
+                    }
+                    i = bufferBitMap.nextClearBit(j);
+                    final int m = i - j;
+                    if (m > max) {
+                        max = m;
+                    }
+                    final boolean hit = best ? m == n : m >= n;
+                    if (hit) {
+                        bufferBitMap.clear(j, j + n);
+                        return j;
+                    }
+                }
+                if (!best) {
+                    break;
+                } else {
+                    best = false;
+                }
+            }
+            return -(max + 1);
+        }
+        
+        private String logFreeBlocks() {
+            final StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            sb.append('{');
             int i = 0;
             while (i < bitMapSize) {
                 int j = bufferBitMap.nextSetBit(i);
@@ -274,12 +360,87 @@ public final class BlockCache {
                     break;
                 }
                 i = bufferBitMap.nextClearBit(j);
-                if ((i - j) >= n) {
-                    bufferBitMap.clear(j, j + n);
-                    return j;
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(',');
+                }
+                sb.append(j);
+                if ((i - j) > 1) {
+                  sb.append('-');
+                  sb.append(i);
                 }
             }
-            return -1;
+            sb.append('}');
+            return sb.toString();
         }
+        
+        
+    }
+    
+    /**
+     * A {@link MultiBlock} supports pre-fetching of a range of blocks efficiently,
+     * It maintains a single contiguous direct buffer that is used to read the blocks
+     * and a set of {@link Block block} instances that subdivide the multiblock
+     * and are put in the {@link BlockCache} to keep the rest of the system happy.
+     * 
+     * N.B. Only the constituent {@link SingleBlock} instances should ever be put in the cache
+     * or handed out to clients. The {@link MultiBlock} instances should be entirely private to the
+     * {@link BlockCache} implementation
+     * 
+     */
+    static class MultiBlock extends Block {
+        private SingleBlock[] subBlocks;
+        
+        MultiBlock(Ext2FileSystem fs, long blockNr, ByteBuffer buffer, int blockSize) {
+            super(fs, blockNr, buffer);
+            
+            int numBlocks = buffer.remaining() / blockSize;
+            subBlocks = new SingleBlock[numBlocks];
+            for (int i = 0; i < numBlocks; i++) {
+                buffer.position(i * blockSize);
+                ByteBuffer slice = buffer.slice();
+                slice.limit(blockSize);
+                subBlocks[i] = new SingleBlock(fs, blockNr + i, slice);
+                subBlocks[i].parent = this;
+            }
+            buffer.position(0);
+        }
+        
+        SingleBlock[] getSubBlocks() {
+            return subBlocks;
+        }
+        
+        @Override
+        protected void childLocked(Block child) {
+            // if any child is locked the whole group is locked
+            locked = true;
+        }
+        
+        @Override
+        protected synchronized void childUnlocked(Block child) {
+            for (SingleBlock subBlock : subBlocks) {
+                if (subBlock.locked) {
+                    return;
+                }
+            }
+            // no blocks locked, so unlock group
+            locked = false;
+        }
+        
+        
+        public void flush() {
+            throw new IllegalStateException("MultiBlock.flush should never be called");
+        }
+        
+        public void setBuffer(ByteBuffer data) {
+            throw new IllegalStateException("MultiBlock.setBuffer should never be called");
+        }
+        
+        @Override
+        public String toString() {
+            return "MB(" + subBlocks.length + "):" + super.toString();
+        }
+        
     }
 }

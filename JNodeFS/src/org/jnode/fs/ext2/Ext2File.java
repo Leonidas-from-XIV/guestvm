@@ -51,6 +51,7 @@ import com.sun.max.ve.logging.Logger;
 
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.ReadOnlyFileSystemException;
+import org.jnode.fs.ext2.cache.Block;
 import org.jnode.fs.spi.AbstractFSFile;
 import org.jnode.util.ByteBufferUtils;
 
@@ -59,14 +60,22 @@ import org.jnode.util.ByteBufferUtils;
  */
 public class Ext2File extends AbstractFSFile {
 
+    /**
+     * The actual file content.
+     */
     INode iNode;
+    /**
+     * The last file offset that was read.
+     * N.B. the default value of zero means that a file that is read starting at the beginning
+     * will be assumed to be being read sequentially.
+     */
+    long lastReadFileOffset;
 
-    private static final Logger log = Logger.getLogger(Ext2File.class.getName());
+    private static final Logger logger = Logger.getLogger(Ext2File.class.getName());
 
     public Ext2File(INode iNode) {
-        super(iNode.getExt2FileSystem());
+        super(iNode.fs);
         this.iNode = iNode;
-        //log.setLevel(Level.FINEST);
     }
 
     public INode getINode() {
@@ -77,7 +86,6 @@ public class Ext2File extends AbstractFSFile {
      * @see org.jnode.fs.FSFile#getLength()
      */
     public long getLength() {
-        //log.log(Level.FINEST, "getLength(): "+iNode.getSize());
         return iNode.getSize();
     }
 
@@ -92,7 +100,7 @@ public class Ext2File extends AbstractFSFile {
         if (!canWrite())
             throw new ReadOnlyFileSystemException("FileSystem or File is readonly");
 
-        long blockSize = iNode.getExt2FileSystem().getBlockSize();
+        long blockSize = iNode.fs.getBlockSize();
 
 
         iNode = iNode.syncAndLock();
@@ -110,8 +118,8 @@ public class Ext2File extends AbstractFSFile {
                         nextBlock = blockNr + 1;
 
                     for (long i = iNode.getAllocatedBlockCount() - 1; i >= nextBlock; i--) {
-                        if (log.isLoggable(Level.FINEST)) {
-                            doLog(Level.FINEST, "setLength(): freeing up block " + i
+                        if (logger.isLoggable(Level.FINER)) {
+                            doLog(Level.FINER, "setLength(): freeing up block " + i
                                     + " of inode");
                         }
                         iNode.freeDataBlock(i);
@@ -171,23 +179,27 @@ public class Ext2File extends AbstractFSFile {
             try {
                 long fileLength = getLength();
                 if (toRead + fileOffset > fileLength)
-                    throw new IOException("Can't read past the file!");
-                long blockSize = iNode.getExt2FileSystem().getBlockSize();
-                long lastBlockNr = (fileLength - 1) / blockSize;
+                    throw new IOException("Can't read past the end of file!");
+                long blockSize = iNode.fs.getBlockSize();
+                long nextBlockNr = fileOffset / blockSize;
+                long lastReadableBlockNr = (fileOffset + toRead - 1) / blockSize;
+                long lastFileBlockNr = (fileLength - 1) / blockSize;
                 long bytesRead = 0;
+                
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.log(Level.FINE, fileSystem.getDevice().getId() +  ", bn: " + nextBlockNr + ", fo: "+fileOffset+
+                              ", lrn: " + lastReadableBlockNr + ", lfn: " + lastFileBlockNr);
+                }
+
                 while (bytesRead < toRead) {
-                    long blockNr = (fileOffset + bytesRead) / blockSize;
+                    nextBlockNr = (fileOffset + bytesRead) / blockSize;
                     long blockOffset = (fileOffset + bytesRead) % blockSize;
                     long copyLength = Math.min(toRead - bytesRead, blockSize - blockOffset);
 
-                    if (log.isLoggable(Level.FINEST)) {
-                        doLog(Level.FINEST, "blockNr: "+blockNr+", blockOffset: "+blockOffset+
-                    		      ", copyLength: "+copyLength+", bytesRead: "+bytesRead);
-                    }
-
-                    ByteBuffer blockBuffer = iNode.getDataBlock(blockNr, lastBlockNr - blockNr);
-                    ByteBufferUtils.buffercopy(blockBuffer, (int) blockOffset, destBuf, (int) bytesRead, (int) copyLength, false);
-
+                    final Block block = iNode.getDataBlock(nextBlockNr, lastReadableBlockNr,  lastFileBlockNr,
+                            lastReadFileOffset == fileOffset);
+                    ByteBufferUtils.buffercopy(block.getBuffer(), (int) blockOffset, destBuf, (int) bytesRead, (int) copyLength, false);
+                    block.unlock();
                     bytesRead += copyLength;
                 }
             } catch (Throwable ex) {
@@ -195,6 +207,7 @@ public class Ext2File extends AbstractFSFile {
                 ioe.initCause(ex);
                 throw ioe;
             } finally {
+                lastReadFileOffset = fileOffset + toRead;
                 //read done, unlock the inode from the cache
                 iNode.decLocked();
             }
@@ -208,7 +221,6 @@ public class Ext2File extends AbstractFSFile {
      *
      * @see org.jnode.fs.FSFile#write(long, byte[], int, int)
      */
-    //public void write(long fileOffset, byte[] src, int off, int len)
     public void write(long fileOffset, ByteBuffer srcBuf) throws IOException {
         final int len = srcBuf.remaining();
         final int off = 0;
@@ -226,12 +238,12 @@ public class Ext2File extends AbstractFSFile {
                 if (off + len > srcBuf.remaining())
                     throw new IOException("src is shorter than what you want to write");
 
-                if (log.isLoggable(Level.FINEST)) {
-                    doLog(Level.FINEST, "write(fileOffset=" + fileOffset + ", src, off, len="
+                if (logger.isLoggable(Level.FINER)) {
+                    doLog(Level.FINER, "write(fileOffset=" + fileOffset + ", src, off, len="
                             + len + ")");
                 }
 
-                final long blockSize = iNode.getExt2FileSystem().getBlockSize();
+                final long blockSize = iNode.fs.getBlockSize();
                 long blocksAllocated = iNode.getAllocatedBlockCount();
                 long bytesWritten = 0;
                 while (bytesWritten < len) {
@@ -242,11 +254,14 @@ public class Ext2File extends AbstractFSFile {
                     //If only a part of the block is written, then read the
                     //block and update its contents with the data in src. If the
                     //whole block is overwritten, then skip reading it.
+                    Block block = null;
                     ByteBuffer destBuf;
-                    if (!((blockOffset == 0) && (copyLength == blockSize)) && (blockIndex < blocksAllocated))
-                        destBuf = iNode.getDataBlock(blockIndex);
-                    else
+                    if (!((blockOffset == 0) && (copyLength == blockSize)) && (blockIndex < blocksAllocated)) {
+                        block = iNode.getDataBlock(blockIndex);
+                        destBuf = block.getBuffer();
+                    } else {
                         destBuf = ByteBuffer.allocate((int) blockSize);
+                    }
 
                     ByteBufferUtils.buffercopy(srcBuf, (int) (off + bytesWritten), destBuf, (int) blockOffset, (int) copyLength, true);
 
@@ -264,6 +279,9 @@ public class Ext2File extends AbstractFSFile {
 
                     //write the block
                     iNode.writeDataBlock(blockIndex, destBuf);
+                    if (block != null) {
+                        block.unlock();
+                    }
 
                     bytesWritten += copyLength;
                 }
@@ -290,16 +308,16 @@ public class Ext2File extends AbstractFSFile {
      * @throws IOException
      */
     public void flush() throws IOException {
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "Ext2File.flush()");
+        if (logger.isLoggable(Level.FINER)) {
+            doLog(Level.FINER, "Ext2File.flush()");
         }
         iNode.update();
         //update the group descriptors and superblock: needed if blocks have
         //been allocated or deallocated
-        iNode.getExt2FileSystem().updateFS();
+        iNode.fs.updateFS();
     }
 
     private void doLog(Level level, String msg) {
-        log.log(level, fileSystem.getDevice().getId() + " " + msg);
+        logger.log(level, fileSystem.getDevice().getId() + " " + msg);
     }
 }

@@ -22,7 +22,6 @@
  */
 package com.sun.max.ve.fs;
 
-import java.lang.reflect.*;
 import java.io.File;
 import java.util.*;
 
@@ -110,9 +109,8 @@ public class FSTable {
                 }
             }
             return false;
-
         }
-
+        
         public String mountPath() {
             return _mountPath;
         }
@@ -270,7 +268,7 @@ public class FSTable {
     private static VirtualFileSystem initFS(Info fsInfo) {
         VirtualFileSystem  result = null;
         if (fsInfo._type.equals("ext2")) {
-            result =  Ext2FileSystem.create(fsInfo._devPath, fsInfo._mountPath, fsInfo.readOnly());
+            result =  Ext2FileSystem.create(fsInfo._devPath, fsInfo._mountPath, fsInfo._options);
         } else if (fsInfo._type.equals("nfs")) {
             result =  NfsFileSystem.create(fsInfo._devPath, fsInfo._mountPath);
         } else if (fsInfo._type.equals("sg")) {

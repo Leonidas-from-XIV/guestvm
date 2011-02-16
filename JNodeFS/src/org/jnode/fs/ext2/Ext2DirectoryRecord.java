@@ -68,9 +68,10 @@ import org.jnode.fs.FileSystemException;
  * to the directory file; the other is used when reading an existing directory file.
  *
  * @author Andras Nagy
+ * @author Mick Jordan
  */
 public class Ext2DirectoryRecord {
-	private static final Logger log = Logger.getLogger(Ext2DirectoryRecord.class.getName());
+	private static final Logger logger = Logger.getLogger(Ext2DirectoryRecord.class.getName());
     /*
      * private int iNodeNr; private int recLen; private short nameLen; private
      * short type; private StringBuffer name;
@@ -191,8 +192,8 @@ public class Ext2DirectoryRecord {
             // TODO: character conversion??
             for (int i = 0; i < getNameLen(); i++)
                 name.append((char) Ext2Utils.get8(data, offset + FIXED_LENGTH + i));
-             if (log.isLoggable(Level.FINEST)) {
-                 log.log(Level.FINEST, "Ext2DirectoryRecord(): iNode=" + getINodeNr() + ", name=" + name);
+             if (logger.isLoggable(Level.FINER)) {
+                 logger.log(Level.FINER, "Ext2DirectoryRecord(): iNode=" + getINodeNr() + ", name=" + name);
              }
         }
         return name.toString();
@@ -255,8 +256,8 @@ public class Ext2DirectoryRecord {
     protected synchronized void truncateRecord() {
         int newLength = align(getNameLen() + FIXED_LENGTH);
         setRecLen(newLength);
-        if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "truncateRecord(): newLength: " + newLength);
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, "truncateRecord(): newLength: " + newLength);
         }
     }
 
@@ -283,8 +284,8 @@ public class Ext2DirectoryRecord {
      *                           (usually the size of a filesystem block)
      */
     protected synchronized void expandRecord(long beginning, long end) throws FileSystemException {
-        if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "expandRecord(" + beginning + ", " + end + ")");
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, "expandRecord(" + beginning + ", " + end + ")");
         }
         if (beginning + getNameLen() + FIXED_LENGTH <= end) {
             // the record fits in the block
@@ -299,8 +300,8 @@ public class Ext2DirectoryRecord {
         } else {
             throw new FileSystemException("The directory record does not fit into the block!");
         }
-        if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "expandRecord(): newLength: " + getRecLen());
+        if (logger.isLoggable(Level.FINER)) {
+            logger.log(Level.FINER, "expandRecord(): newLength: " + getRecLen());
         }
     }
 }

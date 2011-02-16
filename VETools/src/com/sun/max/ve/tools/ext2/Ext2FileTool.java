@@ -134,7 +134,7 @@ public class Ext2FileTool {
             final Ext2FileSystemType fsType = new Ext2FileSystemType();
 
             if (command.equals("format")) {
-                final org.jnode.fs.ext2.Ext2FileSystem ext2fs = fsType.create(device, false);
+                final org.jnode.fs.ext2.Ext2FileSystem ext2fs = fsType.create(device, new String[0]);
                 ext2fs.create(BlockSize._4Kb);
                 return;
             }
@@ -144,7 +144,7 @@ public class Ext2FileTool {
                 return;
             }
 
-            fs = fsType.create(device, false);
+            fs = fsType.create(device, new String[0]);
             final Match m = match(ext2Path, fs.getRootEntry());
             if (m == null) {
                 throw new IOException("path " + ext2Path + " not found");

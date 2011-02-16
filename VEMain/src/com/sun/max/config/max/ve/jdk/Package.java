@@ -39,6 +39,7 @@ public class Package extends BootImagePackage {
         "java.util.concurrent.*", 
         "java.util.concurrent.locks.*", 
         "java.util.logging.Level",                   
+        "java.util.logging.LogRecord",                   
         "java.text.*", 
         "java.text.spi.*",                    
         "sun.net.*", 

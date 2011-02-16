@@ -61,6 +61,7 @@ import org.jnode.fs.util.FSUtils;
 
 /**
  * @author Andras Nagy
+ * @author Mick Jordan
  */
 public class Ext2Directory extends AbstractFSDirectory {
 
@@ -68,7 +69,7 @@ public class Ext2Directory extends AbstractFSDirectory {
 
     private Ext2Entry entry;
 
-    private static final Logger log = Logger.getLogger(Ext2Directory.class.getName());
+    private static final Logger logger = Logger.getLogger(Ext2Directory.class.getName());
 
     /**
      * @param entry
@@ -79,7 +80,6 @@ public class Ext2Directory extends AbstractFSDirectory {
         this.iNode = entry.getINode();
         Ext2FileSystem fs = (Ext2FileSystem) entry.fileSystem;
         this.entry = entry;
-        //log.setLevel(Level.FINEST);
         boolean readOnly;
         if ((iNode.getFlags() & Ext2Constants.EXT2_INDEX_FL) == 1)
             readOnly = true; //force readonly
@@ -87,8 +87,8 @@ public class Ext2Directory extends AbstractFSDirectory {
             readOnly = fs.isReadOnly();
         setRights(true, !readOnly);
 
-        if (log.isLoggable(Level.FINEST)) {
-            doLog(Level.FINEST, "directory size: " + iNode.getSize());
+        if (logger.isLoggable(Level.FINE)) {
+            doLog(Level.FINE, "directory size: " + iNode.getSize());
         }
     }
 
@@ -294,11 +294,11 @@ public class Ext2Directory extends AbstractFSDirectory {
                     //directoryRecords may not extend over block boundaries:
                     //see if the new record fits in the same block after truncating the last record
                     long remainingLength = fs.getBlockSize() - (lastPos % fs.getBlockSize()) - rec.getRecLen();
-                    if (log.isLoggable(Level.FINEST)) {
-                        doLog(Level.FINEST, "LAST-1 record: begins at: " + lastPos
+                    if (logger.isLoggable(Level.FINER)) {
+                        doLog(Level.FINER, "LAST-1 record: begins at: " + lastPos
                                 + ", length: " + lastLen);
-                        doLog(Level.FINEST, "LAST-1 truncated length: " + rec.getRecLen());
-                        doLog(Level.FINEST, "Remaining length: " + remainingLength);
+                        doLog(Level.FINER, "LAST-1 truncated length: " + rec.getRecLen());
+                        doLog(Level.FINER, "Remaining length: " + remainingLength);
                     }
                     if (remainingLength >= dr.getRecLen()) {
                         //write back the last record truncated
@@ -318,8 +318,8 @@ public class Ext2Directory extends AbstractFSDirectory {
                         //                      dir.write(lastPos + rec.getRecLen(), dr.getData(), dr
                         //                      .getOffset(), dr.getRecLen());
 
-                        if (log.isLoggable(Level.FINEST)) {
-                            doLog(Level.FINEST, "addDirectoryRecord(): LAST   record: begins at: "
+                        if (logger.isLoggable(Level.FINER)) {
+                            doLog(Level.FINER, "addDirectoryRecord(): LAST   record: begins at: "
                                             + (rec.getFileOffset() + rec.getRecLen())
                                             + ", length: "
                                             + dr.getRecLen());
@@ -335,8 +335,8 @@ public class Ext2Directory extends AbstractFSDirectory {
                         dir.write(lastPos + lastLen, buf);
                         //                      dir.write(lastPos + lastLen, dr.getData(), dr
                         //                      .getOffset(), dr.getRecLen());
-                        if (log.isLoggable(Level.FINEST)) {
-                            doLog(Level.FINEST,
+                        if (logger.isLoggable(Level.FINER)) {
+                            doLog(Level.FINER,
                         		    "addDirectoryRecord(): LAST   record: begins at: "
                                             + (lastPos + lastLen)
                                             + ", length: "
@@ -349,8 +349,8 @@ public class Ext2Directory extends AbstractFSDirectory {
                     ByteBuffer buf = ByteBuffer.wrap(dr.getData(), dr.getOffset(), dr.getRecLen());
                     dir.write(0, buf);
                     //dir.write(0, dr.getData(), dr.getOffset(), dr.getRecLen());
-                    if (log.isLoggable(Level.FINEST)) {
-                        doLog(Level.FINEST,
+                    if (logger.isLoggable(Level.FINER)) {
+                        doLog(Level.FINER,
                                         "addDirectoryRecord(): LAST   record: begins at: 0, length: "
                                         + dr.getRecLen());
                     }
@@ -449,14 +449,14 @@ public class Ext2Directory extends AbstractFSDirectory {
      * Return the number of the block that contains the given byte
      */
     int translateToBlock(long index) {
-        return (int) (index / iNode.getExt2FileSystem().getBlockSize());
+        return (int) (index / iNode.fs.getBlockSize());
     }
 
     /**
      * Return the offset inside the block that contains the given byte
      */
     int translateToOffset(long index) {
-        return (int) (index % iNode.getExt2FileSystem().getBlockSize());
+        return (int) (index % iNode.fs.getBlockSize());
     }
 
     private INode getINode() {
@@ -561,8 +561,8 @@ public class Ext2Directory extends AbstractFSDirectory {
 
         while (it.hasNext()) {
             final FSEntry entry = it.next();
-            if (log.isLoggable(Level.FINEST)) {
-                doLog(Level.FINEST, "readEntries: entry=" + FSUtils.toString(entry, false));
+            if (logger.isLoggable(Level.FINE)) {
+                doLog(Level.FINE, "readEntries: entry=" + FSUtils.toString(entry, false));
             }
             entries.add(entry);
         }
@@ -584,6 +584,6 @@ public class Ext2Directory extends AbstractFSDirectory {
     }
 
     private void doLog(Level level, String msg) {
-        log.log(level, fileSystem.getDevice().getId() + " " + msg);
+        logger.log(level, fileSystem.getDevice().getId() + " " + msg);
     }
 }

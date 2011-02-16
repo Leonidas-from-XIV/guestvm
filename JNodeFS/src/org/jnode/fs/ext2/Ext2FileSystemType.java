@@ -62,18 +62,18 @@ public class Ext2FileSystemType implements BlockDeviceFileSystemType<Ext2FileSys
     /**
      * @see org.jnode.fs.FileSystemType#create(Device, boolean)
      */
-    public Ext2FileSystem create(Device device, boolean readOnly) throws FileSystemException {
-        Ext2FileSystem fs = new Ext2FileSystem(device, readOnly, this);
-	try {
+    public Ext2FileSystem create(Device device, String[] options) throws FileSystemException {
+        Ext2FileSystem fs = new Ext2FileSystem(device, options, this);
+        try {
             fs.read();
-	} catch (FileSystemException ex) {
-	    if (!(ex.getMessage().startsWith("Not ext2 superblock"))) {
-		throw ex;
-	    }
+        } catch (FileSystemException ex) {
+            if (!(ex.getMessage().startsWith("Not ext2 superblock"))) {
+                throw ex;
+            }
         }
-	return fs;
+        return fs;
     }
-
+    
     /**
      * @see org.jnode.fs.FileSystemType#getName()
      */

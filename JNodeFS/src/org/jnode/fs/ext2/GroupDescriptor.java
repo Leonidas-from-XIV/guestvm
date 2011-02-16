@@ -43,21 +43,21 @@
 package org.jnode.fs.ext2;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import java.util.logging.Level;
 
+import org.jnode.fs.ext2.cache.Block;
 import org.jnode.util.ByteBufferUtils;
 
 import com.sun.max.ve.logging.Logger;
 
 /**
  * @author Andras Nagy
+ * @author Mick Jordan
  *
  */
 public class GroupDescriptor {
     public static final int GROUPDESCRIPTOR_LENGTH = 32;
-    private static final Logger log = Logger.getLogger(GroupDescriptor.class.getName());
+    private static final Logger logger = Logger.getLogger(GroupDescriptor.class.getName());
 
     private byte data[];
     private Ext2FileSystem fs;
@@ -81,10 +81,11 @@ public class GroupDescriptor {
         long baseBlock = fs.getSuperblock().getFirstDataBlock() + 1;
         long blockOffset = (groupNr * GROUPDESCRIPTOR_LENGTH) / fs.getBlockSize();
         long offset = (groupNr * GROUPDESCRIPTOR_LENGTH) % fs.getBlockSize();
-        ByteBuffer blockData = fs.readBlock(baseBlock + blockOffset);
+        Block block = fs.readBlock(baseBlock + blockOffset);
 
         // data = new byte[GROUPDESCRIPTOR_LENGTH];
-        ByteBufferUtils.buffercopy(blockData, (int) offset, data, 0, GROUPDESCRIPTOR_LENGTH);
+        ByteBufferUtils.buffercopy(block.getBuffer(), (int) offset, data, 0, GROUPDESCRIPTOR_LENGTH);
+        block.unlock();
         this.groupNr = groupNr;
         this.fs = fs;
         setDirty(false);
@@ -149,8 +150,8 @@ public class GroupDescriptor {
      */
     protected synchronized void updateGroupDescriptor() throws IOException {
         if (isDirty()) {
-            if (log.isLoggable(Level.FINEST)) {
-                log.log(Level.FINEST, "Updating groupdescriptor copies");
+            if (logger.isLoggable(Level.FINER)) {
+                logger.log(Level.FINER, "Updating groupdescriptor copies");
             }
             Superblock superblock = fs.getSuperblock();
             for (int i = 0; i < fs.getGroupCount(); i++) {
@@ -159,14 +160,15 @@ public class GroupDescriptor {
                 if (!fs.groupHasDescriptors(i))
                     continue;
 
-                long block = superblock.getFirstDataBlock() + 1 + superblock.getBlocksPerGroup() * i;
+                long blockNr = superblock.getFirstDataBlock() + 1 + superblock.getBlocksPerGroup() * i;
                 long pos = groupNr * GROUPDESCRIPTOR_LENGTH;
-                block += pos / fs.getBlockSize();
+                blockNr += pos / fs.getBlockSize();
                 long offset = pos % fs.getBlockSize();
-                ByteBuffer blockData = fs.readBlock(block);
+                Block block = fs.readBlock(blockNr);
                 // update the block with the new group descriptor
-                ByteBufferUtils.buffercopy(data, 0, blockData, (int) offset, GROUPDESCRIPTOR_LENGTH);
-                fs.writeBlock(block, blockData, true);
+                ByteBufferUtils.buffercopy(data, 0, block.getBuffer(), (int) offset, GROUPDESCRIPTOR_LENGTH);
+                fs.writeBlock(blockNr, block.getBuffer(), true);
+                block.unlock();
             }
             setDirty(false);
         }

@@ -30,22 +30,57 @@ import org.jnode.fs.ext2.Ext2FileSystem;
 /**
  * The essential state representing a file system block.
  * 
+ * Code that allows the data of a block to escape the {@link BlockCache} synchronization
+ * must lock the block before doing so and it is the responsibility of the receiving
+ * code to unlock the block when it is done with the data.
+ * 
  * @author Mick Jordan
  *
  */
 
 public abstract class Block {
-
+    /**
+     * The file system instance this bock belongs to.
+     */
+    protected final Ext2FileSystem fs;
+    /**
+     * The buffer containing the data.
+     */
     protected ByteBuffer buffer;
+    /**
+     * If set to true causes the block to written back to disk when flushed from the cache.
+     */
     protected boolean dirty = false;
-    protected Ext2FileSystem fs;
-    protected long blockNr;
+    
+    /**
+     * The file system block number that this block contains.
+     */
+    protected final long blockNr;
+    /**
+     * A block may be component of a larger aggregate block.
+     * If so, this field denotes that block. 
+     */
     protected Block parent;
+    /**
+     * True if the block should be pinned in the cache.
+     * A block must be locked unless the data read and access is all done
+     * under the {@link BlockCache} lock. Otherwise the block could be removed
+     * from the cache and the buffer reused. 
+     */
+    protected boolean locked;
+    /**
+     * The number of times this block has been accessed from the cache by {@link BlockCache#get}.
+     */
+    protected long accessCount;
     
     protected Block(Ext2FileSystem fs, long blockNr, ByteBuffer data) {
         this.buffer = data;
         this.fs = fs;
-        this.blockNr = blockNr;                
+        this.blockNr = blockNr;
+    }
+    
+    public long getBlockNr() {
+        return blockNr;
     }
     
     /**
@@ -85,8 +120,46 @@ public abstract class Block {
         return parent;
     }
     
+    public boolean isLocked() {
+        return locked;
+    }
+    
+    /**
+     * Locks the block.
+     *
+     */
+    public Block lock() {
+        locked = true;
+        if (parent != null) {
+            parent.childLocked(this);
+        }
+        return this;
+    }
+    
+    /**
+     * Unlocks the block, possibly allowing it to be removed from the cache.
+     */
+    public void unlock() {
+        locked = false;
+        if (parent != null) {
+            parent.childUnlocked(this);
+        }        
+    }
+    
+    /**
+     * Called when a child block is locked.
+     */
+    protected void childLocked(Block child) {        
+    }
+    
+    /**
+     * Called when a child block is unlocked.
+     */
+    protected void childUnlocked(Block child) {        
+    }
+    
     @Override
     public String toString() {
-        return Long.toString(blockNr) + ":" + (dirty ? "D" : "C");
+        return Long.toString(blockNr) + ":" + (dirty ? "D" : "C") + (locked ? ":L" : "");
     }
 }

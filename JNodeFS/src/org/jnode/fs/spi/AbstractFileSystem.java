@@ -68,11 +68,11 @@ import org.jnode.fs.FileSystemType;
  */
 public abstract class AbstractFileSystem<T extends FSEntry> implements FileSystem<T> {
 
-    private static final Logger log = Logger.getLogger(AbstractFileSystem.class.getName());
-    private boolean readOnly;
-    private final Device device;
-    private final BlockDeviceAPI api;
-    private final FileSystemType<? extends FileSystem<T>> type;
+    protected final Logger logger;
+    protected boolean readOnly;
+    protected final Device device;
+    protected final BlockDeviceAPI api;
+    protected final FileSystemType<? extends FileSystem<T>> type;
     private boolean closed;
     private T rootEntry;
 
@@ -90,11 +90,13 @@ public abstract class AbstractFileSystem<T extends FSEntry> implements FileSyste
      * @throws FileSystemException
      */
     public AbstractFileSystem(Device device, boolean readOnly,
-            FileSystemType<? extends FileSystem<T>> type) throws FileSystemException {
+            FileSystemType<? extends FileSystem<T>> type,
+             Logger logger) throws FileSystemException {
         if (device == null)
             throw new IllegalArgumentException("null device!");
 
         this.device = device;
+        this.logger = logger;
 
         try {
             api = device.getAPI(BlockDeviceAPI.class);
@@ -233,10 +235,10 @@ public abstract class AbstractFileSystem<T extends FSEntry> implements FileSyste
      * @throws IOException
      */
     private final void flushFiles() throws IOException {
-        log.info("flushing files ...");
+        logger.info("flushing files ...");
         for (FSFile f : files.values()) {
-            if (log.getLevel() == Level.FINEST) {
-                log.log(Level.FINEST, "flush: flushing file " + f);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.log(Level.FINE, "flushing file " + f);
             }
 
             f.flush();
@@ -277,10 +279,10 @@ public abstract class AbstractFileSystem<T extends FSEntry> implements FileSyste
      * @throws IOException
      */
     private final void flushDirectories() {
-        log.info("flushing directories ...");
+        logger.info("flushing directories ...");
         for (FSDirectory d : directories.values()) {
-            if (log.getLevel() == Level.FINEST) {
-                log.log(Level.FINEST, "flush: flushing directory " + d);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.log(Level.FINE, "flushing directory " + d);
             }
 
             //TODO: uncomment this line

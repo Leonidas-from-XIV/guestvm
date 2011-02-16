@@ -46,7 +46,6 @@ public class Logger {
     private static final String LEVEL_PROPERTY = ".level";
     private static final String HANDLER_PROPERTY = "max.ve.logging.handler";
     private static final String DEFAULT_HANDLER = "com.sun.max.ve.logging.MaxineLogHandler";
-    private static final int OFFVALUE = Level.OFF.intValue();
     private static Map<String, Logger> loggers = new HashMap<String, Logger>();
     private static Handler _handler;
     private static boolean initialized;
@@ -114,6 +113,7 @@ public class Logger {
             } catch (Exception ex) {
                 System.err.println("failed to instantiate handler class " + handlerName);
             }
+            initialized = true;
         }
     }
 
@@ -127,7 +127,7 @@ public class Logger {
     }
 
     public boolean isLoggable(Level level) {
-        if (level.intValue() < _levelValue || _levelValue == OFFVALUE) {
+        if (level.intValue() < _levelValue) {
             return false;
         }
         return true;
@@ -145,10 +145,10 @@ public class Logger {
     }
 
     private void log(LogRecord record) {
-        initializeHandler();
-        if (record.getLevel().intValue() < _levelValue || _levelValue == OFFVALUE) {
+        if (record.getLevel().intValue() < _levelValue) {
             return;
         }
+        initializeHandler();
         inferCaller(record);
         _handler.publish(record);
     }

@@ -28,6 +28,7 @@ import com.sun.max.annotate.*;
 import com.sun.max.memory.VirtualMemory;
 import com.sun.max.program.ProgramError;
 import com.sun.max.unsafe.Size;
+import com.sun.max.ve.error.VEError;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.heap.Heap;
 
@@ -65,6 +66,7 @@ public class PageDirectByteBuffer {
         try {
             directByteBufferActor = ClassActor.fromJava(Class.forName("java.nio.DirectByteBuffer"));
         } catch (ClassNotFoundException ex) {
+            // happens at image build time
             ProgramError.unexpected("can't load DirectByteBuffer", ex);
         }
     }
@@ -72,7 +74,11 @@ public class PageDirectByteBuffer {
     public static ByteBuffer allocateDirect(int cap) {
         final ByteBuffer byteBuffer = asByteBuffer(Heap.createTuple(directByteBufferActor.dynamicHub()));
         PageDirectByteBuffer thisByteBuffer = asPageDirectByteBuffer(byteBuffer);
-        thisByteBuffer.init(VirtualMemory.allocate(Size.fromInt(cap), VirtualMemory.Type.DATA).toLong(), cap);
+        long va = VirtualMemory.allocate(Size.fromInt(cap), VirtualMemory.Type.DATA).toLong();
+        if (va == 0) {
+            VEError.unexpected("can't allocate direct byte buffer of size: " + cap);
+        }
+        thisByteBuffer.init(va, cap);
         return byteBuffer;
     }
 }
