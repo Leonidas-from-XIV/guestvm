@@ -129,7 +129,7 @@ public class Ext2FileTool {
 
         org.jnode.fs.FileSystem<?> fs = null;
         try {
-            final Device device = new Device("fileDevice");
+            final Device device = new Device("fileDevice:0");
             device.registerAPI(FSBlockDeviceAPI.class, new JNodeFSBlockDeviceAPIFileImpl(diskFile));
             final Ext2FileSystemType fsType = new Ext2FileSystemType();
 
