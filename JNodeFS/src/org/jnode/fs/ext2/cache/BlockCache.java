@@ -44,11 +44,7 @@ package org.jnode.fs.ext2.cache;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import java.util.*;
 import java.util.logging.Level;
 
 import org.jnode.fs.ext2.Ext2FileSystem;
@@ -181,6 +177,7 @@ public final class BlockCache {
         
         @Override
         protected boolean removeEldestEntry(Map.Entry<Long, Block> eldest) {
+            boolean remove = false;  // result of the method - true to remove the candidate (eldest)
             if (bufferManager.freeBuffers() < cushion) {
                 Block block = eldest.getValue();
                 
@@ -189,11 +186,15 @@ public final class BlockCache {
                 }
 
                 // if this block or any sub-block of the parent MultiBlock is locked, can't remove
-                if (block.locked || (block.parent != null && block.parent.locked)) {
+                Iterator<Block> iter = null;
+                while (block.locked || (block.parent != null && block.parent.locked)) {
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, "locked");
+                        logger.log(Level.FINE, "block " + block.blockNr + " locked");
                     }
-                    return false;
+                    if (iter == null) {
+                        iter = values().iterator();
+                    }
+                    block = iter.next();
                 }
                 
                 try {
@@ -203,20 +204,25 @@ public final class BlockCache {
                     return false;
                 }
 
-                // recycle the byte buffer
+                // recycle the byte buffer, and 
                 if (block.parent != null) {
+                    // explicitly remove the children so we will return false
                     for (SingleBlock singleBlock : ((MultiBlock) block.parent).getSubBlocks()) {
                         this.remove(singleBlock.blockNr);
                     }
                     bufferManager.recycleBuffer(block.parent.getBuffer());
-                    return false;
                 } else {
+                    // if we had to find an alternative to a locked block, then don't remove eldest
                     bufferManager.recycleBuffer(block.getBuffer());
-                    return true;
+                    if (block != eldest.getValue()) {
+                        this.remove(block.blockNr);
+                    } else {
+                        // eldest was chosen so return true
+                        remove = true;
+                    }
                 }
-            } else {
-                return false;
             }
+            return remove;
         }
     }
     

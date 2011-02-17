@@ -62,7 +62,7 @@ import org.jnode.util.ByteBufferUtils;
  * though access is not necessarily sequential. However, we don't (appear to) 
  * know the actual number of blocks in the table, only the 
  * maximum number {@link #blockCount}. So we prefetch in groups of
- * {@value INodeTable#PREFETCH_SIZE} as blocks are requested.
+ * {@value INodeTable#FETCH_SIZE} as blocks are requested.
  * 
  * @author Andras Nagy
  * @author Mick Jordan
@@ -73,7 +73,7 @@ public class INodeTable {
     int blockCount;
     Ext2FileSystem fs;
     int firstBlock; // the first block of the inode table
-    private static final int PREFETCH_SIZE = 8;
+    private static final int FETCH_SIZE = 8;
     private BitSet prefetchBitSet;
     
 
@@ -84,7 +84,7 @@ public class INodeTable {
         blockCount =
                 (int) Ext2Utils.ceilDiv(
                         fs.getSuperblock().getINodesPerGroup() * INode.INODE_LENGTH, blockSize);
-        prefetchBitSet = new BitSet(blockCount / PREFETCH_SIZE);
+        prefetchBitSet = new BitSet(blockCount / FETCH_SIZE);
     }
 
     public static int getSizeInBlocks(Ext2FileSystem fs) {
@@ -106,9 +106,11 @@ public class INodeTable {
      */
     private Block getINodeTableBlock(int blockNo) throws FileSystemException, IOException {
         if (blockNo < blockCount) {
-            final int b = blockNo / PREFETCH_SIZE;
+            final int b = blockNo / FETCH_SIZE;
             if (!prefetchBitSet.get(b)) {
-                fs.readBlock(firstBlock + b * PREFETCH_SIZE, PREFETCH_SIZE - 1);
+                final Block bb = fs.readBlock(firstBlock + b * FETCH_SIZE, FETCH_SIZE - 1);
+                // we are not using this block directly, the right block will get re-locked in the call below
+                bb.unlock();
                 prefetchBitSet.set(b);
             }
             // this will now hit in the cache
