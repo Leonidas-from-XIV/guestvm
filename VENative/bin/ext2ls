@@ -40,8 +40,11 @@ do
    shift
    ext2dir=$1
    ;;
+  * )
+   break
+   ;;
   esac
   shift
 done
 
-java -classpath $cp $h $mc ls -disk $dfile -ext2path $ext2dir -r -l -a
+java -classpath $cp $h $mc ls -disk $dfile -ext2path $ext2dir $*
