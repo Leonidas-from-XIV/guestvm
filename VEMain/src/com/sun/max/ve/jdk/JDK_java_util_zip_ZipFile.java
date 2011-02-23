@@ -46,6 +46,11 @@ public class JDK_java_util_zip_ZipFile {
         return ZZipFile.create(name, mode, lastModified).getId();
     }
 
+    @SUBSTITUTE(optional=true) // appeared sometime after 1.6.0_20
+    private static long open(String name, int mode, long lastModified, boolean usemmap) throws ZipException {
+        return ZZipFile.create(name, mode, lastModified).getId();
+    }
+
     @SUBSTITUTE
     private static int getTotal(long jzfile) {
         return ZZipFile.get(jzfile).getTotal();

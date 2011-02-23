@@ -27,7 +27,7 @@ import com.sun.max.memory.*;
 import com.sun.max.unsafe.*;
 
 /**
- *Substitutions for  @see java.nio.Bits.
+ * Substitutions for  @see java.nio.Bits (not needed after 1.6.0_20).
  * @author Mick Jordan
  *
  */
@@ -37,14 +37,14 @@ import com.sun.max.unsafe.*;
 @METHOD_SUBSTITUTIONS(className = "java.nio.Bits")
 final class JDK_java_nio_Bits {
 
-    @SUBSTITUTE
+    @SUBSTITUTE(optional=true)
     private static void copyFromByteArray(Object src, long srcPos, long dstAddr, long length) {
         final Pointer dstPointer = Pointer.fromLong(dstAddr);
         Memory.writeBytes((byte[]) src, (int) srcPos,  (int) length, dstPointer);
 
     }
 
-    @SUBSTITUTE
+    @SUBSTITUTE(optional=true)
     private static void copyToByteArray(long srcAddr, Object dst, long dstPos, long length) {
         final Pointer srcPointer = Pointer.fromLong(srcAddr);
         Memory.readBytes(srcPointer, (int) length, (byte[]) dst, (int) dstPos);
