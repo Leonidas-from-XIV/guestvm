@@ -22,49 +22,58 @@
  */
 package test.java.lang;
 
+import java.util.*;
 
 public class GCThroughput implements Runnable {
 
-    private static int _runTime = 30;
-    private static int _reportFrequency = 5;
-    private static volatile boolean _done = false;
-    private static volatile long _tpt;
+    private static int runTime = 30;
+    private static int reportFrequency = 5;
+    private static int maxSize = 1024;
+    private static volatile boolean done = false;
+    private static volatile long ta;
+    private static volatile long ts;
    /**
      * @param args
      */
     public static void main(String[] args) {
-
+        final Random rand = new Random(467673);
         // Checkstyle: stop modified control variable check
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (arg.equals("t")) {
-                _runTime = Integer.parseInt(args[++i]);
+                runTime = Integer.parseInt(args[++i]);
+            } else if (arg.equals("s")) {
+                maxSize = Integer.parseInt(args[++i]);
             }
         }
         // Checkstyle: resume modified control variable check
         new Thread(new GCThroughput()).start();
-        while (!_done) {
+        while (!done) {
+            final int size = rand.nextInt(maxSize);
             @SuppressWarnings("unused")
-            final Object[] o = new Object[1024];
-            _tpt++;
+            final Object[] o = new Object[size];
+            ta++;
+            ts += size;
         }
-        System.out.println("Average TPS: " + _tpt / _runTime);
+        System.out.println("Average APS: " + (ta / runTime) + ", Average BAPS: " + (ts / runTime));
     }
 
     public void run() {
-        long runTime = 0;
-        long tpt = 0;
-        while (runTime < _runTime) {
+        long time = 0;
+        long lta = 0;
+        long lts = 0;
+        while (time < runTime) {
             try {
-                Thread.sleep(_reportFrequency * 1000);
-                runTime += _reportFrequency;
-                System.out.println("Interval TPS: " + (_tpt - tpt) / _reportFrequency);
-                tpt = _tpt;
+                Thread.sleep(reportFrequency * 1000);
+                time += reportFrequency;
+                System.out.println("Interval APS: " + ((ta - lta) / reportFrequency) + ", BAPS: " + ((ts - lts) / reportFrequency));
+                lta = ta;
+                lts = ts;
             } catch (InterruptedException ex) {
-                runTime = _runTime;
+                time = runTime;
             }
         }
-        _done = true;
+        done = true;
     }
 
 }
