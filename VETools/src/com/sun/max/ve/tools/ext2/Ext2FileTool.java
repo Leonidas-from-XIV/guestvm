@@ -41,7 +41,7 @@ import org.jnode.fs.ext2.*;
  * format -disk imagefile
  * copy[in] -disk imagefile -from file -ext2path tofile
  * copyout -disk imagefile -ext2path fromfile -to file
- * ls -disk imagefile -from file -ext2path dir
+ * ls -disk imagefile -from file -ext2path dir [-l -a -r]
  * mkdir -disk imagefile -ext2path dir
  * mkfile -disk imagefile -ext2path file
  * rm -disk imagefile -ext2path file
