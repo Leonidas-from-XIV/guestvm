@@ -32,7 +32,7 @@ import com.sun.max.ve.error.VEError;
 import com.sun.max.ve.fs.*;
 import com.sun.max.ve.guk.x64.X64VM;
 import com.sun.max.ve.jdk.JDK_java_io_UnixFileSystem;
-import com.sun.max.vm.compiler.builtin.StackAllocate;
+import com.sun.max.vm.Intrinsics;
 
 /**
  * This class represents the file system that is based on inter-domain communication to
@@ -204,7 +204,7 @@ public final class SiblingFileSystem extends UnimplementedFileSystemImpl impleme
 
     @Override
     public int readBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = StackAllocate.stackAllocate(4096);
+        final Pointer nativeBytes = Intrinsics.stackAllocate(4096);
         int left = length;
         while (left > 0) {
             final int toDo = left > X64VM.PAGE_SIZE ? X64VM.PAGE_SIZE : left;
@@ -227,7 +227,7 @@ public final class SiblingFileSystem extends UnimplementedFileSystemImpl impleme
     
     @Override
     public int writeBytes(int fd, byte[] bytes, int offset, int length, long fileOffset) {
-        final Pointer nativeBytes = StackAllocate.stackAllocate(4096);
+        final Pointer nativeBytes = Intrinsics.stackAllocate(4096);
         int left = length;
         while (left > 0) {
             final int toDo = left > X64VM.PAGE_SIZE ? X64VM.PAGE_SIZE : left;

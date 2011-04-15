@@ -161,7 +161,7 @@ public final class Tick extends Thread {
         
         @Override
         public void doThread(VmThread vmThread, Pointer ip, Pointer sp, Pointer fp) {
-            StackTraceVisitor stv = new StackTraceVisitor.Custom(null, _maxDepth, traceStorage);
+            TickStackTraceVisitor stv = new TickStackTraceVisitor();
             final VmStackFrameWalker stackFrameWalker = vmThread.stackDumpStackFrameWalker();
             _workingStackInfo.reset();
             _workingDepth = 0;
@@ -182,12 +182,14 @@ public final class Tick extends Thread {
 
     private static final StackTraceGatherer stackTraceGatherer = new StackTraceGatherer();
 
-    private static final StackTraceVisitor.TraceStorage  traceStorage = new TickTraceStorage();
-
     /**
      * Allocation free stack frame analyzer that builds up the {@StackInfo} in {@link Tick#_workingStackInfo}.
      */
-    private static class TickTraceStorage implements StackTraceVisitor.TraceStorage {
+    private static class TickStackTraceVisitor extends StackTraceVisitor {
+        
+        TickStackTraceVisitor() {
+            super(null, _maxDepth);
+        }
         public boolean add(ClassMethodActor classMethodActor, int sourceLineNumber) {
             _workingStackInfo.stack[_workingDepth].classMethodActor = classMethodActor;
             _workingStackInfo.stack[_workingDepth].lineNumber = sourceLineNumber;

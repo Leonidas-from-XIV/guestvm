@@ -135,7 +135,7 @@ public class GUKVmThread extends VmThread {
     }
 
     @Override
-    protected void terminationComplete() {
+    protected void terminationPending() {
         GUKScheduler.detachThread(nativeThread);
     }
 

@@ -39,11 +39,9 @@ import com.sun.max.ve.jdk.JDK_java_io_FileDescriptor;
 import com.sun.max.ve.jdk.JavaIOUtil;
 import com.sun.max.ve.jdk.JavaIOUtil.FdInfo;
 import com.sun.max.vm.actor.member.*;
-import com.sun.max.vm.compiler.builtin.StackAllocate;
 import com.sun.max.vm.object.*;
 import com.sun.max.vm.runtime.*;
 import com.sun.max.unsafe.*;
-import com.sun.max.vm.compiler.builtin.*;
 
 /**
  * Substitutions for  @see sun.nio.ch.IOUtil.

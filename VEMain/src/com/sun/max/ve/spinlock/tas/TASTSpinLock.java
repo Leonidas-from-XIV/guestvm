@@ -23,7 +23,7 @@
 package com.sun.max.ve.spinlock.tas;
 
 import com.sun.max.ve.spinlock.*;
-import com.sun.max.vm.compiler.builtin.*;
+import com.sun.max.vm.Intrinsics;
 
 /**
  * Test and set and test spin lock.
@@ -45,7 +45,7 @@ public class TASTSpinLock extends NPFieldSpinLock {
             }
             while (_lock != 0) {
                 // wait for apparently free until trying to set.
-                SpecialBuiltin.pause();
+                Intrinsics.pause();
             }
         }
     }

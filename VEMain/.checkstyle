@@ -3,10 +3,10 @@
     <local-check-config name="Maxine Checks" location="/Base/checkstyle/maxine_checks.xml" type="project" description="">
         <additional-data name="protect-config-file" value="false"/>
     </local-check-config>
-    <local-check-config name="GuestVM Checks" location="checkstyle/guestvm_checks.xml" type="project" description="">
+    <local-check-config name="Maxine VE Checks" location="checkstyle/maxve_checks.xml" type="project" description="">
         <additional-data name="protect-config-file" value="false"/>
     </local-check-config>
-    <fileset name="all" enabled="true" check-config-name="GuestVM Checks" local="true">
+    <fileset name="all" enabled="true" check-config-name="Maxine VE Checks" local="true">
         <file-match-pattern match-pattern="." include-pattern="true"/>
     </fileset>
     <filter name="NonSrcDirs" enabled="true"/>

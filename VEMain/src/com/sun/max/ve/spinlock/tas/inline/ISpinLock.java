@@ -25,10 +25,10 @@ package com.sun.max.ve.spinlock.tas.inline;
 import com.sun.max.annotate.*;
 import com.sun.max.unsafe.*;
 import com.sun.max.ve.sched.GUKVmThread;
+import com.sun.max.vm.Intrinsics;
 import com.sun.max.vm.actor.holder.ClassActor;
 import com.sun.max.vm.classfile.constant.*;
 import com.sun.max.vm.reference.*;
-import com.sun.max.vm.compiler.builtin.*;
 
 /**
  * This is a variant of the TTAS spinlock in which the fast path is manually inlined.
@@ -83,7 +83,7 @@ public class ISpinLock {
         while (true) {
             while (_lock != 0) {
                 // wait for apparently free until trying to set.
-                SpecialBuiltin.pause();
+                Intrinsics.pause();
             }
             if (canLock()) {
                 return;
