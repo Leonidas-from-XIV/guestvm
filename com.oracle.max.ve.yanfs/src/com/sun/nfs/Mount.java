@@ -63,9 +63,9 @@ public class Mount {
      * Get an NFS v2 or v3 file handle
      *
      * @param server    The NFS server
-     * @param path	The file path on the server
-     * @param vers	The NFS version
-     * @returns 	The filehandle as a byte array
+     * @param path      The file path on the server
+     * @param vers      The NFS version
+     * @returns         The filehandle as a byte array
      */
     byte[] getFH(String server, String path, int vers)
         throws java.net.UnknownHostException, IOException {

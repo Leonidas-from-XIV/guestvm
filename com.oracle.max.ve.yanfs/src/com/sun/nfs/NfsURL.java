@@ -45,9 +45,9 @@ import java.net.MalformedURLException;
  * letters may appear before or after the port
  * number, or alone if the port number is not
  * given.
- *         vn	- NFS version, e.g. "v3"
- *         u	- Force UDP - normally TCP is preferred
- *         t	- Force TDP - don't fall back to UDP
+ *         vn   - NFS version, e.g. "v3"
+ *         u    - Force UDP - normally TCP is preferred
+ *         t    - Force TDP - don't fall back to UDP
  *         m    - Force Mount protocol.  Normally public filehandle
  *                is preferred
  *

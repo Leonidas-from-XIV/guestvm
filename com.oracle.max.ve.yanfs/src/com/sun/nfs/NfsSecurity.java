@@ -64,7 +64,7 @@ public final class NfsSecurity {
     /*
      *  Parse the string value using ":" as the delimiter.
      *
-     *	nfsSecName:mechanismOID:service:qualityProtection
+     *  nfsSecName:mechanismOID:service:qualityProtection
      *
      *  (e.g. dummyp:1.3.6.1.4.1.42.2.26.1.2:privacy:0)
      *
