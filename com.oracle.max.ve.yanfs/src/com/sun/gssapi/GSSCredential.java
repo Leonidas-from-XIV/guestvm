@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 import java.util.Vector;
@@ -36,14 +36,14 @@ import java.util.Enumeration;
 
 
 /**
- * This class manages GSS-API credentials and their associated 
- * operations. A credential contains all the necessary cryptographic 
- * information to enable the creation of a context on behalf of the 
- * entity that it represents. It may contain multiple distinct mechanism 
- * specific credential elements, each containing mechanism specific 
+ * This class manages GSS-API credentials and their associated
+ * operations. A credential contains all the necessary cryptographic
+ * information to enable the creation of a context on behalf of the
+ * entity that it represents. It may contain multiple distinct mechanism
+ * specific credential elements, each containing mechanism specific
  * information, and all referring to the same entity.
  * <p>
- * A credential may be used to perform context initiation, acceptance, 
+ * A credential may be used to perform context initiation, acceptance,
  * or both.
  * <DL><DT><b>RFC 2078</b>
  * <DD>This class represents the credential management GSS-API calls,
@@ -55,14 +55,14 @@ import java.util.Enumeration;
  * The gss_inquire_cred and gss_inquire_cred_by_mech calls have been
  * distributed over several property querying methods each returning
  * specific GSSCredential information.
- *  </DL> 
+ *  </DL>
  */
 public class GSSCredential {
 
     /**
      * Credential usage flag requesting that it be able to be used
      * for both context initiation and acceptance.
-     */      
+     */
     public static final int INITIATE_AND_ACCEPT = 0;
 
 
@@ -86,7 +86,7 @@ public class GSSCredential {
      * @see #getRemainingLifetime
      **/
     public static final int INDEFINITE = Integer.MAX_VALUE;
-  
+
 
     /**
      * Constructor for default credentials.
@@ -102,8 +102,8 @@ public class GSSCredential {
 
         add((GSSName)null, INDEFINITE, INDEFINITE, (Oid)null, usage);
     }
-    
-    
+
+
     /**
      * Constructor for default mechanism credential.
      * Uses default mechanism and INDEFINITE lifetime.
@@ -117,11 +117,11 @@ public class GSSCredential {
      *     BAD_NAME
      **/
     public GSSCredential(GSSName aName, int usage) throws GSSException {
-    
+
         add(aName, INDEFINITE, INDEFINITE, (Oid)null, usage);
     }
-    
-    
+
+
     /**
      * Constructor for a single mechanism credential.
      * null values can be specified for name and mechanism to obtain
@@ -141,10 +141,10 @@ public class GSSCredential {
      **/
     public GSSCredential(GSSName aName, int lifetime, Oid mechOid,
             int usage) throws GSSException {
-        
+
         add(aName, lifetime, lifetime, mechOid, usage);
     }
-    
+
     /**
      * Constructor for a credential over a set of mechanisms.
      * Acquires credentials for each of the mechanisms specified
@@ -168,13 +168,13 @@ public class GSSCredential {
      *    BAD_MECH, and BAD_NAME
      */
     public GSSCredential(GSSName aName, int lifetime, Oid [] mechs,
-	int usage) throws GSSException {
-        
+    int usage) throws GSSException {
+
         for (int i = 0; i < mechs.length; i++)
             add(aName, lifetime, lifetime, mechs[i], usage);
     }
 
- 
+
     /**
      * Package private constructor used to create a credential
      * object using the supplied mechanism credential element.
@@ -182,11 +182,11 @@ public class GSSCredential {
      * @param GSSCredSpi mechanism specific credential object
      */
     GSSCredential(GSSCredSpi mechCred) {
-    
+
         m_mechCreds.addElement(mechCred);
     }
-    
- 
+
+
     /**
      * Used to dispose of any sensitive information that the
      * GSSCredential may be containing.  Should be called as soon
@@ -197,7 +197,7 @@ public class GSSCredential {
      * @exception GSSException with possible major code of FAILURE
      */
     public void dispose() throws GSSException {
-    
+
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements();) {
             ((GSSCredSpi)e.nextElement()).dispose();
         }
@@ -225,11 +225,11 @@ public class GSSCredential {
 
         GSSName aName = new GSSName();
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements(); ) {
-        
+
             aName.addMechName(((GSSCredSpi)e.nextElement()).getName());
         }
-        
-        return (aName);    
+
+        return (aName);
     }
 
     /**
@@ -252,10 +252,10 @@ public class GSSCredential {
         aName.addMechName(getMechCred(mechOID, true).getName());
         return (aName);
     }
-    
-    
+
+
     /**
-     * Obtains the remaining lifetime for a credential. The remaining 
+     * Obtains the remaining lifetime for a credential. The remaining
      * lifetime is the minimum lifetime for any of the credential
      * elements.  Return of 0 indicates the credential is already
      * expired.
@@ -273,10 +273,10 @@ public class GSSCredential {
 
         if (m_mechCreds.size() < 0)
             throw new GSSException(GSSException.NO_CRED);
-            
-        /* find the minimum lifetime */        
+
+        /* find the minimum lifetime */
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements();) {
-        
+
             aCred = (GSSCredSpi)e.nextElement();
             if (aCred.getLifetime() < lifetime)
                 lifetime = aCred.getLifetime();
@@ -298,12 +298,12 @@ public class GSSCredential {
      *    DEFECTIVE_CREDENTIAL, FAILURE and BAD_MECH
      */
     public int getRemainingInitLifetime(Oid mech) throws GSSException {
-    
+
         GSSCredSpi aCred = getMechCred(mech, true);
         return (aCred.getInitLifetime());
     }
 
-  
+
     /**
      * Returns the remaining lifetime in seconds for the credential
      * to remain capable of accepting security context under the
@@ -311,19 +311,19 @@ public class GSSCredential {
      * credential is already expired.
      * <DL><DT><b>RFC 2078</b>
      *     <DD>equivalent to lifetime_accept parameter in
-     *    gss_inquire_cred_by_mech</DL> 
+     *    gss_inquire_cred_by_mech</DL>
      * @param mech Oid for the credential mechanism to be queried
      * @return the remaining acceptance lifetime in seconds
      * @exception GSSException with possible major codes of NO_CRED,
      *    DEFECTIVE_CREDENTIAL, FAILURE and BAD_MECH
      */
     public int getRemainingAcceptLifetime(Oid mech) throws GSSException {
-    
+
         GSSCredSpi aCred = getMechCred(mech, true);
         return (aCred.getAcceptLifetime());
     }
 
-    
+
     /**
      * Retrieve the credential usage flag, which is one of
      * INITIATE_ONLY, ACCEPT_ONLY, INITIATE_AND_ACCEPT.
@@ -335,16 +335,16 @@ public class GSSCredential {
      *   DEFECTIVE_CREDENTIAL, CREDENTIALS_EXPIRED, FAILURE.
      */
     public int getUsage() throws GSSException {
-    
+
         boolean init = false, accept = false;
         GSSCredSpi aCred;
 
         if (m_mechCreds.size() < 0)
             throw new GSSException(GSSException.NO_CRED);
-            
+
         /* find the usage for the credential */
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements();) {
-        
+
             aCred = (GSSCredSpi)e.nextElement();
             if (aCred.getUsage() == GSSCredential.INITIATE_AND_ACCEPT)
                 return (GSSCredential.INITIATE_AND_ACCEPT);
@@ -352,16 +352,16 @@ public class GSSCredential {
                 init = true;
             else if (aCred.getUsage() == GSSCredential.ACCEPT_ONLY)
                 accept = true;
-                
+
             //if both are set, then we are done....
             if (init && accept)
                 return (GSSCredential.INITIATE_AND_ACCEPT);
         }
-        
+
         //can only be a single use credential
         if (init)
             return (GSSCredential.INITIATE_ONLY);
-            
+
         return (GSSCredential.ACCEPT_ONLY);
     }
 
@@ -380,7 +380,7 @@ public class GSSCredential {
      *   DEFECTIVE_CREDENTIAL, CREDENTIALS_EXPIRED, FAILURE.
      */
     public int getUsage(Oid mechOID) throws GSSException {
-    
+
         GSSCredSpi aCred = getMechCred(mechOID, true);
         return (aCred.getUsage());
     }
@@ -403,13 +403,13 @@ public class GSSCredential {
 
         if (m_mechCreds.size() < 1)
             throw new GSSException(GSSException.NO_CRED);
-                    
+
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements();)
             oids[i++] = ((GSSCredSpi)e.nextElement()).getMechanism();
-            
+
         return (oids);
     }
-  
+
 
     /**
      * This method enables the construction of credentials one
@@ -435,23 +435,23 @@ public class GSSCredential {
      * @exception GSSException with possible major codes of
      *    DUPLICATE_ELEMENT, BAD_MECH, BAD_NAME, BAD_NAME, NO_CRED,
      *    or FAILURE.
-     */  
+     */
     public synchronized void add(GSSName aName, int initLifetime,
         int acceptLifetime, Oid mech, int usage) throws GSSException {
-        
+
         if (mech == null)
             mech = GSSManager.getDefaultMech();
 
         //check if this cred already exists
         if (getMechCred(mech, false) != null)
             throw new GSSException(GSSException.DUPLICATE_ELEMENT);
-        
+
         //ok, go ahead create new one.......
         GSSCredSpi newCred = GSSManager.getCredInstance(mech);
-        
+
         newCred.init(aName.canonicalizeInPlace(mech), initLifetime,
                 acceptLifetime, usage);
-        
+
         //mechanism credential created successfully, so add
         m_mechCreds.addElement(newCred);
     }
@@ -465,57 +465,59 @@ public class GSSCredential {
      *    entity; false otherwise.
      * @override java.lang.Object#equals
      */
-    public boolean equals(Object another) {
-    
+    @Override
+     public boolean equals(Object another) {
+
         if ( !(another instanceof GSSCredential))
-	    return (false);
-            
+        return (false);
+
         GSSCredential aCred = (GSSCredential)another;
-        
+
         if (aCred.m_mechCreds.size() != m_mechCreds.size())
             return (false);
 
         GSSCredSpi intCred, anotherIntCred;
 
-        try {                                        
+        try {
             for (Enumeration e = m_mechCreds.elements();
                 e.hasMoreElements();) {
-            
+
                 intCred = (GSSCredSpi)e.nextElement();
                 anotherIntCred = aCred.getMechCred(
                     intCred.getMechanism(), false);
                 if (anotherIntCred == null)
                     return (false);
-                
+
                 //ask internal creds to compare themselves
                 if (intCred.equals(anotherIntCred) == false)
                     return (false);
-            
+
             }
         } catch (GSSException e) {
             return (false);
         }
-        
+
         //all internal creds are equal, so we are equal too...
         return (true);
     }
-    
+
 
     /**
      * Debugging aid. Returns string with information about
      * this credential object.
      */
+    @Override
     public String toString() {
-        
+
         StringBuffer sb = new StringBuffer(150);
-        
+
         sb.append(super.toString());
         sb.append("\nOver mechs:\t");
         try {
             Oid [] mechs = getMechs();
             for (int i = 0; i < mechs.length; i++)
                 sb.append(mechs[i].toString() + " ");
-            
+
             sb.append("\nFor principal:\t" + getGSSName().toString());
             sb.append("\nUsage:\t" + getUsage());
             if (getUsage() == ACCEPT_ONLY)
@@ -524,17 +526,17 @@ public class GSSCredential {
                 sb.append(" (INITIATE_ONLY)");
             else
                 sb.append(" (INITIATE and ACCEPT)");
-            
+
             sb.append("\nRemaining Lifetime:\t" + getRemainingLifetime());
-            
+
         } catch (GSSException e) {
             sb.append("\n***ERROR getting info:\t" + e.toString());
         }
-        
+
         return (sb.toString());
     }
-    
-    
+
+
     /**
      * Returns the specified mechanism's credential-element.
      *
@@ -547,21 +549,21 @@ public class GSSCredential {
      */
     GSSCredSpi getMechCred(Oid mechOid, boolean throwExcep)
         throws GSSException {
-    
+
         for (Enumeration e = m_mechCreds.elements(); e.hasMoreElements();) {
-        
+
             GSSCredSpi aCred = (GSSCredSpi)e.nextElement();
             if (aCred.getMechanism().equals(mechOid))
                 return (aCred);
         }
-        
+
         /* not found */
         if (throwExcep == true)
             throw new GSSException(GSSException.BAD_MECH);
         else
             return (null);
     }
-        
+
 
     /* private instance variables */
     Vector m_mechCreds = new Vector(3, 3);

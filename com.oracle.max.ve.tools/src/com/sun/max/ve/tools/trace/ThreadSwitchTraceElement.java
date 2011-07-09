@@ -66,6 +66,7 @@ public class ThreadSwitchTraceElement extends TraceElement {
         return _absTimestamp - _schedStartTime;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + _fromId + " " + _toId + " " + _runningTime + " " + _schedStartTime;
     }

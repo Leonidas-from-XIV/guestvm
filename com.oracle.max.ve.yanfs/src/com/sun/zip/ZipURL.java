@@ -92,6 +92,7 @@ public class ZipURL {
         return (path);
     }
 
+    @Override
     public String toString() {
         String s = getProtocol() + ":";
 

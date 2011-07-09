@@ -185,7 +185,7 @@ public abstract class Nfs {
      * Get FileHandle for Nfs Object
      */
     byte[] getFH() {
-	return (fh);
+    return (fh);
     }
 
     /*
@@ -214,9 +214,9 @@ public abstract class Nfs {
      * @param n	the object to be removed from cache
      */
     static void cache_remove(Nfs n, String name) {
-	if (n.name.equals("."))
-       	    cacheNfs.remove(n.rpc.conn.server + ":" + name);
-	else
+    if (n.name.equals("."))
+               cacheNfs.remove(n.rpc.conn.server + ":" + name);
+    else
             cacheNfs.remove(n.rpc.conn.server + ":" + n.name + "/" + name);
     }
 
@@ -235,8 +235,8 @@ public abstract class Nfs {
 
         Buffer b = null;
         int index;
-	int readAhead = 0;
-	int bytesRead = 0;
+    int readAhead = 0;
+    int bytesRead = 0;
 
         /*
          * If the file modification time has changed since
@@ -250,22 +250,22 @@ public abstract class Nfs {
             prevReadIndex = -1;
         }
 
-	/*
-	 * Check whether we're at EOF
-	 */
-	if (foffset >= length())
-	    return -1;
+    /*
+     * Check whether we're at EOF
+     */
+    if (foffset >= length())
+        return -1;
 
-	/*
-	 * Keep reading until the read request is satisfied.
- 	 */
+    /*
+     * Keep reading until the read request is satisfied.
+      */
         while (length > 0) {
 
-	    /*
-	     * Check whether we're at EOF
-	     */
-	    if (foffset >= length())
-		break;
+        /*
+         * Check whether we're at EOF
+         */
+        if (foffset >= length())
+        break;
 
             /*
              * Make sure an array of buffers exists that's big enough
@@ -274,43 +274,43 @@ public abstract class Nfs {
             if (bufferList == null)
                 bufferList = new Buffer[(int) length() / rsize + 1];
 
-	    /*
-	     * Find the block that holds the data
-	     */
+        /*
+         * Find the block that holds the data
+         */
             index = (int) foffset / rsize;
             if (index > maxIndexRead)
                 maxIndexRead = index;
 
-	    /*
-	     * Make sure that previously read buffers are
-	     * released.  If not, then reading a large file
-	     * would quickly run the app out of memory, though
+        /*
+         * Make sure that previously read buffers are
+         * released.  If not, then reading a large file
+         * would quickly run the app out of memory, though
              * must be careful not to release in-use write buffers.
              * XXX We should find a way to make better use of
-	     * available memory and keep file buffers cached.
-	     */
+         * available memory and keep file buffers cached.
+         */
             if (index != prevReadIndex) {
-		if (prevReadIndex >= 0 && prevReadIndex != prevWriteIndex) {
+        if (prevReadIndex >= 0 && prevReadIndex != prevWriteIndex) {
                     b = bufferList[prevReadIndex];
                     if (b.status == b.LOADED) {
                         bufferList[prevReadIndex] = null;
                         b.exit();
                     }
 
-		    /*
-		     * Do read-ahead only for sequential I/O
-		     */
-		    if (index == (prevReadIndex + 1) && index >= maxIndexRead)
-			readAhead = NRA;
-		}
-		prevReadIndex = index;
-	    }
+            /*
+             * Do read-ahead only for sequential I/O
+             */
+            if (index == (prevReadIndex + 1) && index >= maxIndexRead)
+            readAhead = NRA;
+        }
+        prevReadIndex = index;
+        }
 
             /*
              * Make sure that the buffer is
              * are loaded or loading - as well as
              * any buffers that will likely be needed
-	     * i.e. read-ahead buffers.
+         * i.e. read-ahead buffers.
              */
             for (int n = index; n <= index + readAhead; n++) {
 
@@ -334,7 +334,7 @@ public abstract class Nfs {
             } catch (NfsException n) {
                 /*
                  * Check if it's a bogus "EBADRPC"
-		 * error from a Digital Unix server.
+         * error from a Digital Unix server.
                  * It implies that the read was too
                  * long.  The server should just return
                  * a short read - but until they fix it
@@ -359,7 +359,7 @@ public abstract class Nfs {
              */
             int bufflen = b.buflen;
             if (bufflen < rsize && !b.eof) {
-		rsize = bufflen;
+        rsize = bufflen;
                 bufferList = null;
                 prevReadIndex  = -1;
                 prevWriteIndex = -1;
@@ -367,15 +367,15 @@ public abstract class Nfs {
                 continue;	// Try again with new rsize
             }
 
-	    /*
-	     * Copy data from the file buffer into the application buffer.
-	     */
+        /*
+         * Copy data from the file buffer into the application buffer.
+         */
             int cc = b.copyFrom(buf, boff, foffset, length);
 
             boff += cc;
             foffset += cc;
             length -= cc;
-	    bytesRead += cc;
+        bytesRead += cc;
         }
 
         return (bytesRead);
@@ -418,7 +418,7 @@ public abstract class Nfs {
      * @exception	java.io.IOException
      */
     public synchronized void write(byte buf[], int boff, int length, long foffset)
-	throws IOException {
+    throws IOException {
 
         /*
          * If the write size is not set then call FSINFO
@@ -451,17 +451,17 @@ public abstract class Nfs {
          * until the write request is satisfied.  If the write
          * is a short one into an existing buffer then no data
          * will be written at all.  This is good, it's much more
-	 * efficient to write larger amounts of data to the server.
+     * efficient to write larger amounts of data to the server.
          *
          * We get further improvement in write throughput by writing
-	 * buffers asynchronously in a buffer thread.  This allows the
-	 * application to continue filling a new buffer while previous
-	 * buffers are written.
-	 *
-	 * This method takes advantage of the ability of NFS version 3
-	 * to perform safe, asynchronous writes which significantly
-	 * increase write throughput.
-	 */
+     * buffers asynchronously in a buffer thread.  This allows the
+     * application to continue filling a new buffer while previous
+     * buffers are written.
+     *
+     * This method takes advantage of the ability of NFS version 3
+     * to perform safe, asynchronous writes which significantly
+     * increase write throughput.
+     */
         while (length > 0) {
 
             int index = (int) foffset / wsize;
@@ -501,22 +501,22 @@ public abstract class Nfs {
                 bufferList[index] = b;
             }
 
-	    /*
-	     * Copy data from the application buffer to the file buffer.
-	     */
+        /*
+         * Copy data from the application buffer to the file buffer.
+         */
             int cc = b.copyTo(buf, boff, foffset, length);
 
             boff += cc;
             foffset += cc;
             length -= cc;
 
-	    /*
-	     * Need to record max file offset here in case
-	     * the app calls length() before the data has
-	     * been written out and recorded in the file attrs.
-	     */
-	    if (foffset > maxLength)
-		maxLength = foffset;
+        /*
+         * Need to record max file offset here in case
+         * the app calls length() before the data has
+         * been written out and recorded in the file attrs.
+         */
+        if (foffset > maxLength)
+        maxLength = foffset;
 
         } // end while
     }
@@ -587,7 +587,7 @@ public abstract class Nfs {
          */
         if (flushing) {
             Buffer b = bufferList[prevWriteIndex];
-	    if (b != null) {
+        if (b != null) {
                 if (b.status == b.DIRTY) {
                     if (nwc == 0) {		// just one - do it sync
                         b.startUnload(SYNC);
@@ -596,7 +596,7 @@ public abstract class Nfs {
                         b.startUnload(ASYNC);
                         b.waitUnloaded();
 
-    		        // Record the commit range
+                    // Record the commit range
 
                         if (prevWriteIndex < minIndex)
                             minIndex = prevWriteIndex;
@@ -604,7 +604,7 @@ public abstract class Nfs {
                             maxIndex = prevWriteIndex;
                     }
                 }
-	    }
+        }
         }
 
         /*
@@ -655,14 +655,14 @@ public abstract class Nfs {
                         b.exit();
                     } else {
 
-			/*
-			 * Have to rewrite.
-			 *
-			 * If flushing then do sync-writes because
-			 * we can't return until the data are safe.
-			 * Otherwise, we just fire off another async
-			 * write and have it committed later.
-			 */
+            /*
+             * Have to rewrite.
+             *
+             * If flushing then do sync-writes because
+             * we can't return until the data are safe.
+             * Otherwise, we just fire off another async
+             * write and have it committed later.
+             */
                         if (flushing) {
                             b.startUnload(SYNC);
                             b.waitUnloaded();
@@ -716,37 +716,39 @@ public abstract class Nfs {
      * Make sure that pending writes are flushed if the app
      * neglected to call flush().
      */
+    @Override
     protected void finalize() throws Throwable {
         close();
         super.finalize();
     }
 
+    @Override
     public String toString() {
 
-	try {
-	    if (isSymlink()) {
-	        if (symlink != null)
-	            return "\"" + name + "\": symlink -> \"" + symlink + "\"";
-		else
-		    return "\"" + name + "\": symlink";
+    try {
+        if (isSymlink()) {
+            if (symlink != null)
+                return "\"" + name + "\": symlink -> \"" + symlink + "\"";
+        else
+            return "\"" + name + "\": symlink";
 
-	    }
+        }
 
-	    if (isDirectory()) {
-	        String s = "\":" + name + "\" directory";
+        if (isDirectory()) {
+            String s = "\":" + name + "\" directory";
 
-	        if (dircache != null)
-		    return s + "(" + dircache.length + " entries)";
-	        else
-		    return s;
-	    }
+            if (dircache != null)
+            return s + "(" + dircache.length + " entries)";
+            else
+            return s;
+        }
 
-	    // Must be a regular file
+        // Must be a regular file
 
-	    return "\"" + name + "\": file (" + length() + " bytes)";
+        return "\"" + name + "\": file (" + length() + " bytes)";
 
-	} catch (IOException e) {
-	    return e.getMessage();
-	}
+    } catch (IOException e) {
+        return e.getMessage();
+    }
     }
 }

@@ -75,6 +75,7 @@ public class SpinLockPETest {
 
     static class Looper extends Thread {
 
+        @Override
         public void run() {
             // wait for spinner to start;
             while (!_spinnerRunning) {
@@ -91,6 +92,7 @@ public class SpinLockPETest {
     }
 
     static class Spinner extends Thread {
+        @Override
         public void run() {
             final long start = System.currentTimeMillis();
             long now = start;

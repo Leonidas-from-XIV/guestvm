@@ -31,7 +31,7 @@
 
 package com.sun.gssapi;
 
- 
+
 /**
  * This class represents a mechanism specific name element. One or
  * more instances of this class are contained in an instance of
@@ -52,8 +52,8 @@ public interface GSSNameSpi {
      * @see #init(String,Oid)
      */
     public void init(byte[] externalName, Oid nameType) throws GSSException;
-    
- 
+
+
     /**
      * Initializer for the GSSNameSpi object using a String.
      *
@@ -65,7 +65,7 @@ public interface GSSNameSpi {
      * @see #init(String,Oid)
      */
     public void init(String name, Oid nameType) throws GSSException;
-    
+
 
     /**
      * Equal method for the GSSNameSpi objects.
@@ -78,7 +78,7 @@ public interface GSSNameSpi {
      *    BAD_NAME, FAILURE
      */
     public boolean equals(GSSNameSpi name) throws GSSException;
-  
+
 
     /**
      * Returns a flat name representation for this object. The name
@@ -86,7 +86,7 @@ public interface GSSNameSpi {
      *
      * @return the flat name representation for this object
      * @exception GSSException with major codes NAME_NOT_MN, BAD_NAME,
-     *    BAD_NAME, FAILURE.   
+     *    BAD_NAME, FAILURE.
      */
     public byte[] export() throws GSSException;
 
@@ -116,7 +116,7 @@ public interface GSSNameSpi {
      * @overrides Object#toString
      */
     public String toString();
-    
+
 
     /**
      * Returns the oid describing the format of the printable name.
@@ -124,14 +124,14 @@ public interface GSSNameSpi {
      * @return the Oid for the format of the printed name
      */
     public Oid getStringNameType();
-  
-  
+
+
     /**
      * Produces a copy of this object.
-     */ 
+     */
     public Object clone();
-    
-    
+
+
     /**
      * Indicates if this name object represents an Anonymous name.
      */

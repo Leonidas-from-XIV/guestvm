@@ -72,6 +72,7 @@ public class ConnectDatagram extends Connection {
         start();
     }
 
+    @Override
     void sendOne(Xdr x) throws IOException {
 
         /*
@@ -84,17 +85,19 @@ public class ConnectDatagram extends Connection {
          * The blocking problem appears to be fixed as
          * of JDK 1.1.6, so the interrupt is skipped removed.
          */
-	//interrupt();
+    //interrupt();
 
         ds.send(new DatagramPacket(x.xdr_buf(), x.xdr_offset(), addr, port));
     }
 
+    @Override
     void receiveOne(Xdr x, int timeout) throws IOException {
         ds.setSoTimeout(timeout);
         dp = new DatagramPacket(x.xdr_buf(), x.xdr_buf().length);
         ds.receive(dp);
     }
 
+    @Override
     InetAddress getPeer() {
         return dp.getAddress();
     }
@@ -102,15 +105,18 @@ public class ConnectDatagram extends Connection {
     /*
      * No connection to drop.
      */
+    @Override
     void dropConnection() {
     }
 
     /*
      * No connection to check
      */
+    @Override
     void checkConnection() {
     }
 
+    @Override
     protected void finalize() throws Throwable {
         if (ds != null) {
             ds.close();

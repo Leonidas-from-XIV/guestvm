@@ -67,7 +67,7 @@ public class ConnectSocket extends Connection {
     public ConnectSocket (String server, int port, int maxSize)
         throws IOException {
 
-	super(server, port, "tcp", maxSize);
+    super(server, port, "tcp", maxSize);
         doConnect();
         start();	// the listener
     }
@@ -80,8 +80,8 @@ public class ConnectSocket extends Connection {
 
         sock = new Socket(server, port);
         sock.setTcpNoDelay(true);
-    	ins = sock.getInputStream();
-    	outs = sock.getOutputStream();
+        ins = sock.getInputStream();
+        outs = sock.getOutputStream();
     }
 
     private void doClose() throws IOException {
@@ -101,10 +101,11 @@ public class ConnectSocket extends Connection {
         }
     }
 
+    @Override
     void sendOne(Xdr x) throws IOException {
         int recsize;
         int lastbit = 0;
-	int bufsiz = x.xdr_offset();
+    int bufsiz = x.xdr_offset();
         int save;
 
         /*
@@ -156,7 +157,7 @@ public class ConnectSocket extends Connection {
                 save = x.xdr_int();
                 x.xdr_offset(off-4);
                 x.xdr_int(lastbit | recsize);
-    
+
                 /*
                  * then send the record data
                  */
@@ -169,6 +170,7 @@ public class ConnectSocket extends Connection {
         }
     }
 
+    @Override
     void receiveOne(Xdr x, int timeout) throws IOException {
         int off;
         int rcount;
@@ -188,12 +190,12 @@ public class ConnectSocket extends Connection {
                 recsize = rcv_mark.xdr_u_int();
                 lastfrag = (recsize & LAST_FRAG) != 0;
                 recsize &= SIZE_MASK;
-        
+
                 /*
                  * then read the record data
                  */
                 for (int i = 0; i < recsize; i += rcount) {
-        	        rcount = ins.read(x.xdr_buf(), off + i, (int) recsize - i);
+                    rcount = ins.read(x.xdr_buf(), off + i, (int) recsize - i);
                         if (rcount < 0)
                             throw new IOException("TCP data: lost connection");
                 }
@@ -217,6 +219,7 @@ public class ConnectSocket extends Connection {
      * This is needed when we get a reply from
      * and RPC to a broadcast address.
      */
+    @Override
     InetAddress getPeer() {
         return sock.getInetAddress();
     }
@@ -242,9 +245,9 @@ public class ConnectSocket extends Connection {
                     doClose();	// make sure we're at a known state
                     doConnect();
                     break;		// success
-    
+
                 } catch (IOException e) {
-    
+
                     /*
                      * Wait here for 5 sec so's we don't
                      * overwhelm the server with connection requests.
@@ -264,6 +267,7 @@ public class ConnectSocket extends Connection {
      * The listener calls this after an idle timeout.
      * Be kind to the server and drop the connection.
      */
+    @Override
     void dropConnection() {
         try {
             doClose();
@@ -274,13 +278,15 @@ public class ConnectSocket extends Connection {
      * Check to make sure that the connection is up.
      * If not, then reconnect and resume the listener.
      */
+    @Override
     void checkConnection() {
         if (sock != null)
             return;
-       
+
         reconnect();
     }
 
+    @Override
     protected void finalize() throws Throwable {
         doClose();
         super.finalize();

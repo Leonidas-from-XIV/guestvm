@@ -78,6 +78,7 @@ public class Ext2Entry extends AbstractFSEntry {
         return iNode.getCtime();
     }
 
+    @Override
     public long getLastModified() throws IOException {
         return iNode.getMtime();
     }
@@ -90,6 +91,7 @@ public class Ext2Entry extends AbstractFSEntry {
         iNode.setCtime(lastChanged);
     }
 
+    @Override
     public void setLastModified(long lastModified) throws IOException {
         iNode.setMtime(lastModified);
     }

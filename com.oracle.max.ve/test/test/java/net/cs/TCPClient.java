@@ -36,6 +36,7 @@ public class TCPClient extends ClientThread {
     private InputStream _in;
     int _id;
 
+    @Override
     public void run() {
         super.run();
         try {
@@ -57,6 +58,7 @@ public class TCPClient extends ClientThread {
         }
     }
 
+    @Override
     protected void doSend(byte[] data) throws IOException {
         verbose("writing " + data.length + " bytes");
         final int v = data.length;

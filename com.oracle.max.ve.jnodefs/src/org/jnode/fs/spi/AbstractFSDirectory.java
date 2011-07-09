@@ -221,6 +221,7 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
      * @return if this directory is dirty
      * @throws IOException
      */
+    @Override
     public final boolean isDirty() throws IOException {
         if (super.isDirty()) {
             return true;
@@ -372,6 +373,7 @@ public abstract class AbstractFSDirectory extends AbstractFSObject implements FS
     /**
      * @return a string representation of this instance.
      */
+    @Override
     public String toString() {
         return entries.toString();
     }

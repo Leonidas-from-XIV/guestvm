@@ -35,6 +35,7 @@ public class SetTimerTraceElement extends TraceElement {
         return _time;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + _time;
     }

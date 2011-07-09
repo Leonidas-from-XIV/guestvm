@@ -98,6 +98,7 @@ public class AllocPagesTraceElement extends AllocTraceElement {
         return _hwmAllocPage;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + _pages + " " + _memType.ordinal();
     }

@@ -45,56 +45,56 @@ import com.sun.gssapi.GSSException;
 
 public final class Dummy extends Provider {
 
-	private static String info = "JGSS Dummy Mechanism Provider";
-	
-	public Dummy() {
+    private static String info = "JGSS Dummy Mechanism Provider";
 
-		super("JGSS Dummy Provider 1", 1.0, info);
+    public Dummy() {
 
-
-		//list mechs supported
-		put("JGSS.Mechs", "1.3.6.1.4.1.42.2.26.1.2");
-
-		//configure 1.3.6.1.4.1.42.2.26.1.2
-		put("JGSS.Mech.1.3.6.1.4.1.42.2.26.1.2.Alias", "dummy");
-		put("JGSS.Mech.dummy._K872D1AC", "1.3.6.1.5.6.2:1.2.840.113554.1.2.1.1");
-		put("JGSS.Mech.dummy._K2102CC5", "com.sun.gssapi.dummy.DummyCred");
-		put("JGSS.Mech.dummy._K1000A49", "com.sun.gssapi.dummy.DummyCtxt");
-		put("JGSS.Mech.dummy._K532D1BD", "com.sun.gssapi.dummy.DummyName");
+        super("JGSS Dummy Provider 1", 1.0, info);
 
 
-	}
+        //list mechs supported
+        put("JGSS.Mechs", "1.3.6.1.4.1.42.2.26.1.2");
+
+        //configure 1.3.6.1.4.1.42.2.26.1.2
+        put("JGSS.Mech.1.3.6.1.4.1.42.2.26.1.2.Alias", "dummy");
+        put("JGSS.Mech.dummy._K872D1AC", "1.3.6.1.5.6.2:1.2.840.113554.1.2.1.1");
+        put("JGSS.Mech.dummy._K2102CC5", "com.sun.gssapi.dummy.DummyCred");
+        put("JGSS.Mech.dummy._K1000A49", "com.sun.gssapi.dummy.DummyCtxt");
+        put("JGSS.Mech.dummy._K532D1BD", "com.sun.gssapi.dummy.DummyName");
 
 
-	/**
-	 * Package private method to return the oid of this mech.
-	 */
-	static Oid getMyOid() {
-
-		return (M_myOid);
-	}
+    }
 
 
-	/**
-	 * Package private method to return the number of tokens
-	 * to be used in the context creation exchange.
-	 */
-	static int getNumOfTokExchanges() {
+    /**
+     * Package private method to return the oid of this mech.
+     */
+    static Oid getMyOid() {
 
-		return (M_tokNum);
-	}
-
-	
-	//private variables
-	private static Oid M_myOid;
-	private static final int M_tokNum = 2;
+        return (M_myOid);
+    }
 
 
-	static {
-		try {
+    /**
+     * Package private method to return the number of tokens
+     * to be used in the context creation exchange.
+     */
+    static int getNumOfTokExchanges() {
+
+        return (M_tokNum);
+    }
+
+
+    //private variables
+    private static Oid M_myOid;
+    private static final int M_tokNum = 2;
+
+
+    static {
+        try {
                         M_myOid = new Oid("1.3.6.1.4.1.42.2.26.1.2");
-		} catch (GSSException e) {
+        } catch (GSSException e) {
                         throw new NumberFormatException();
-		}
-	}
+        }
+    }
 }

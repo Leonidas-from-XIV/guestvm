@@ -54,6 +54,7 @@ public class ThreadContend {
         }
         final Timer timer = new Timer(true);
         timer.schedule(new TimerTask() {
+            @Override
             public void run() {
                 _done = true;
             }
@@ -70,6 +71,7 @@ public class ThreadContend {
     }
 
     static class Contender extends Thread {
+        @Override
         public void run() {
             while (!_done) {
                 synchronized (_lock) {

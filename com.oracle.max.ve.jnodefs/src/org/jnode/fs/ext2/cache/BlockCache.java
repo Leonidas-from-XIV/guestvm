@@ -257,6 +257,7 @@ public final class BlockCache {
             freeBuffers = bitMapSize;
         }
         
+        @Override
         ByteBuffer allocateBuffer(int nBlocks) {
             int aBlocks;   // number actually allocated
             int b = 0;       // when >= 0 slot in buffer array/slice list
@@ -299,6 +300,7 @@ public final class BlockCache {
             return result;
         }
         
+        @Override
         void recycleBuffer(ByteBuffer buffer) {
             for (int i = 0; i < bitMapSize; i++) {
                 if (buffers[i] == buffer) {
@@ -315,6 +317,7 @@ public final class BlockCache {
             assert false;
         }
         
+        @Override
         int freeBuffers() {
             return freeBuffers;
         }
@@ -435,10 +438,12 @@ public final class BlockCache {
         }
         
         
+        @Override
         public void flush() {
             throw new IllegalStateException("MultiBlock.flush should never be called");
         }
         
+        @Override
         public void setBuffer(ByteBuffer data) {
             throw new IllegalStateException("MultiBlock.setBuffer should never be called");
         }

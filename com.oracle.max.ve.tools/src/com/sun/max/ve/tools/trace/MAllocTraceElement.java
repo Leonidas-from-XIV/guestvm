@@ -42,6 +42,7 @@ public class MAllocTraceElement extends AllocTraceElement {
         return _adjSize;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + _size + " " + _adjSize;
     }

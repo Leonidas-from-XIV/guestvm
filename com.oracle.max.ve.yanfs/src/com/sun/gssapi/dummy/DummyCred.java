@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi.dummy;
 
 import com.sun.gssapi.*;
@@ -38,182 +38,182 @@ import com.sun.gssapi.*;
  */
 public class DummyCred implements GSSCredSpi {
 
-	
-	/**
-	 * Standard constructor.
-	 */
-	public DummyCred() {
-		m_freed = false;
-	}
+
+    /**
+     * Standard constructor.
+     */
+    public DummyCred() {
+        m_freed = false;
+    }
 
 
-	/**
-	 * Initialization entry point.
-	 *
-	 * @param name of the credential entity; can be null
-	 *	meaning a system default
-	 * @param Desired lifetime for the credential's ability
-	 *	to initialize contexts; 0 means use default
-	 * @param Desired lifetime for the credential's ability
-	 *	to accept contexts; 0 means default
-	 * @param Credential usage flag.
-	 * @exception GSSException may be thrown
-	 */
-	public void init(GSSNameSpi aName, int initLifetime,
-			int acceptLifetime, int usage) throws GSSException {
+    /**
+     * Initialization entry point.
+     *
+     * @param name of the credential entity; can be null
+     *	meaning a system default
+     * @param Desired lifetime for the credential's ability
+     *	to initialize contexts; 0 means use default
+     * @param Desired lifetime for the credential's ability
+     *	to accept contexts; 0 means default
+     * @param Credential usage flag.
+     * @exception GSSException may be thrown
+     */
+    public void init(GSSNameSpi aName, int initLifetime,
+            int acceptLifetime, int usage) throws GSSException {
 
-		//set the name
-		if (aName == null)
-			m_myName = DummyName.getDefault();
-		else {
-			//must be a dummy name
-			if (!(aName instanceof DummyName))
-				throw new GSSException(GSSException.BAD_NAME);
+        //set the name
+        if (aName == null)
+            m_myName = DummyName.getDefault();
+        else {
+            //must be a dummy name
+            if (!(aName instanceof DummyName))
+                throw new GSSException(GSSException.BAD_NAME);
 
-			m_myName = (DummyName)aName;
-		}
+            m_myName = (DummyName)aName;
+        }
 
-		//get my lifetime
-		if (initLifetime == 0)
-			m_initLifetime = GSSCredential.INDEFINITE;
-		else
-			m_initLifetime = initLifetime;
+        //get my lifetime
+        if (initLifetime == 0)
+            m_initLifetime = GSSCredential.INDEFINITE;
+        else
+            m_initLifetime = initLifetime;
 
-		if (acceptLifetime == 0)
-			m_acceptLifetime = GSSCredential.INDEFINITE;
-		else
-			m_acceptLifetime = acceptLifetime;
-		
-
-		m_usage = usage;
-		m_freed = false;
-	}
-  
-
-	/**
-	 * Release this mechanism specific credential element.
-	 *
-	 * @exception GSSException with major codes NO_CRED and FAILURE.
-	 */
-	public void dispose() throws GSSException {
-
-		m_freed = true;
-		m_myName = null;
-	}
+        if (acceptLifetime == 0)
+            m_acceptLifetime = GSSCredential.INDEFINITE;
+        else
+            m_acceptLifetime = acceptLifetime;
 
 
-	/**
-	 * Returns the name for the credential.
-	 *
-	 * @exception GSSException may be thrown
-	 */
-	public GSSNameSpi getName() throws GSSException {
-
-		//some debugging code
-       		if (m_freed)
-			throw new GSSException(GSSException.NO_CRED);
-
-		return (m_myName);
-	}
+        m_usage = usage;
+        m_freed = false;
+    }
 
 
-	/**
-	 * Returns the remaining context initialization lifetime in
-	 * seconds.
-	 *
-	 * @exception GSSException may be thrown
-	 */
-	public int getInitLifetime() throws GSSException {
+    /**
+     * Release this mechanism specific credential element.
+     *
+     * @exception GSSException with major codes NO_CRED and FAILURE.
+     */
+    public void dispose() throws GSSException {
 
-     		//check if this is valid
-       		if (m_freed)
-			throw new GSSException(GSSException.NO_CRED);
-		
-		//return time based on usage
-		if (getUsage() == GSSCredential.ACCEPT_ONLY)
-			return (0);
-		
-		return (m_initLifetime);
-	}
+        m_freed = true;
+        m_myName = null;
+    }
 
-       	/**
-	 * Returns the remaining context acceptance lifetime in
-	 * seconds.
-	 *
-	 * @exception GSSException may be thrown
-	 */
 
-	public int getAcceptLifetime() throws GSSException {
+    /**
+     * Returns the name for the credential.
+     *
+     * @exception GSSException may be thrown
+     */
+    public GSSNameSpi getName() throws GSSException {
 
-		//sanity check
-       		if (m_freed)
-			throw new GSSException(GSSException.NO_CRED);
+        //some debugging code
+               if (m_freed)
+            throw new GSSException(GSSException.NO_CRED);
 
-		//take usage into account
-		if (getUsage() == GSSCredential.INITIATE_ONLY)
-			return (0);
-		
-		return (m_acceptLifetime);
-	}
+        return (m_myName);
+    }
+
+
+    /**
+     * Returns the remaining context initialization lifetime in
+     * seconds.
+     *
+     * @exception GSSException may be thrown
+     */
+    public int getInitLifetime() throws GSSException {
+
+             //check if this is valid
+               if (m_freed)
+            throw new GSSException(GSSException.NO_CRED);
+
+        //return time based on usage
+        if (getUsage() == GSSCredential.ACCEPT_ONLY)
+            return (0);
+
+        return (m_initLifetime);
+    }
+
+           /**
+     * Returns the remaining context acceptance lifetime in
+     * seconds.
+     *
+     * @exception GSSException may be thrown
+     */
+
+    public int getAcceptLifetime() throws GSSException {
+
+        //sanity check
+               if (m_freed)
+            throw new GSSException(GSSException.NO_CRED);
+
+        //take usage into account
+        if (getUsage() == GSSCredential.INITIATE_ONLY)
+            return (0);
+
+        return (m_acceptLifetime);
+    }
 
 
         /**
-	 * Returns the remaining context lifetime in
-	 * seconds. This takes into account the usage property and
-	 * returns the minimum remaining.
-	 *
-	 * @exception GSSException may be thrown
-	 */
+     * Returns the remaining context lifetime in
+     * seconds. This takes into account the usage property and
+     * returns the minimum remaining.
+     *
+     * @exception GSSException may be thrown
+     */
 
-	public int getLifetime() throws GSSException {
+    public int getLifetime() throws GSSException {
 
-		//sanity check
-       		if (m_freed)
-			throw new GSSException(GSSException.NO_CRED);
+        //sanity check
+               if (m_freed)
+            throw new GSSException(GSSException.NO_CRED);
 
-		//take usage into account, return minimum remaining time
-		if (getUsage() == GSSCredential.ACCEPT_ONLY)
-			return (m_acceptLifetime);
-		else if (getUsage() == GSSCredential.INITIATE_ONLY)
-			return (m_initLifetime);
+        //take usage into account, return minimum remaining time
+        if (getUsage() == GSSCredential.ACCEPT_ONLY)
+            return (m_acceptLifetime);
+        else if (getUsage() == GSSCredential.INITIATE_ONLY)
+            return (m_initLifetime);
 
-		if (m_initLifetime < m_acceptLifetime)
-			return (m_initLifetime);
+        if (m_initLifetime < m_acceptLifetime)
+            return (m_initLifetime);
 
-		return (m_acceptLifetime);
-	}
-
-
-      	/**
-	 * Returns the credential usage flag.
-	 *
-	 * @exception GSSException may be thrown
-	 */
-
-	public int getUsage() throws GSSException {
-
-		//sanity check
-       		if (m_freed)
-			throw new GSSException(GSSException.NO_CRED);
-
-		return (m_usage);
-	}
-
-	/**
-	 * Returns the credential mechanism. Since this is a single
-	 * credential element only a single oid can be returned.
-	 */
-	public Oid getMechanism() {
-
-		return (Dummy.getMyOid());
-	}
+        return (m_acceptLifetime);
+    }
 
 
-	//instance variables
-	private DummyName m_myName;
-	private int m_usage;
+          /**
+     * Returns the credential usage flag.
+     *
+     * @exception GSSException may be thrown
+     */
+
+    public int getUsage() throws GSSException {
+
+        //sanity check
+               if (m_freed)
+            throw new GSSException(GSSException.NO_CRED);
+
+        return (m_usage);
+    }
+
+    /**
+     * Returns the credential mechanism. Since this is a single
+     * credential element only a single oid can be returned.
+     */
+    public Oid getMechanism() {
+
+        return (Dummy.getMyOid());
+    }
+
+
+    //instance variables
+    private DummyName m_myName;
+    private int m_usage;
         private int m_initLifetime;
-	private int m_acceptLifetime;
-	private boolean m_freed;
-	
+    private int m_acceptLifetime;
+    private boolean m_freed;
+
 }

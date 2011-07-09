@@ -36,6 +36,7 @@ public class UDPServer extends ServerThread {
     private DatagramSocket _socket;
     private DatagramPacket _packet;
 
+    @Override
     public void run() {
         super.run();
         try {
@@ -88,6 +89,7 @@ public class UDPServer extends ServerThread {
         }
     }
 
+    @Override
     protected void doAck() throws IOException {
         _packet.setData(ACK_BYTES);
         _socket.send(_packet);

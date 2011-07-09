@@ -37,7 +37,7 @@ package com.sun.gssapi;
  * wrap and getMIC methods. It allows the caller to specify
  * the desired per-message Quality of Protection (QOP) and
  * privacy state. Upon return from these calls, this object indicates
- * the actual applied QOP and confidentiality state. 
+ * the actual applied QOP and confidentiality state.
  *
  * Instances of this class are also used by the unwrap and verifyMIC
  * methods to obtain the message protection applied by the peer. The
@@ -51,7 +51,7 @@ package com.sun.gssapi;
  * @see GSSContext#getMIC
  * @see GSSContext#verifyMIC
  */
- 
+
 public class MessageProp {
 
     private boolean m_privacyState;
@@ -71,7 +71,7 @@ public class MessageProp {
         m_privacyState = false;
         resetStatusValues();
     }
-    
+
 
     /**
      * Constructor allowing the setting of the qop and
@@ -81,20 +81,20 @@ public class MessageProp {
      * @param privState indicates privacy request/applied state
      */
     public MessageProp(int qop, boolean privState) {
-    
+
         m_qop = qop;
         m_privacyState = privState;
         resetStatusValues();
     }
- 
- 
+
+
     /**
      * Retrieves the QOP value.
      *
      * @return the QOP value
      */
     public int getQOP() {
-    
+
         return (m_qop);
     }
 
@@ -105,7 +105,7 @@ public class MessageProp {
      * @return true indicates privacy has been applied
      */
     public boolean getPrivacy() {
-    
+
         return (m_privacyState);
     }
 
@@ -127,7 +127,7 @@ public class MessageProp {
      * @param privacy value to store.
      */
     public void setPrivacy(boolean privState) {
-    
+
         m_privacyState = privState;
     }
 
@@ -188,34 +188,34 @@ public class MessageProp {
 
         m_gapToken = true;
     }
-    
+
 
     /**
      * Used by mechanism packages to set supplementary status value.
          * Indicates this is a duplicate of an earlier token.
      */
     public void setDuplicateTokenStatus() {
-    
+
         m_dupToken = true;
     }
-    
-    
+
+
     /**
      * Used by mechanism packages to set supplementary status value.
      * Indicates that the token's validity period has expired.
      */
     public void setOldTokenState() {
-    
+
         m_oldToken = true;
     }
-    
-    
+
+
     /**
      * Used by mechanism packages to set supplementary status value.
      * Indicates that a later token has already been processed.
          */
     public void setUnseqTokenStatus() {
-    
+
         m_unseqToken = true;
     }
 

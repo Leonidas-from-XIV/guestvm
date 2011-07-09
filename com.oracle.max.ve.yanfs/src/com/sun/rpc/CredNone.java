@@ -46,6 +46,7 @@ public class CredNone extends Cred {
     /**
      * Put "no" creds into an XDR buffer
      */
+    @Override
     void putCred(Xdr x) {
 
         x.xdr_int(AUTH_NONE);
@@ -57,6 +58,7 @@ public class CredNone extends Cred {
     /**
      * Get "no" creds from an XDR buffer
      */
+    @Override
     void getCred(Xdr x) {
 
         x.xdr_int();	// assume it's AUTH_NONE
@@ -65,31 +67,37 @@ public class CredNone extends Cred {
         x.xdr_int();	// no verifier
     }
 
+    @Override
     void init(Connection conn, int prog, int vers) {
         // No-op
     }
 
 
+    @Override
     boolean refresh(Connection conn, int prog, int vers) {
         // No-op
-	return true;
+    return true;
     }
 
+    @Override
     void wrap(Xdr x, byte[] arg) {
         // No-op
     }
 
+    @Override
     int unwrap(Xdr x) {
         // No-op
-	return 0;
+    return 0;
     }
 
+    @Override
     void validate(byte[] verifier, int verifiee) {
         // No-op
     }
 
+    @Override
     void destroy(Rpc rpc) {
-	// No-op
+    // No-op
     }
 
 }

@@ -45,6 +45,7 @@ public class FSEntryTableIgnoreCase extends FSEntryTable {
     /**
      * To Ignore case, we convert all entry names to upper case
      */
+    @Override
     protected String normalizeName(String name) {
         if (name == null) {
             return null;

@@ -105,6 +105,7 @@ public class DeviceTest {
 
     static class SNFiller extends Filler {
         int _sn;
+        @Override
         void fill(byte[] data, Object xtra) {
             final int sn = xtra == null ? _sn : (Integer) xtra;
             for (int i = 0; i < data.length; i++) {
@@ -115,6 +116,7 @@ public class DeviceTest {
     }
 
     static class IXFiller extends Filler {
+        @Override
         void fill(byte[] data, Object xtra) {
             for (int i = 0; i < data.length; i++) {
                 data[i] = (byte) (i & 0xFF);
@@ -133,6 +135,7 @@ public class DeviceTest {
             _random = random;
         }
 
+        @Override
         void fill(byte[] data, Object xtra) {
             final Random random = xtra == null ? _random : (Random) xtra;
             for (int i = 0; i < data.length; i++) {
@@ -194,6 +197,7 @@ public class DeviceTest {
     }
 
     static class RunTimerTask extends TimerTask {
+        @Override
         public void run() {
             _done = true;
         }

@@ -120,6 +120,7 @@ public class SpinLockTest implements Runnable {
             _factor = factor;
         }
 
+        @Override
         public void run() {
             while (!_done) {
                 _spinLock.lock();

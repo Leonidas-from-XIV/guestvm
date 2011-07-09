@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 import java.io.InputStream;
@@ -38,14 +38,14 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 
-/** 
+/**
  * This class represents Universal Object Identifiers (Oids) and
  * their associated operations.
  * <p>
  * Oids are hierarchically globally-interpretable identifiers
  * used within the GSS-API framework to identify mechanisms and
  * name formats. The structure and encoding of Oids is defined
- * in ISOIEC-8824 and ISOIEC-8825.  For example the Oid 
+ * in ISOIEC-8824 and ISOIEC-8825.  For example the Oid
  * representation of Kerberos V5 mechanism is 1.2.840.113554.1.2.2
  * <DL><DT><b>RFC 2078</b>
  * <DD>This class replaces the following GSS-API functions:
@@ -62,22 +62,22 @@ public class Oid {
      * Creates an oid object from its DER octets.
      */
     static Oid getFromDEROctets(InputStream is, int len)
-		throws GSSException {
-    
+        throws GSSException {
+
         return new Oid(DERParser.decodeOidOctets(is, len));
     }
-        
+
 
     /**
      * Creates an oid object from a vector of its integer components.
      * The vector is not copied.
      */
     private Oid(Vector v) {
-    
+
         m_v = v;
     }
-    
-    
+
+
     /**
      * Constructs an Oid object from a string representation of its
      * integer components. Will throw a GSSException if the string
@@ -89,12 +89,12 @@ public class Oid {
      *    string is incorrectly formatted
      */
     public Oid(String strOid) throws GSSException {
-        
+
         m_v = new Vector(8, 3);
         parseFromStr(strOid);
     }
 
-        
+
     /**
      * Constructs an Oid object from its DER encoding. The structure
      * and encoding of Oids is defined in ISOIEC-8824 and ISOIEC-8825.
@@ -104,7 +104,7 @@ public class Oid {
      *    encoding does not follow the prescribed format.
      */
     public Oid(InputStream derOid) throws GSSException {
-    
+
         m_v = DERParser.decodeOid(derOid);
     }
 
@@ -119,12 +119,12 @@ public class Oid {
      *    encoding does not follow the prescribed format.
      */
     public Oid(byte [] data, int offset) throws GSSException {
-    
-	m_v = DERParser.decodeOid(new ByteArrayInputStream(data,
+
+    m_v = DERParser.decodeOid(new ByteArrayInputStream(data,
                     offset, data.length - offset));
     }
 
-    
+
     /**
      * Constructs an Oid object from its DER encoding. The structure
      * and encoding of Oids is defined in ISOIEC-8824 and ISOIEC-8825.
@@ -135,11 +135,11 @@ public class Oid {
      * @see Oid#Oid(java.io.InputStream)
      */
      public Oid(byte[] DEROid) throws GSSException {
-        
+
         m_v = DERParser.decodeOid(new ByteArrayInputStream(DEROid));
      }
- 
-       
+
+
     /**
      * Returns a string representation of the oid's integer components
      * in dot separated notation.
@@ -147,19 +147,20 @@ public class Oid {
      * @see #toRFC2078String
      * @overrides java.lang.Object#toString
      */
+    @Override
     public String toString() {
-    
+
         StringBuffer sb = new StringBuffer(50);
-    
+
         if (m_v.size() < 1)
             return (new String(""));
-            
+
         for (Enumeration e = m_v.elements(); e.hasMoreElements();) {
             sb.append(e.nextElement().toString());
             if (e.hasMoreElements())
                 sb.append(".");
         }
-        
+
         return (sb.toString());
     }
 
@@ -173,31 +174,32 @@ public class Oid {
      * @see #toString
      */
     public String toRFC2078String() {
-    
+
         StringBuffer sb = new StringBuffer(50);
-        
+
         if (m_v.size() < 1)
             return (new String(""));
-            
+
         sb.append("{ ");
         for (Enumeration e = m_v.elements(); e.hasMoreElements(); ) {
             sb.append(e.nextElement().toString());
             sb.append(" ");
         }
         sb.append("}");
-        
+
         return (sb.toString());
     }
-    
-    
+
+
     /**
      * Equality test for oid objects.
      * @param Obj Oid object that has to be compared to this one
      * @return true if they represent the same Oid, false otherwise
      * @overrides java.lang.Object#equals
      */
+    @Override
     public boolean equals(Object Obj) {
-    
+
         if (! (Obj instanceof Oid))
             return (false);
 
@@ -206,21 +208,21 @@ public class Oid {
             return (true);
 
         Oid anOid = (Oid) Obj;
-        
+
         if (m_v.size() != anOid.m_v.size())
             return (false);
-            
+
         for (Enumeration e1 = m_v.elements(), e2 = anOid.m_v.elements();
             e1.hasMoreElements(); ) {
-        
+
             if (! e1.nextElement().equals(e2.nextElement()))
                 return (false);
         }
-        
+
         return (true);
     }
 
-    
+
     /**
      * Returns the full ASN.1 DER encoding for this oid object.
      *
@@ -228,15 +230,15 @@ public class Oid {
      * @exception GSSException may be thrown when the oid can't be encoded
      */
     public byte[] getDER() throws GSSException {
-    
+
         if (m_der != null)
             return (m_der);
-        
+
         m_der = DERParser.encodeOid(m_v);
         return (m_der);
     }
-    
-        
+
+
     /**
      * A utility method which takes an array of Oids and checks if
      * it contains this oid object.
@@ -247,16 +249,16 @@ public class Oid {
      * @return true if the array contains this object, false otherwise
      */
     public boolean containedIn(Oid[] oids) {
-    
+
         for (int i = 0; i < oids.length; i++) {
             if (oids[i].equals(this))
                 return (true);
         }
-    
+
         return (false);
     }
-    
-    
+
+
     /**
      * Parses in the string encoding of the object.
      *
@@ -264,25 +266,25 @@ public class Oid {
      * @exception GSSException when src string is incorrectly formatted
      **/
     private void parseFromStr(String src) throws GSSException {
-    
+
         int firstIndex = src.indexOf("{");
-    
+
         try {
             //skip over the { and } first
             if (firstIndex != -1)
                 src = src.substring(firstIndex, src.lastIndexOf("}"));
-                
+
             StringTokenizer st = new StringTokenizer(src, " .");
             while (st.hasMoreTokens()) {
                 m_v.addElement(new Integer(st.nextToken()));
             }
-                
+
         } catch (Exception e) {
             throw new GSSException(GSSException.FAILURE);
         }
     }
-    
-    
+
+
     //Instance variables
     private Vector m_v;
     byte [] m_der;

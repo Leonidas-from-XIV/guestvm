@@ -36,7 +36,7 @@ import com.sun.xfile.*;
 
 public class XFileExtensionAccessor
     extends com.sun.xfile.XFileExtensionAccessor {
-	
+
     XFile xf;
 
     public XFileExtensionAccessor(XFile xf) {
@@ -47,7 +47,7 @@ public class XFileExtensionAccessor
 
         this.xf = xf;
     }
-   
+
     /**
      * Sets the user's RPC credential from Login name and password.
      *
@@ -93,7 +93,7 @@ public class XFileExtensionAccessor
      * The server trusts the client to authenticate the
      * user before setting the UID and GID values.  It is
      * possible for a malicious client to allow the UID and/or
-     * group ids to be set to allow unauthorized access to 
+     * group ids to be set to allow unauthorized access to
      * other user's files on the server.
      * <p>
      * Servers can avoid this security hole by exporting NFS

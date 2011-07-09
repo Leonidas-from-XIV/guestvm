@@ -65,6 +65,7 @@ public class InterruptTest  {
     }
 
     static class WaitInterruptee extends Thread {
+        @Override
         public void run() {
             synchronized (this) {
                 try {
@@ -77,6 +78,7 @@ public class InterruptTest  {
     }
 
     static class SleepInterruptee extends Thread {
+        @Override
         public void run() {
             synchronized (this) {
                 try {

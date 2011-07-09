@@ -92,7 +92,7 @@ public class CredUnix extends Cred {
      * to "nobody".
      */
     public CredUnix() {
-	this(UID_NOBODY, GID_NOBODY);
+    this(UID_NOBODY, GID_NOBODY);
     }
 
     /**
@@ -100,16 +100,17 @@ public class CredUnix extends Cred {
      *
      * @param xdr buffer
      */
+    @Override
     synchronized void putCred(Xdr x) {
 
         x.xdr_int(AUTH_UNIX);
 
-	cr.xdr_offset(0);
+    cr.xdr_offset(0);
         cr.xdr_int((int) (System.currentTimeMillis()/1000));
         cr.xdr_string("javaclient");
         cr.xdr_int(uid);
         cr.xdr_int(gid);
-        if (gids == null) 
+        if (gids == null)
             cr.xdr_int(0);
         else {
             cr.xdr_int(gids.length);
@@ -128,6 +129,7 @@ public class CredUnix extends Cred {
      *
      * @param xdr buffer
      */
+    @Override
     void getCred(Xdr x) {
 
         x.xdr_int();	// assume it's AUTH_UNIX
@@ -169,7 +171,7 @@ public class CredUnix extends Cred {
             } catch (MsgAcceptedException e) {
                 if (e.error != e.PROG_MISMATCH)
                     return false;
-    
+
                     return (callV1(server, username, passwd));
             }
         } catch (IOException e) {
@@ -248,7 +250,7 @@ public class CredUnix extends Cred {
         return def_umask;
     }
 
-    private boolean callV1(String server, String username, String passwd) 
+    private boolean callV1(String server, String username, String passwd)
         throws java.net.UnknownHostException, IOException {
 
         Rpc pc = new Rpc(server, 0, PCNFSDPROG, 1, "udp", MAXREPLY);
@@ -273,7 +275,7 @@ public class CredUnix extends Cred {
         return true;
     }
 
-    private boolean callV2(String server, String username, String passwd) 
+    private boolean callV2(String server, String username, String passwd)
         throws java.net.UnknownHostException, IOException {
 
         Rpc pc = new Rpc(server, 0, PCNFSDPROG, 2, "udp", MAXREPLY);
@@ -302,9 +304,10 @@ public class CredUnix extends Cred {
         return true;
     }
 
+    @Override
     public String toString() {
         String s = "AUTH_UNIX:\n   uid=" + uid + ",gid=" + gid + "\n";
-	if (gids != null) {
+    if (gids != null) {
             s += "   gids=";
             for (int i = 0; i < gids.length; i++)
                 s += gids[i] + " ";
@@ -317,28 +320,34 @@ public class CredUnix extends Cred {
         return s;
     }
 
+    @Override
     public void init(Connection conn, int prog, int vers) {
         // No-op
     }
 
+    @Override
     public boolean refresh(Connection conn, int prog, int vers) {
         // No-op
-	return true;
+    return true;
     }
 
+    @Override
     public void wrap(Xdr x, byte[] arg) {
-	// No-op
+    // No-op
     }
 
+    @Override
     public int unwrap(Xdr x) {
-	// No-op
-	return 0;
+    // No-op
+    return 0;
     }
 
+    @Override
     public void validate(byte[] verifier, int verifiee) {
-	// No-op
+    // No-op
     }
 
+    @Override
     public void destroy(Rpc rpc) {
         // No-op
     }

@@ -120,7 +120,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
     }
 
     /**
-     * Tests if this XFileAccessor object exists. 
+     * Tests if this XFileAccessor object exists.
      *
      * @return <code>true</code> if the file specified by this object
      *         exists; <code>false</code> otherwise.
@@ -131,7 +131,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Tests if the application can write to this file. 
+     * Tests if the application can write to this file.
      *
      * @return <code>true</code> if the application is allowed to
      *         write to a file whose name is specified by this
@@ -143,7 +143,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Tests if the application can read from the specified file. 
+     * Tests if the application can read from the specified file.
      *
      * @return <code>true</code> if the file specified by this
      *         object exists and the application can read the file;
@@ -155,12 +155,12 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
     /**
      * Tests if the file represented by this
-     * object is a "normal" file. 
+     * object is a "normal" file.
      * <p>
-     * A file is "normal" if it is not a directory and, in 
-     * addition, satisfies other system-dependent criteria. Any 
+     * A file is "normal" if it is not a directory and, in
+     * addition, satisfies other system-dependent criteria. Any
      * non-directory file created by a Java application is
-     * guaranteed to be a normal file. 
+     * guaranteed to be a normal file.
      *
      * @return <code>true</code> if the file specified by this
      *         <code>XFile</code> object exists and is a "normal"
@@ -173,7 +173,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
     /**
      * Tests if the file represented by this XFileAccessor
-     * object is a directory. 
+     * object is a directory.
      *
      * @return <code>true</code> if this XFileAccessor object
      *         exists and is a directory; <code>false</code>
@@ -185,12 +185,12 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Returns the time that the file represented by this 
-     * <code>XFile</code> object was last modified. 
+     * Returns the time that the file represented by this
+     * <code>XFile</code> object was last modified.
      * <p>
      * The return value is system dependent and should only be
      * used to compare with other values returned by last modified.
-     * It should not be interpreted as an absolute time. 
+     * It should not be interpreted as an absolute time.
      *
      * @return the time the file specified by this object was last
      *         modified, or <code>0L</code> if the specified file
@@ -202,8 +202,8 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Returns the length of the file represented by this 
-     * XFileAccessor object. 
+     * Returns the length of the file represented by this
+     * XFileAccessor object.
      *
      * @return the length, in bytes, of the file specified by
      *         this object, or <code>0L</code> if the specified
@@ -215,8 +215,8 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Creates a file whose pathname is specified by this 
-     * XFileAccessor object. 
+     * Creates a file whose pathname is specified by this
+     * XFileAccessor object.
      *
      * @return <code>true</code> if the file could be created;
      *         <code>false</code> otherwise.
@@ -227,8 +227,8 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
             // This little maneuver creates a zero length file
 
             FileOutputStream of = new FileOutputStream(file);
-		of.getFD().sync();
-		of.close();
+        of.getFD().sync();
+        of.close();
                 return true;
 
         } catch (IOException e) {
@@ -238,8 +238,8 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Creates a directory whose pathname is specified by this 
-     * XFileAccessor object. 
+     * Creates a directory whose pathname is specified by this
+     * XFileAccessor object.
      *
      * @return <code>true</code> if the directory could be created;
      *         <code>false</code> otherwise.
@@ -250,8 +250,8 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Renames the file specified by this XFileAccessor object to 
-     * have the pathname given by the XFileAccessor object argument. 
+     * Renames the file specified by this XFileAccessor object to
+     * have the pathname given by the XFileAccessor object argument.
      *
      * @param  dest   the new filename.
      * @return <code>true</code> if the renaming succeeds;
@@ -264,7 +264,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
     /**
      * Returns a list of the files in the directory specified by
-     * this XFileAccessor object. 
+     * this XFileAccessor object.
      *
      * @return an array of file names in the specified directory.
      *         This list does not include the current directory or
@@ -289,16 +289,16 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
     }
 
 
-    /** 
-     * Reads a subarray as a sequence of bytes. 
+    /**
+     * Reads a subarray as a sequence of bytes.
      *
      * @param b the data to be written
      * @param off the start offset in the data
      * @param len the number of bytes that are written
      * @param foff the offset into the file
      * @return number of bytes read; -1 if EOF
-     * @exception IOException If an I/O error has occurred. 
-     */ 
+     * @exception IOException If an I/O error has occurred.
+     */
     public int read(byte b[], int off, int len, long foff)
         throws IOException {
 
@@ -345,7 +345,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
 
     /**
-     * Forces any buffered output bytes to be written out. 
+     * Forces any buffered output bytes to be written out.
      * <p>
      * Since RandomAccessFile has no corresponding method
      * this does nothing.
@@ -366,13 +366,14 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
         if (raf != null)
             raf.close();
     }
-    
+
 
     /**
-     * Returns a string representation of this object. 
+     * Returns a string representation of this object.
      *
-     * @return a string giving the pathname of this object. 
+     * @return a string giving the pathname of this object.
      */
+    @Override
     public String toString() {
         return file.toString();
     }

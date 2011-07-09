@@ -32,9 +32,9 @@
 package com.sun.xfile;
 
 /**
- * Instances of classes that implement this interface are used to 
- * filter filenames. These instances are used to filter directory 
- * listings in the <code>list</code> method of class 
+ * Instances of classes that implement this interface are used to
+ * filter filenames. These instances are used to filter directory
+ * listings in the <code>list</code> method of class
  * <code>XFile</code>.
  *
  * @see com.sun.xfile.XFile#list(com.sun.xfile.XFilenameFilter)

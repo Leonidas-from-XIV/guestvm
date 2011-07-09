@@ -75,7 +75,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
             urlConn.setDoInput(readOnly);
             urlConn.setDoOutput(! readOnly);
 
-    	    urlConn.connect();
+            urlConn.connect();
 
             return true;
 
@@ -367,6 +367,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
      *
      * @return a string giving the pathname of this object.
      */
+    @Override
     public String toString() {
         return url.toString();
     }

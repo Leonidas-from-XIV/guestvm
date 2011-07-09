@@ -48,10 +48,10 @@ import java.io.*;
 public class XFileReader extends InputStreamReader {
 
     public XFileReader(String fileName) throws IOException {
-	super(new XFileInputStream(fileName));
+    super(new XFileInputStream(fileName));
     }
 
     public XFileReader(XFile file) throws IOException {
-	super(new XFileInputStream(file));
+    super(new XFileInputStream(file));
     }
 }

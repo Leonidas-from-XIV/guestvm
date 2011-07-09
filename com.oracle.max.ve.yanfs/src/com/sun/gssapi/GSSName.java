@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 import java.util.Vector;
@@ -57,7 +57,7 @@ import java.util.Enumeration;
  * <li>gss_display_name
  * <li>gss_import_name
  * <li>gss_release_name</ul>
- *</DL> 
+ *</DL>
  * @see Oid
  */
 
@@ -70,7 +70,7 @@ public class GSSName {
      * "hostname", as follows:    service@hostname
      * <br>
      * Values for the "service" element are registered with the IANA.
-     * It represents the following value: 
+     * It represents the following value:
      * <p>{ 1(iso), 3(org), 6(dod), 1(internet), 5(security),
      * 6(nametypes), 2(gss-host-based-services) }
      */
@@ -97,7 +97,7 @@ public class GSSName {
      */
     public static final Oid NT_MACHINE_UID_NAME;
 
-    
+
     /**
      * Name type used to indicate a string of digits representing the
      * numeric user identifier of a user on a local system. It
@@ -107,8 +107,8 @@ public class GSSName {
      * gssapi(2) generic(1) string_uid_name(3) }
      */
     public static final Oid NT_STRING_UID_NAME;
-       
-    
+
+
     /**
      * Name type used to represent an Anonymous identity. It represents
      * the following value:
@@ -117,8 +117,8 @@ public class GSSName {
      * 3(gss-anonymous-name) }
      */
     public static final Oid NT_ANONYMOUS;
-    
-    
+
+
     /**
      * Name type used to indicate an exported name produced by the
      * export method. It represents the following value:
@@ -127,11 +127,11 @@ public class GSSName {
      * 4(gss-api-exported-name) }
      */
     public static final Oid NT_EXPORT_NAME;
-     
+
     //initialize the oid objects
     static {
         try {
-	    NT_HOSTBASED_SERVICE = new Oid("1.3.6.1.5.6.2");
+        NT_HOSTBASED_SERVICE = new Oid("1.3.6.1.5.6.2");
             NT_USER_NAME = new Oid("1.2.840.113554.1.2.1.1");
             NT_MACHINE_UID_NAME = new Oid("1.2.840.113554.1.2.1.2");
             NT_STRING_UID_NAME = new Oid("1.2.840.113554.1.2.1.3");
@@ -160,12 +160,12 @@ public class GSSName {
      * @param type an oid specifying the name type
      */
     public GSSName(String nameStr, Oid type) {
-    
+
         m_nameStr = nameStr;
         m_nameType = type;
     }
 
-    
+
     /**
      * Creates a new GSSName object from the specified type. It
      * is envisioned that this constructor will be called with
@@ -182,11 +182,11 @@ public class GSSName {
      * @see #export
      */
     public GSSName(byte[] name, Oid type) throws GSSException {
-    
+
         m_nameType = type;
         m_nameBytes = new byte[name.length];
         System.arraycopy(name, 0, m_nameBytes, 0, name.length);
-    
+
         //check if export name, which means we can load it right now
         if (type.equals(NT_EXPORT_NAME)) {
             if (name[0] != 0x04 && name[1] != 0x01)
@@ -216,7 +216,7 @@ public class GSSName {
      */
     public GSSName(String nameStr, Oid nameType, Oid mechType)
             throws GSSException {
-    
+
         m_nameStr = nameStr;
         m_nameType = nameType;
         GSSNameSpi mn = GSSManager.getNameInstance(mechType);
@@ -224,7 +224,7 @@ public class GSSName {
         addMechName(mn);
     }
 
-    
+
     /**
      * Creates a new GSSName object from the specified type. It
      * is envisioned that this constructor will be called with
@@ -244,12 +244,12 @@ public class GSSName {
      * @see #export
      */
     public GSSName(byte[] name, Oid nameType, Oid mechType)
-		throws GSSException {
-    
+        throws GSSException {
+
         m_nameType = nameType;
         m_nameBytes = new byte[name.length];
         System.arraycopy(name, 0, m_nameBytes, 0, name.length);
-    
+
         GSSNameSpi mn = GSSManager.getNameInstance(mechType);
         mn.init(name, nameType);
         addMechName(mn);
@@ -263,20 +263,20 @@ public class GSSName {
      */
     GSSName() { }
 
-    
+
     /**
      * Package private constructor used by canonicalize name
      * and the context object. Sets the specified mechanism name.
      */
     GSSName(GSSNameSpi mechName) {
-    
+
         addMechName(mechName);
                 m_nameType = mechName.getNameType();
     }
 
 
     /**
-     * Compares this name with the specified GSSName for equality. 
+     * Compares this name with the specified GSSName for equality.
      * If either of the names has type NT_ANONYMOUS, this call will
      * return false.
      * <DL><DT><b>RFC 2078</b>
@@ -286,17 +286,18 @@ public class GSSName {
      *    otherwise
      * @overrides equals in class Object
      */
+    @Override
     public boolean equals(Object another) {
-    
+
         if ( !(another instanceof GSSName))
             return (false);
-        
+
         try {
             return (equals((GSSName)another));
-            
+
         } catch (GSSException e) { return false; }
     }
-    
+
 
     /**
      * A variation of equals method which may throw a GSSException
@@ -311,48 +312,48 @@ public class GSSName {
      *    BAD_NAMETYPE, BAD_NAME, FAILURE
      */
     public boolean equals(GSSName another) throws GSSException {
-    
+
         //check if anonymous name
         if (isAnonymousName() || another.isAnonymousName())
             return (false);
-            
+
         if (m_mechNames.size() != another.m_mechNames.size())
             return false;
-            
+
         if (m_mechNames.size() < 1) {
-        
+
             //check if the external names match
             if (! m_nameType.equals(another.m_nameType))
                 return false;
-                
+
             if (m_nameStr != null && another.m_nameStr != null)
                 return (m_nameStr.equals(another.m_nameStr));
-                
+
             if (m_nameBytes != null && another.m_nameBytes != null)
                 return (m_nameBytes.equals(another.m_nameBytes));
-                
+
             return false;
         }
-            
+
         //we have some mechanism names, each name must be over same
         //mechs and the names must equal
         GSSNameSpi mechName1, mechName2;
         for (Enumeration e = m_mechNames.elements(); e.hasMoreElements();) {
-            
+
             mechName1 = (GSSNameSpi)e.nextElement();
             if ((mechName2 = another.getMechName(mechName1.getMech()))
-				== null)
+                == null)
                 return false;
-                
+
             if (! mechName1.equals(mechName2))
                 return false;
         }
-        
+
         //went through all the names and they equal, so must be same name
         return (true);
     }
 
-    
+
     /**
      * Creates a new name which is guaranteed to be mechanism specific (MN).
      * <DL><DT><b>RFC 2078</b>
@@ -374,7 +375,7 @@ public class GSSName {
             //need to create new name only for this mechanism
             return (new GSSName((GSSNameSpi)mechName.clone()));
         }
-        
+
 
         //we don't already have it, so create it
         if (m_nameStr != null)
@@ -383,14 +384,14 @@ public class GSSName {
             return (new GSSName(m_nameBytes, m_nameType, mechOid));
     }
 
-  
+
     /**
      * Returns a flat name representation for this GSSName object. The
      * name must be in MN format before making this call. The name is
      * prefixed with a mechanism independent header as specified in
      * RFC 2078.  The returned buffer can be passed into a GSSName
      * constructor with GSSName.EXPORT_NAME as the name type.
-     * <DL><DT><b>RFC 2078</b> 
+     * <DL><DT><b>RFC 2078</b>
      *    <DD>equivalent to gss_export_name</DL>
      * @return a byte array representing the name
      * @exception GSSException with possible major codes of NAME_NOT_MN,
@@ -398,15 +399,15 @@ public class GSSName {
      * @see #canonicalize
      */
     public byte[] export() throws GSSException {
-    
+
         //check if we have a mechanism specific name
         if (!isMechName())
             throw new GSSException(GSSException.NAME_NOT_MN);
-            
+
         return (getMechName(null).export());
     }
 
-  
+
     /**
      * Returns a string representation of the GSSName object.
      * To retrieve the printed name format call getStringNameType.
@@ -414,24 +415,25 @@ public class GSSName {
      * @overrides java.lang.Object#toString
      * @see #getStringNameType
      **/
+    @Override
     public String toString() {
-    
+
         if (isMechName())
             return (getMechName(null).toString());
-            
+
         if (m_nameStr != null)
             return (m_nameStr);
-            
+
         if (m_mechNames.size() > 0)
             return (getMechName(null).toString());
-        
+
         //name must in byte format
         return ("Unknown name");
     }
 
-        
+
     /**
-     * Returns the name type for the printed name. 
+     * Returns the name type for the printed name.
      * <DL><DT><b>RFC 2078</b>
      *    <DD>equivalent to name_type parameter in gss_display_name</DL>
      * @return Oid for the name type as printed with toString()
@@ -442,13 +444,13 @@ public class GSSName {
 
         if (isMechName())
             return (getMechName(null).getStringNameType());
-            
+
         if (m_nameStr != null)
             return (m_nameType);
-            
+
         if (m_mechNames.size() > 0)
             return (getMechName(null).getStringNameType());
-        
+
         throw new GSSException(GSSException.BAD_NAME);
     }
 
@@ -460,27 +462,28 @@ public class GSSName {
      * @return a copy of this object
      * @exception CloneNotSupportedException may be thrown
      */
+    @Override
     public Object clone() throws CloneNotSupportedException {
-    
+
         GSSName newName;
-        
+
         try {
             if (m_nameStr != null)
                 newName = new GSSName(m_nameStr, m_nameType);
             else if (m_nameBytes != null)
                 newName = new GSSName(m_nameBytes, m_nameType);
-            else 
+            else
                 newName = new GSSName();
-            
+
             for (Enumeration e = m_mechNames.elements();
                         e.hasMoreElements(); )
                 newName.addMechName((GSSNameSpi)
                     ((GSSNameSpi)e.nextElement()).clone());
 
-        } catch (Exception e) { 
+        } catch (Exception e) {
             throw new CloneNotSupportedException();
         }
-        
+
         return (newName);
     }
 
@@ -490,16 +493,16 @@ public class GSSName {
      * @return boolean indicating if this in an anonymous name
      */
     public boolean isAnonymousName() {
-    
+
         if (m_nameType.equals(NT_ANONYMOUS))
             return (true);
-            
+
         if (m_mechNames.size() > 0)
             return (getMechName(null).isAnonymousName());
-        
+
         return false;
     }
-    
+
 
     /**
      * Package private method to add a mechanism name to
@@ -507,7 +510,7 @@ public class GSSName {
      *
      */
     void addMechName(GSSNameSpi mechName) {
-    
+
         m_mechNames.addElement(mechName);
     }
 
@@ -519,40 +522,40 @@ public class GSSName {
      * @return boolean indicating if this is a MN
      */
     private boolean isMechName() {
-    
+
         return (m_mechNames.size() == 1);
     }
-    
-    
+
+
     /**
      * Retrieves a mechanism specific name for the specified oid.
      * If the name is not found, null is returned. null oid can be
      * used to retrieve the first mechanism name.
      *
-     * @param Oid for the mechanism name to retrieve     
+     * @param Oid for the mechanism name to retrieve
      * @return GSSNameSpi for the requested mechanism or null if not found
      */
     GSSNameSpi getMechName(Oid mechOid) {
-        
+
         if (mechOid == null) {
             if (m_mechNames.size() < 1)
                 return (null);
-                
+
             return ((GSSNameSpi)m_mechNames.firstElement());
         }
-        
+
         for (Enumeration e = m_mechNames.elements(); e.hasMoreElements(); ) {
-        
+
             GSSNameSpi mechName = (GSSNameSpi)e.nextElement();
-            
+
             if (mechName.getMech().equals(mechOid))
                 return (mechName);
-                
+
         }
         return (null);
     }
-            
-            
+
+
     /**
      * Returns the mechanism specific name. If this name does not
      * already contain it, it is created.
@@ -568,20 +571,20 @@ public class GSSName {
         GSSNameSpi mechName = getMechName(mechOid);
         if (mechName != null)
             return (mechName);
-            
+
         //we don't already have it, so create it
         mechName = GSSManager.getNameInstance(mechOid);
-        
+
         if (m_nameStr != null)
             mechName.init(m_nameStr, m_nameType);
         else
             mechName.init(m_nameBytes, m_nameType);
-            
+
         addMechName(mechName);
         return (mechName);
     }
-            
-        
+
+
     //instance variables
     //we use a vector because GSSCredential.getName() must return
     //all the credential names in mechanism format

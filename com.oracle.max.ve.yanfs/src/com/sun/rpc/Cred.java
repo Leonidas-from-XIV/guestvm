@@ -58,7 +58,7 @@ public abstract class Cred {
      * Initiate a security context with peers
      */
     abstract void init(Connection conn, int prog, int vers)
-		throws RpcException;
+        throws RpcException;
 
     /**
      * Refresh the cred
@@ -79,7 +79,7 @@ public abstract class Cred {
      * Validate the response verifier from server
      */
     abstract void validate(byte[] verifier, int verifiee)
-		throws RpcException;
+        throws RpcException;
 
     /**
      * Destroy the cred data and its security context with the server

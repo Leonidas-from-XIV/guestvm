@@ -36,6 +36,7 @@ public class ThreadDeadLockTest {
         Lock(int id) {
             this.id = id;
         }
+        @Override
         public String toString() {
             return "lock-" + id;
         }
@@ -115,6 +116,7 @@ public class ThreadDeadLockTest {
             this.otherThread = otherThread;
         }
 
+        @Override
         public void run() {
             assert otherThread != null;
             synchronized (lock1) {

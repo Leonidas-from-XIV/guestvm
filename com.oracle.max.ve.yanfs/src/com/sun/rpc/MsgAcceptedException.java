@@ -70,6 +70,7 @@ public class MsgAcceptedException extends RpcException {
         this.hi = hi;
     }
 
+    @Override
     public String toString() {
         switch (error) {
 

@@ -46,7 +46,7 @@ public class XFileChooserBeanInfo extends SimpleBeanInfo {
 
     /* For I18N */
     private static ResourceBundle rb =
-	ResourceBundle.getBundle("com.sun.xfilechooser.EditorResource"/*NOI18N*/); 
+    ResourceBundle.getBundle("com.sun.xfilechooser.EditorResource"/*NOI18N*/);
     PropertyDescriptor[] beanProps;
 
     /*
@@ -54,51 +54,53 @@ public class XFileChooserBeanInfo extends SimpleBeanInfo {
      * customization
      */
     private static Object xfBeanPropInits[][] = {
-	{rb.getString("Dialog Type"), "getDialogType", "setDialogType", DialogEditor.class},
-	{rb.getString("Dialog Title"), "getDialogTitle", "setDialogTitle", XFileChooser.class},
-	{rb.getString("File Selection Mode"), "getFileSelectionMode", "setFileSelectionMode", FileModeEditor.class},
-	{rb.getString("Show Hidden Files"), "isFileHidingEnabled", "setFileHidingEnabled", XFileChooser.class},
-	{rb.getString("Approve Button Text"), "getApproveButtonText", "setApproveButtonText", XFileChooser.class},
-	{rb.getString("Approve Button Tooltip"), "getApproveButtonToolTipText", "setApproveButtonToolTipText", XFileChooser.class},
-	/* Currently commented out until bug 4206915 is fixed in the introspector */
-	//{rb.getString("Approve Button Mnemonic"), "getApproveButtonMnemonic", "setApproveButtonMnemonic", XFileChooser.class},
-	{rb.getString("Set Current Directory"), "getCurrentXDirectory", "setCurrentXDirectory", XFileChooserEditor.class},
-	{rb.getString("Set Background Color"), "getBackground", "setBackground", XFileChooser.class},
-	{rb.getString("Set Foreground Color"), "getForeground", "setForeground", XFileChooser.class}, 
+    {rb.getString("Dialog Type"), "getDialogType", "setDialogType", DialogEditor.class},
+    {rb.getString("Dialog Title"), "getDialogTitle", "setDialogTitle", XFileChooser.class},
+    {rb.getString("File Selection Mode"), "getFileSelectionMode", "setFileSelectionMode", FileModeEditor.class},
+    {rb.getString("Show Hidden Files"), "isFileHidingEnabled", "setFileHidingEnabled", XFileChooser.class},
+    {rb.getString("Approve Button Text"), "getApproveButtonText", "setApproveButtonText", XFileChooser.class},
+    {rb.getString("Approve Button Tooltip"), "getApproveButtonToolTipText", "setApproveButtonToolTipText", XFileChooser.class},
+    /* Currently commented out until bug 4206915 is fixed in the introspector */
+    //{rb.getString("Approve Button Mnemonic"), "getApproveButtonMnemonic", "setApproveButtonMnemonic", XFileChooser.class},
+    {rb.getString("Set Current Directory"), "getCurrentXDirectory", "setCurrentXDirectory", XFileChooserEditor.class},
+    {rb.getString("Set Background Color"), "getBackground", "setBackground", XFileChooser.class},
+    {rb.getString("Set Foreground Color"), "getForeground", "setForeground", XFileChooser.class},
     };
 
+    @Override
     public PropertyDescriptor[] getPropertyDescriptors() {
-	beanProps = new PropertyDescriptor[xfBeanPropInits.length];
-	for (int i=0; i < xfBeanPropInits.length; i++) {
-	    try {
-		beanProps[i] = new PropertyDescriptor(
-			        (String) xfBeanPropInits[i][0],
-				(Class) XFileChooser.class,
-				(String) xfBeanPropInits[i][1],
-				(String) xfBeanPropInits[i][2]);
-	    } catch (IntrospectionException fatal) {
-		System.out.println("name " + (String) xfBeanPropInits[i][0]);
-		
-		System.err.println("getProps() is flawed! " + i);
-	    }
+    beanProps = new PropertyDescriptor[xfBeanPropInits.length];
+    for (int i=0; i < xfBeanPropInits.length; i++) {
+        try {
+        beanProps[i] = new PropertyDescriptor(
+                    (String) xfBeanPropInits[i][0],
+                (Class) XFileChooser.class,
+                (String) xfBeanPropInits[i][1],
+                (String) xfBeanPropInits[i][2]);
+        } catch (IntrospectionException fatal) {
+        System.out.println("name " + (String) xfBeanPropInits[i][0]);
 
-	    if (xfBeanPropInits[i][3] != null)
-		beanProps[i].setPropertyEditorClass((Class) xfBeanPropInits[i][3]);
-	}
-	return beanProps;
+        System.err.println("getProps() is flawed! " + i);
+        }
+
+        if (xfBeanPropInits[i][3] != null)
+        beanProps[i].setPropertyEditorClass((Class) xfBeanPropInits[i][3]);
     }
-    
-    public java.awt.Image getIcon(int iconKind) {
-	if (iconKind == BeanInfo.ICON_COLOR_16x16) {
-	    java.awt.Image img = loadImage("images/422LOGO5_16x16.gif");
-	    return img;
-	}
+    return beanProps;
+    }
 
-	if (iconKind == BeanInfo.ICON_MONO_32x32) {
-	    java.awt.Image img = loadImage("images/422LOGO5_32x32.gif");
-	    return img;
-	}
-	return null;
+    @Override
+    public java.awt.Image getIcon(int iconKind) {
+    if (iconKind == BeanInfo.ICON_COLOR_16x16) {
+        java.awt.Image img = loadImage("images/422LOGO5_16x16.gif");
+        return img;
+    }
+
+    if (iconKind == BeanInfo.ICON_MONO_32x32) {
+        java.awt.Image img = loadImage("images/422LOGO5_32x32.gif");
+        return img;
+    }
+    return null;
     }
 }
 

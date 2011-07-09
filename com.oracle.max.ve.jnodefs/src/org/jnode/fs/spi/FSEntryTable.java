@@ -231,6 +231,7 @@ public class FSEntryTable extends AbstractFSObject {
      * @return if the table needs to be saved to the device
      * @throws IOException
      */
+    @Override
     public final boolean isDirty() throws IOException {
         if (super.isDirty()) {
             return true;
@@ -422,6 +423,7 @@ public class FSEntryTable extends AbstractFSObject {
      *
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         int nbEntries = entryNames.size();
         String name;

@@ -89,11 +89,12 @@ public class Nfs2 extends Nfs {
             name = name.substring(2);
         this.name = name;
         this.attr = attr == null ? new Fattr2() : attr;
-	this.rsize = RWSIZE;
+    this.rsize = RWSIZE;
         NRA = 2; // Max reads-ahead
         NWB = 8; // Max writes-behind
     }
 
+    @Override
     public void getattr() throws IOException {
         Xdr call = new Xdr(rsize + 512);
         rpc.rpc_header(call, NFSPROC2_GETATTR);
@@ -116,41 +117,48 @@ public class Nfs2 extends Nfs {
         attr.getFattr(reply);
     }
 
+    @Override
     public void checkAttr() throws IOException {
 
         if (! attr.valid())
             getattr();
     }
 
+    @Override
     public boolean cacheOK(long t) throws IOException {
         checkAttr();
 
         return t == attr.mtime;
     }
 
+    @Override
     public void invalidate() {
-	attr.validtime = 0;
+    attr.validtime = 0;
     }
 
     /*
      * Get the file modification time
      * @return the time in milliseconds
      */
+    @Override
     public long mtime() throws IOException {
         checkAttr();
 
         return attr.mtime;
     }
 
+    @Override
     public void mtime(long time) throws IOException {
         throw new NfsException(NfsException.NFSERR_NOTSUPP);
     }
 
+    @Override
     public int mode() throws IOException {
         checkAttr();
         return (int) attr.mode & 0xFFFFFFFF;
     }
 
+    @Override
     public void mode(int mode) throws IOException {
         throw new NfsException(NfsException.NFSERR_NOTSUPP);
     }
@@ -163,6 +171,7 @@ public class Nfs2 extends Nfs {
      *
      * @return file size
      */
+    @Override
     public long length() throws IOException {
         checkAttr();
 
@@ -173,6 +182,7 @@ public class Nfs2 extends Nfs {
      * Set  the file size in bytes
      * @param size new size in bytes
      */
+    @Override
     public void length(long size)  throws IOException {
         throw new NfsException(NfsException.NFSERR_NOTSUPP);
     }
@@ -181,6 +191,7 @@ public class Nfs2 extends Nfs {
      * Verify if file exists
      * @return true if file exists
      */
+    @Override
     public boolean exists() throws IOException {
         checkAttr();
 
@@ -188,45 +199,46 @@ public class Nfs2 extends Nfs {
     }
 
     private boolean check_access(long mode) {
-	boolean found = false;
-	long uid = NfsConnect.getCred().getUid();
-	long gid = NfsConnect.getCred().getGid();
-	int gids[] = NfsConnect.getCred().getGids();
+    boolean found = false;
+    long uid = NfsConnect.getCred().getUid();
+    long gid = NfsConnect.getCred().getGid();
+    int gids[] = NfsConnect.getCred().getGids();
 
-	/*
-	 * Access check is based on only
-	 * one of owner, group, public.
-	 * If not owner, then check group.
-	 * If not a member of the group,
-	 * then check public access.
-	 */
-	mode <<= 6;
-	if (uid != attr.uid) {
-	    mode >>= 3;
-	    if (gid != attr.gid) {
-		// check group list
-		int gidsLength = 0;
+    /*
+     * Access check is based on only
+     * one of owner, group, public.
+     * If not owner, then check group.
+     * If not a member of the group,
+     * then check public access.
+     */
+    mode <<= 6;
+    if (uid != attr.uid) {
+        mode >>= 3;
+        if (gid != attr.gid) {
+        // check group list
+        int gidsLength = 0;
 
-		if (gids != null)
-		    gidsLength = gids.length;
+        if (gids != null)
+            gidsLength = gids.length;
 
-		for (int i = 0; i < gidsLength; i++)
-		    if (found = ((long)gids[i] == attr.gid))
-			break;
-		if (!found) {
-		    // not in group list, check "other" field
-		    mode >>= 3;
-		}
-	    }
-	}
+        for (int i = 0; i < gidsLength; i++)
+            if (found = ((long)gids[i] == attr.gid))
+            break;
+        if (!found) {
+            // not in group list, check "other" field
+            mode >>= 3;
+        }
+        }
+    }
 
-	return (attr.mode & mode) == mode;
+    return (attr.mode & mode) == mode;
     }
 
     /*
      * Verify if file can be created/updated
      * @return true if file can be created/updated
      */
+    @Override
     public boolean canWrite() throws IOException {
         checkAttr();
 
@@ -237,6 +249,7 @@ public class Nfs2 extends Nfs {
      * Verify if file can be read
      * @return true if file can be read
      */
+    @Override
     public boolean canRead() throws IOException {
         checkAttr();
 
@@ -247,6 +260,7 @@ public class Nfs2 extends Nfs {
      * Verify if file can be executed
      * @return true if file can be executed
      */
+    @Override
     public boolean canExecute() throws IOException {
 
         return check_access(RBIT);
@@ -255,6 +269,7 @@ public class Nfs2 extends Nfs {
      * Verify if this is a file
      * @return true if a file
      */
+    @Override
     public boolean isFile() throws IOException {
         checkAttr();
 
@@ -265,6 +280,7 @@ public class Nfs2 extends Nfs {
      * Verify if this is a directory
      * @return true if a directory
      */
+    @Override
     public boolean isDirectory() throws IOException {
         checkAttr();
 
@@ -275,6 +291,7 @@ public class Nfs2 extends Nfs {
      * Verify if this is a symbolic link
      * @return true if a symbolic link
      */
+    @Override
     public boolean isSymlink() throws IOException {
         checkAttr();
 
@@ -284,6 +301,7 @@ public class Nfs2 extends Nfs {
     /*
      * @return file attributes
      */
+    @Override
     public Fattr getAttr() throws IOException {
         checkAttr();
 
@@ -299,25 +317,26 @@ public class Nfs2 extends Nfs {
      * @returns		Nfs object
      * @exception java.io.IOException
      */
+    @Override
     public Nfs lookup(String name) throws IOException {
         byte[] newfh;
         Fattr2 newattrs;
         Nfs nfs;
         String pathname;
 
-	/* For multi-component lookup, the name would already be
-	 * filled in when object is created and
-	 * thus name passed in will be null.
-	 */
-	if (name == null) {
-		pathname = this.name;
-		name = this.name;
-	} else { /* Single component case  */
+    /* For multi-component lookup, the name would already be
+     * filled in when object is created and
+     * thus name passed in will be null.
+     */
+    if (name == null) {
+        pathname = this.name;
+        name = this.name;
+    } else { /* Single component case  */
             if (this.name == null)
                 pathname = name;
             else
                 pathname = this.name + "/" + name;
-	}
+    }
 
         /*
          * First check the cache to see
@@ -326,7 +345,7 @@ public class Nfs2 extends Nfs {
         nfs = cache_get(rpc.conn.server, pathname);
         if (nfs != null && nfs.cacheOK(cacheTime)) {
 
-	    // If a symbolic link then follow it
+        // If a symbolic link then follow it
 
             if (((Nfs2)nfs).attr.ftype == NFLNK)
                 nfs = NfsConnect.followLink(nfs);
@@ -335,55 +354,55 @@ public class Nfs2 extends Nfs {
         }
 
         Xdr call = new Xdr(rsize + 512);
-	Xdr reply = null;
+    Xdr reply = null;
 
-	/*
-	 * If needed, give one try to get the security information
-	 * from the server.
-	 */
-	for (int sec_tries = 1; sec_tries >= 0; sec_tries--) {
-	    rpc.rpc_header(call, NFSPROC2_LOOKUP);
-	    call.xdr_raw(fh);
-	    call.xdr_string(name);
+    /*
+     * If needed, give one try to get the security information
+     * from the server.
+     */
+    for (int sec_tries = 1; sec_tries >= 0; sec_tries--) {
+        rpc.rpc_header(call, NFSPROC2_LOOKUP);
+        call.xdr_raw(fh);
+        call.xdr_string(name);
 
-	    try {
-		reply = rpc.rpc_call(call, 5 * 1000, 0);
+        try {
+        reply = rpc.rpc_call(call, 5 * 1000, 0);
                 break;
             } catch (MsgRejectedException e) {
-		/*
-		 * Check if this lookup is using public fh.
-		 * If so and if the call receives an AUTH_TOOWEAK error,
-		 * lookupSec() is called to get the security flavor
-		 * information from the server by using the WebNFS
-		 * security negotiation protocol (supported in Solaris 8).
-		 */
-		boolean is_v2pubfh = true;
-		for (int i = 0; i < 32; i++) {
-		    if (fh[i] != (byte) 0) {
-			is_v2pubfh = false;
-			break;
-		    }
-		}
+        /*
+         * Check if this lookup is using public fh.
+         * If so and if the call receives an AUTH_TOOWEAK error,
+         * lookupSec() is called to get the security flavor
+         * information from the server by using the WebNFS
+         * security negotiation protocol (supported in Solaris 8).
+         */
+        boolean is_v2pubfh = true;
+        for (int i = 0; i < 32; i++) {
+            if (fh[i] != (byte) 0) {
+            is_v2pubfh = false;
+            break;
+            }
+        }
                 if (is_v2pubfh && e.why ==
-				MsgRejectedException.AUTH_TOOWEAK) {
+                MsgRejectedException.AUTH_TOOWEAK) {
                     String secKey = lookupSec();
                     if (secKey != null &&
-			NfsSecurity.getMech(secKey) != null) {
-			rpc.setCred(new CredGss("nfs",
+            NfsSecurity.getMech(secKey) != null) {
+            rpc.setCred(new CredGss("nfs",
                                 NfsSecurity.getMech(secKey),
                                 NfsSecurity.getService(secKey),
                                 NfsSecurity.getQop(secKey)));
                         continue;
                     } else if (secKey != null && secKey.equals("1")) {
-			rpc.setCred(new CredUnix());
-			continue;
-		    }
+            rpc.setCred(new CredUnix());
+            continue;
+            }
                 }
                 throw e;
             } catch (IOException e) {
                 throw e;
             }
-	} // for
+    } // for
 
         int status = reply.xdr_int();
         if (status != NFS_OK)
@@ -395,7 +414,7 @@ public class Nfs2 extends Nfs {
         nfs = new Nfs2(rpc, newfh, pathname, newattrs);
         cache_put(nfs);
 
-	// If a symbolic link then follow it
+    // If a symbolic link then follow it
 
         if (((Nfs2)nfs).attr.ftype == NFLNK)
             nfs = NfsConnect.followLink(nfs);
@@ -464,6 +483,7 @@ public class Nfs2 extends Nfs {
      *		to indicate the offset of the flavor number (sec_index + n)
      *
      */
+    @Override
     public String lookupSec() throws IOException {
 
         int sec_index = 1;
@@ -524,6 +544,7 @@ public class Nfs2 extends Nfs {
      * Read data from a file into a buffer
      *
      */
+    @Override
     public void read_otw(Buffer buf) throws IOException {
 
         Xdr call = new Xdr(rsize + 512);
@@ -543,10 +564,10 @@ public class Nfs2 extends Nfs {
         attr.getFattr(reply);
 
         int bytesread = reply.xdr_int();
-	buf.eof = buf.foffset + rsize >= attr.size;
+    buf.eof = buf.foffset + rsize >= attr.size;
         buf.buf = reply.xdr_buf();
         buf.bufoff = reply.xdr_offset();
-	buf.buflen = bytesread;
+    buf.buflen = bytesread;
         cacheTime = attr.mtime;
     }
 
@@ -554,6 +575,7 @@ public class Nfs2 extends Nfs {
      * Write data from a file into a buffer
      *
      */
+    @Override
     public int write_otw(Buffer buf) throws IOException {
 
         Xdr call = new Xdr(wsize + 512);
@@ -572,7 +594,7 @@ public class Nfs2 extends Nfs {
 
         int status = reply.xdr_int();
         if (status != NFS_OK)
-   		throw new NfsException(status);
+           throw new NfsException(status);
 
         attr.getFattr(reply);
 
@@ -588,10 +610,11 @@ public class Nfs2 extends Nfs {
      *
      * Returns an array of names.
      */
+    @Override
     public String[] readdir() throws IOException {
 
         long cookie = 0;
-	boolean eof = false;
+    boolean eof = false;
         String[] s = new String[32];
         String ename;
         int i = 0;
@@ -662,6 +685,7 @@ public class Nfs2 extends Nfs {
      *
      * Returns the text in the symbolic link
      */
+    @Override
     public String readlink() throws IOException {
         /*
          * If we've already read the symlink
@@ -694,8 +718,9 @@ public class Nfs2 extends Nfs {
      * @returns		true if successful
      * @exception java.io.IOException
      */
+    @Override
     public Nfs create(String name, long mode) throws IOException {
-	return create_otw(NFSPROC2_CREATE, name, mode);
+    return create_otw(NFSPROC2_CREATE, name, mode);
     }
 
     /*
@@ -706,8 +731,9 @@ public class Nfs2 extends Nfs {
      * @returns 	true if successful
      * @exception java.io.IOException
      */
+    @Override
     public Nfs mkdir(String name, long mode)  throws IOException{
-	return create_otw(NFSPROC2_MKDIR, name, mode);
+    return create_otw(NFSPROC2_MKDIR, name, mode);
     }
 
     /*
@@ -719,50 +745,51 @@ public class Nfs2 extends Nfs {
      * @exception java.io.IOException
      */
     private Nfs create_otw(int nfsOp, String name, long mode)
-	throws IOException {
+    throws IOException {
 
-	long currTime = System.currentTimeMillis();
-	byte[] newfh;
-	Fattr2 newattrs;
-	Nfs nfs;
+    long currTime = System.currentTimeMillis();
+    byte[] newfh;
+    Fattr2 newattrs;
+    Nfs nfs;
 
-	Xdr call = new Xdr(rsize + 512);
-	rpc.rpc_header(call, nfsOp);
-	call.xdr_raw(fh);
-	call.xdr_string(name);
-	call.xdr_u_int(mode);
-	call.xdr_u_int(NfsConnect.getCred().getUid());	// owner
-	call.xdr_u_int(NfsConnect.getCred().getGid());	// group
-	call.xdr_u_int(0);			// size
-	call.xdr_u_int(currTime / 1000);	// atime seconds
-	call.xdr_u_int(currTime % 1000);	// atime mseconds
-	call.xdr_u_int(currTime / 1000);	// mtime seconds
-	call.xdr_u_int(currTime % 1000);	// mtime mseconds
+    Xdr call = new Xdr(rsize + 512);
+    rpc.rpc_header(call, nfsOp);
+    call.xdr_raw(fh);
+    call.xdr_string(name);
+    call.xdr_u_int(mode);
+    call.xdr_u_int(NfsConnect.getCred().getUid());	// owner
+    call.xdr_u_int(NfsConnect.getCred().getGid());	// group
+    call.xdr_u_int(0);			// size
+    call.xdr_u_int(currTime / 1000);	// atime seconds
+    call.xdr_u_int(currTime % 1000);	// atime mseconds
+    call.xdr_u_int(currTime / 1000);	// mtime seconds
+    call.xdr_u_int(currTime % 1000);	// mtime mseconds
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	if (status != NFS_OK)
-		throw new NfsException(status);
+    int status = reply.xdr_int();
+    if (status != NFS_OK)
+        throw new NfsException(status);
 
-	/*
-	 * Cache the new NFS Object
-	 */
-	newfh = reply.xdr_raw(FHSIZE);
-	newattrs = new Fattr2(reply);
+    /*
+     * Cache the new NFS Object
+     */
+    newfh = reply.xdr_raw(FHSIZE);
+    newattrs = new Fattr2(reply);
 
-	String pathname = this.name + "/" + name;
+    String pathname = this.name + "/" + name;
 
-	nfs = new Nfs2(rpc, newfh, pathname, newattrs);
-	cache_put(nfs);
-	dircache = null;
-	return nfs;
+    nfs = new Nfs2(rpc, newfh, pathname, newattrs);
+    cache_put(nfs);
+    dircache = null;
+    return nfs;
     }
 
     /*
      * Get Filesystem Information
      *
      */
+    @Override
     public void fsinfo() throws IOException {
         wsize = RWSIZE;
     }
@@ -770,6 +797,7 @@ public class Nfs2 extends Nfs {
     /*
      * Commit writes - not implemented in v2
      */
+    @Override
     public long commit(int foffset, int length) throws IOException {
         return 0;
     }
@@ -779,8 +807,9 @@ public class Nfs2 extends Nfs {
      *
      * Returns true if the file was removed
      */
+    @Override
     public boolean remove(String name) throws IOException {
-	return remove_otw(NFSPROC2_REMOVE, name);
+    return remove_otw(NFSPROC2_REMOVE, name);
     }
 
     /**
@@ -789,8 +818,9 @@ public class Nfs2 extends Nfs {
      * @returns true if the directory could be deleted
      * @exception java.io.IOException
      */
+    @Override
     public boolean rmdir(String name) throws IOException {
-	return remove_otw(NFSPROC2_RMDIR, name);
+    return remove_otw(NFSPROC2_RMDIR, name);
     }
 
     /*
@@ -804,20 +834,20 @@ public class Nfs2 extends Nfs {
      */
     private boolean remove_otw(int nfsOp, String name) throws IOException {
 
-	Xdr call = new Xdr(rsize + 512);
-	rpc.rpc_header(call, nfsOp);
-	call.xdr_raw(fh);
-	call.xdr_string(name);
+    Xdr call = new Xdr(rsize + 512);
+    rpc.rpc_header(call, nfsOp);
+    call.xdr_raw(fh);
+    call.xdr_string(name);
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	if (status != NFS_OK)
-	    throw new NfsException(status);
+    int status = reply.xdr_int();
+    if (status != NFS_OK)
+        throw new NfsException(status);
 
-	cache_remove(this, name);	// Remove Nfs object from cache
-	dircache = null;
-	return true;
+    cache_remove(this, name);	// Remove Nfs object from cache
+    dircache = null;
+    return true;
     }
 
     /*
@@ -831,25 +861,26 @@ public class Nfs2 extends Nfs {
      * @returns true if the file/directory was renamed
      * @exception java.io.IOException
      */
+    @Override
     public boolean rename(Nfs dstP, String sName, String dName) throws IOException{
 
-	Xdr call = new Xdr(rsize + 512);
+    Xdr call = new Xdr(rsize + 512);
 
-	rpc.rpc_header(call, NFSPROC2_RENAME);
-	call.xdr_raw(fh);			// Source dir filehandle
-	call.xdr_string(sName);			// Source filename
-	call.xdr_raw(dstP.getFH());		// Dest dir filehandle
-	call.xdr_string(dName);			// Dest filename
+    rpc.rpc_header(call, NFSPROC2_RENAME);
+    call.xdr_raw(fh);			// Source dir filehandle
+    call.xdr_string(sName);			// Source filename
+    call.xdr_raw(dstP.getFH());		// Dest dir filehandle
+    call.xdr_string(dName);			// Dest filename
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	if (status != NFS_OK)
-	    throw new NfsException(status);
+    int status = reply.xdr_int();
+    if (status != NFS_OK)
+        throw new NfsException(status);
 
-	cache_remove(this, sName);	// Remove Nfs object from cache
-	dircache = null;
-	dstP.dircache = null;
-	return true;
+    cache_remove(this, sName);	// Remove Nfs object from cache
+    dircache = null;
+    dstP.dircache = null;
+    return true;
     }
 }

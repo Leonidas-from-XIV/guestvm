@@ -49,20 +49,20 @@ import com.sun.xfile.*;
  * @beaninfo
  *   attribute: isContainer false
  * @see #javax.swing.JFileChooser
- * @version 1.0 
+ * @version 1.0
  * @author Agnes Jacob
  *
  */
 public class XFileChooser extends JFileChooser implements PropertyChangeListener {
     private XFile currentXDirectory = new XFile(System.getProperty("user.home"));
     private XFile selectedXFile = null;
-    
+
     private XFile[] selectedXFiles = null;
     private XFileInputStream selectedXFileInputStream = null;
     private XFileOutputStream selectedXFileOutputStream = null;
 
     /*    private File currentDirectory; */
-    
+
     /** Identifies user's directory change. */
     public static final String XDIRECTORY_CHANGED_PROPERTY = "XdirectoryChanged";
     /** Identifes change in user's single-file selection. */
@@ -79,15 +79,15 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * Initializes some of the private variables needed for bean's editor.
      */
     public XFileChooser() {
-	super(XFileSystemView.getFileSystemView());
-	setApproveButtonToolTipText("");
-	setApproveButtonText("");
-	setApproveButtonMnemonic(0);
-	setDialogTitle("");
-	setFileSelectionMode(FILES_ONLY);
-	addPropertyChangeListener(this);
+    super(XFileSystemView.getFileSystemView());
+    setApproveButtonToolTipText("");
+    setApproveButtonText("");
+    setApproveButtonMnemonic(0);
+    setDialogTitle("");
+    setFileSelectionMode(FILES_ONLY);
+    addPropertyChangeListener(this);
     }
-    
+
     /**
      * Creates a XFileChooser using the given path. Passing in a null
      * string causes the file chooser to point to the users home directory.
@@ -95,21 +95,21 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @param currentDirectoryPath  a String giving the path to a file or directory
      */
     public XFileChooser(String currentDirectoryPath) {
-	super(currentDirectoryPath, XFileSystemView.getFileSystemView());
-	addPropertyChangeListener(this);
+    super(currentDirectoryPath, XFileSystemView.getFileSystemView());
+    addPropertyChangeListener(this);
     }
-    
+
     /**
      * Creates a XFileChooser using the given XFile as the path. Passing
      * in a null file causes the file chooser to point to the users's
      * home directory.
      *
-     * @param currentDirectory  a XFile object specifying the path to a file 
+     * @param currentDirectory  a XFile object specifying the path to a file
      *                   or directory
      */
     public XFileChooser(XFile currentDirectory) {
-	this((currentDirectory == null) ? ((String) null) : currentDirectory.getAbsolutePath());
-	addPropertyChangeListener(this);
+    this((currentDirectory == null) ? ((String) null) : currentDirectory.getAbsolutePath());
+    addPropertyChangeListener(this);
     }
 
     /**
@@ -122,33 +122,33 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      */
     public void propertyChange(PropertyChangeEvent e) {
         String prop = e.getPropertyName();
-	Object obj = e.getNewValue();
-	if ((obj == null) || (! (obj instanceof BeanXFile)))
+    Object obj = e.getNewValue();
+    if ((obj == null) || (! (obj instanceof BeanXFile)))
             return;
 
-	BeanXFile bf = (BeanXFile) obj;
-	
-        if(prop == JFileChooser.DIRECTORY_CHANGED_PROPERTY) {
-	    XFile oldValue = this.currentXDirectory;
-			       
-	    this.currentXDirectory = new XFile(((BeanXFile) obj).getAbsolutePath()); 
-	    firePropertyChange(XDIRECTORY_CHANGED_PROPERTY, oldValue, 
-			       this.currentXDirectory);
+    BeanXFile bf = (BeanXFile) obj;
 
-	} else if (prop == JFileChooser.SELECTED_FILE_CHANGED_PROPERTY) {
-	    XFile oldValue = this.selectedXFile;
-	    this.selectedXFile = new XFile(((File) obj).getAbsolutePath());
-	    firePropertyChange(SELECTED_XFILES_CHANGED_PROPERTY, oldValue,
-			       this.selectedXFile);
-	} else if (prop == JFileChooser.SELECTED_FILES_CHANGED_PROPERTY) {
-	    XFile[] oldValue = this.selectedXFiles;
-	    File[] sfiles = (File[]) obj;
-	    
-	    for (int i=0; i < sfiles.length; i++)
-		this.selectedXFiles[i] = new XFile(sfiles[i].getAbsolutePath());
-	    firePropertyChange(SELECTED_XFILES_CHANGED_PROPERTY, oldValue, 
-			       this.selectedXFiles);
-	}
+        if(prop == JFileChooser.DIRECTORY_CHANGED_PROPERTY) {
+        XFile oldValue = this.currentXDirectory;
+
+        this.currentXDirectory = new XFile(((BeanXFile) obj).getAbsolutePath());
+        firePropertyChange(XDIRECTORY_CHANGED_PROPERTY, oldValue,
+                   this.currentXDirectory);
+
+    } else if (prop == JFileChooser.SELECTED_FILE_CHANGED_PROPERTY) {
+        XFile oldValue = this.selectedXFile;
+        this.selectedXFile = new XFile(((File) obj).getAbsolutePath());
+        firePropertyChange(SELECTED_XFILES_CHANGED_PROPERTY, oldValue,
+                   this.selectedXFile);
+    } else if (prop == JFileChooser.SELECTED_FILES_CHANGED_PROPERTY) {
+        XFile[] oldValue = this.selectedXFiles;
+        File[] sfiles = (File[]) obj;
+
+        for (int i=0; i < sfiles.length; i++)
+        this.selectedXFiles[i] = new XFile(sfiles[i].getAbsolutePath());
+        firePropertyChange(SELECTED_XFILES_CHANGED_PROPERTY, oldValue,
+                   this.selectedXFiles);
+    }
 
     }
 
@@ -158,7 +158,7 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @return the XFile object of the current directory
      * @see #setCurrentXDirectory    */
     public XFile getCurrentXDirectory() {
-	return(currentXDirectory);
+    return(currentXDirectory);
     }
 
     /**
@@ -181,11 +181,11 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @see #getCurrentXDirectory
      */
     public void setCurrentXDirectory(XFile currentDirectory) {
-	if (currentDirectory != null) {
-	    this.currentXDirectory = currentDirectory;
-	    setCurrentDirectory(new BeanXFile(currentDirectory.getAbsolutePath()));
-	} else 
-	    setCurrentDirectory(null);
+    if (currentDirectory != null) {
+        this.currentXDirectory = currentDirectory;
+        setCurrentDirectory(new BeanXFile(currentDirectory.getAbsolutePath()));
+    } else
+        setCurrentDirectory(null);
     }
 
 
@@ -199,7 +199,7 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @return the XFile object of the selected file
      */
     public XFile getSelectedXFile() {
-	return (selectedXFile);
+    return (selectedXFile);
     }
 
     /**
@@ -218,11 +218,11 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @param selectedFile the XFile object of the selected file
      */
     public void setSelectedXFile(XFile selectedFile) {
-	this.selectedXFile = selectedFile;
-	if (selectedFile != null)
-	    setSelectedFile(new BeanXFile(selectedFile.getAbsolutePath()));
-	else
-	    setSelectedFile(null);
+    this.selectedXFile = selectedFile;
+    if (selectedFile != null)
+        setSelectedFile(new BeanXFile(selectedFile.getAbsolutePath()));
+    else
+        setSelectedFile(null);
     }
 
     /**
@@ -232,13 +232,13 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @see #setSelectedXFiles
      * @return list of XFile objects of the selected files
      */
-    public XFile[] getSelectedXFiles() {	
-	
-	if (selectedXFiles == null) {
-	    return new XFile[0];
-	} else {
-	    return (XFile[])selectedXFiles;
-	}
+    public XFile[] getSelectedXFiles() {
+
+    if (selectedXFiles == null) {
+        return new XFile[0];
+    } else {
+        return (XFile[])selectedXFiles;
+    }
     }
 
     /**
@@ -250,19 +250,19 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * description: the list of XFile objects of selected files if the chooser is in multi-selection mode
      */
     public void setSelectedXFiles(XFile[] selectedFiles) {
-	this.selectedXFiles = selectedFiles;
+    this.selectedXFiles = selectedFiles;
 
-	if (selectedFiles != null) {
-	    BeanXFile[] sfiles = new BeanXFile[selectedFiles.length];
+    if (selectedFiles != null) {
+        BeanXFile[] sfiles = new BeanXFile[selectedFiles.length];
 
-	    for (int i = 0; i < selectedFiles.length; i++) {
-		sfiles[i] = new BeanXFile(selectedFiles[i].getAbsolutePath());
-	    }
-	
-	    setSelectedFiles(sfiles);
+        for (int i = 0; i < selectedFiles.length; i++) {
+        sfiles[i] = new BeanXFile(selectedFiles[i].getAbsolutePath());
+        }
+
+        setSelectedFiles(sfiles);
          } else
-	    setSelectedFiles(null);
-	    
+        setSelectedFiles(null);
+
     }
 
     /**
@@ -272,15 +272,15 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @return XFileInputStream of the selected input file
      */
     public XFileInputStream getSelectedXFileInputStream(){
-	XFile f = getSelectedXFile();
-	try {
-	    selectedXFileInputStream = new XFileInputStream(f);
-	} catch (Exception e) {
-	    selectedXFileInputStream = null;
-	}
-	return(selectedXFileInputStream);
+    XFile f = getSelectedXFile();
+    try {
+        selectedXFileInputStream = new XFileInputStream(f);
+    } catch (Exception e) {
+        selectedXFileInputStream = null;
     }
-    
+    return(selectedXFileInputStream);
+    }
+
     /**
      * Returns the XFileOutputStream object of the selected file
      *
@@ -288,13 +288,13 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @return XFileOutputStream of the selected output file
      */
     public XFileOutputStream getSelectedXFileOutputStream() {
-	XFile f = getSelectedXFile();
-	try {
-	    selectedXFileOutputStream = new XFileOutputStream(f);
-	} catch (Exception e) {
-	    selectedXFileOutputStream = null;
-	}
-	return selectedXFileOutputStream;
+    XFile f = getSelectedXFile();
+    try {
+        selectedXFileOutputStream = new XFileOutputStream(f);
+    } catch (Exception e) {
+        selectedXFileOutputStream = null;
+    }
+    return selectedXFileOutputStream;
     }
 
 
@@ -305,8 +305,8 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * @param f  an XFile object
      */
     public void ensureFileIsVisible(XFile f) {
-	if (f != null)
-	    ensureFileIsVisible(new File(f.getAbsolutePath()));
+    if (f != null)
+        ensureFileIsVisible(new File(f.getAbsolutePath()));
     }
 
 
@@ -317,11 +317,11 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      *  Used only for testing of bean
      */
     public static void main(String args[]) {
-	XFileChooser xfb = new XFileChooser();
-	xfb.showDialog(new JFrame(), "ajacob");
+    XFileChooser xfb = new XFileChooser();
+    xfb.showDialog(new JFrame(), "ajacob");
 
     }
-    
+
 
 }
 

@@ -34,11 +34,11 @@ package com.sun.xfile;
 import java.io.*;
 
 /**
- * An XFile input stream is an input stream for reading data from an 
- * <code>XFile</code>. 
+ * An XFile input stream is an input stream for reading data from an
+ * <code>XFile</code>.
  */
 public class XFileInputStream extends InputStream {
-    
+
     private long fp;	/* File Pointer */
 
     /**
@@ -48,8 +48,8 @@ public class XFileInputStream extends InputStream {
 
 
     /**
-     * Creates an input file stream to read from the specified 
-     * <code>XFile</code> object. 
+     * Creates an input file stream to read from the specified
+     * <code>XFile</code> object.
      *
      * @param      xfile   the file to be opened for reading.
      * @exception  java.io.FileNotFoundException if the file is
@@ -66,8 +66,8 @@ public class XFileInputStream extends InputStream {
 
 
     /**
-     * Creates an input file stream to read from a file with the 
-     * specified name. 
+     * Creates an input file stream to read from a file with the
+     * specified name.
      *
      * @param      name   the system-dependent file name.
      * @exception  java.io.FileNotFoundException if the file is
@@ -76,16 +76,16 @@ public class XFileInputStream extends InputStream {
     public XFileInputStream(String name) throws IOException {
         this(new XFile(name));
     }
-    
 
-    /* 
-     * Reads a subarray as a sequence of bytes. 
+
+    /*
+     * Reads a subarray as a sequence of bytes.
      *
      * @param b the data to be written
      * @param off the start offset in the data
      * @param len the number of bytes that are written
-     * @exception java.io.IOException If an I/O error has occurred. 
-     */ 
+     * @exception java.io.IOException If an I/O error has occurred.
+     */
     synchronized private int XFAread(byte b[], int off, int len)
         throws IOException {
 
@@ -94,8 +94,8 @@ public class XFileInputStream extends InputStream {
 
         if (len == 0)
             return 0;
-        
-	if (off < 0 || len < 0 || off >= b.length || (off + len) > b.length)
+
+    if (off < 0 || len < 0 || off >= b.length || (off + len) > b.length)
             throw new IllegalArgumentException("Invalid argument");
 
         int c = xfa.read(b, off, len, fp);
@@ -115,6 +115,7 @@ public class XFileInputStream extends InputStream {
      *         if the end of the file is reached.
      * @exception  java.io.IOException if an I/O error occurs.
      */
+    @Override
     public int read() throws IOException {
         byte[] b = new byte[1];
 
@@ -134,8 +135,9 @@ public class XFileInputStream extends InputStream {
      *             the end of the file has been reached.
      * @exception  java.io.IOException if an I/O error occurs.
      */
+    @Override
     public int read(byte b[]) throws IOException {
-	return XFAread(b, 0, b.length);
+    return XFAread(b, 0, b.length);
     }
 
 
@@ -151,8 +153,9 @@ public class XFileInputStream extends InputStream {
      *             the end of the file has been reached.
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public int read(byte b[], int off, int len) throws IOException {
-	return XFAread(b, off, len);
+    return XFAread(b, off, len);
     }
 
 
@@ -163,17 +166,18 @@ public class XFileInputStream extends InputStream {
      *         without blocking.
      * @exception java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public int available() throws IOException {
         return (int)(xfa.length() - fp);
     }
 
 
     /**
-     * Skips over and discards <code>n</code> bytes of data from the 
+     * Skips over and discards <code>n</code> bytes of data from the
      * file.
      *
-     * The <code>skip</code> method may, for a variety of 
-     * reasons, end up skipping over some smaller number of bytes, 
+     * The <code>skip</code> method may, for a variety of
+     * reasons, end up skipping over some smaller number of bytes,
      * possibly <code>0</code>.
      * The actual number of bytes skipped is returned.
      *
@@ -181,6 +185,7 @@ public class XFileInputStream extends InputStream {
      * @return     the actual number of bytes skipped.
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public long skip(long n) throws IOException {
         if (n < 0)
             throw new IllegalArgumentException("illegal skip: " + n);
@@ -192,14 +197,15 @@ public class XFileInputStream extends InputStream {
 
 
     /**
-     * Closes this file input stream and releases any system resources 
-     * associated with the stream. 
+     * Closes this file input stream and releases any system resources
+     * associated with the stream.
      *
      * After the file is closed further I/O operations may
      * throw IOException.
      *
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void close() throws IOException {
         xfa.close();
     }

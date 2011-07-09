@@ -65,9 +65,9 @@ public class Xdr {
      * @param size	of the buffer in bytes
      */
     public Xdr(int size) {
-	this.buf = new byte[size];
-	this.size = size;
-	this.off = 0;
+    this.buf = new byte[size];
+    this.size = size;
+    this.off = 0;
     }
 
     /**
@@ -78,10 +78,10 @@ public class Xdr {
      * @param count	of the buffer in bytes
      */
     public void xdr_skip(int count) {
-	int r = (off += count) % XDRUNIT;
+    int r = (off += count) % XDRUNIT;
 
-	if (r > 0)
-	    off += XDRUNIT - r;
+    if (r > 0)
+        off += XDRUNIT - r;
     }
 
     /**
@@ -90,7 +90,7 @@ public class Xdr {
      * @return	Xdr buffer
      */
     public byte[] xdr_buf() {
-	return buf;
+    return buf;
     }
 
     /**
@@ -99,7 +99,7 @@ public class Xdr {
      * @return	offset
      */
     public int xdr_offset() {
-	return off;
+    return off;
     }
 
     /**
@@ -108,7 +108,7 @@ public class Xdr {
      * @param	off offset into XDR buffer
      */
     public void xdr_offset(int off) {
-	this.off = off;
+    this.off = off;
     }
 
     /**
@@ -118,7 +118,7 @@ public class Xdr {
      * @return	offset for bytes to be encrypted
      */
     public int xdr_wrap_offset() {
-	return wrap_offset;
+    return wrap_offset;
     }
 
     /**
@@ -128,7 +128,7 @@ public class Xdr {
      * @return	offset for bytes to be encrypted
      */
     public void xdr_wrap_offset(int off) {
-	wrap_offset = off;
+    wrap_offset = off;
     }
 
     /**
@@ -137,7 +137,7 @@ public class Xdr {
      * @return	size
      */
     public int xdr_size() {
-	return size;
+    return size;
     }
 
     /**
@@ -146,7 +146,7 @@ public class Xdr {
      * @param	size of buffer
      */
     public void xdr_size(int size) {
-	this.size = size;
+    this.size = size;
     }
 
     /**
@@ -155,10 +155,10 @@ public class Xdr {
      * @return integer
      */
     public int xdr_int() {
-	return ((buf[off++] & 0xff) << 24 |
-	        (buf[off++] & 0xff) << 16 |
-	        (buf[off++] & 0xff) << 8  |
-	        (buf[off++] & 0xff));
+    return ((buf[off++] & 0xff) << 24 |
+            (buf[off++] & 0xff) << 16 |
+            (buf[off++] & 0xff) << 8  |
+            (buf[off++] & 0xff));
     }
 
     /**
@@ -167,10 +167,10 @@ public class Xdr {
      * @param i Integer to store in XDR buffer.
      */
     public void xdr_int(int i) {
-	buf[off++] = (byte)(i >>> 24);
-	buf[off++] = (byte)(i >> 16);
-	buf[off++] = (byte)(i >> 8);
-	buf[off++] = (byte)i;
+    buf[off++] = (byte)(i >>> 24);
+    buf[off++] = (byte)(i >> 16);
+    buf[off++] = (byte)(i >> 8);
+    buf[off++] = (byte)i;
     }
 
     /**
@@ -182,10 +182,10 @@ public class Xdr {
      * @return long
      */
     public long xdr_u_int() {
-	return ((buf[off++] & 0xff) << 24 |
-	        (buf[off++] & 0xff) << 16 |
-	        (buf[off++] & 0xff) << 8  |
-	        (buf[off++] & 0xff));
+    return ((buf[off++] & 0xff) << 24 |
+            (buf[off++] & 0xff) << 16 |
+            (buf[off++] & 0xff) << 8  |
+            (buf[off++] & 0xff));
     }
 
     /**
@@ -197,10 +197,10 @@ public class Xdr {
      * @param i unsigned integer to store in XDR buffer.
      */
     public void xdr_u_int(long i) {
-	buf[off++] = (byte)(i >>> 24 & 0xff);
-	buf[off++] = (byte)(i >> 16);
-	buf[off++] = (byte)(i >> 8);
-	buf[off++] = (byte)i;
+    buf[off++] = (byte)(i >>> 24 & 0xff);
+    buf[off++] = (byte)(i >> 16);
+    buf[off++] = (byte)(i >> 8);
+    buf[off++] = (byte)i;
     }
 
     /**
@@ -209,14 +209,14 @@ public class Xdr {
      * @return long
      */
     public long xdr_hyper() {
-	return ((long)(buf[off++] & 0xff) << 56 |
-	       	(long)(buf[off++] & 0xff) << 48 |
-	        (long)(buf[off++] & 0xff) << 40 |
-	        (long)(buf[off++] & 0xff) << 32 |
-	        (long)(buf[off++] & 0xff) << 24 |
-	        (long)(buf[off++] & 0xff) << 16 |
-	        (long)(buf[off++] & 0xff) << 8  |
-	        (long)(buf[off++] & 0xff));
+    return ((long)(buf[off++] & 0xff) << 56 |
+               (long)(buf[off++] & 0xff) << 48 |
+            (long)(buf[off++] & 0xff) << 40 |
+            (long)(buf[off++] & 0xff) << 32 |
+            (long)(buf[off++] & 0xff) << 24 |
+            (long)(buf[off++] & 0xff) << 16 |
+            (long)(buf[off++] & 0xff) << 8  |
+            (long)(buf[off++] & 0xff));
     }
 
     /**
@@ -225,14 +225,14 @@ public class Xdr {
      * @param i long to store in XDR buffer
      */
     public void xdr_hyper(long i) {
-	buf[off++] = (byte)(i >>> 56) ;
-	buf[off++] = (byte)((i >> 48) & 0xff);
-	buf[off++] = (byte)((i >> 40) & 0xff);
-	buf[off++] = (byte)((i >> 32) & 0xff);
-	buf[off++] = (byte)((i >> 24) & 0xff);
-	buf[off++] = (byte)((i >> 16) & 0xff);
-	buf[off++] = (byte)((i >> 8) & 0xff);
-	buf[off++] = (byte)(i & 0xff);
+    buf[off++] = (byte)(i >>> 56) ;
+    buf[off++] = (byte)((i >> 48) & 0xff);
+    buf[off++] = (byte)((i >> 40) & 0xff);
+    buf[off++] = (byte)((i >> 32) & 0xff);
+    buf[off++] = (byte)((i >> 24) & 0xff);
+    buf[off++] = (byte)((i >> 16) & 0xff);
+    buf[off++] = (byte)((i >> 8) & 0xff);
+    buf[off++] = (byte)(i & 0xff);
     }
 
     /*
@@ -249,7 +249,7 @@ public class Xdr {
      * @return boolean
      */
     public boolean xdr_bool() {
-	return (xdr_int() != 0);
+    return (xdr_int() != 0);
     }
 
     /**
@@ -258,7 +258,7 @@ public class Xdr {
      * @param b boolean
      */
     public void xdr_bool(boolean b) {
-	xdr_int(b ? 1 : 0);
+    xdr_int(b ? 1 : 0);
     }
 
     /**
@@ -267,7 +267,7 @@ public class Xdr {
      * @return float
      */
     public float xdr_float() {
-	return (Float.intBitsToFloat(xdr_int()));
+    return (Float.intBitsToFloat(xdr_int()));
     }
 
     /**
@@ -276,7 +276,7 @@ public class Xdr {
      * @param f float
      */
     public void xdr_float(float f) {
-	xdr_int(Float.floatToIntBits(f));
+    xdr_int(Float.floatToIntBits(f));
     }
 
     /**
@@ -285,11 +285,11 @@ public class Xdr {
      * @return string
      */
     public String xdr_string() {
-	int len = xdr_int();
+    int len = xdr_int();
 
-	String s = new String(buf, off, len);
-	xdr_skip(len);
-	return s;
+    String s = new String(buf, off, len);
+    xdr_skip(len);
+    return s;
     }
 
     /**
@@ -298,7 +298,7 @@ public class Xdr {
      * @param s string
      */
     public void xdr_string(String s) {
-    	xdr_bytes(s.getBytes());
+        xdr_bytes(s.getBytes());
     }
 
     /**
@@ -307,7 +307,7 @@ public class Xdr {
      * @return bytes
      */
     public byte[] xdr_bytes() {
-	return (xdr_raw(xdr_int()));
+    return (xdr_raw(xdr_int()));
     }
 
     /**
@@ -317,7 +317,7 @@ public class Xdr {
      * @param	b byte array
      */
     public void xdr_bytes(byte[] b) {
-	xdr_bytes(b, 0, b.length);
+    xdr_bytes(b, 0, b.length);
     }
 
     /**
@@ -327,7 +327,7 @@ public class Xdr {
      * @param	len number of bytes to encode
      */
     public void xdr_bytes(byte[] b, int len) {
-	xdr_bytes(b, 0, len);
+    xdr_bytes(b, 0, len);
     }
 
     /**
@@ -338,86 +338,86 @@ public class Xdr {
      * @param	len number of bytes to encode
      */
     public void xdr_bytes(byte[] b, int boff, int len) {
-	xdr_int(len);
-	System.arraycopy(b, boff, buf, off, len);
-	xdr_skip(len);
+    xdr_int(len);
+    System.arraycopy(b, boff, buf, off, len);
+    xdr_skip(len);
     }
 
     /**
      * Put an Xdr buffer into the buffer
-     * 
+     *
      * <br> This is used to encode the RPC credentials
      *
      * @param	x XDR buffer
      */
     public void xdr_bytes(Xdr x) {
-	xdr_bytes(x.xdr_buf(), x.xdr_offset());
+    xdr_bytes(x.xdr_buf(), x.xdr_offset());
     }
 
     /**
      * Get a fixed number of bytes from the buffer
-     * 
+     *
      * e.g. an NFS v2 filehandle
      *
      * @param len	Number of bytes to get
      * @return byte array
      */
     public byte[] xdr_raw(int len) {
-	if (len == 0)
-	    return null;
+    if (len == 0)
+        return null;
 
-	byte[] b = new byte[len];
+    byte[] b = new byte[len];
 
-	System.arraycopy(buf, off, b, 0, len);
-	xdr_skip(len);
-	return b;
+    System.arraycopy(buf, off, b, 0, len);
+    xdr_skip(len);
+    return b;
     }
 
     /**
      * Get a fixed number (len) of bytes from the buffer
      * at offset off.  Do not change any buffer indicators.
-     * 
+     *
      * @param off	Offset of bytes to get from
      * @param len	Number of bytes to copy
      * @return byte array
      */
     public byte[] xdr_raw(int off, int len) {
-	if (len == 0)
-	    return null;
+    if (len == 0)
+        return null;
 
-	byte[] b = new byte[len];
+    byte[] b = new byte[len];
 
-	System.arraycopy(buf, off, b, 0, len);
-	return b;
+    System.arraycopy(buf, off, b, 0, len);
+    return b;
     }
 
     /**
      * Put a fixed number of bytes into the buffer
      * The length is not encoded.
-     * 
+     *
      * e.g. an NFS v2 filehandle
      *
      * @param b byte array
      */
     public void xdr_raw(byte[] b) {
-    	int len = b.length;
+        int len = b.length;
 
-	System.arraycopy(b, 0, buf, off, len);
-	xdr_skip(len);
+    System.arraycopy(b, 0, buf, off, len);
+    xdr_skip(len);
     }
 
     /**
      * Put a fixed number of bytes into the buffer
      * at offset off.  The length is not encoded.
-     * 
+     *
      * @param b byte array
      * @param off where to put the byte array
      */
     public void xdr_raw(byte[] b, int off) {
-    	int len = b.length;
+        int len = b.length;
 
-	System.arraycopy(b, 0, buf, off, len);
-	xdr_skip(len);
+    System.arraycopy(b, 0, buf, off, len);
+    xdr_skip(len);
     }
 
     /**

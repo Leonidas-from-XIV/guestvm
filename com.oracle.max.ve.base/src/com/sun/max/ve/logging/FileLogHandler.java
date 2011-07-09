@@ -57,6 +57,7 @@ public class FileLogHandler extends Handler {
     }
     
     static class CloseHook extends Thread {
+        @Override
         public void run() {
             ps.close();
         }

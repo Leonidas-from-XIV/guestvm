@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 import java.net.InetAddress;
@@ -59,7 +59,7 @@ public class ChannelBinding {
 
     private InetAddress m_initiator;
     private InetAddress m_acceptor;
-  
+
     private  byte[] m_appData;
 
     /**
@@ -72,33 +72,33 @@ public class ChannelBinding {
      *	part of the channel-binding
      */
     public ChannelBinding(InetAddress initAddr, InetAddress acceptAddr,
-			byte[] appData) {
+            byte[] appData) {
 
-	m_initiator = initAddr;
-	m_acceptor = acceptAddr;
+    m_initiator = initAddr;
+    m_acceptor = acceptAddr;
 
-	if (appData != null) {
-	    m_appData = new byte[appData.length];
-	    java.lang.System.arraycopy(appData, 0, m_appData, 0,
-				m_appData.length);
-	}
+    if (appData != null) {
+        m_appData = new byte[appData.length];
+        java.lang.System.arraycopy(appData, 0, m_appData, 0,
+                m_appData.length);
+    }
     }
 
-    
+
     /**
-     * Construct a channel bindings object without any addressing 
+     * Construct a channel bindings object without any addressing
      * information.
      *
      * @param appData a byte array of application data to be used as
      *	part of the channel-binding
      */
     public ChannelBinding(byte[] appData) {
-    
-	m_initiator = null;
-	m_acceptor = null;
-	m_appData = new byte[appData.length];
-	java.lang.System.arraycopy(appData, 0, m_appData, 0,
-					m_appData.length);
+
+    m_initiator = null;
+    m_acceptor = null;
+    m_appData = new byte[appData.length];
+    java.lang.System.arraycopy(appData, 0, m_appData, 0,
+                    m_appData.length);
     }
 
     /**
@@ -108,8 +108,8 @@ public class ChannelBinding {
      *	information is contained
      */
     public InetAddress getInitiatorAddress() {
-    
-	return m_initiator;
+
+    return m_initiator;
     }
 
     /**
@@ -119,11 +119,11 @@ public class ChannelBinding {
      *	information is contained
      */
     public InetAddress getAcceptorAddress() {
-		
-	return m_acceptor;
+
+    return m_acceptor;
     }
 
-  
+
     /**
      * Get the application specified data for this channel binding.
      * The byte array is not copied.
@@ -132,10 +132,10 @@ public class ChannelBinding {
      *			channel-binding
      */
     public byte[] getApplicationData() {
-    
-	return m_appData;
+
+    return m_appData;
     }
-	
+
 
     /**
      * Compares two instances of ChannelBinding
@@ -143,23 +143,24 @@ public class ChannelBinding {
      * @return true if objects are the same
      * @overrides java.lang.Object#equals
      */
+    @Override
     public boolean equals(Object obj) {
-	
-	if (! (obj instanceof ChannelBinding))
-	    return false;
-    
-	ChannelBinding cb = (ChannelBinding)obj;
-    
-	//check for application data being null in one but not the other
-	if ((getApplicationData() == null &&
-			cb.getApplicationData() != null) ||
-			(getApplicationData() != null &&
-			cb.getApplicationData() == null))
-		return (false);
 
-	return (this.m_initiator.equals(cb.getInitiatorAddress()) &&
-		this.m_acceptor.equals(cb.getAcceptorAddress()) &&
-		(this.getApplicationData() == null ||
-		this.m_appData.equals(cb.getApplicationData())));
+    if (! (obj instanceof ChannelBinding))
+        return false;
+
+    ChannelBinding cb = (ChannelBinding)obj;
+
+    //check for application data being null in one but not the other
+    if ((getApplicationData() == null &&
+            cb.getApplicationData() != null) ||
+            (getApplicationData() != null &&
+            cb.getApplicationData() == null))
+        return (false);
+
+    return (this.m_initiator.equals(cb.getInitiatorAddress()) &&
+        this.m_acceptor.equals(cb.getAcceptorAddress()) &&
+        (this.getApplicationData() == null ||
+        this.m_appData.equals(cb.getApplicationData())));
     }
 }

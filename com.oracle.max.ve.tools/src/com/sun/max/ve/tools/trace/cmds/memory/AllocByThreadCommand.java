@@ -271,6 +271,7 @@ public class AllocByThreadCommand extends CommandHelper implements Command {
             }
         }
 
+        @Override
         public String toString() {
             String result = _name;
             if (_count > 0) {

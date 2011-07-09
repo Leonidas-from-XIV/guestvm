@@ -105,7 +105,7 @@ public class GSSContext {
      * @see #accept
      */
     public static final int COMPLETE = 0;
-    
+
     /**
      * Return value from either accept or init stating that
      * another token is required from the peer to continue context
@@ -120,44 +120,44 @@ public class GSSContext {
      * Context option flag - credential delegation.
      */
     public static final int CRED_DELEG = 0x1;
-        
+
     /**
      * Context option flag - mutual authentication.
      */
     public static final int MUTUAL_AUTH = 0x02;
-        
+
     /**
      * Context option flag - replay detection.
      */
     public static final int REPLAY_DET = 0x04;
-    
+
     /**
      * Context option flag - sequence detection.
      */
     public static final int SEQUENCE_DET = 0x08;
-    
+
     /**
      * Context option flag - anonymity.
      */
     public static final int ANON = 0x10;
-    
+
     /**
      * Context option flag - confidentiality.
      */
     public static final int CONF = 0x20;
-    
+
     /**
      * Context option flag -  integrity.
      */
     public static final int INTG = 0x40;
-    
+
     /**
      * Context option flag - transferability (output flag only).
      * Indicates if context may be transferred by using export().
      * @see #export
      */
     public static final int TRANS = 0x80;
-    
+
 
     /**
      * Constructor for creating a context on the initiator's side.
@@ -170,24 +170,24 @@ public class GSSContext {
      * @param myCred the credentials for the initiator; may be
      *    null to indicate desire to use the default credentials
      * @param lifetime the request lifetime, in seconds, for the context
-     * @exception GSSException with possible major codes of BAD_NAME, 
+     * @exception GSSException with possible major codes of BAD_NAME,
      *    BAD_MECH, BAD_NAMETYPE.
      * @see #init
      */
     public GSSContext(GSSName peer, Oid mechOid, GSSCredential myCred, int
             lifetime) throws GSSException {
-        
+
         initialize();
-        
+
         m_myCred = myCred;
         m_reqLifetime = lifetime;
         m_targName = peer;
-        
+
         if (mechOid == null)
             m_mechOid = GSSManager.getDefaultMech();
         else
             m_mechOid = mechOid;
-    } 
+    }
 
 
     /**
@@ -197,7 +197,7 @@ public class GSSContext {
      *
      * @param myCred GSSCredential for the acceptor. Use null to
      *    request usage of default credentials.
-     * @exception GSSException with possible major codes of BAD_NAME, 
+     * @exception GSSException with possible major codes of BAD_NAME,
      *    BAD_MECH, BAD_NAMETYPE.
      * @see #accept
      */
@@ -220,9 +220,9 @@ public class GSSContext {
      * @see #export
      */
     public GSSContext(byte [] interProcessToken) throws GSSException {
-    
+
         initialize();
-        
+
         /*
          * Strip the mechanism oid from the token
          *
@@ -238,8 +238,8 @@ public class GSSContext {
                 length <<= 8;
                 length += (interProcessToken[i] & 0xff);
             }
-            
-            ByteArrayInputStream is = 
+
+            ByteArrayInputStream is =
                 new ByteArrayInputStream(interProcessToken);
 
             //ask mechanism to import this context
@@ -247,7 +247,7 @@ public class GSSContext {
                     Oid.getFromDEROctets(is, length));
             m_mechCtxt._S0AC8F9E (interProcessToken);
             m_curState = READY;
-            
+
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new GSSException(GSSException.DEFECTIVE_TOKEN);
         }
@@ -291,17 +291,17 @@ public class GSSContext {
      */
     public byte[] init(byte []inputBuf, int offset, int length)
                 throws GSSException {
-        
+
         ByteArrayInputStream is = null;
-        
+
         if (inputBuf != null)
             is = new ByteArrayInputStream(inputBuf, offset, length);
-        
+
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         init(is, os);
         if (os.size() == 0)
             return (null);
-            
+
         return (os.toByteArray());
     }
 
@@ -350,33 +350,33 @@ public class GSSContext {
      */
     public int init(InputStream inputBuf, OutputStream outputBuf)
                 throws GSSException {
-        
+
         if (m_mechCtxt == null) {
             m_mechCtxt = GSSManager._M4092FBA (m_mechOid);
             GSSCredSpi mechCred = null;
             if (m_myCred != null)
                 mechCred = m_myCred.getMechCred(m_mechOid, true);
-                
+
             m_mechCtxt._S235D9C1 (mechCred,
                     m_targName.canonicalizeInPlace(m_mechOid),
                     m_reqLifetime, m_reqFlags);
-                    
+
             if (m_chB != null)
                 m_mechCtxt._S9B00AB2 (m_chB);
-    
+
             m_curState = IN_PROGRESS;
         }
-        
+
         //debug code
         if (m_curState != IN_PROGRESS) {
             throw new GSSException(GSSException.FAILURE, -1,
                     "wrong status in init");
         }
-        
+
         int retStatus = m_mechCtxt._S0E039DB (inputBuf, outputBuf);
         if (retStatus == COMPLETE)
             m_curState = READY;
-            
+
         return (retStatus);
     }
 
@@ -423,16 +423,16 @@ public class GSSContext {
      */
     public byte[] accept(byte[] inTok, int offset, int length)
                 throws GSSException {
-    
+
         ByteArrayInputStream is = new ByteArrayInputStream(inTok,
-						offset, length);
+                        offset, length);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         accept(is, os);
 
         //check if token is available for the peer
         if (os.size() == 0)
             return (null);
-            
+
         return (os.toByteArray());
     }
 
@@ -479,9 +479,9 @@ public class GSSContext {
      */
     public int accept(InputStream inputBuf, OutputStream outputBuf)
                 throws GSSException {
-    
+
         if (m_mechCtxt == null) {
-        
+
             //get the mechanism oid from the inputBuf
             Oid mechOid = getTokenMech(inputBuf);
             m_mechCtxt = GSSManager._M4092FBA (mechOid);
@@ -490,20 +490,20 @@ public class GSSContext {
                     m_myCred.getMechCred (mechOid, true));
             if (m_chB != null)
                 m_mechCtxt._S9B00AB2 (m_chB);
-                
+
             m_curState = IN_PROGRESS;
         }
-        
+
         //debug code
         if (m_curState != IN_PROGRESS) {
             throw new GSSException(GSSException.FAILURE, -1,
                     "wrong status in accept");
         }
-        
+
         int retStatus = m_mechCtxt._S80A2F2C (inputBuf, outputBuf);
         if (retStatus == COMPLETE)
             m_curState = READY;
-            
+
         return (retStatus);
     }
 
@@ -517,12 +517,12 @@ public class GSSContext {
      *    fully established.
      */
     public boolean isEstablished() {
-    
+
         return (m_curState == READY);
     }
-    
 
-    /** 
+
+    /**
      * Release any system resources and cryptographic information
      * stored in the context object.  This will invalidate the
      * context.
@@ -531,13 +531,13 @@ public class GSSContext {
      * @exception GSSException with major codes NO_CONTEXT or FAILURE
      */
     public void dispose() throws GSSException {
-    
+
         checkState(IN_PROGRESS);
         m_mechCtxt._S020B957 ();
         m_curState = DELETED;
     }
-   
-             
+
+
     /**
      * Returns the maximum message size that, if presented to the
      * wrap method with the same confReq and qop parameters will
@@ -558,7 +558,7 @@ public class GSSContext {
      */
     public int getWrapSizeLimit(int qop, boolean confReq, int maxTokenSize)
                     throws GSSException {
-        
+
         checkState(READY);
         return (m_mechCtxt._S808028B (qop, confReq, maxTokenSize));
     }
@@ -615,7 +615,7 @@ public class GSSContext {
  */
 
 // XXX delete this line once this routine is turned back on.
-	throw new GSSException(GSSException.FAILURE);
+    throw new GSSException(GSSException.FAILURE);
     }
 
 
@@ -649,7 +649,7 @@ public class GSSContext {
      */
     public void wrap(InputStream inBuf, OutputStream outBuf,
             MessageProp msgProp) throws GSSException {
-        
+
 /*
  * XXX EXPORT DELETE START
  *
@@ -665,7 +665,7 @@ public class GSSContext {
  */
 
 // XXX delete this line once this routine is turned back on.
-	throw new GSSException(GSSException.FAILURE);
+    throw new GSSException(GSSException.FAILURE);
     }
 
 
@@ -689,7 +689,7 @@ public class GSSContext {
      * @param offset within the inBuf where the token begins.
      * @param length The length of the token in inBuf.
      * @param msgProp Upon return from the this method, will contain
-     *      QOP and privacy state of the supplied message as well as 
+     *      QOP and privacy state of the supplied message as well as
      *    any supplementary status values.
      * @return the application message used in the wrap call
      * @exception GSSException with possible major codes of DEFECTIVE_TOKEN,
@@ -721,7 +721,7 @@ public class GSSContext {
  */
 
 // XXX delete this line once this routine is turned back on.
-	throw new GSSException(GSSException.FAILURE);
+    throw new GSSException(GSSException.FAILURE);
     }
 
 
@@ -737,7 +737,7 @@ public class GSSContext {
      * the supplementary status information for the token.
      * <p>
      * Supports the wrapping and unwrapping of zero-length messages.
-     * 
+     *
      * <p><DL><DT><B>RFC 2078</b>
      *      <DD>equivalent to the gss_unwrap</dl>
      *
@@ -745,7 +745,7 @@ public class GSSContext {
      *    generated by call to wrap
      * @param outBuf original message passed into wrap
      * @param msgProp Upon return from the this method, will contain
-     *      QOP and privacy state of the supplied message as well as 
+     *      QOP and privacy state of the supplied message as well as
      *    any supplementary status values.
      * @exception GSSException with possible major codes of DEFECTIVE_TOKEN,
      *    BAD_SIG, CONTEXT_EXPIRED, CREDENTIALS_EXPIRED, and FAILURE.
@@ -755,7 +755,7 @@ public class GSSContext {
      */
     public void unwrap(InputStream inBuf, OutputStream outBuf,
             MessageProp msgProp) throws GSSException {
-        
+
 /*
  * XXX EXPORT DELETE START
  *
@@ -771,7 +771,7 @@ public class GSSContext {
  */
 
 // XXX delete this line once this routine is turned back on.
-	throw new GSSException(GSSException.FAILURE);
+    throw new GSSException(GSSException.FAILURE);
     }
 
 
@@ -786,7 +786,7 @@ public class GSSContext {
      * Note that privacy can only be applied through the wrap call.
      * <p>
      * Supports the derivation of MICs from zero-length messages.
-     *      
+     *
      * <p><DL><DT><B>RFC 2078</b>
      *     <DD>equivalent to gss_getMIC</dl>
      * @param inBuf message to apply security service to
@@ -846,7 +846,7 @@ public class GSSContext {
      */
     public void getMIC(InputStream inBuf, OutputStream outBuf,
             MessageProp msgProp) throws GSSException {
-        
+
         //clear status values
         msgProp.resetStatusValues();
 
@@ -863,7 +863,7 @@ public class GSSContext {
      * values for the token. This method is equivalent in
      * functionality to its stream counterpart.
      *
-     * <p><DL><DT><B>RFC 2078</b> 
+     * <p><DL><DT><B>RFC 2078</b>
      *    <DD>equivalent to gss_verifyMIC</dl>
      * @param inTok token generated by peer's getMIC method
      * @param tokOffset the offset within the inTok where the token begins
@@ -893,8 +893,8 @@ public class GSSContext {
                         msgOffset, msgLen);
         verifyMIC(sTok, sMsg, msgProp);
     }
- 
-    
+
+
     /**
      * Verifies the cryptographic MIC, contained in the token
      * parameter, over the supplied message.  The msgProp parameter
@@ -902,7 +902,7 @@ public class GSSContext {
      * that was applied to the message. This method is equivalent
      * in functionality to its byte array counterpart.
      *
-     * <p><DL><DT><B>RFC 2078</b> 
+     * <p><DL><DT><B>RFC 2078</b>
      *    <DD>equivalent to gss_verifyMIC</dl>
      * @param inputTok Contains the token generated by peer's getMIC
      *    method.
@@ -920,7 +920,7 @@ public class GSSContext {
      */
     public void verifyMIC(InputStream inTok, InputStream inMsg,
         MessageProp msgProp) throws GSSException {
-        
+
         //clear status values
         msgProp.resetStatusValues();
 
@@ -956,7 +956,7 @@ public class GSSContext {
      * @see #isTransferable
      */
     public byte [] export() throws GSSException {
-    
+
         checkState(READY);
         byte [] outTok = m_mechCtxt._S725B2DA ();
         dispose();
@@ -981,14 +981,14 @@ public class GSSContext {
     public void requestMutualAuth(boolean state) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= MUTUAL_AUTH;
         else
             m_reqFlags ^= MUTUAL_AUTH;
     }
 
-        
+
     /**
      * Sets the request state of the replay detection service
      * for the context.  This method is only valid before the
@@ -1005,13 +1005,13 @@ public class GSSContext {
     public void requestReplayDet(boolean state) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= REPLAY_DET;
         else
             m_reqFlags ^= REPLAY_DET;
     }
-    
+
 
     /**
      * Sets the request state of the sequence checking service
@@ -1027,16 +1027,16 @@ public class GSSContext {
      * @see #getSequenceDetState
      */
     public void requestSequenceDet(boolean state) throws GSSException {
-    
+
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= SEQUENCE_DET;
         else
             m_reqFlags ^= SEQUENCE_DET;
     }
-     
-        
+
+
     /**
      * Sets the request state of the credential delegation flag
      * for the context.  This method is only valid before the
@@ -1050,17 +1050,17 @@ public class GSSContext {
      * @see #getDelegCredState
      */
     public void requestCredDeleg(boolean state) throws GSSException {
-    
+
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= CRED_DELEG;
         else
             m_reqFlags ^= CRED_DELEG;
 
     }
-            
-                
+
+
     /**
      * Requests anonymous support over the context. This method is
      * only valid before the context creation process begins and
@@ -1076,7 +1076,7 @@ public class GSSContext {
     public void requestAnonymity(boolean state) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= ANON;
         else
@@ -1100,7 +1100,7 @@ public class GSSContext {
     public void requestConf(boolean state) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= CONF;
         else
@@ -1112,7 +1112,7 @@ public class GSSContext {
      * Requests that integrity service be available    over
      * the context. This method is only valid before the context
      * creation process begins and only for the initiator.
-     *     
+     *
      * <p><DL><DT><B>RFC 2078</b>
      *     <DD>equivalent to the integ_req_flag parameter in
      *    gss_init_sec_context</dl>
@@ -1124,7 +1124,7 @@ public class GSSContext {
     public void requestInteg(boolean state) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         if (state)
             m_reqFlags |= INTG;
         else
@@ -1147,10 +1147,10 @@ public class GSSContext {
     public void requestLifetime(int lifetime) throws GSSException {
 
         checkState(PRE_INIT);
-        
+
         m_reqLifetime = lifetime;
     }
-  
+
 
     /**
      * Sets the channel bindings to be used during context
@@ -1165,7 +1165,7 @@ public class GSSContext {
      * @see ChannelBinding
      */
     public void setChannelBinding(ChannelBinding cb) throws GSSException {
-    
+
         checkState(PRE_INIT);
         m_chB = cb;
     }
@@ -1187,14 +1187,14 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getDelegCredState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & CRED_DELEG) == CRED_DELEG);
-            
+
         return ((m_mechCtxt._S00027C3 () & CRED_DELEG) == CRED_DELEG);
     }
 
-  
+
     /**
      * Returns the state of the mutual authentication option for
      * the context.  When issued before context establishment completes
@@ -1211,10 +1211,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getMutualAuthState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & MUTUAL_AUTH) == MUTUAL_AUTH);
-            
+
         return ((m_mechCtxt._S00027C3 () & MUTUAL_AUTH) == MUTUAL_AUTH);
     }
 
@@ -1235,10 +1235,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getReplayDetState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & REPLAY_DET) == REPLAY_DET);
-            
+
         return ((m_mechCtxt._S00027C3 () & REPLAY_DET) == REPLAY_DET);
     }
 
@@ -1259,10 +1259,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getSequenceDetState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & SEQUENCE_DET) == SEQUENCE_DET);
-            
+
         return ((m_mechCtxt._S00027C3 () & SEQUENCE_DET) == SEQUENCE_DET);
     }
 
@@ -1283,10 +1283,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getAnonymityState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & ANON) == ANON);
-            
+
         return ((m_mechCtxt._S00027C3 () & ANON) == ANON);
     }
 
@@ -1305,11 +1305,11 @@ public class GSSContext {
      * @see #export
      */
     public boolean isTransferable() throws GSSException {
-        
+
         checkState(READY);
         return ((m_mechCtxt._S00027C3 () & TRANS) == TRANS);
     }
-    
+
 
     /**
      * Indicates if the per message operations can be applied over
@@ -1325,10 +1325,10 @@ public class GSSContext {
      * @return boolean indicating if per message operations are available
      */
     public boolean isProtReady() {
-        
+
         if (m_mechCtxt == null)
             return false;
-            
+
         return (m_mechCtxt._S1116FAA ());
     }
 
@@ -1349,10 +1349,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getConfState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & CONF) == CONF);
-            
+
         return ((m_mechCtxt._S00027C3 () & CONF) == CONF);
     }
 
@@ -1373,10 +1373,10 @@ public class GSSContext {
      * @see #isProtReady
      */
     public boolean getIntegState() {
-    
+
         if (m_curState < READY)
             return ((m_reqFlags & INTG) == INTG);
-            
+
         return ((m_mechCtxt._S00027C3 () & INTG) == INTG);
     }
 
@@ -1390,21 +1390,21 @@ public class GSSContext {
      *
      * <p><DL><DT><B>RFC 2078</b>
      *     <DD>equivalent to the lifetime_rec output parameter in
-     *    gss_init_sec_context, gss_accept_sec_context, 
+     *    gss_init_sec_context, gss_accept_sec_context,
      *    gss_inquire_context and to gss_context_time call</dl>
      * @return lifetime in seconds
      * @see #requestLifetime
      * @see #isProtReady
      */
     public int getLifetime() {
-    
+
         if (m_curState < READY)
             return (m_reqLifetime);
-            
+
         return (m_mechCtxt._S4080EED ());
     }
-    
-    
+
+
     /**
      * Retrieves the name of the context initiator.
      * This call is valid only after context has been fully established
@@ -1419,12 +1419,12 @@ public class GSSContext {
      * @see #isProtReady
      */
     public GSSName getSrcName() throws GSSException {
-    
+
         checkState(IN_PROGRESS);
         return (new GSSName(m_mechCtxt._S000EEFF ()));
     }
-    
-    
+
+
     /**
      * Retrieves the name of the context target (acceptor).
      * This call is only valid on fully established contexts
@@ -1439,12 +1439,12 @@ public class GSSContext {
      * @see #isProtReady
      */
     public GSSName getTargName() throws GSSException {
-    
+
         checkState(IN_PROGRESS);
         return (new GSSName(m_mechCtxt._S011CEF9 ()));
     }
-    
-    
+
+
     /**
      * Returns the mechanism oid for the context.
      *
@@ -1454,15 +1454,15 @@ public class GSSContext {
      * @return Oid object for the context's mechanism
      * @exception GSSException may be thrown when the mechanism
      *     oid can't be determined
-     * 
+     *
      */
     public Oid getMech() throws GSSException {
 
         checkState(IN_PROGRESS);
         return (m_mechCtxt._S0200735 ());
     }
-    
-    
+
+
     /**
      * Returns the delegated credential object on the acceptor's side.
      * To check for availability of delegated credentials call
@@ -1478,12 +1478,12 @@ public class GSSContext {
      * @see #getDelegCredState
      */
     public GSSCredential getDelegCred() throws GSSException {
-    
-        checkState(IN_PROGRESS);        
+
+        checkState(IN_PROGRESS);
         return (new GSSCredential(m_mechCtxt._S0293FFA ()));
     }
-    
-    
+
+
     /**
      * Returns true if this is the initiator of the context.
      * This call is only valid after the context creation process
@@ -1505,15 +1505,15 @@ public class GSSContext {
 
     /**
      * Ensures the object is in the required state.
-     * 
+     *
      * @param minimumState the minimum required state.
      * @exception GSSException is thrown when the state is incorrect.
      */
     private void checkState(int minimumState) throws GSSException {
-    
+
         if (m_curState < minimumState)
             throw new GSSException(GSSException.NO_CONTEXT);
-            
+
         //this is just temporary for debugging
         if (minimumState > PRE_INIT && m_mechCtxt == null)
             throw new GSSException(GSSException.NO_CONTEXT, -1,
@@ -1525,7 +1525,7 @@ public class GSSContext {
      * Private initializer of context variables
      */
     private void initialize() {
-    
+
         m_reqFlags = MUTUAL_AUTH | SEQUENCE_DET | REPLAY_DET;
         m_myCred = null;
         m_reqLifetime = INDEFINITE;
@@ -1544,25 +1544,25 @@ public class GSSContext {
      * into the mechanism.
      */
     private Oid getTokenMech(InputStream is) throws GSSException {
-    
+
         try {
             is.mark(100);
-        
+
             if (is.read() != 0x60)
                 throw new GSSException(GSSException.DEFECTIVE_TOKEN);
-        
-            //we can skip the token length    
+
+            //we can skip the token length
             DERParser.readLength(is);
-        
+
             //next we have the full der encoding of the oid
             Oid res = new Oid(is);
             is.reset();
-            
+
             return (res);
         } catch (IOException e) {
             throw new GSSException(GSSException.DEFECTIVE_TOKEN);
         }
-        
+
     }
 
 
@@ -1571,8 +1571,8 @@ public class GSSContext {
     private static final int IN_PROGRESS = 2;
     private static final int READY = 3;
     private static final int DELETED = 4;
-    
-    
+
+
     //instance variables
     private C018FE95 m_mechCtxt;
     private int m_reqFlags;

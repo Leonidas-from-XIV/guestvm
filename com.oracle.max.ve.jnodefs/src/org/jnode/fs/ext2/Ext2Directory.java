@@ -100,6 +100,7 @@ public class Ext2Directory extends AbstractFSDirectory {
      * @return @throws
      *         IOException
      */
+    @Override
     public FSEntry createDirectoryEntry(String name, FSEntry fsEntry) throws IOException {
         if (!canWrite())
             throw new IOException("Filesystem or directory is mounted read-only!");
@@ -162,6 +163,7 @@ public class Ext2Directory extends AbstractFSDirectory {
      * @return @throws
      *         IOException
      */
+    @Override
     public FSEntry createFileEntry(String name) throws IOException {
         if (!canWrite())
             throw new IOException("Filesystem or directory is mounted read-only!");
@@ -191,6 +193,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         return new Ext2Entry(newINode, name, Ext2Constants.EXT2_FT_REG_FILE, fs, this);
     }
 
+    @Override
     public void deleteEntry(String name, boolean deleteContents)  throws IOException {
         Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         Ext2DirectoryRecord dr = new Ext2DirectoryRecord(fs, 0, Ext2Constants.EXT2_FT_REG_FILE, name);
@@ -205,6 +208,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         }
     }
 
+    @Override
     public void renameEntry(String oldName, String newName)  throws IOException {
         Ext2FileSystem fs = (Ext2FileSystem) fileSystem;
         Ext2DirectoryRecord oldDr = new Ext2DirectoryRecord(fs, -1, Ext2Constants.EXT2_FT_REG_FILE, oldName);
@@ -218,6 +222,7 @@ public class Ext2Directory extends AbstractFSDirectory {
         }
     }
 
+    @Override
     public FSEntry addEntry(String name, FSEntry fsEntry)  throws IOException {
         Ext2Entry ext2Entry = (Ext2Entry) fsEntry;
         return addINode(ext2Entry.getINode().getINodeNr(), name, ext2Entry.getType());
@@ -555,6 +560,7 @@ public class Ext2Directory extends AbstractFSDirectory {
      *
      * @return
      */
+    @Override
     protected FSEntryTable readEntries() throws IOException {
         Ext2FSEntryIterator it = new Ext2FSEntryIterator(iNode);
         ArrayList<FSEntry> entries = new ArrayList<FSEntry>();
@@ -577,6 +583,7 @@ public class Ext2Directory extends AbstractFSDirectory {
      *
      * @param table
      */
+    @Override
     protected void writeEntries(FSEntryTable table) throws IOException {
         // Nothing to do because createFileEntry, createDirectoryEntry, deleteDirectoryEntry do the job.
         // This would have to be a wholesale write anyway, as any information about what changes

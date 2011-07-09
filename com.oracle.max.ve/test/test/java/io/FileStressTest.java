@@ -255,6 +255,7 @@ public class FileStressTest {
             this.rand = rand;
         }
         
+        @Override
         byte[] fillData(Object obj, byte[] data) {
             rand.nextBytes(data);
             return data;
@@ -262,6 +263,7 @@ public class FileStressTest {
     }
     
     static class PathnameFileFiller extends FileFiller {
+        @Override
         byte[] fillData(Object obj, byte[] data) {
             File file = (File) obj;
             final byte[] bytes = file.getAbsolutePath().getBytes();
@@ -278,6 +280,7 @@ public class FileStressTest {
         Reader(int id) {
             _id = id;
         }
+        @Override
         public void run() {
             int numReads = _numReads;
             Random rand = new Random(sameReaderSeed ? _readSeed : _readSeed + _id *17);
@@ -336,6 +339,7 @@ public class FileStressTest {
             this.me = me;
         }
         
+        @Override
         public void run() {
             int numWrites = _numWriteTrees;
             while (numWrites > 0) {

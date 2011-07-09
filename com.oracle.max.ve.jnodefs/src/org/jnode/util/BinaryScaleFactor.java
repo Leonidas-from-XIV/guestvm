@@ -74,6 +74,7 @@ public enum BinaryScaleFactor {
         return unit;
     }
 
+    @Override
     public String toString() {
         return multiplier + ", " + unit;
     }

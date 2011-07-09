@@ -28,14 +28,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 /**
  * This exception is thrown whenever a fatal GSS-API error occurs
- * including mechanism specific errors. It contains 
- * both the major and minor JGSS status codes. The mechanism 
- * implementers are responsible for setting appropriate minor status 
+ * including mechanism specific errors. It contains
+ * both the major and minor JGSS status codes. The mechanism
+ * implementers are responsible for setting appropriate minor status
  * codes when throwing this exception. Methods are included to retrieve
  * the error string representation for both major and minor codes.
  * <DL><DT><b>RFC 2078</b>
@@ -72,7 +72,7 @@ public class GSSException extends Exception {
 
     /**
      * Invalid status code error - this is the default status value.
-     */     
+     */
     public static final int BAD_STATUS = 5;
 
     /**
@@ -114,7 +114,7 @@ public class GSSException extends Exception {
      * Invalid credentials error.
      */
     public static final int NO_CRED = 13;
-        
+
     /**
      * Unsupported QOP value error.
      */
@@ -124,7 +124,7 @@ public class GSSException extends Exception {
      * Operation unauthorized error.
      */
     public static final int UNAUTHORIZED = 15;
-    
+
     /**
      * Operation unavailable error.
      */
@@ -168,7 +168,7 @@ public class GSSException extends Exception {
      */
     public static final int UNSEQ_TOKEN = 21;
 
-    
+
     /**
      * An expected per-message token was not received.  This is a
      * fatal error code that may occur during context establishment.
@@ -191,7 +191,7 @@ public class GSSException extends Exception {
         "defective token detected", // DEFECTIVE_TOKEN
         "failure, unspecified at GSS-API level", // FAILURE
         "security context init/accept not yet called or context deleted",
-						// NO_CONTEXT  
+                        // NO_CONTEXT
         "no valid credentials provided", // NO_CRED
         "unsupported QOP value", // BAD_QOP
         "operation unauthorized", // UNAUTHORIZED
@@ -217,7 +217,7 @@ public class GSSException extends Exception {
      *     class. Invalid error codes get mapped to BAD_STATUS value.
      */
     public GSSException (int majorCode) {
-        
+
         if (validateMajor(majorCode))
             m_major = majorCode;
         else
@@ -235,7 +235,7 @@ public class GSSException extends Exception {
      * @param minorString explanation of the minorCode.
      */
     public GSSException (int majorCode, int minorCode, String minorString) {
-        
+
         if (validateMajor(majorCode))
             m_major = majorCode;
         else
@@ -251,7 +251,7 @@ public class GSSException extends Exception {
      *
      * <DL><DT><b>RFC 2078</b>
      *    <DD> equivalent to major code being returned from function
-     *    </dl> 
+     *    </dl>
      * @return int the fatal error code causing this exception
      * @see #getMajorString
      */
@@ -275,7 +275,7 @@ public class GSSException extends Exception {
      * @see #getMinorString
      */
     public int  getMinor(){
-        
+
         return m_minor;
     }
 
@@ -291,7 +291,7 @@ public class GSSException extends Exception {
      * @see #toString
      */
     public String getMajorString() {
-    
+
         return messages[m_major - 1];
     }
 
@@ -311,10 +311,10 @@ public class GSSException extends Exception {
      * @see #toString
      */
     public String getMinorString() {
-    
+
         if (m_minorMessage == null)
             m_minorMessage = "";
-            
+
         return m_minorMessage;
     }
 
@@ -328,36 +328,38 @@ public class GSSException extends Exception {
      * @param message textual explanation of the mechanism error code
      */
     public void setMinor(int minorCode, String message) {
-    
+
         m_minor = minorCode;
         m_minorMessage = message;
     }
-    
 
-    /** 
+
+    /**
      * Returns string representing both the major and minor status
      * codes.
      *
      * @return a String with the error descriptions
      * @overrides Object#toString
      */
+    @Override
     public String toString() {
 
         if (m_minor == 0)
             return (getMajorString());
-            
+
         return (getMajorString() + "(" + getMinorString() + ")");
     }
 
 
-    /** 
+    /**
      * Returns string representing both the major and minor status
      * codes.
      *
      * @return a String with the error descriptions
      * @overrides Throwable#geMessage
      */
-    public String getMessage() {
+   @Override
+   public String getMessage() {
 
         return (toString());
     }
@@ -367,10 +369,10 @@ public class GSSException extends Exception {
      * Validates the major code in the proper range.
      */
     private boolean validateMajor(int major) {
-    
+
         if (m_major > 0 && m_major <= messages.length)
             return (true);
-            
+
         return (false);
     }
 }

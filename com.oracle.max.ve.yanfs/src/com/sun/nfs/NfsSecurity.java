@@ -49,16 +49,16 @@ public final class NfsSecurity {
     static String secName, secMode, mech;
     static int service, qop;
     static {
-	initialize();
+    initialize();
     }
 
     private static void initialize() {
 
-	try {
-	    props = ResourceBundle.getBundle("com.sun.nfs.nfssec");
-	} catch (MissingResourceException e) {
-	    props = null;
-	}
+    try {
+        props = ResourceBundle.getBundle("com.sun.nfs.nfssec");
+    } catch (MissingResourceException e) {
+        props = null;
+    }
     }
 
     /*
@@ -70,32 +70,32 @@ public final class NfsSecurity {
      *
      */
     private static void parseValue(String value) {
-	
-	StringTokenizer parser = new StringTokenizer(value, ":\n\r");
 
-	secName = parser.nextToken();
+    StringTokenizer parser = new StringTokenizer(value, ":\n\r");
 
-	try {
-	    mech = parser.nextToken();
-	} catch (NoSuchElementException e) {
-	    // non-RPCSEC_GSS flavors
-	    mech = null;
-	    service = 0;
-	    qop = 0;
-	    return;
-	}
+    secName = parser.nextToken();
 
-	String serviceString = parser.nextToken();
-	if (serviceString.equals("none"))
-		service = Cred.SVC_NONE;
-	else if (serviceString.equals("integrity"))
-		service = Cred.SVC_INTEGRITY;
-	else if (serviceString.equals("privacy"))
-		service = Cred.SVC_PRIVACY;
-	else
-		service = Cred.SVC_PRIVACY;	// just use privacy service
+    try {
+        mech = parser.nextToken();
+    } catch (NoSuchElementException e) {
+        // non-RPCSEC_GSS flavors
+        mech = null;
+        service = 0;
+        qop = 0;
+        return;
+    }
 
-	qop = Integer.parseInt(parser.nextToken());
+    String serviceString = parser.nextToken();
+    if (serviceString.equals("none"))
+        service = Cred.SVC_NONE;
+    else if (serviceString.equals("integrity"))
+        service = Cred.SVC_INTEGRITY;
+    else if (serviceString.equals("privacy"))
+        service = Cred.SVC_PRIVACY;
+    else
+        service = Cred.SVC_PRIVACY;	// just use privacy service
+
+    qop = Integer.parseInt(parser.nextToken());
 
     }
 
@@ -107,17 +107,17 @@ public final class NfsSecurity {
      *  @returns	true or false
      */
     public static boolean hasValue(String key) {
-	
-	if (props == null)
-	    return false;
 
-	try {
-	    props.getString(key);
-	    return true;
+    if (props == null)
+        return false;
 
-	} catch (MissingResourceException e) {
-	    return false;
-	}
+    try {
+        props.getString(key);
+        return true;
+
+    } catch (MissingResourceException e) {
+        return false;
+    }
     }
 
     /**
@@ -126,14 +126,14 @@ public final class NfsSecurity {
      */
     public static String getDefault() {
 
-	if (props == null)
-	    return "1";
+    if (props == null)
+        return "1";
 
-	try {	
-	    return props.getString("default");
-	} catch (MissingResourceException e) {
-	    return "1";
-	}
+    try {
+        return props.getString("default");
+    } catch (MissingResourceException e) {
+        return "1";
+    }
     }
 
     /**
@@ -142,14 +142,14 @@ public final class NfsSecurity {
      */
     public static String getPrefer() {
 
-	if (props == null)
-	    return null;
+    if (props == null)
+        return null;
 
-	try {
-	    return props.getString("prefer");
-	} catch (MissingResourceException e) {
-	    return null;
-	}
+    try {
+        return props.getString("prefer");
+    } catch (MissingResourceException e) {
+        return null;
+    }
     }
 
     /**
@@ -158,19 +158,19 @@ public final class NfsSecurity {
      *
      * 		key=nfsSecName:mechOid:service:qop
      *		    ^^^^^^^^^^
-     * 
+     *
      * @param key	the key to be searched
      * @returns		NFS Security flavor name
      */
     public static String getName(String key) {
 
-	if (key.equals(secMode)) {
-	    return secName;
-	}
+    if (key.equals(secMode)) {
+        return secName;
+    }
 
-	parseValue(props.getString(key));
-	secMode = key;
-	return secName;
+    parseValue(props.getString(key));
+    secMode = key;
+    return secName;
     }
 
     /**
@@ -179,19 +179,19 @@ public final class NfsSecurity {
      *
      * 		key=nfsSecName:mechOid:service:qop
      *		    	       ^^^^^^^
-     * 
+     *
      * @param key	the key to be searched
      * @returns 	security mechansim OID string
      */
     public static String getMech(String key) {
 
-	if (key.equals(secMode)) {
-	    return mech;
-	}
+    if (key.equals(secMode)) {
+        return mech;
+    }
 
-	parseValue(props.getString(key));
-	secMode = key;
-	return mech;
+    parseValue(props.getString(key));
+    secMode = key;
+    return mech;
     }
 
     /**
@@ -200,21 +200,21 @@ public final class NfsSecurity {
      *
      * 		key=nfsSecName:mechOid:service:qop
      *		    	               ^^^^^^^
-     * 
+     *
      * @param key	the key to be searched
      * @returns		one of (none, integrity, privacy); if the third token
      *			in the value does not have the expected data, simply
-     *			returns the privacy service number. 
+     *			returns the privacy service number.
      */
     public static int getService(String key) {
 
-	if (key.equals(secMode)) {
-	    return service;
-	}
+    if (key.equals(secMode)) {
+        return service;
+    }
 
-	parseValue(props.getString(key));
-	secMode = key;
-	return service;
+    parseValue(props.getString(key));
+    secMode = key;
+    return service;
     }
 
     /**
@@ -223,18 +223,18 @@ public final class NfsSecurity {
      *
      * 		key=nfsSecName:mechOid:service:qop
      *		    	                       ^^^
-     * 
+     *
      * @param key	the key to be searched
      * @returns		qop number; 0 means the mechanism-specific default qop
      */
     public static int getQop(String key) {
 
-	if (key.equals(secMode)) {
-	    return qop;
-	}
+    if (key.equals(secMode)) {
+        return qop;
+    }
 
-	parseValue(props.getString(key));
-	secMode = key;
-	return qop;
+    parseValue(props.getString(key));
+    secMode = key;
+    return qop;
     }
 }

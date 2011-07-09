@@ -32,6 +32,7 @@ public class FromServerSessionData extends SessionData {
         this._data = new byte[blobSize];
     }
 
+    @Override
     public byte[] getSessionData() {
         _server.getData(_data);
         return _data;

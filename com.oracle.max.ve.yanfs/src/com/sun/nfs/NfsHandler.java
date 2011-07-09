@@ -69,6 +69,7 @@ public abstract class NfsHandler extends RpcHandler {
      *        abort the retransmissions and return an
      *        InterruptedIOException to the application.
      */
+    @Override
     public abstract boolean timeout(String server, int retries, int wait);
 
     /**
@@ -77,5 +78,6 @@ public abstract class NfsHandler extends RpcHandler {
      * @param server The name of the server that returned
      *        the reply.
      */
+    @Override
     public abstract void ok(String server);
 }

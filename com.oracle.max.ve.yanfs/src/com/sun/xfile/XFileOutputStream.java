@@ -34,8 +34,8 @@ package com.sun.xfile;
 import java.io.*;
 
 /**
- * An XFile output stream is an output stream for writing data to an 
- * <code>XFile</code>. 
+ * An XFile output stream is an output stream for writing data to an
+ * <code>XFile</code>.
  */
 public class XFileOutputStream extends OutputStream {
 
@@ -48,8 +48,8 @@ public class XFileOutputStream extends OutputStream {
 
 
     /**
-     * Creates an XFile output stream to write to the specified 
-     * <code>XFile</code> object. 
+     * Creates an XFile output stream to write to the specified
+     * <code>XFile</code> object.
      *
      * @param      file the XFile to be opened for writing.
      * @exception  java.io.IOException if the XFile could not
@@ -72,8 +72,8 @@ public class XFileOutputStream extends OutputStream {
     }
 
     /**
-     * Creates an output XFile stream to write to the file with the 
-     * specified name. 
+     * Creates an output XFile stream to write to the file with the
+     * specified name.
      *
      * @param      name   the system-dependent filename.
      * @exception  java.io.IOException if the file could
@@ -94,7 +94,7 @@ public class XFileOutputStream extends OutputStream {
     public XFileOutputStream(XFile xfile, boolean append)
         throws IOException {
 
-	boolean isExist;
+    boolean isExist;
 
         xfa = xfile.newAccessor();
 
@@ -121,7 +121,7 @@ public class XFileOutputStream extends OutputStream {
 
     /**
      * Creates an output file with the specified name or URL.
-     * 
+     *
      * @param name the native name or URL
      * @param append true if writes begin at the end of the file
      * @exception java.io.IOException If the file is not found.
@@ -133,7 +133,7 @@ public class XFileOutputStream extends OutputStream {
 
     }
 
-    
+
     /*
      * All writes to the Accessor go through here.
      */
@@ -145,8 +145,8 @@ public class XFileOutputStream extends OutputStream {
 
         if (len == 0)
             return;
-        
-	if (off < 0 || len < 0 || off >= b.length || (off + len) > b.length)
+
+    if (off < 0 || len < 0 || off >= b.length || (off + len) > b.length)
             throw new IllegalArgumentException("Invalid argument");
 
         xfa.write(b, off, len, fp);
@@ -155,78 +155,84 @@ public class XFileOutputStream extends OutputStream {
 
 
     /**
-     * Writes the specified byte to this file output stream. 
+     * Writes the specified byte to this file output stream.
      *
      * @param      b   the byte to be written.
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void write(int b) throws IOException {
         XFAwrite(new byte[] {(byte)b}, 0, 1);
     }
 
 
     /**
-     * Writes <code>b.length</code> bytes from the specified byte array 
-     * to this file output stream. 
+     * Writes <code>b.length</code> bytes from the specified byte array
+     * to this file output stream.
      *
      * @param      b   the data.
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void write(byte b[]) throws IOException {
-	XFAwrite(b, 0, b.length);
+    XFAwrite(b, 0, b.length);
     }
 
 
     /**
-     * Writes <code>len</code> bytes from the specified byte array 
-     * starting at offset <code>off</code> to this XFile output stream. 
+     * Writes <code>len</code> bytes from the specified byte array
+     * starting at offset <code>off</code> to this XFile output stream.
      *
      * @param      b     the data.
      * @param      off   the start offset in the data.
      * @param      len   the number of bytes to write.
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void write(byte b[], int off, int len) throws IOException {
-	XFAwrite(b, off, len);
+    XFAwrite(b, off, len);
     }
 
 
     /**
-     * Flushes this output stream and forces any buffered output bytes 
-     * to be written out. 
+     * Flushes this output stream and forces any buffered output bytes
+     * to be written out.
      * <p>
      *
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void flush() throws IOException {
         xfa.flush();
     }
 
 
     /**
-     * Closes this file output stream, flushes any buffered, 
-     * unwritten data, and releases any system resources 
-     * associated with this stream. 
+     * Closes this file output stream, flushes any buffered,
+     * unwritten data, and releases any system resources
+     * associated with this stream.
      *
      * After the file is closed further I/O operations may
      * throw IOException.
      *
      * @exception  java.io.IOException  if an I/O error occurs.
      */
+    @Override
     public void close() throws IOException {
         xfa.close();
     }
 
-    
+
     /**
      * Ensures that the <code>close</code> method of this XFile
      * output stream is called when there are no more references
-     * to this stream. 
+     * to this stream.
      *
      * @exception  java.io.IOException  if an I/O error occurs.
      * @see        com.sun.xfile.XFileInputStream#close()
      */
+    @Override
     protected void finalize() throws IOException {
- 	close();
+     close();
     }
 }

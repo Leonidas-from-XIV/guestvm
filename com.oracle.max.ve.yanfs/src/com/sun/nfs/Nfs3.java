@@ -129,14 +129,15 @@ class Nfs3 extends Nfs {
             name = name.substring(2);
         this.name = name;
         this.attr = attr == null ? new Fattr3() : attr;
-	this.rsize = RWSIZE;
+    this.rsize = RWSIZE;
         NRA = 1; // Max reads-ahead
         NWB = 4; // Max writes-behind
         NWC = 10; // Max writes committed
     }
 
+    @Override
     public void getattr() throws IOException {
-	Xdr reply;
+    Xdr reply;
 
         Xdr call = new Xdr(rsize + 512);
 
@@ -158,18 +159,21 @@ class Nfs3 extends Nfs {
         attr.getFattr(reply);
     }
 
+    @Override
     public void checkAttr() throws IOException {
 
         if (! attr.valid())
             getattr();
     }
 
+    @Override
     public boolean cacheOK(long t) throws IOException {
         checkAttr();
 
         return t == attr.mtime;
     }
 
+    @Override
     public void invalidate() {
         attr.validtime = 0;
     }
@@ -178,6 +182,7 @@ class Nfs3 extends Nfs {
      * Return the mode.
      * @return the mode
      */
+    @Override
     public int mode() throws IOException {
         checkAttr();
         return (int) attr.mode & 0xFFFFFFFF;
@@ -187,6 +192,7 @@ class Nfs3 extends Nfs {
      * Set the mode.
      * @param mode new mode bits
      */
+    @Override
     public void mode(int mode) throws IOException {
         Xdr call = new Xdr(rsize + 512);
 
@@ -218,6 +224,7 @@ class Nfs3 extends Nfs {
      * Get the file modification time
      * @return the time in milliseconds
      */
+    @Override
     public long mtime() throws IOException {
         checkAttr();
 
@@ -228,6 +235,7 @@ class Nfs3 extends Nfs {
      * Set the file modification time.
      * @param time the time in milliseconds
      */
+    @Override
     public void mtime(long time) throws IOException {
         Xdr call = new Xdr(rsize + 512);
 
@@ -263,6 +271,7 @@ class Nfs3 extends Nfs {
      *
      * @return file size
      */
+    @Override
     public long length() throws IOException {
         checkAttr();
 
@@ -273,6 +282,7 @@ class Nfs3 extends Nfs {
      * Set  the file size in bytes
      * @param size new size in bytes
      */
+    @Override
     public void length(long size)  throws IOException {
         Xdr call = new Xdr(rsize + 512);
 
@@ -322,6 +332,7 @@ class Nfs3 extends Nfs {
      * Verify if file exists
      * @return true if file exists
      */
+    @Override
     public boolean exists() throws IOException {
         checkAttr();
 
@@ -377,6 +388,7 @@ class Nfs3 extends Nfs {
      * Verify if file can be created/updated
      * @return true if file can be created/updated
      */
+    @Override
     public boolean canWrite() throws IOException {
 
         return check_access(WBIT);
@@ -386,6 +398,7 @@ class Nfs3 extends Nfs {
      * Verify if file can be read
      * @return true if file can be read
      */
+    @Override
     public boolean canRead() throws IOException {
 
         return check_access(RBIT);
@@ -395,6 +408,7 @@ class Nfs3 extends Nfs {
      * Verify if file can be executed
      * @return true if file can be executed
      */
+    @Override
     public boolean canExecute() throws IOException {
 
         return check_access(XBIT);
@@ -404,6 +418,7 @@ class Nfs3 extends Nfs {
      * Verify if this is a file (not a directory)
      * @return true if a file
      */
+    @Override
     public boolean isFile() throws IOException {
         checkAttr();
 
@@ -414,6 +429,7 @@ class Nfs3 extends Nfs {
      * Verify if this is a directory (not a file)
      * @return true if a directory
      */
+    @Override
     public boolean isDirectory() throws IOException {
         checkAttr();
 
@@ -424,6 +440,7 @@ class Nfs3 extends Nfs {
      * Verify if this is a symbolic link
      * @return true if a symbolic link
      */
+    @Override
     public boolean isSymlink() throws IOException {
         checkAttr();
 
@@ -433,6 +450,7 @@ class Nfs3 extends Nfs {
     /*
      * @return file attributes
      */
+    @Override
     public Fattr getAttr() throws IOException {
         checkAttr();
 
@@ -448,6 +466,7 @@ class Nfs3 extends Nfs {
      * @returns		Nfs object
      * @exception java.io.IOException
      */
+    @Override
     public Nfs lookup(String name)
         throws IOException {
         byte[] newFh;
@@ -460,8 +479,8 @@ class Nfs3 extends Nfs {
          * thus name passed in will be null.
          */
         if (name == null) {
-		pathname = this.name;
-		name = this.name;
+        pathname = this.name;
+        name = this.name;
         } else { /* Single component case  */
             if (this.name == null)
                 pathname = name;
@@ -476,7 +495,7 @@ class Nfs3 extends Nfs {
         nfs = cache_get(rpc.conn.server, pathname);
         if (nfs != null && nfs.cacheOK(cacheTime)) {
 
-	    // If a symbolic link then follow it
+        // If a symbolic link then follow it
 
             if (((Nfs3)nfs).attr.ftype == NFLNK)
                 nfs = NfsConnect.followLink(nfs);
@@ -485,41 +504,41 @@ class Nfs3 extends Nfs {
         }
 
         Xdr call = new Xdr(rsize + 512);
-	Xdr reply = null;
+    Xdr reply = null;
 
-	/*
-	 * If needed, give one try to get the security information
-	 * from the server.
-	 */
-	for (int sec_tries = 1; sec_tries >= 0; sec_tries--) {
-	    rpc.rpc_header(call, NFSPROC3_LOOKUP);
-	    call.xdr_bytes(fh);
-	    call.xdr_string(name);
+    /*
+     * If needed, give one try to get the security information
+     * from the server.
+     */
+    for (int sec_tries = 1; sec_tries >= 0; sec_tries--) {
+        rpc.rpc_header(call, NFSPROC3_LOOKUP);
+        call.xdr_bytes(fh);
+        call.xdr_string(name);
 
-	    try {
-		reply = rpc.rpc_call(call, 5 * 1000, 0);
-		break;
+        try {
+        reply = rpc.rpc_call(call, 5 * 1000, 0);
+        break;
             } catch (MsgRejectedException e) {
                 if (fh.length == 0 &&
-			e.why == MsgRejectedException.AUTH_TOOWEAK) {
+            e.why == MsgRejectedException.AUTH_TOOWEAK) {
                     String secKey = lookupSec();
-            	    if (secKey != null &&
-				NfsSecurity.getMech(secKey) != null) {
+                    if (secKey != null &&
+                NfsSecurity.getMech(secKey) != null) {
                         rpc.setCred(new CredGss("nfs",
                                 NfsSecurity.getMech(secKey),
                                 NfsSecurity.getService(secKey),
                                 NfsSecurity.getQop(secKey)));
                         continue;
                     } else if (secKey != null && secKey.equals("1")) {
-			rpc.setCred(new CredUnix());
-			continue;
-		    }
+            rpc.setCred(new CredUnix());
+            continue;
+            }
                 }
                 throw e;
             } catch (IOException e) {
                 throw e;
             }
-	} // for
+    } // for
 
         int status = reply.xdr_int();
         if (status != NFS_OK) {
@@ -538,7 +557,7 @@ class Nfs3 extends Nfs {
         nfs = new Nfs3(rpc, newFh, pathname, newattrs);
         cache_put(nfs);
 
-	// If a symbolic link then follow it
+    // If a symbolic link then follow it
 
         if (((Nfs3)nfs).attr.ftype == NFLNK)
             nfs = NfsConnect.followLink(nfs);
@@ -615,6 +634,7 @@ class Nfs3 extends Nfs {
      * Three bytes are padded after s.
      *
      */
+    @Override
     public String lookupSec() throws IOException {
 
         int sec_index = 1;
@@ -675,6 +695,7 @@ class Nfs3 extends Nfs {
     /*
      * Read a buffer from a file
      */
+    @Override
     public  void read_otw(Buffer buf) throws IOException {
 
         Xdr call = new Xdr(rsize + 512);
@@ -701,13 +722,14 @@ class Nfs3 extends Nfs {
 
         buf.buf = reply.xdr_buf();
         buf.bufoff = reply.xdr_offset();
-	buf.buflen = bytesread;
+    buf.buflen = bytesread;
         cacheTime = attr.mtime;
     }
 
     /*
      * Write a buffer
      */
+    @Override
     public int write_otw(Buffer buf) throws IOException {
 
         Xdr call = new Xdr(wsize + 512);
@@ -746,7 +768,7 @@ class Nfs3 extends Nfs {
             throw new NfsException(status);
 
         int bytesWritten = reply.xdr_int();
-	if (reply.xdr_int() == FILE_SYNC)	// stable_how
+    if (reply.xdr_int() == FILE_SYNC)	// stable_how
             buf.status = buf.LOADED;
         else
             buf.status = buf.COMMIT;
@@ -767,12 +789,13 @@ class Nfs3 extends Nfs {
      * XXX the aggressive caching.
      *
      */
+    @Override
     public String[] readdir()
         throws IOException {
 
         long cookie = 0;
         long cookieverf = 0;
-	boolean eof = false;
+    boolean eof = false;
         String[] s = new String[32];
         int i = 0;
         Fattr3 eattr;
@@ -786,7 +809,7 @@ class Nfs3 extends Nfs {
          */
         if (dircache != null) {
             if (cacheOK(cacheTime))
-            	return dircache;
+                return dircache;
 
             dircache = null;
 
@@ -970,6 +993,7 @@ class Nfs3 extends Nfs {
      * Read a symbolic link
      *
      */
+    @Override
     public String readlink() throws IOException {
         /*
          * If we've already read the symlink
@@ -1002,69 +1026,70 @@ class Nfs3 extends Nfs {
      * Create a file
      *
      */
+    @Override
     public Nfs create(String name, long mode) throws IOException {
 
-	byte[] newFh = null;
-	Fattr3 newattrs = null;
-	Nfs nfs;
+    byte[] newFh = null;
+    Fattr3 newattrs = null;
+    Nfs nfs;
 
-	Xdr call = new Xdr(rsize + 512);
+    Xdr call = new Xdr(rsize + 512);
 
-	rpc.rpc_header(call, NFSPROC3_CREATE);
-	call.xdr_bytes(fh);
-	call.xdr_string(name);
-	call.xdr_int(UNCHECKED);
+    rpc.rpc_header(call, NFSPROC3_CREATE);
+    call.xdr_bytes(fh);
+    call.xdr_string(name);
+    call.xdr_int(UNCHECKED);
 
-	// sattr3
-	call.xdr_bool(true);		// mode3
-	call.xdr_u_int(mode);
-	call.xdr_bool(true);		// uid3
-	call.xdr_u_int(NfsConnect.getCred().getUid());
-	call.xdr_bool(true);		// gid3
-	call.xdr_u_int(NfsConnect.getCred().getGid());
-	call.xdr_bool(true);		// size3
-	call.xdr_hyper(0);
-	call.xdr_int(SERVER_TIME);	// atime
-	call.xdr_int(SERVER_TIME);	// mtime
+    // sattr3
+    call.xdr_bool(true);		// mode3
+    call.xdr_u_int(mode);
+    call.xdr_bool(true);		// uid3
+    call.xdr_u_int(NfsConnect.getCred().getUid());
+    call.xdr_bool(true);		// gid3
+    call.xdr_u_int(NfsConnect.getCred().getGid());
+    call.xdr_bool(true);		// size3
+    call.xdr_hyper(0);
+    call.xdr_int(SERVER_TIME);	// atime
+    call.xdr_int(SERVER_TIME);	// mtime
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	if (status != NFS_OK) {
+    int status = reply.xdr_int();
+    if (status != NFS_OK) {
 
-	    /*
-	     * CREATE3resfail
-	     */
-	    // wcc_data
-	    // XXX If this were an exlusive create, then we
-	    // should check whether the directory was modified,
-	    // in such case, the file may have been created by another
-	    // client.
+        /*
+         * CREATE3resfail
+         */
+        // wcc_data
+        // XXX If this were an exlusive create, then we
+        // should check whether the directory was modified,
+        // in such case, the file may have been created by another
+        // client.
 
-	    wcc_data(reply);
-	    throw new NfsException(status);
-	}
-	/*
-	 * CREATE3resok
-	 */
-	if (reply.xdr_bool())		// post_op_fh3
-	    newFh = reply.xdr_bytes();
+        wcc_data(reply);
+        throw new NfsException(status);
+    }
+    /*
+     * CREATE3resok
+     */
+    if (reply.xdr_bool())		// post_op_fh3
+        newFh = reply.xdr_bytes();
 
-	if (reply.xdr_bool())		// post_op_attr
-	    newattrs = new Fattr3(reply);
-	/*
-	 * wcc_data
-	 */
-	wcc_data(reply);
+    if (reply.xdr_bool())		// post_op_attr
+        newattrs = new Fattr3(reply);
+    /*
+     * wcc_data
+     */
+    wcc_data(reply);
 
-	if (newFh != null && newattrs != null) {
-	    String pathname = this.name + "/" + name;
-	    nfs = new Nfs3(rpc, newFh, pathname, newattrs);
-	    cache_put(nfs);
-	} else
+    if (newFh != null && newattrs != null) {
+        String pathname = this.name + "/" + name;
+        nfs = new Nfs3(rpc, newFh, pathname, newattrs);
+        cache_put(nfs);
+    } else
             nfs = null;
 
-	return nfs;
+    return nfs;
     }
 
     /*
@@ -1073,83 +1098,85 @@ class Nfs3 extends Nfs {
      * @param name	name of directory to create
      * @returns		true if successful, false otherwise
      */
+    @Override
     public Nfs mkdir(String name, long mode) throws IOException {
 
-	byte[] newFh = null;
-	Fattr3 newattrs = null;
-	Nfs nfs = null;
+    byte[] newFh = null;
+    Fattr3 newattrs = null;
+    Nfs nfs = null;
 
-	Xdr call = new Xdr(rsize + 512);
+    Xdr call = new Xdr(rsize + 512);
 
-	rpc.rpc_header(call, NFSPROC3_MKDIR);
-	call.xdr_bytes(fh);
-	call.xdr_string(name);
+    rpc.rpc_header(call, NFSPROC3_MKDIR);
+    call.xdr_bytes(fh);
+    call.xdr_string(name);
 
-	// sattr3
-	call.xdr_bool(true);		// mode3
-	call.xdr_u_int(mode);
-	call.xdr_bool(true);		// uid3
-	call.xdr_u_int(NfsConnect.getCred().getUid());
-	call.xdr_bool(true);		// gid3
-	call.xdr_u_int(NfsConnect.getCred().getGid());
-	call.xdr_bool(true);		// size3
-	call.xdr_hyper(0);
-	call.xdr_int(SERVER_TIME);	// atime
-	call.xdr_int(SERVER_TIME);	// mtime
+    // sattr3
+    call.xdr_bool(true);		// mode3
+    call.xdr_u_int(mode);
+    call.xdr_bool(true);		// uid3
+    call.xdr_u_int(NfsConnect.getCred().getUid());
+    call.xdr_bool(true);		// gid3
+    call.xdr_u_int(NfsConnect.getCred().getGid());
+    call.xdr_bool(true);		// size3
+    call.xdr_hyper(0);
+    call.xdr_int(SERVER_TIME);	// atime
+    call.xdr_int(SERVER_TIME);	// mtime
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	if (status != NFS_OK) {
-	    /*
-	     * MKDIR3resfail
-	     */
-	    // wcc_data
-	    if (reply.xdr_bool()) {	// pre_op_attr
-		reply.xdr_hyper();	// size3;
-		reply.xdr_u_int();	// mtime
-		reply.xdr_u_int();
-		reply.xdr_u_int();	// ctime
-		reply.xdr_u_int();
-	    }
-	    if (reply.xdr_bool()) 	// post_op_attr
-		attr.getFattr(reply);
-	    throw new NfsException(status);
-	}
-	/*
-	 * MKDIR3resok
-	 */
-	if (reply.xdr_bool())		// post_op_fh3
-	    newFh = reply.xdr_bytes();
-	if (reply.xdr_bool())		// post_op_attr
-	    newattrs = new Fattr3(reply);
-	/*
-	 * wcc_data
-	 */
-	if (reply.xdr_bool()) {		// pre_op_attr
-	    reply.xdr_hyper();		// size3;
-	    reply.xdr_u_int();		// mtime
-	    reply.xdr_u_int();
-	    reply.xdr_u_int();		// ctime
-	    reply.xdr_u_int();
-	}
-	if (reply.xdr_bool()) 		// post_op_attr
-	    attr.getFattr(reply);
+    int status = reply.xdr_int();
+    if (status != NFS_OK) {
+        /*
+         * MKDIR3resfail
+         */
+        // wcc_data
+        if (reply.xdr_bool()) {	// pre_op_attr
+        reply.xdr_hyper();	// size3;
+        reply.xdr_u_int();	// mtime
+        reply.xdr_u_int();
+        reply.xdr_u_int();	// ctime
+        reply.xdr_u_int();
+        }
+        if (reply.xdr_bool()) 	// post_op_attr
+        attr.getFattr(reply);
+        throw new NfsException(status);
+    }
+    /*
+     * MKDIR3resok
+     */
+    if (reply.xdr_bool())		// post_op_fh3
+        newFh = reply.xdr_bytes();
+    if (reply.xdr_bool())		// post_op_attr
+        newattrs = new Fattr3(reply);
+    /*
+     * wcc_data
+     */
+    if (reply.xdr_bool()) {		// pre_op_attr
+        reply.xdr_hyper();		// size3;
+        reply.xdr_u_int();		// mtime
+        reply.xdr_u_int();
+        reply.xdr_u_int();		// ctime
+        reply.xdr_u_int();
+    }
+    if (reply.xdr_bool()) 		// post_op_attr
+        attr.getFattr(reply);
 
-	if (newFh != null && newattrs != null) {
-	    String pathname = this.name + "/" + name;
-	    nfs = new Nfs3(rpc, newFh, pathname, newattrs);
-	    cache_put(nfs);
-	}
-	dircache = null;
+    if (newFh != null && newattrs != null) {
+        String pathname = this.name + "/" + name;
+        nfs = new Nfs3(rpc, newFh, pathname, newattrs);
+        cache_put(nfs);
+    }
+    dircache = null;
 
-	return nfs;
+    return nfs;
     }
 
     /*
      * Get Filesystem Information
      *
      */
+    @Override
     public void fsinfo() throws IOException {
 
         Xdr call = new Xdr(rsize + 512);
@@ -1187,6 +1214,7 @@ class Nfs3 extends Nfs {
     /*
      * Commit previous async writes to stable storage
      */
+    @Override
     public long commit(int foffset, int length) throws IOException {
 
         Xdr call = new Xdr(wsize + 512);
@@ -1219,7 +1247,7 @@ class Nfs3 extends Nfs {
         if (status != NFS_OK)
             throw new NfsException(status);
 
-	return reply.xdr_hyper();	// return verifier
+    return reply.xdr_hyper();	// return verifier
     }
 
     /*
@@ -1227,8 +1255,9 @@ class Nfs3 extends Nfs {
      *
      * @returns true if the file was removed
      */
+    @Override
     public boolean remove(String name) throws IOException {
-	return remove_otw(NFSPROC3_REMOVE, name);
+    return remove_otw(NFSPROC3_REMOVE, name);
     }
 
     /**
@@ -1237,8 +1266,9 @@ class Nfs3 extends Nfs {
      * @returns true if the directory could be deleted
      * @exception java.io.IOException
      */
+    @Override
     public boolean rmdir(String name) throws IOException {
-	return remove_otw(NFSPROC3_RMDIR, name);
+    return remove_otw(NFSPROC3_RMDIR, name);
     }
 
     /*
@@ -1251,38 +1281,38 @@ class Nfs3 extends Nfs {
      */
     private boolean remove_otw(int NfsOperation, String name) throws IOException {
 
-	Xdr call = new Xdr(rsize + 512);
+    Xdr call = new Xdr(rsize + 512);
 
-	rpc.rpc_header(call, NfsOperation);
-	call.xdr_bytes(fh);
-	call.xdr_string(name);
+    rpc.rpc_header(call, NfsOperation);
+    call.xdr_bytes(fh);
+    call.xdr_string(name);
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
+    int status = reply.xdr_int();
 
-	/*
-	 * wcc_data
-	 */
-	// should check whether the directory was modified,
-	// in such case, the file may have been deleted by another
-	// client.
-	if (reply.xdr_bool()) {		// pre_op_attr
-	    reply.xdr_hyper();		// size3
-	    reply.xdr_u_int();		// mtime
-	    reply.xdr_u_int();
-	    reply.xdr_u_int();		// ctime
-	    reply.xdr_u_int();
-	}
-	if (reply.xdr_bool()) 		// post_op_attr
-	    attr.getFattr(reply);
-	if (status != NFS_OK)
-	    throw new NfsException(status);
+    /*
+     * wcc_data
+     */
+    // should check whether the directory was modified,
+    // in such case, the file may have been deleted by another
+    // client.
+    if (reply.xdr_bool()) {		// pre_op_attr
+        reply.xdr_hyper();		// size3
+        reply.xdr_u_int();		// mtime
+        reply.xdr_u_int();
+        reply.xdr_u_int();		// ctime
+        reply.xdr_u_int();
+    }
+    if (reply.xdr_bool()) 		// post_op_attr
+        attr.getFattr(reply);
+    if (status != NFS_OK)
+        throw new NfsException(status);
 
-	// Remove Nfs object from cache
-	cache_remove(this, name);
-	dircache = null;
-	return true;
+    // Remove Nfs object from cache
+    cache_remove(this, name);
+    dircache = null;
+    return true;
     }
 
     /*
@@ -1294,43 +1324,44 @@ class Nfs3 extends Nfs {
      * 			'filename'
      * @returns true if the file/directory was renamed
      */
+    @Override
     public boolean rename(Nfs dstP, String sName, String dName) throws IOException{
 
-	Xdr call = new Xdr(rsize + 512);
+    Xdr call = new Xdr(rsize + 512);
 
-	rpc.rpc_header(call, NFSPROC3_RENAME);
-	call.xdr_bytes(fh);		// Source dir filehandle
-	call.xdr_string(sName);			// Source filename
-	call.xdr_bytes(dstP.getFH());		// Dest dir filehandle
-	call.xdr_string(dName);			// Dest filename
+    rpc.rpc_header(call, NFSPROC3_RENAME);
+    call.xdr_bytes(fh);		// Source dir filehandle
+    call.xdr_string(sName);			// Source filename
+    call.xdr_bytes(dstP.getFH());		// Dest dir filehandle
+    call.xdr_string(dName);			// Dest filename
 
-	Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
+    Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
-	int status = reply.xdr_int();
-	/*
-	 * wcc_data - fromdir_wcc
-	 */
-	if (reply.xdr_bool()) {			// pre_op_attr
-	    reply.xdr_hyper();			// size3
-	    reply.xdr_u_int();			// mtime
-	    reply.xdr_u_int();
-	    reply.xdr_u_int();			// ctime
-	    reply.xdr_u_int();
-	}
-	if (reply.xdr_bool())
-	    attr.getFattr(reply);
+    int status = reply.xdr_int();
+    /*
+     * wcc_data - fromdir_wcc
+     */
+    if (reply.xdr_bool()) {			// pre_op_attr
+        reply.xdr_hyper();			// size3
+        reply.xdr_u_int();			// mtime
+        reply.xdr_u_int();
+        reply.xdr_u_int();			// ctime
+        reply.xdr_u_int();
+    }
+    if (reply.xdr_bool())
+        attr.getFattr(reply);
 
-	/*
-	 * Don't bother getting wcc_data for destDir since we have
-	 * no method to update its attributes.
-	 */
+    /*
+     * Don't bother getting wcc_data for destDir since we have
+     * no method to update its attributes.
+     */
 
-	if (status != NFS_OK)
-	    throw new NfsException(status);
+    if (status != NFS_OK)
+        throw new NfsException(status);
 
-	cache_remove(this, sName);	// Remove Nfs object from cache
-	dircache = null;
-	dstP.dircache = null;
-	return true;
+    cache_remove(this, sName);	// Remove Nfs object from cache
+    dircache = null;
+    dstP.dircache = null;
+    return true;
     }
 }

@@ -78,7 +78,7 @@ public abstract class Fattr {
 
         return (timenow <= validtime + cachetime);
     }
-        
+
     abstract void putFattr(Xdr x);
 
     abstract void getFattr(Xdr x);

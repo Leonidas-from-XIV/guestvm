@@ -929,6 +929,7 @@ public class KernelTest {
             super(s);
         }
 
+        @Override
         public void run() {
             while (true) {
                 try {

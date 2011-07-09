@@ -29,24 +29,28 @@ public class TimeFormat {
 
     public static enum Kind {
         SECONDS {
+            @Override
             public String convert(long nanos) {
                 return divNd(nanos, 1000000000, 9);
             }
         },
 
         MILLIS {
+            @Override
             public String convert(long nanos) {
                 return divNd(nanos, 1000000, 6);
             }
         },
 
         MICROS {
+            @Override
             public String convert(long nanos) {
                 return divNd(nanos, 1000, 3);
             }
         },
 
         NANOS {
+            @Override
             public String convert(long nanos) {
                 return Long.toString(nanos);
             }

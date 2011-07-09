@@ -168,6 +168,7 @@ public class CQTest {
     static class Consumer extends Thread {
         long _p;
         long _c;
+        @Override
         public void run() {
             while (_running) {
                 _p++;
@@ -189,6 +190,7 @@ public class CQTest {
 
     static class Producer extends Thread {
         long _c = 0;
+        @Override
         public void run() {
             while (_running) {
                 _q.add(_elements[(int) _c % ELEMENTS_SIZE]);

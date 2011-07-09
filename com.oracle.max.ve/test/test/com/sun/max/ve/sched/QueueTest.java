@@ -116,6 +116,7 @@ public class QueueTest {
     }
 
     static class MyTimerTask extends TimerTask {
+        @Override
         public void run() {
             _done = true;
         }
@@ -134,6 +135,7 @@ public class QueueTest {
             return _ops;
         }
 
+        @Override
         public void run() {
             while (!_done) {
                 final int c = _rand.nextInt(5);
@@ -233,6 +235,7 @@ public class QueueTest {
             _id = id;
         }
 
+        @Override
         public String toString() {
             return _id + "(" + Integer.toString(_priority) + ")";
         }

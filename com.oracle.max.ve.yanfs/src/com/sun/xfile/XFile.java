@@ -159,8 +159,8 @@ public class XFile {
     public XFile(String name) {
 
         urlStr = name;
-	if (name == null)
-	    throw new NullPointerException();
+    if (name == null)
+        throw new NullPointerException();
 
         try {
             url = new XFurl(name);
@@ -498,7 +498,7 @@ public class XFile {
      * @return  the name of the filesystem.
      */
     public String getFileSystemName() {
-	return url.getProtocol();
+    return url.getProtocol();
     }
 
 
@@ -543,7 +543,7 @@ public class XFile {
         if (nativeFile != null)
             return nativeFile.getPath();
 
-	return url.getPath();
+    return url.getPath();
     }
 
 
@@ -569,7 +569,7 @@ public class XFile {
         if (nativeFile != null)
             return nativeFile.getAbsolutePath();
 
-	return urlStr;
+    return urlStr;
     }
 
 
@@ -596,7 +596,7 @@ public class XFile {
         if (nativeFile != null)
             return nativeFile.getCanonicalPath();
 
-	return urlStr;
+    return urlStr;
     }
 
 
@@ -624,7 +624,7 @@ public class XFile {
         if (nativeFile != null)
             return nativeFile.getParent();
 
-	return url.getParent();
+    return url.getParent();
     }
 
 
@@ -665,7 +665,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	return xfa.exists();
+    return xfa.exists();
     }
 
 
@@ -680,7 +680,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	return xfa.canWrite();
+    return xfa.canWrite();
     }
 
 
@@ -695,7 +695,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	return xfa.canRead();
+    return xfa.canRead();
     }
 
 
@@ -716,7 +716,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	return xfa.isFile();
+    return xfa.isFile();
     }
 
 
@@ -731,7 +731,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	return xfa.isDirectory();
+    return xfa.isDirectory();
     }
 
 
@@ -752,7 +752,7 @@ public class XFile {
         if (!bind())
             return 0L;;
 
-	return xfa.lastModified();
+    return xfa.lastModified();
     }
 
 
@@ -770,7 +770,7 @@ public class XFile {
         if (!bind())
             return 0L;
 
-	return xfa.exists() ? xfa.length() : 0L;
+    return xfa.exists() ? xfa.length() : 0L;
     }
 
 
@@ -804,7 +804,7 @@ public class XFile {
         if (!bind())
             return false;
 
-	boolean ok = xfa.renameTo(dest);
+    boolean ok = xfa.renameTo(dest);
 
         /*
          * Only the name of the file is changed.
@@ -837,7 +837,7 @@ public class XFile {
     public boolean mkdir() {
         bind();
 
-	return xfa.mkdir();
+    return xfa.mkdir();
     }
 
 
@@ -852,15 +852,15 @@ public class XFile {
     public boolean mkdirs() {
         bind();
 
-	if (exists()) {
-	    return false;
-	}
-	if (mkdir()) {
- 	    return true;
- 	}
+    if (exists()) {
+        return false;
+    }
+    if (mkdir()) {
+         return true;
+     }
 
-	String parent = getParent();
-	return (parent != null) && (new XFile(parent).mkdirs() && mkdir());
+    String parent = getParent();
+    return (parent != null) && (new XFile(parent).mkdirs() && mkdir());
     }
 
 
@@ -877,7 +877,7 @@ public class XFile {
         if (!bind())
             return null;;
 
-	return xfa.list();
+    return xfa.list();
     }
 
 
@@ -896,25 +896,25 @@ public class XFile {
         if (!bind())
             return null;;
 
-	String names[] = list();
+    String names[] = list();
 
-	if (names == null) {
-	    return null;
-	}
+    if (names == null) {
+        return null;
+    }
 
-	// Fill in the Vector
-	Vector v = new Vector();
-	for (int i = 0 ; i < names.length ; i++) {
-	    if ((filter == null) || filter.accept(this, names[i])) {
-		v.addElement(names[i]);
-	    }
-	}
+    // Fill in the Vector
+    Vector v = new Vector();
+    for (int i = 0 ; i < names.length ; i++) {
+        if ((filter == null) || filter.accept(this, names[i])) {
+        v.addElement(names[i]);
+        }
+    }
 
-	// Create the array
-	String files[] = new String[v.size()];
-	v.copyInto(files);
+    // Create the array
+    String files[] = new String[v.size()];
+    v.copyInto(files);
 
-	return files;
+    return files;
     }
 
 
@@ -943,8 +943,9 @@ public class XFile {
      *
      * @return a hash code value for this <code>XFile</code> object.
      */
+    @Override
     public int hashCode() {
-	return urlStr.hashCode() ^ 1234321;
+    return urlStr.hashCode() ^ 1234321;
     }
 
 
@@ -959,11 +960,12 @@ public class XFile {
      * @return  <code>true</code> if the objects are the same;
      *          <code>false</code> otherwise.
      */
+    @Override
     public boolean equals(Object obj) {
-	if ((obj == null) || (! (obj instanceof XFile)))
+    if ((obj == null) || (! (obj instanceof XFile)))
             return false;
 
-	return url.toString().equals(((XFile)obj).getURL().toString());
+    return url.toString().equals(((XFile)obj).getURL().toString());
     }
 
 
@@ -972,10 +974,11 @@ public class XFile {
      *
      * @return  a string giving the pathname of this object.
      */
+    @Override
     public String toString() {
         if (nativeFile != null)
             return (nativeFile.toString());
 
-	return urlStr;
+    return urlStr;
     }
 }

@@ -117,7 +117,7 @@ public class Rpc {
 
 
     private Connection getConnection(String server, int port, int prog,
-			int vers, String proto, int maxReply)
+            int vers, String proto, int maxReply)
         throws IOException {
 
         if (port == 0) {
@@ -126,14 +126,14 @@ public class Rpc {
             Xdr call = new Xdr(PMAP_MAXSZ);
 
             pmap.rpc_header(call, PMAP_GETPORT);
-    
+
             call.xdr_int(prog);
             call.xdr_int(vers);
             call.xdr_int(proto.equals("tcp") ? 6 : 17);
             call.xdr_int(0); // no port
-    
+
             Xdr reply = pmap.rpc_call(call, 5 * 1000, 3);
-    
+
             port = reply.xdr_int();
             if (port == 0)
                 throw new MsgAcceptedException(PROG_UNAVAIL);
@@ -152,13 +152,13 @@ public class Rpc {
          */
         synchronized (Connection.connections) {
             conn = Connection.getCache(server, port, proto);
-    
+
             if (conn == null) {
                 if (proto.equals("tcp"))
                     conn = new ConnectSocket(server, port, maxReply);
                 else
                     conn = new ConnectDatagram(server, port, maxReply);
-    
+
                 Connection.putCache(conn);
             }
         }
@@ -174,7 +174,7 @@ public class Rpc {
     public void setCred(Cred c) throws RpcException {
 
         cred = c;
-	cred.init(conn, prog, vers);
+    cred.init(conn, prog, vers);
     }
 
     /**
@@ -183,7 +183,7 @@ public class Rpc {
      */
     public void delCred() throws RpcException {
 
-	cred.destroy(this);
+    cred.destroy(this);
     }
 
     /**
@@ -273,24 +273,24 @@ public class Rpc {
      * argument to do wrap() again.
      */
     private Xdr call_reconstruct(Xdr call, byte[] arg)
-		throws IOException, RpcException {
+        throws IOException, RpcException {
 
-	Xdr recall = new Xdr(call.xdr_size());
-	recall.xid = call.xid;
+    Xdr recall = new Xdr(call.xdr_size());
+    recall.xid = call.xid;
 
-	// the rpc_header
-	recall.xdr_raw(call.xdr_raw(0,
-			conn instanceof ConnectSocket ? 28 : 24));
-	cred.putCred(recall);
+    // the rpc_header
+    recall.xdr_raw(call.xdr_raw(0,
+            conn instanceof ConnectSocket ? 28 : 24));
+    cred.putCred(recall);
 
-	// the not-yet-encrypted rpc argument
-	if (arg != null) {
-	    if (recall.xdr_offset() == recall.xdr_wrap_offset()) {
-		recall.xdr_raw(arg);
-	    } else {
-		recall.xdr_raw(arg, 4, arg.length - 4);
-	    }
-	}
+    // the not-yet-encrypted rpc argument
+    if (arg != null) {
+        if (recall.xdr_offset() == recall.xdr_wrap_offset()) {
+        recall.xdr_raw(arg);
+        } else {
+        recall.xdr_raw(arg, 4, arg.length - 4);
+        }
+    }
 
         return recall;
     }
@@ -307,15 +307,15 @@ public class Rpc {
      * @throws		RpcException
      */
     public Xdr rpc_call_one(Xdr call, byte[] arg, int timeout)
-	throws IOException, RpcException {
+    throws IOException, RpcException {
 
         int status, astat, rstat;
         int why;
         byte[] verifier;
 
-	// encrypt the rpc argument if it's needed
-	if (arg != null)
-	    cred.wrap(call, arg);
+    // encrypt the rpc argument if it's needed
+    if (arg != null)
+        cred.wrap(call, arg);
 
         Xdr reply = conn.send(call, timeout);
 
@@ -328,17 +328,17 @@ public class Rpc {
         switch (status) {
         case MSG_ACCEPTED:
             reply.xdr_skip(4);		// verifier flavor
-	    verifier = reply.xdr_bytes(); // get the verifier
+        verifier = reply.xdr_bytes(); // get the verifier
             astat = reply.xdr_int();
 
             switch (astat) {
             case SUCCESS:
-		int seq_num_in = cred.unwrap(reply);
+        int seq_num_in = cred.unwrap(reply);
 
-		// decrypt the result if it's needed
-		if (seq_num_in > 0) {
-		    cred.validate(verifier, seq_num_in);
-		}
+        // decrypt the result if it's needed
+        if (seq_num_in > 0) {
+            cred.validate(verifier, seq_num_in);
+        }
                 break;
 
             case PROG_UNAVAIL:
@@ -362,7 +362,7 @@ public class Rpc {
                             reply.xdr_int(), reply.xdr_int());
             case AUTH_ERROR:
                 why = reply.xdr_int();
-		throw new MsgRejectedException(rstat, why);
+        throw new MsgRejectedException(rstat, why);
 
             default:
                 throw new MsgRejectedException(rstat);
@@ -404,48 +404,48 @@ public class Rpc {
         if (conn instanceof ConnectSocket)
             timeout = MAX_TIMEOUT;
 
-	// refresh twice if needed
-	int num_refresh = 2;
+    // refresh twice if needed
+    int num_refresh = 2;
         for (int c = 0; c < retries; c++) {
 
-	    byte[] arg = null;
+        byte[] arg = null;
 
-	    /*
-	     * Currently, only CredNone, CredUnix, CredGss is supported.
-	     * For CredGss: save the (seq_num + rpc argument) before
-	     * it's encrypted. This arg will be needed during retransmit.
-	     *
-	     * CredGss not checked to avoid loading un-used CredGss class. 
-	     */
-	    if (!(cred instanceof CredUnix) && !(cred instanceof CredNone) &&
-		(call.xdr_offset() > call.xdr_wrap_offset())) {
-		arg = call.xdr_raw(call.xdr_wrap_offset(),
+        /*
+         * Currently, only CredNone, CredUnix, CredGss is supported.
+         * For CredGss: save the (seq_num + rpc argument) before
+         * it's encrypted. This arg will be needed during retransmit.
+         *
+         * CredGss not checked to avoid loading un-used CredGss class.
+         */
+        if (!(cred instanceof CredUnix) && !(cred instanceof CredNone) &&
+        (call.xdr_offset() > call.xdr_wrap_offset())) {
+        arg = call.xdr_raw(call.xdr_wrap_offset(),
                         call.xdr_offset() - call.xdr_wrap_offset());
-	    }
+        }
 
             try {
 
                 reply = rpc_call_one(call, arg, timeout);
                 break;	// reply received OK
 
-	    } catch (MsgRejectedException e) {
+        } catch (MsgRejectedException e) {
 
-		/*
-		 * Refresh the cred and try again
-		 */
-		if (num_refresh > 0 &&
-			(e.why == MsgRejectedException.RPCSEC_GSS_NOCRED ||
-			e.why == MsgRejectedException.RPCSEC_GSS_FAILED) &&
-			cred.refresh(conn, prog, vers)) {
+        /*
+         * Refresh the cred and try again
+         */
+        if (num_refresh > 0 &&
+            (e.why == MsgRejectedException.RPCSEC_GSS_NOCRED ||
+            e.why == MsgRejectedException.RPCSEC_GSS_FAILED) &&
+            cred.refresh(conn, prog, vers)) {
 
-		    // re-construct the "call" Xdr buffer.
-		    call = call_reconstruct(call, arg);
-		    num_refresh--;
-		    c--; // to do refresh
+            // re-construct the "call" Xdr buffer.
+            call = call_reconstruct(call, arg);
+            num_refresh--;
+            c--; // to do refresh
 
-		} else {
-		    throw e;
-		}
+        } else {
+            throw e;
+        }
 
             } catch (RpcException e) {
 
@@ -474,16 +474,16 @@ public class Rpc {
                 if (timeout > MAX_TIMEOUT)
                     timeout = MAX_TIMEOUT;
 
-		/*
-		 * For CredGss: reconstruct the clear-text-argument
-		 *		and use a new sequence number.
-		 * Currently, only CredNone, CredUnix, CredGss is supported.
-		 *
-		 * CredGss not checked to avoid loading un-used CredGss class. 
-		 */
-		if (!(cred instanceof CredUnix) &&
-			!(cred instanceof CredNone)) {
-		    call = call_reconstruct(call, arg);
+        /*
+         * For CredGss: reconstruct the clear-text-argument
+         *		and use a new sequence number.
+         * Currently, only CredNone, CredUnix, CredGss is supported.
+         *
+         * CredGss not checked to avoid loading un-used CredGss class.
+         */
+        if (!(cred instanceof CredUnix) &&
+            !(cred instanceof CredNone)) {
+            call = call_reconstruct(call, arg);
                 }
             }
         }

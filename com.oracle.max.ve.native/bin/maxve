@@ -40,7 +40,8 @@ function run_image_override() {
   pushd ../../guk  >/dev/null
   gmake
   popd  >/dev/null
-  run ${jvm_exe} -cp ${extra_project_cp} com.sun.max.vm.hosted.VEBootImageGenerator -trace=1 $prefix_classpath $specfile $imageargs $@
+  echo run ${jvm_exe} -cp $(jmax classpath) com.sun.max.vm.hosted.VEBootImageGenerator -trace=1 $prefix_classpath $specfile $imageargs $@
+  run ${jvm_exe} -cp $(jmax classpath) com.sun.max.vm.hosted.VEBootImageGenerator -trace=1 $prefix_classpath $specfile $imageargs $@
 }
 
 function run_vm_override() {
@@ -67,7 +68,7 @@ while [ "${1:0:1}" = "-" ]; do
         imageargs="$imageargs $1"
       fi
       ;;
-    -* )
+    * )
       break
       ;;
     esac

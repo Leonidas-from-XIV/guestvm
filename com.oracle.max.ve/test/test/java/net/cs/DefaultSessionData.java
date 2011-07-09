@@ -24,6 +24,7 @@ package test.java.net.cs;
 
 public class DefaultSessionData extends SessionData {
 
+    @Override
     public void setDataSize(int size) {
         this._dataSize = size;
         this._data = new byte[_dataSize];
@@ -32,6 +33,7 @@ public class DefaultSessionData extends SessionData {
         }
     }
 
+    @Override
     public byte[] getSessionData() {
         if (_data == null) {
             throw new RuntimeException("DefaultSessionData: data not initialized");

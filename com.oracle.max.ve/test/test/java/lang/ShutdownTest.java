@@ -43,6 +43,7 @@ public class ShutdownTest extends Thread {
         }
     }
 
+    @Override
     public void run() {
         System.out.println("App thread running");
         final long end = System.currentTimeMillis() + 5 * 1000;

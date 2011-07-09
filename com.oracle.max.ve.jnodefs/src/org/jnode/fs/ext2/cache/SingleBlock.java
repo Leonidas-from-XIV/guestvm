@@ -72,6 +72,7 @@ public class SingleBlock extends Block {
      * 
      * @param data The data to set
      */
+    @Override
     public void setBuffer(ByteBuffer data) {
         if (this.buffer != data) {
             final int srcPos = data.position();
@@ -86,6 +87,7 @@ public class SingleBlock extends Block {
     /**
      * flush is called when the block is being removed from the cache
      */
+    @Override
     public void flush() throws IOException {
         if (dirty) {
             fs.writeBlock(blockNr, buffer, true);

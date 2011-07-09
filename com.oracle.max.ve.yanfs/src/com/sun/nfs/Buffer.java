@@ -135,7 +135,7 @@ public class Buffer extends Thread {
             bufoff = 0;
             buf = nbuf;
         }
-     
+
         int off = (int) (foffset - this.foffset);
         int copylen = Math.min(length, buflen - off);
         copylen = Math.min(copylen, (int) (nfs.length() - foffset));
@@ -302,6 +302,7 @@ public class Buffer extends Thread {
      * up and perform one of two actions: LOAD data
      * (write) or UNLOAD data (read).
      */
+    @Override
     public void run() {
 
         synchronized (this) {
@@ -313,27 +314,27 @@ public class Buffer extends Thread {
                             wait();
                         } catch (InterruptedException e) {}
                     }
-    
-            	    /*
-            	     * Thread has been notified - perform the action
-            	     */
+
+                    /*
+                     * Thread has been notified - perform the action
+                     */
                     switch (action) {
-    
+
                     case LOAD:
                         try {
                             nfs.read_otw(this);
-    
+
                         } catch (IOException e) {
                             if (this.e == null)
                                 this.e = e;
                         }
-    
+
                         status = LOADED;
                         break;
-    
+
                     case UNLOAD:
                         try {
-    
+
                             /*
                              * Server may do a short write, so keep
                              * writing until all the bytes have been
@@ -345,7 +346,7 @@ public class Buffer extends Thread {
 
                             minOffset = bufsize;
                             maxOffset = 0;
-    
+
                         } catch (IOException e) {
                             if (this.e == null)
                                 this.e = e;
@@ -369,23 +370,24 @@ public class Buffer extends Thread {
 
                         return;
                     }
-    
+
                     action = IDLE;
                     notifyAll();
                 }
             } catch (Error e) {
-		/*
-		 * Need to catch errors here, e.g. OutOfMemoryError
-		 * and notify threads before this thread dies
-		 * otherwise they'll wait forever.
-		 */
-            	err = e;
-            	notifyAll();
-            	throw e;
+        /*
+         * Need to catch errors here, e.g. OutOfMemoryError
+         * and notify threads before this thread dies
+         * otherwise they'll wait forever.
+         */
+                err = e;
+                notifyAll();
+                throw e;
             }
         }
     }
 
+    @Override
     public String toString() {
         return (nfs.name + " @ " + foffset + " for " + buflen);
     }

@@ -35,6 +35,7 @@ public class ThreadIdTraceElement extends TraceElement {
         return _id;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + _id;
     }

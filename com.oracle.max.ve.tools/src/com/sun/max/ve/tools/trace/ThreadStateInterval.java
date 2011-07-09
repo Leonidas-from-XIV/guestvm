@@ -61,6 +61,7 @@ public class ThreadStateInterval {
         _cpu = cpu;
     }
 
+    @Override
     public String toString() {
         String result = _state.name();
         if (_state == ThreadState.ONCPU) {

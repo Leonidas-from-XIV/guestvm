@@ -579,6 +579,7 @@ public class NFSServer extends NFSServerStub {
         return ret;
     };
 
+    @Override
     protected readdirres NFSPROC_READDIR_2(readdirargs params) {
         // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         readdirres ret;

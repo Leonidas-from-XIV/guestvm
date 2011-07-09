@@ -75,6 +75,7 @@ public class TraceElement {
         return _traceKind;
     }
 
+    @Override
     public String toString() {
         return getTimestamp() + " " + _cpu + " " + _thread + " " + _traceKind.name();
     }

@@ -28,7 +28,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package com.sun.gssapi;
 
 import java.io.InputStream;
@@ -69,7 +69,7 @@ public interface C018FE95 {
      */
     public void _S235D9C1 (GSSCredSpi myCred, GSSNameSpi targName,
             int desLifetime, int ctxtOptions) throws GSSException;
-    
+
 
     /**
      * Sets the mechanism options to be used during context
@@ -80,7 +80,7 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public void _S90010CC (GSSCredSpi myCred) throws GSSException;
-    
+
 
     /**
      * Sets the channel bindings to be used during context
@@ -92,15 +92,15 @@ public interface C018FE95 {
      */
     public void _S9B00AB2 (ChannelBinding chb) throws GSSException;
 
-                
+
     /**
      * Retrieves the mechanism options.
      *
      * @return int GSSContext options ORed together
      */
     public int _S00027C3 ();
-    
-    
+
+
     /**
      * Inquire the remaining lifetime.
      *
@@ -108,25 +108,25 @@ public interface C018FE95 {
      *    value GSSContext.INDEFINITE for an indefinite lifetime.
      */
     public int _S4080EED ();
-        
+
 
     /**
      * Returns the mechanism oid.
      *
      * @return the Oid for this context
-     */           
+     */
     public Oid _S0200735 ();
 
 
     /**
      * Returns the context initiator name.
-     * 
+     *
      * @return initiator name
      * @exception GSSException may be thrown
      */
     public GSSNameSpi _S000EEFF () throws GSSException;
-    
-    
+
+
     /**
      * Returns the context acceptor name.
      *
@@ -134,8 +134,8 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public GSSNameSpi _S011CEF9 () throws GSSException;
-    
-    
+
+
     /**
      * Returns the delegated credential for the context. This
      * is an optional feature of contexts which not all
@@ -147,8 +147,8 @@ public interface C018FE95 {
      * @see GSSContext#getDelegCredState
      */
     public GSSCredSpi _S0293FFA () throws GSSException;
- 
-    
+
+
     /**
      * Tests if this is the initiator side of the context.
      *
@@ -156,7 +156,7 @@ public interface C018FE95 {
      *    or target (false)
      */
     public boolean _S123049E ();
-    
+
 
     /**
      * Tests if the context can be used for per-message service.
@@ -167,8 +167,8 @@ public interface C018FE95 {
      *    be called.
      */
     public boolean _S1116FAA ();
-    
-    
+
+
     /**
      * Initiator context establishment call. This method may be
      * required to be called several times. A CONTINUE_NEEDED return
@@ -185,7 +185,7 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public int _S0E039DB (InputStream is, OutputStream os)
-			throws GSSException;
+            throws GSSException;
 
 
     /**
@@ -203,7 +203,7 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public int _S80A2F2C (InputStream is, OutputStream os)
-			throws GSSException;
+            throws GSSException;
 
 
     /**
@@ -212,7 +212,7 @@ public interface C018FE95 {
      * maxTokSize.
      *
      * @param qop the quality of protection that the context will be
-     *    asked to provide. 
+     *    asked to provide.
      * @param confReq a flag indicating whether confidentiality will be
      *    requested or not
      * @param outputSize the maximum size of the output token
@@ -222,7 +222,7 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public int _S808028B (int qop, boolean confReq, int maxTokSize)
-			throws GSSException;
+            throws GSSException;
 
 
     /**
@@ -238,7 +238,7 @@ public interface C018FE95 {
      * @see unwrap
      */
     public void _S1309AFD (InputStream is, OutputStream os, MessageProp msgProp)
-			throws GSSException;
+            throws GSSException;
 
 
     /**
@@ -254,7 +254,7 @@ public interface C018FE95 {
      * @see wrap
      */
     public void _S1576D09 (InputStream is, OutputStream os,
-			MessageProp msgProp) throws GSSException;
+            MessageProp msgProp) throws GSSException;
 
 
     /**
@@ -267,7 +267,7 @@ public interface C018FE95 {
      * @exception GSSException
      */
     public void _S1513DBA (InputStream is, OutputStream os,
-			MessageProp msgProp)
+            MessageProp msgProp)
                 throws GSSException;
 
 
@@ -282,7 +282,7 @@ public interface C018FE95 {
      * @exception GSSException may be thrown
      */
     public void _S00256CF (InputStream is, InputStream msgStr,
-			MessageProp mProp) throws GSSException;
+            MessageProp mProp) throws GSSException;
 
 
     /**
@@ -295,7 +295,7 @@ public interface C018FE95 {
      */
     public byte []_S725B2DA () throws GSSException;
 
-    
+
     /**
      * Imports a previously exported context. This will be called
      * for newly created objects.
@@ -306,8 +306,8 @@ public interface C018FE95 {
      */
     public void _S0AC8F9E (byte []token) throws GSSException;
 
-    
-    /** 
+
+    /**
      * Releases context resources and terminates the
      * context between 2 peer.
      *

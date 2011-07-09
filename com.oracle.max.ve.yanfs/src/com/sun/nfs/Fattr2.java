@@ -63,6 +63,7 @@ class Fattr2 extends Fattr {
         this.getFattr(x);
     }
 
+    @Override
     void putFattr(Xdr x) {
         x.xdr_int(ftype);
         x.xdr_u_int(mode);
@@ -83,6 +84,7 @@ class Fattr2 extends Fattr {
         x.xdr_u_int(ctime % 1000);	// msec
     }
 
+    @Override
     void getFattr(Xdr x) {
         long oldmtime = mtime;
 
@@ -120,6 +122,7 @@ class Fattr2 extends Fattr {
         validtime = System.currentTimeMillis();
     }
 
+    @Override
     public String toString() {
          return (
              "  ftype = " + ftype + "\n" +

@@ -115,6 +115,7 @@ public class VERunScheme extends JavaRunScheme {
             }
             final String[] args = portArg == null ? new String[0] : new String[] {portArg};
             final Thread registry = new Thread() {
+                @Override
                 public void run() {
                     try {
                         RegistryImpl.main(args);

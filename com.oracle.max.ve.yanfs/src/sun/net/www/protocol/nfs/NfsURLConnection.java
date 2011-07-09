@@ -59,9 +59,10 @@ public class NfsURLConnection extends URLConnection {
     boolean             isConnected = false;
 
     NfsURLConnection(URL u) {
-	super(u);
+    super(u);
     }
 
+    @Override
     public void connect() throws IOException {
 
         String host = url.getHost();
@@ -87,13 +88,14 @@ public class NfsURLConnection extends URLConnection {
     }
 
 
+    @Override
     public InputStream getInputStream() throws IOException {
 
-	boolean root_directory = false;
+    boolean root_directory = false;
 
-	if (!isConnected) {
-	    connect();
-	}
+    if (!isConnected) {
+        connect();
+    }
 
         // Check access to file
         if (!nfsFile.exists()) {
@@ -110,24 +112,24 @@ public class NfsURLConnection extends URLConnection {
         if (path.equals("/")) {
             // Convert empty paths to "/." to be more acceptible for NFS servers
             path = "/.";
-	    root_directory = true;
+        root_directory = true;
         } else if (path.charAt(0) == '/') {
             // Remove extra "/" at the beginning of paths since it is not
             // used by NFS servers
             path = path.substring(1, path.length());
         }
 
-	MessageHeader props = new MessageHeader();
+    MessageHeader props = new MessageHeader();
         MimeTable mt = MimeTable.getDefaultTable();
         MimeEntry entry;
 
-	if (nfsFile.isDirectory()) {
-	    String[] dirList;
-	    StringBuffer buf = new StringBuffer();
+    if (nfsFile.isDirectory()) {
+        String[] dirList;
+        StringBuffer buf = new StringBuffer();
 
-	    // Get height and width of icons for entries in directory list
-	    int iconHeight = Integer.getInteger("hotjava.file.iconheight",
-	        32).intValue();
+        // Get height and width of icons for entries in directory list
+        int iconHeight = Integer.getInteger("hotjava.file.iconheight",
+            32).intValue();
             int iconWidth = Integer.getInteger("hotjava.file.iconwidth",
                 32).intValue();
 
@@ -141,44 +143,44 @@ public class NfsURLConnection extends URLConnection {
                 "Directory Listing"));
             buf.append("</TITLE>\n");
 
-	    // Set the base URL for the file name anchors
-	    buf.append("<BASE HREF=\"" + url.toString());
-	    if (url.toString().endsWith("/")) {
-		buf.append("\">");
-	    } else {
-		buf.append("/\">");
-	    }
+        // Set the base URL for the file name anchors
+        buf.append("<BASE HREF=\"" + url.toString());
+        if (url.toString().endsWith("/")) {
+        buf.append("\">");
+        } else {
+        buf.append("/\">");
+        }
 
             // Finish the document header, start the document body
             buf.append("</HEAD>\n<BODY>\n");
 
             // Display the directory name as a heading
-	    // In the case of the root_directory display "/"
-	    if (root_directory) {
-            	buf.append("<H1>\n/</H1>\n<HR>\n");
-	    } else {
-            	buf.append("<H1>\n" + path + "</H1>\n<HR>\n");
+        // In the case of the root_directory display "/"
+        if (root_directory) {
+                buf.append("<H1>\n/</H1>\n<HR>\n");
+        } else {
+                buf.append("<H1>\n" + path + "</H1>\n<HR>\n");
             }
 
             // Display a URL link to the parent directory if this is
-	    // not the root directory
-	    if (!root_directory) {
-            	String parentURL = url.toString();
-            	int limit = parentURL.length() - 1;
-            	if (url.getFile() != null) {
-	            if (parentURL.endsWith("/")) {
-			limit--;
-		    }
+        // not the root directory
+        if (!root_directory) {
+                String parentURL = url.toString();
+                int limit = parentURL.length() - 1;
+                if (url.getFile() != null) {
+                if (parentURL.endsWith("/")) {
+            limit--;
+            }
 
-		    parentURL = parentURL.substring(0,
-			parentURL.lastIndexOf('/', limit));
-		    buf.append("<A HREF=\"" + parentURL + "\">");
-		    buf.append("<H2>Go To Parent Directory</H2></A>\n<BR>\n");
-		}
-	    }
+            parentURL = parentURL.substring(0,
+            parentURL.lastIndexOf('/', limit));
+            buf.append("<A HREF=\"" + parentURL + "\">");
+            buf.append("<H2>Go To Parent Directory</H2></A>\n<BR>\n");
+        }
+        }
 
-	    // Display the list of files in the directory
-	    dirList = nfsFile.list();
+        // Display the list of files in the directory
+        dirList = nfsFile.list();
             if (dirList != null) {
 
                 // Sort the entries in the directory list
@@ -193,7 +195,7 @@ public class NfsURLConnection extends URLConnection {
                     // Don't display the ".." or "." directory entries
                     if (dirList[i].equals("..") || dirList[i].equals(".")) {
                         continue;
-		    }
+            }
 
                     // Skip files beginning with '.' if the file.hidedotfiles
                     // property is set
@@ -206,47 +208,47 @@ public class NfsURLConnection extends URLConnection {
                     // Display an image file for each directory entry
                     buf.append("<IMG ALIGN=middle SRC=\"");
                     dirEntry = new XFile((XFile)nfsFile, dirList[i]);
-		    if (dirEntry.isDirectory()) {
-		    	// TODO fix compiler error
-		    	/*
-		        buf.append(MimeEntry.defaultImagePath +
-			           "/directory.gif\" WIDTH=" + iconWidth +
-			           " HEIGHT=" + iconHeight + ">\n");
-			   */
-		    } else if (dirEntry.isFile()) {
-		    	String imageFileName = null;
-		    	// TODO fix compiler error
-		    	/*
-		        imageFileName = MimeEntry.defaultImagePath + "/file.gif";
-		        */
+            if (dirEntry.isDirectory()) {
+                // TODO fix compiler error
+                /*
+                buf.append(MimeEntry.defaultImagePath +
+                       "/directory.gif\" WIDTH=" + iconWidth +
+                       " HEIGHT=" + iconHeight + ">\n");
+               */
+            } else if (dirEntry.isFile()) {
+                String imageFileName = null;
+                // TODO fix compiler error
+                /*
+                imageFileName = MimeEntry.defaultImagePath + "/file.gif";
+                */
 
-		        // Find the file image to use using the file's .suffix
-		        entry = mt.findByFileName(dirList[i]);
-		        if (entry != null) {
-			    String realImageName = entry.getImageFileName();
-			    if (realImageName != null) {
-			        imageFileName = realImageName;
-			    }
-		        }
+                // Find the file image to use using the file's .suffix
+                entry = mt.findByFileName(dirList[i]);
+                if (entry != null) {
+                String realImageName = entry.getImageFileName();
+                if (realImageName != null) {
+                    imageFileName = realImageName;
+                }
+                }
 
-		        buf.append(imageFileName);
-		        buf.append("\" WIDTH=" + iconWidth + " HEIGHT=" + iconHeight +
-			       ">\n");
-		    } else {
-		        // Entry is a symbolic link.  Use the default file image for now.
-		    	// TODO fix compiler error
-		    	/*
-		        buf.append(MimeEntry.defaultImagePath +
-			           "/file.gif\" WIDTH=" + iconWidth +
-			           " HEIGHT=" + iconHeight + ">\n");
-			   */
-		    }
+                buf.append(imageFileName);
+                buf.append("\" WIDTH=" + iconWidth + " HEIGHT=" + iconHeight +
+                   ">\n");
+            } else {
+                // Entry is a symbolic link.  Use the default file image for now.
+                // TODO fix compiler error
+                /*
+                buf.append(MimeEntry.defaultImagePath +
+                       "/file.gif\" WIDTH=" + iconWidth +
+                       " HEIGHT=" + iconHeight + ">\n");
+               */
+            }
 
-		    //dirEntry.close();
+            //dirEntry.close();
 
                     // Display the directory entry's name
                     buf.append("<A HREF=\"" + dirList[i] + "\">");
-		            buf.append(dirList[i] + "</A>\n<BR>");
+                    buf.append(dirList[i] + "</A>\n<BR>");
 
                 }
             }
@@ -254,8 +256,8 @@ public class NfsURLConnection extends URLConnection {
             // Finish the HTML document
             buf.append("</BODY>\n</HTML>\n");
 
-	    // Hand the input stream off to HotJava
-	    is = new ByteArrayInputStream(buf.toString().getBytes());
+        // Hand the input stream off to HotJava
+        is = new ByteArrayInputStream(buf.toString().getBytes());
 
         } else {
             // Mark the input stream we return as containing a certain file type
@@ -270,14 +272,14 @@ public class NfsURLConnection extends URLConnection {
                 throw new IOException("Cannot Access File " + nfsFile.getPath() + "!");
             }
 
-	    // Hand the input stream off to HotJava
+        // Hand the input stream off to HotJava
             is = new XFileInputStream(nfsFile);
             if (is == null) {
                 throw new IOException("Unable to Open InputStream for " + url.getFile());
             }
         }
 
-	return is;
+    return is;
 
     }
 

@@ -48,6 +48,7 @@ public abstract class Formatter<T extends FileSystem<?>> implements Cloneable {
         return type;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public Formatter<T> clone() throws CloneNotSupportedException {
         return (Formatter<T>) super.clone();

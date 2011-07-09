@@ -137,7 +137,7 @@ public interface XFileAccessor {
 
 
     /**
-     * Tests if this XFile object exists. 
+     * Tests if this XFile object exists.
      *
      * @return <code>true</code> if the file specified by this object
      *         exists; <code>false</code> otherwise.
@@ -146,7 +146,7 @@ public interface XFileAccessor {
 
 
     /**
-     * Tests if the application can write to this file. 
+     * Tests if the application can write to this file.
      *
      * @return <code>true</code> if the application is allowed to
      *         write to a file whose name is specified by this
@@ -156,7 +156,7 @@ public interface XFileAccessor {
 
 
     /**
-     * Tests if the application can read from the specified file. 
+     * Tests if the application can read from the specified file.
      *
      * @return <code>true</code> if the file specified by this
      *         object exists and the application can read the file;
@@ -166,12 +166,12 @@ public interface XFileAccessor {
 
     /**
      * Tests if the file represented by this
-     * object is a "normal" file. 
+     * object is a "normal" file.
      * <p>
-     * A file is "normal" if it is not a directory and, in 
-     * addition, satisfies other system-dependent criteria. Any 
+     * A file is "normal" if it is not a directory and, in
+     * addition, satisfies other system-dependent criteria. Any
      * non-directory file created by a Java application is
-     * guaranteed to be a normal file. 
+     * guaranteed to be a normal file.
      *
      * @return <code>true</code> if the file specified by this
      *         object exists and is a "normal"
@@ -182,7 +182,7 @@ public interface XFileAccessor {
 
     /**
      * Tests if the file represented by this XFileAccessor
-     * object is a directory. 
+     * object is a directory.
      *
      * @return <code>true</code> if this XFileAccessor object
      *         exists and is a directory; <code>false</code>
@@ -192,8 +192,8 @@ public interface XFileAccessor {
 
 
     /**
-     * Returns the time that the file represented by this 
-     * <code>XFile</code> object was last modified. 
+     * Returns the time that the file represented by this
+     * <code>XFile</code> object was last modified.
      * It is measured as the time in milliseconds since
      * midnight, January 1, 1970 UTC.
      * <p>
@@ -205,8 +205,8 @@ public interface XFileAccessor {
 
 
     /**
-     * Returns the length of the file represented by this 
-     * XFileAccessor object. 
+     * Returns the length of the file represented by this
+     * XFileAccessor object.
      *
      * @return the length, in bytes, of the file specified by
      *         this object, or <code>0L</code> if the specified
@@ -216,8 +216,8 @@ public interface XFileAccessor {
 
 
     /**
-     * Creates an empty file whose pathname is specified by this 
-     * XFileAccessor object. 
+     * Creates an empty file whose pathname is specified by this
+     * XFileAccessor object.
      *
      * @return <code>true</code> if the file was created;
      *         <code>false</code> otherwise.
@@ -226,8 +226,8 @@ public interface XFileAccessor {
 
 
     /**
-     * Creates a directory whose pathname is specified by this 
-     * XFileAccessor object. 
+     * Creates a directory whose pathname is specified by this
+     * XFileAccessor object.
      *
      * @return <code>true</code> if the directory could be created;
      *         <code>false</code> otherwise.
@@ -236,8 +236,8 @@ public interface XFileAccessor {
 
 
     /**
-     * Renames the file specified by this XFileAccessor object to 
-     * have the pathname given by the XFileAccessor object argument. 
+     * Renames the file specified by this XFileAccessor object to
+     * have the pathname given by the XFileAccessor object argument.
      *
      * The destination XFile object will be of the same URL
      * scheme as this object. The change of name must not
@@ -263,7 +263,7 @@ public interface XFileAccessor {
 
     /**
      * Returns a list of the files in the directory specified by
-     * this XFileAccessor object. 
+     * this XFileAccessor object.
      *
      * @return an array of file names in the specified directory.
      *         This list does not include the current directory or
@@ -273,16 +273,16 @@ public interface XFileAccessor {
     String[] list();
 
 
-    /** 
-     * Reads a subarray as a sequence of bytes. 
+    /**
+     * Reads a subarray as a sequence of bytes.
      *
      * @param b the buffer into which the data is read
      * @param off the start offset in the data buffer
      * @param len the maximum number of bytes to be read
      * @param foff the offset into the file
      * @return number of bytes read - zero if none.
-     * @exception java.io.IOException If an I/O error has occurred. 
-     */ 
+     * @exception java.io.IOException If an I/O error has occurred.
+     */
     int read(byte b[], int off, int len, long foff) throws IOException;
 
 
@@ -299,7 +299,7 @@ public interface XFileAccessor {
 
 
     /**
-     * Forces any buffered output bytes to be written out. 
+     * Forces any buffered output bytes to be written out.
      * <p>
      *
      * @exception  java.io.IOException  if an I/O error occurs.
@@ -310,7 +310,7 @@ public interface XFileAccessor {
     /**
      * Close the file.
      *
-     * Closes this file and releases any system resources 
+     * Closes this file and releases any system resources
      * associated with the file.
      *
      * After the file is closed further I/O operations may

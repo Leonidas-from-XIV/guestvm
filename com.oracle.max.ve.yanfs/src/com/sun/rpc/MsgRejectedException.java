@@ -87,6 +87,7 @@ public class MsgRejectedException extends RpcException {
         this.hi = hi;
     }
 
+    @Override
     public String toString() {
         switch (error) {
 
@@ -96,7 +97,7 @@ public class MsgRejectedException extends RpcException {
 
         case AUTH_ERROR:
             String msg = "Authentication error: ";
-	    switch (why) {
+        switch (why) {
             case AUTH_BADCRED:
                 msg += "bogus credentials (seal broken)";
                 break;
@@ -123,7 +124,7 @@ public class MsgRejectedException extends RpcException {
                 break;
             case AUTH_FAILED:
             default:
-            	msg += "unknown reason";
+                msg += "unknown reason";
                 break;
             }
             return msg;

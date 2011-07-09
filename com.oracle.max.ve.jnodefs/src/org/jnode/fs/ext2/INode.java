@@ -129,6 +129,7 @@ public class INode {
         return desc.getINodeNr();
     }
 
+    @Override
     protected void finalize() throws Exception {
         flush();
     }

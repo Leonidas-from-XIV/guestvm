@@ -104,6 +104,7 @@ public final class ThreadScaleTest extends Thread {
         _id = t;
     }
 
+    @Override
     public void run() {
         long now = System.currentTimeMillis();
         final long end = now + _runTime;

@@ -38,40 +38,41 @@ import java.util.ListResourceBundle;
  * the strings that should be internationalized.
  */
 public class EditorResource extends ListResourceBundle {
+    @Override
     public Object[][] getContents() {
-	return contents;
+    return contents;
     }
-    
+
     static final Object[][] contents = {
-	{"Dialog Type", "Dialog Type"},
-	{"Dialog Title", "Dialog Title"},
-	{"File Selection Mode", "File Selection Mode"},
-	{"Show Hidden Files", "Show Hidden Files"},
-	{"Approve Button Text", "Approve Button Text"},
-	{"Approve Button Tooltip", "Approve Button Tooltip"},
-	{"Approve Button Mnemonic", "Approve Button Mnemonic"},
-	{"Set Current Directory", "Set Current Directory"},
-	{"Set Background Color", "Set Background Color"},
-	{"Set Foreground Color", "Set Foreground Color"},	
-	{"Open", "Open"},
-	{"Save", "Save"},
-	{"Custom", "Custom"},
-	{"Files Only", "Files Only"},
-	{"Directories Only", "Directories Only"},
-	{"Files/Directories", "Files/Directories"},
-	{"New Folder", "New Folder"},
-	{"NewFolder", "NewFolder"}	
+    {"Dialog Type", "Dialog Type"},
+    {"Dialog Title", "Dialog Title"},
+    {"File Selection Mode", "File Selection Mode"},
+    {"Show Hidden Files", "Show Hidden Files"},
+    {"Approve Button Text", "Approve Button Text"},
+    {"Approve Button Tooltip", "Approve Button Tooltip"},
+    {"Approve Button Mnemonic", "Approve Button Mnemonic"},
+    {"Set Current Directory", "Set Current Directory"},
+    {"Set Background Color", "Set Background Color"},
+    {"Set Foreground Color", "Set Foreground Color"},
+    {"Open", "Open"},
+    {"Save", "Save"},
+    {"Custom", "Custom"},
+    {"Files Only", "Files Only"},
+    {"Directories Only", "Directories Only"},
+    {"Files/Directories", "Files/Directories"},
+    {"New Folder", "New Folder"},
+    {"NewFolder", "NewFolder"}
     };
 }
 
-    
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	    
+
+
+
+
+
+
+
+
+
+
+

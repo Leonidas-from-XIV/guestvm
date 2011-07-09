@@ -88,12 +88,14 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
         }
     }
 
+    @Override
     public int write(FileDescriptor fdObj, ByteBuffer bb) throws IOException {
         final JavaIOUtil.FdInfo fdInfo = JavaIOUtil.FdInfo.getFdInfo(fdObj);
         final int result = convertReturnValue(fdInfo._vfs.writeBytes(VirtualFileSystemId.getFd(fdInfo._fd), bb, fdInfo._fileOffset), false);
         return result;
     }
 
+    @Override
     public int write(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
         final JavaIOUtil.FdInfo fdInfo = JavaIOUtil.FdInfo.getFdInfo(fdObj);
         final int fd = VirtualFileSystemId.getFd(fdInfo._fd);
@@ -119,6 +121,7 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
         }
         return bytesWritten;
     }
+    @Override
     public int read(FileDescriptor fdObj, ByteBuffer bb) throws IOException {
         final JavaIOUtil.FdInfo fdInfo = JavaIOUtil.FdInfo.getFdInfo(fdObj);
         final int result = convertReturnValue(fdInfo._vfs.readBytes(VirtualFileSystemId.getFd(fdInfo._fd), bb, fdInfo._fileOffset), true);
@@ -144,6 +147,7 @@ public class BBNativeDispatcher extends ByteBufferNativeDispatcher {
         return bytesRead;
     }
 
+    @Override
     public int read(FileDescriptor fdObj, ByteBuffer[] bbs) throws IOException {
         final JavaIOUtil.FdInfo fdInfo = JavaIOUtil.FdInfo.getFdInfo(fdObj);
         final int fd = VirtualFileSystemId.getFd(fdInfo._fd);

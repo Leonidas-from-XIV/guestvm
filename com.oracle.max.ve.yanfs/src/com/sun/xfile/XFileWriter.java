@@ -47,14 +47,14 @@ import java.io.*;
 public class XFileWriter extends OutputStreamWriter {
 
     public XFileWriter(String fileName) throws IOException {
-	super(new XFileOutputStream(fileName));
+    super(new XFileOutputStream(fileName));
     }
 
     public XFileWriter(String fileName, boolean append) throws IOException {
-	super(new XFileOutputStream(fileName, append));
+    super(new XFileOutputStream(fileName, append));
     }
 
     public XFileWriter(XFile file) throws IOException {
-	super(new XFileOutputStream(file));
+    super(new XFileOutputStream(file));
     }
 }

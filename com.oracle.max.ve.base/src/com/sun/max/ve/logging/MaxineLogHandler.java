@@ -35,6 +35,7 @@ import com.sun.max.vm.*;
 
 public class MaxineLogHandler extends Handler{
 
+    @Override
     public void println(String msg) {
         Log.println(msg);
     }

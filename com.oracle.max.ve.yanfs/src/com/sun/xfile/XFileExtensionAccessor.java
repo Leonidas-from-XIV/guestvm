@@ -48,7 +48,7 @@ package com.sun.xfile;
  *
  * </code></pre>
  * <p>
- * An XFileExtensionAccessor class is loaded when the 
+ * An XFileExtensionAccessor class is loaded when the
  * <code>XFile.getExtensionAccessor()</code> method is invoked.  The
  * class loading process is identical to that of an
  * XFileAccessor except for the final component of the package
@@ -60,7 +60,7 @@ package com.sun.xfile;
  *    import com.sun.xfile.*;
  *    <p>
  *    XFile xf = new XFile("ftp://server/path");
- *    com.acme.ftp.XFileExtensionAccessor xftp = 
+ *    com.acme.ftp.XFileExtensionAccessor xftp =
  *        (com.acme.ftp.XFileExtensionAccessor) xf.getExtensionAccessor();
  *    xftp.login();
  *      :
@@ -72,7 +72,7 @@ package com.sun.xfile;
  * @see     com.sun.xfile.XFileAccessor
  */
 public abstract class XFileExtensionAccessor {
-	
+
     private XFile xf;
 
     /*

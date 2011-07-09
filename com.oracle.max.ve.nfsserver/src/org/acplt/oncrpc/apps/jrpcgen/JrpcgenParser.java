@@ -269,11 +269,13 @@ public class JrpcgenParser extends
     }
 
     /** Access to parse-action table. */
+    @Override
     public short[][] action_table() {
         return _action_table;
     }
 
     /** Invoke a user supplied parse action. */
+    @Override
     public org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol do_action(
                                                                       int act_num,
                                                                       org.acplt.oncrpc.apps.jrpcgen.cup_runtime.lr_parser parser,
@@ -286,21 +288,25 @@ public class JrpcgenParser extends
     }
 
     /** <code>EOF</code> Symbol index. */
+    @Override
     public int EOF_sym() {
         return 0;
     }
 
     /** <code>error</code> Symbol index. */
+    @Override
     public int error_sym() {
         return 1;
     }
 
     /** Access to production table. */
+    @Override
     public short[][] production_table() {
         return _production_table;
     }
 
     /** Access to <code>reduce_goto</code> table. */
+    @Override
     public short[][] reduce_table() {
         return _reduce_table;
     }
@@ -314,6 +320,7 @@ public class JrpcgenParser extends
         throw (new JrpcgenParserException());
     }
 
+    @Override
     public void report_error(String message, Object info) {
         StringBuffer msg = new StringBuffer("jrpcgen: error");
         if (info instanceof Symbol) {
@@ -327,21 +334,25 @@ public class JrpcgenParser extends
         throw (new JrpcgenParserException());
     }
 
+    @Override
     public void report_fatal_error(String message, Object info) {
         report_error(message, info);
         throw (new RuntimeException("Fatal Syntax Error"));
     }
 
     /** Indicates start production. */
+    @Override
     public int start_production() {
         return 0;
     }
 
     /** Indicates start state. */
+    @Override
     public int start_state() {
         return 0;
     }
 
+    @Override
     public void syntax_error(Symbol cur_token) {
         StringBuffer msg = new StringBuffer("jrpcgen: syntax error in line ");
         msg.append(cur_token.left);
@@ -350,6 +361,7 @@ public class JrpcgenParser extends
     }
 
     /** Action encapsulation object initializer. */
+    @Override
     protected void init_actions() {
         action_obj = new CUP$JrpcgenParser$actions(this);
     }

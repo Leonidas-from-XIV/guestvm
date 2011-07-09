@@ -242,6 +242,7 @@ public class Deflater {
     /**
      * Finalizes this object.
      */
+    @Override
     protected void finalize() {
         /* Exists solely for compatibility. We don't have any native state. */
     }

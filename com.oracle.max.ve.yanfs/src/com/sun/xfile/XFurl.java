@@ -119,7 +119,7 @@ class XFurl {
             }
             rpath = npath;
             len = rpath.length();
- 
+
             /*
              * Combine base path with relative path
              * according to rules in RFCs 1808 & 2054
@@ -131,7 +131,7 @@ class XFurl {
              */
             String bpath = base.getPath();
             p1 = 0;
-    
+
             while (p1 <= len) {
                 p2 = rpath.indexOf("/", p1);
                 if (p2 < 0)
@@ -189,6 +189,7 @@ class XFurl {
         return index < 0 ? path : path.substring(index + 1);
     }
 
+    @Override
     public String toString() {
         String s = protocol + ":";
 

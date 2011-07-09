@@ -77,6 +77,7 @@ public class TimeLimitedProcTest {
     }
     static class TimeLimitedProc1 extends TimeLimitedProc {
         // waits for remaining, so will time out
+        @Override
         public int proc(long remaining) throws InterruptedException {
             synchronized (this) {
                 wait(remaining);
@@ -87,6 +88,7 @@ public class TimeLimitedProcTest {
 
     static class TimeLimitedProc2 extends TimeLimitedProc {
         // sleeps for half of remaining and then returns a result
+        @Override
         public int proc(long remaining) throws InterruptedException {
             synchronized (this) {
                 Thread.sleep(remaining / 2);
@@ -127,6 +129,7 @@ public class TimeLimitedProcTest {
             _timeout = timeout;
         }
 
+        @Override
         public void run() {
             _result = _tlp.run(_timeout);
         }
@@ -223,6 +226,7 @@ public class TimeLimitedProcTest {
             notify();
         }
 
+        @Override
         public void run() {
             while (true) {
                 try {

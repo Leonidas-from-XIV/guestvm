@@ -54,6 +54,7 @@ public class VEVmThreadFactory extends VmThreadFactory {
         }
     }
 
+    @Override
     protected VmThread newVmThread(Thread javaThread) {
         if (_vmThreadCache == null) {
             populateVmThreadCache();

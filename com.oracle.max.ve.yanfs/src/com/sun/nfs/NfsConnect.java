@@ -75,25 +75,25 @@ public class NfsConnect {
 
 
     public static void main(String[] args) {
-		String urlstr = "/export/home2/10/pn226500";
-		try {
-			Nfs nfs = connect("usca1-home2.sfbay",NFS_PORT,urlstr);
-			//String[] list = nfs.readdir();
-			Nfs nfs1 = nfs.mkdir("trial", (long)0777);
-			//System.out.println(" The List command result for the directory " + urlstr);
-			/*for (int i =0; i<list.length; i++)
-			{
-				System.out.println(list[i]);
-			}	*/
-		}catch (Exception ex) {
-			ex.printStackTrace();
-		}
+        String urlstr = "/export/home2/10/pn226500";
+        try {
+            Nfs nfs = connect("usca1-home2.sfbay",NFS_PORT,urlstr);
+            //String[] list = nfs.readdir();
+            Nfs nfs1 = nfs.mkdir("trial", (long)0777);
+            //System.out.println(" The List command result for the directory " + urlstr);
+            /*for (int i =0; i<list.length; i++)
+            {
+                System.out.println(list[i]);
+            }	*/
+        }catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-	}
+    }
 
     public static  Nfs  connectToNfs(String server, int port, String urlstr) throws IOException {
-    	Nfs nfs = connect(server,port,urlstr);
-    	return nfs;
+        Nfs nfs = connect(server,port,urlstr);
+        return nfs;
     }
 
     /**
@@ -183,8 +183,8 @@ public class NfsConnect {
         if (nfs != null) {
             nfs.getattr();	// for close-to-open consistency
 
-	    if (nfs.isSymlink())
-		return followLink(nfs);
+        if (nfs.isSymlink())
+        return followLink(nfs);
 
             return (nfs);
         }
@@ -296,9 +296,9 @@ public class NfsConnect {
         if (path.equals("."))
             path = "/";
 
-	Mount m = new Mount();
+    Mount m = new Mount();
         byte[] fh = m.getFH(server, path, vers);
-	sec_flavor = m.getSec();
+    sec_flavor = m.getSec();
 
         NfsConnect.cache_put(new NfsConnect(server, port, vers, proto, false));
 
@@ -317,19 +317,19 @@ public class NfsConnect {
          */
         String defaultSec = NfsSecurity.getDefault();
         if (defaultSec.equals("1")){
-	    // AUTH_SYS
+        // AUTH_SYS
             rpc.setCred(cred);
         } else {
-	    if (NfsSecurity.getMech(defaultSec) != null) {
-	    // if there is a mechOid, use RPCSEC_GSS
-		rpc.setCred(new CredGss("nfs",
-			NfsSecurity.getMech(defaultSec),
-			NfsSecurity.getService(defaultSec),
-			NfsSecurity.getQop(defaultSec)));
-	    } else {
-	    // not RPCSEC_GSS; use AUTH_SYS for now
-		rpc.setCred(cred);
-	    }
+        if (NfsSecurity.getMech(defaultSec) != null) {
+        // if there is a mechOid, use RPCSEC_GSS
+        rpc.setCred(new CredGss("nfs",
+            NfsSecurity.getMech(defaultSec),
+            NfsSecurity.getService(defaultSec),
+            NfsSecurity.getQop(defaultSec)));
+        } else {
+        // not RPCSEC_GSS; use AUTH_SYS for now
+        rpc.setCred(cred);
+        }
         }
         rpc.setRpcHandler(rhandler);
 
@@ -354,9 +354,9 @@ public class NfsConnect {
 
             return (pubnfs);
         }
-	/* The path passed to lookup will be null since it
-	 * has been filled in when object has been created.
-	 */
+    /* The path passed to lookup will be null since it
+     * has been filled in when object has been created.
+     */
         return (pubnfs.lookup(null));
     }
 
@@ -451,7 +451,7 @@ public class NfsConnect {
      * @returns		The credential stored for Nfs operations
      */
     public static CredUnix getCred() {
-	return (cred);
+    return (cred);
     }
 
     /**

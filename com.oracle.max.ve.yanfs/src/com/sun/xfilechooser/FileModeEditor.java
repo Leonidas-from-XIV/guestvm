@@ -42,28 +42,29 @@ import com.sun.xfilechooser.*;
  * customization via a bean editor.
  * @see #XFileChooserBeanInfo
  */
-public class FileModeEditor extends PropertyEditorSupport 
+public class FileModeEditor extends PropertyEditorSupport
 {
     /* For I18N */
     private static ResourceBundle rb =
-	ResourceBundle.getBundle("com.sun.xfilechooser.EditorResource"/*NOI18N*/); 
+    ResourceBundle.getBundle("com.sun.xfilechooser.EditorResource"/*NOI18N*/);
     /* Valid Selection File modes */
     int[] fileModeValues = {JFileChooser.FILES_ONLY,
-			    JFileChooser.DIRECTORIES_ONLY,
-			    JFileChooser.FILES_AND_DIRECTORIES};
-    
+                JFileChooser.DIRECTORIES_ONLY,
+                JFileChooser.FILES_AND_DIRECTORIES};
+
     /* Corresponding string names for the file modes */
     String[] fileModeNames = {rb.getString("Files Only"),
-			      rb.getString("Directories Only"),
-			      rb.getString("Files/Directories")};
+                  rb.getString("Directories Only"),
+                  rb.getString("Files/Directories")};
 
     /**
      *  Provides the valid selection file modes: Files, Directories or
      *  Files/Directories
      *  @return String name of the valid file modes
      */
+    @Override
     public String[] getTags() {
-	return fileModeNames;
+    return fileModeNames;
     }
 
     /**
@@ -71,27 +72,29 @@ public class FileModeEditor extends PropertyEditorSupport
      *  corresponding string of file mode.
      *  @return String name of file mode setting
      */
+    @Override
     public String getAsText() {
-	int s = ((Integer)getValue()).intValue();
-	for (int i=0; i<fileModeNames.length; i++) {
-	    if (s == fileModeValues[i]) 
-		return fileModeNames[i];
-	}
-	return null;
+    int s = ((Integer)getValue()).intValue();
+    for (int i=0; i<fileModeNames.length; i++) {
+        if (s == fileModeValues[i])
+        return fileModeNames[i];
+    }
+    return null;
     }
 
     /**
      *  Sets the selected file mode
-     *	@param text name of selected file mode 
+     *	@param text name of selected file mode
      */
+    @Override
     public void setAsText(String text) throws IllegalArgumentException {
-	for (int i=0; i<fileModeNames.length; i++) {
-	    if (text.equals(fileModeNames[i])) {
-		setValue(new Integer(fileModeValues[i]));
-		return;
-	    }
-	}
-	throw new IllegalArgumentException(text);
+    for (int i=0; i<fileModeNames.length; i++) {
+        if (text.equals(fileModeNames[i])) {
+        setValue(new Integer(fileModeValues[i]));
+        return;
+        }
     }
-    
+    throw new IllegalArgumentException(text);
+    }
+
 }

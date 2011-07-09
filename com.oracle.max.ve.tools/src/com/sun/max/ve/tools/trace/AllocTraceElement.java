@@ -38,6 +38,7 @@ public abstract class AllocTraceElement extends TraceElement  implements Compara
         return -1;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " " + Long.toHexString(_address);
     }

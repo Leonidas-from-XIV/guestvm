@@ -60,6 +60,7 @@ public class ThreadYieldTest extends Thread {
         }
     }
 
+    @Override
     public void run() {
         while (!_done) {
             _count++;
@@ -68,6 +69,7 @@ public class ThreadYieldTest extends Thread {
     }
 
     static class MyTimerTask extends TimerTask {
+        @Override
         public void run() {
             _done = true;
         }

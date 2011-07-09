@@ -278,6 +278,7 @@ public abstract class AbstractFSEntry extends AbstractFSObject implements FSEntr
      * (non-Javadoc)
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         return FSUtils.toString(this, false);
     }

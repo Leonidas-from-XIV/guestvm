@@ -53,8 +53,8 @@ public interface GSSCredSpi {
      * @exception - GSSException may be thrown
      */
     public void init(GSSNameSpi desiredName, int initLifetime,
-		int acceptLifetime, int usage) throws GSSException;
-  
+        int acceptLifetime, int usage) throws GSSException;
+
 
     /**
      * Called to invalidate this credential element and release
@@ -84,7 +84,7 @@ public interface GSSCredSpi {
      */
     public int getInitLifetime() throws GSSException;
 
-	
+
     /**
      * Returns the accept lifetime remaining.
      *
@@ -104,7 +104,7 @@ public interface GSSCredSpi {
      */
     public int getLifetime() throws GSSException;
 
-	
+
     /**
      * Returns the credential usage. This must be one
      * GSSCredential.ACCEPT_ONLY, GSSCredential.INITIATE_ONLY,

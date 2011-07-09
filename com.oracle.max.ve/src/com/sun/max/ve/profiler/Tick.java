@@ -191,6 +191,7 @@ public final class Tick extends Thread {
         TickStackTraceVisitor() {
             super(null, _maxDepth);
         }
+        @Override
         public boolean add(ClassMethodActor classMethodActor, int sourceLineNumber) {
             _workingStackInfo.stack[_workingDepth].classMethodActor = classMethodActor;
             _workingStackInfo.stack[_workingDepth].lineNumber = sourceLineNumber;
@@ -198,10 +199,12 @@ public final class Tick extends Thread {
             return _workingDepth < _maxDepth;
         }
 
+        @Override
         public void clear() {
             _workingDepth = 0;
         }
 
+        @Override
         public StackTraceElement[] getTrace() {
             return null;
         }
@@ -316,6 +319,7 @@ public final class Tick extends Thread {
      * Shutdown hook thread that outputs the data.
      */
     static class InfoOutput extends Thread {
+        @Override
         public void run() {
             _profiling = false;
             dumpTraces();

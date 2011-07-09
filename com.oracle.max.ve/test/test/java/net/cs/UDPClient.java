@@ -35,6 +35,7 @@ public class UDPClient extends ClientThread {
     private DatagramSocket _socket;
     private DatagramPacket _packet;
 
+    @Override
     public void run() {
         super.run();
         try {
@@ -51,6 +52,7 @@ public class UDPClient extends ClientThread {
         }
     }
 
+    @Override
     protected void doSend(byte[] data) throws IOException {
         verbose("writing " + data.length + " bytes");
         _packet.setData(data);

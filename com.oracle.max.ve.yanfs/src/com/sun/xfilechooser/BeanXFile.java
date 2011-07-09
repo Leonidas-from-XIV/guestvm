@@ -46,127 +46,147 @@ import java.io.IOException;
 public class BeanXFile extends File {
 
     private XFile beanXF;
-    
+
     /*
      * BeanXFile constructors which mirror the File I/O constructors.
      */
     public BeanXFile(String path) {
-	super(path);
-	beanXF = new XFile(path);
+    super(path);
+    beanXF = new XFile(path);
     }
-    
+
     public BeanXFile(File dir, String name) {
-	super(dir, name);
-	    
-	XFile parentXF = new XFile(dir.getAbsolutePath());
-	beanXF = new XFile(parentXF, name);
+    super(dir, name);
+
+    XFile parentXF = new XFile(dir.getAbsolutePath());
+    beanXF = new XFile(parentXF, name);
     }
-    
+
     /*
      * XFile Methods that can be accessed.
      */
+    @Override
     public String getPath() {
-	String path = beanXF.getPath();
+    String path = beanXF.getPath();
 
-	// For nfs URLs, if the url is nfs://<server_name>, path is ""
-	if (path == "")
-	    path = beanXF.getAbsolutePath();
+    // For nfs URLs, if the url is nfs://<server_name>, path is ""
+    if (path == "")
+        path = beanXF.getAbsolutePath();
 
-	return path;
+    return path;
     }
 
+    @Override
     public String getAbsolutePath() {
-	return beanXF.getAbsolutePath();
+    return beanXF.getAbsolutePath();
     }
 
+    @Override
     public String getCanonicalPath() {
-	try {
-	    String path = beanXF.getCanonicalPath();
-	    return path;
-	} catch (IOException e) {
-	    String path = beanXF.getAbsolutePath();
-	    return path;
-	}
+    try {
+        String path = beanXF.getCanonicalPath();
+        return path;
+    } catch (IOException e) {
+        String path = beanXF.getAbsolutePath();
+        return path;
+    }
 
     }
-    
+
+    @Override
     public String getName() {
-	String fname = beanXF.getName();
-	if (fname == null)
-	    return(beanXF.getAbsolutePath());
-	else
-	    return(fname);
+    String fname = beanXF.getName();
+    if (fname == null)
+        return(beanXF.getAbsolutePath());
+    else
+        return(fname);
     }
 
+    @Override
     public boolean renameTo(File dest) {
-	XFile tmpFile = new XFile(dest.getAbsolutePath());
-	return (beanXF.renameTo(tmpFile));
+    XFile tmpFile = new XFile(dest.getAbsolutePath());
+    return (beanXF.renameTo(tmpFile));
     }
 
+    @Override
     public String getParent() {
-	return beanXF.getParent();
+    return beanXF.getParent();
     }
 
+    @Override
     public boolean exists() {
-	return beanXF.exists();
+    return beanXF.exists();
     }
 
+    @Override
     public boolean canWrite(){
-	return beanXF.canWrite();
+    return beanXF.canWrite();
     }
 
+    @Override
     public boolean canRead() {
-	return beanXF.canRead();
+    return beanXF.canRead();
     }
 
+    @Override
     public boolean isFile() {
-	return beanXF.isFile();
+    return beanXF.isFile();
     }
 
+    @Override
     public boolean isDirectory() {
-	return beanXF.isDirectory();
+    return beanXF.isDirectory();
     }
 
+    @Override
     public boolean isAbsolute() {
-       // For nfs urls: isAbsolute is always true 
+       // For nfs urls: isAbsolute is always true
        return beanXF.isAbsolute();
     }
 
+    @Override
     public boolean equals(Object obj) {
-	/*
-	 * Need to pass the XFile object to *.equals because
-	 * it checks for instance of XFile
-	 */
-	XFile xf = new XFile(((File)obj).getAbsolutePath());
-	return beanXF.equals(xf);
+    /*
+     * Need to pass the XFile object to *.equals because
+     * it checks for instance of XFile
+     */
+    XFile xf = new XFile(((File)obj).getAbsolutePath());
+    return beanXF.equals(xf);
     }
 
+    @Override
     public long lastModified() {
-	return beanXF.lastModified();
+    return beanXF.lastModified();
     }
 
+    @Override
     public long length() {
-	return beanXF.length();
+    return beanXF.length();
     }
 
+    @Override
     public boolean mkdir() {
-	return beanXF.mkdir();
-    }
-    
-    public boolean mkdirs() {
-	return beanXF.mkdirs();
-    }
-    
-    public String[] list() {
-	return beanXF.list();
-    }
-    
-    public String toString() {
-	return beanXF.toString();
+    return beanXF.mkdir();
     }
 
-    public boolean delete() {
-	return beanXF.delete();
+    @Override
+    public boolean mkdirs() {
+    return beanXF.mkdirs();
     }
-    
+
+    @Override
+    public String[] list() {
+    return beanXF.list();
+    }
+
+    @Override
+    public String toString() {
+    return beanXF.toString();
+    }
+
+    @Override
+    public boolean delete() {
+    return beanXF.delete();
+    }
+
 }

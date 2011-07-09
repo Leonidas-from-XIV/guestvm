@@ -43,8 +43,9 @@ import com.sun.xfile.*;
  */
 
 public class Handler extends URLStreamHandler {
+    @Override
     public synchronized URLConnection openConnection(URL u) {
 
-	return new sun.net.www.protocol.nfs.NfsURLConnection(u);
+    return new sun.net.www.protocol.nfs.NfsURLConnection(u);
     }
 }

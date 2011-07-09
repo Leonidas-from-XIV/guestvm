@@ -70,18 +70,21 @@ public class VmThreadTest {
     }
 
     static class CurrentProcedure extends Procedure {
+        @Override
         protected void run() {
             VmThreadTestHelper.current();
         }
     }
 
      static class NativeCurrentProcedure extends Procedure {
+        @Override
         protected void run() {
             VmThreadTestHelper.nativeCurrent();
         }
     }
 
     static class NativeUKernelProcedure extends Procedure {
+        @Override
         protected void run() {
             VmThreadTestHelper.nativeUKernel();
         }

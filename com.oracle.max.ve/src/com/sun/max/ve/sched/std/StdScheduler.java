@@ -81,6 +81,7 @@ final class StdScheduler extends GUKUpcallHandler {
     /**
      * Called at run time when we know how many CPUs we actually have.
      */
+    @Override
     public void initialize(MaxineVM.Phase phase) {
         _numCpus = GUKScheduler.numCpus();
         for (int cpu = 0; cpu < _numCpus; cpu++) {
@@ -114,6 +115,7 @@ final class StdScheduler extends GUKUpcallHandler {
 
     private static final AnalyzeThreadsProcedure _analyzeThreadsProcedure = new AnalyzeThreadsProcedure();
 
+    @Override
     public void starting() {
         VmThreadMap.ACTIVE.forAllThreadLocals(null, _analyzeThreadsProcedure);
     }
@@ -121,6 +123,7 @@ final class StdScheduler extends GUKUpcallHandler {
     private static final byte[] BK = "BK".getBytes();
     private static final byte[] WK = "WK".getBytes();
 
+    @Override
     public void wake(GUKVmThread thread) {
         final int cpu = thread.getCpu();
         final RunQueue<GUKVmThread> ready = _ready[cpu];
@@ -130,6 +133,7 @@ final class StdScheduler extends GUKUpcallHandler {
         ready.lockedInsert(thread);
     }
 
+    @Override
     public void block(GUKVmThread thread) {
         final int cpu = thread.getCpu();
         final RunQueue<GUKVmThread> ready = _ready[cpu];
@@ -144,6 +148,7 @@ final class StdScheduler extends GUKUpcallHandler {
         ready.unlock();
     }
 
+    @Override
     public Word scheduleUpcall(int cpu) {
         Word retval = Word.zero();
 
@@ -172,6 +177,7 @@ final class StdScheduler extends GUKUpcallHandler {
         return retval;
     }
 
+    @Override
     public void descheduleUpcall(int cpu) {
         deschedCurrent(cpu);
         setCurrent(null, cpu);
@@ -179,6 +185,7 @@ final class StdScheduler extends GUKUpcallHandler {
 
     private static final byte[] CPU_MISMATCH = "Attach CPU differs from assigned CPU".getBytes();
 
+    @Override
     public void attachUpcall(int id, int cpu, int xcpu) {
         final GUKVmThread sthread = (GUKVmThread) VmThreadMap.ACTIVE.getVmThreadForID(id);
         sassert(cpu == xcpu, CPU_MISMATCH);
@@ -194,6 +201,7 @@ final class StdScheduler extends GUKUpcallHandler {
         ready.unlock();
     }
 
+    @Override
     public void detachUpcall(int id, int xcpu) {
         final GUKVmThread sthread = getCurrent(xcpu);
         final int cpu = sthread.getCpu();
@@ -207,6 +215,7 @@ final class StdScheduler extends GUKUpcallHandler {
         ready.unlock();
     }
 
+    @Override
     public void blockUpcall(int id, int xcpu) {
         final GUKVmThread sthread = (GUKVmThread) VmThreadMap.ACTIVE.getVmThreadForID(id);
         final int cpu = sthread.getCpu();
@@ -221,6 +230,7 @@ final class StdScheduler extends GUKUpcallHandler {
         ready.unlock();
     }
 
+    @Override
     public void wakeUpcall(int id, int xcpu) {
         final GUKVmThread sthread = (GUKVmThread) VmThreadMap.ACTIVE.getVmThreadForID(id);
         final int cpu = sthread.getCpu();
@@ -240,6 +250,7 @@ final class StdScheduler extends GUKUpcallHandler {
      * needs to be fixed later in @see rebalance.
      * @return cpu to be used
      */
+    @Override
     public int pickCpuUpcall() {
         if (_numCpus == 1) {
             return 0;
@@ -266,6 +277,7 @@ final class StdScheduler extends GUKUpcallHandler {
      * @param cpu
      * @return 1 if runnable threads, 0 otherwise
      */
+    @Override
     public int runnableUpcall(int cpu) {
         final RunQueue<GUKVmThread> ready = _ready[cpu];
         final int result = ready.lockedEmpty() ? 0 : 1;

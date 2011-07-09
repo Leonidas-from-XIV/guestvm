@@ -60,6 +60,7 @@ public class PriorityRingRunQueue<T extends PriorityRingRunQueueEntry> extends R
         _creator = creator;
     }
 
+    @Override
     public void buildtimeInitialize() {
         // allocate a queue for each priority level
         _queues = Utils.cast(new RingRunQueue[_max - _min + 1]);

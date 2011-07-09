@@ -342,6 +342,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
      *
      * @throws IOException
      */
+    @Override
     public void flush() throws IOException {
         logger.info(device.getId() + " flushing the contents of the filesystem");
         // update the inodes
@@ -380,6 +381,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         superblock.update();
     }
 
+    @Override
     public void close() throws IOException {
         // mark the filesystem clean
         superblock.setState(Ext2Constants.EXT2_VALID_FS);
@@ -389,6 +391,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
     /**
      * @see org.jnode.fs.spi.AbstractFileSystem#createRootEntry()
      */
+    @Override
     public Ext2Entry createRootEntry() throws IOException {
         try {
             return new Ext2Entry(getINode(Ext2Constants.EXT2_ROOT_INO), "/", Ext2Constants.EXT2_FT_DIR, this, null);
@@ -538,6 +541,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
             return null;
         }
         
+        @Override
         public void run() {
             while (true) {
                 ReadRequest request = null;
@@ -1027,6 +1031,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
     /**
      *
      */
+    @Override
     protected FSFile createFile(FSEntry entry) throws IOException {
         Ext2Entry e = (Ext2Entry) entry;
         return new Ext2File(e.getINode());
@@ -1035,6 +1040,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
     /**
      *
      */
+    @Override
     protected FSDirectory createDirectory(FSEntry entry) throws IOException {
         Ext2Entry e = (Ext2Entry) entry;
         return new Ext2Directory(e);
@@ -1112,6 +1118,7 @@ public class Ext2FileSystem extends AbstractFileSystem<Ext2Entry> {
         return -1;
     }
 
+    @Override
     public FSEntry renameEntry(Ext2Entry from, Ext2Entry to, String newName) throws IOException {
         int fromInodeNr = from.getINode().getINodeNr();
         int toInodeNr = to.getINode().getINodeNr();

@@ -47,18 +47,20 @@ public class XFileChooserEditor extends PropertyEditorSupport {
      * Gets the String representation of XFile object
      * @return String name of XFile object
      */
+    @Override
     public String getAsText() {
-	String pathName = ((XFile) getValue()).getAbsolutePath();
-	return pathName;
+    String pathName = ((XFile) getValue()).getAbsolutePath();
+    return pathName;
     }
 
     /**
      * Sets the selected file path
      * @param String name of file path
      */
+    @Override
     public void setAsText(String text) throws IllegalArgumentException {
-	setValue(new XFile(text));
-	return;
+    setValue(new XFile(text));
+    return;
     }
-    
+
 }

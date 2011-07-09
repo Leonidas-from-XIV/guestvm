@@ -85,6 +85,7 @@ public class Ext2File extends AbstractFSFile {
     /**
      * @see org.jnode.fs.FSFile#getLength()
      */
+    @Override
     public long getLength() {
         return iNode.getSize();
     }
@@ -171,7 +172,8 @@ public class Ext2File extends AbstractFSFile {
         }
     }
 
-     public void read(long fileOffset, ByteBuffer destBuf) throws IOException {
+     @Override
+    public void read(long fileOffset, ByteBuffer destBuf) throws IOException {
         final int toRead = destBuf.remaining();
 
         iNode = iNode.syncAndLock();
@@ -221,6 +223,7 @@ public class Ext2File extends AbstractFSFile {
      *
      * @see org.jnode.fs.FSFile#write(long, byte[], int, int)
      */
+    @Override
     public void write(long fileOffset, ByteBuffer srcBuf) throws IOException {
         final int len = srcBuf.remaining();
         final int off = 0;
@@ -307,6 +310,7 @@ public class Ext2File extends AbstractFSFile {
      *
      * @throws IOException
      */
+    @Override
     public void flush() throws IOException {
         if (logger.isLoggable(Level.FINER)) {
             doLog(Level.FINER, "Ext2File.flush()");

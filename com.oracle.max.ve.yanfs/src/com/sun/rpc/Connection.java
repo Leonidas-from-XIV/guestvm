@@ -116,6 +116,7 @@ public abstract class Connection extends Thread {
      *
      * @returns server, port number and protocol info.
      */
+    @Override
     public String toString() {
         return (server + ":" + port + ":" + proto);
     }
@@ -153,15 +154,15 @@ public abstract class Connection extends Thread {
         while (xid != call.xid) {
             long t = System.currentTimeMillis();
 
-	    if (err != null)
-		throw err;
+        if (err != null)
+        throw err;
 
             try {
                 wait(timeout);
             } catch (InterruptedException e) {}
-		
-	    if (err != null)
-		throw err;
+
+        if (err != null)
+        throw err;
 
             timeout -= (System.currentTimeMillis() - t);
             if (timeout <= 0) {
@@ -186,11 +187,12 @@ public abstract class Connection extends Thread {
      * reply to come in, then delivers it to the
      * appropriate thread.
      */
+    @Override
     public void run() {
 
-	try {
+    try {
             while (true) {
-    
+
                 synchronized (this) {
                     while (xid != 0) {
                         try {
@@ -198,9 +200,9 @@ public abstract class Connection extends Thread {
                         } catch (InterruptedException e) {}
                     }
                 }
-    
+
                 reply = new Xdr(maxSize);
-        
+
                 /*
                  * The listener thread now blocks reading
                  * from the socket until either a packet
@@ -209,7 +211,7 @@ public abstract class Connection extends Thread {
                 try {
                     receiveOne(reply, IDLETIME);
                 } catch (InterruptedIOException e) {
-    
+
                     /*
                      * Got an idle timeout.  If there's
                      * no threads waiting then drop the
@@ -221,7 +223,7 @@ public abstract class Connection extends Thread {
                 } catch (IOException e) {
                         continue;
                 }
-    
+
                 /*
                  * Have received an Xdr buffer.
                  * Extract the xid and check the hashtable
@@ -247,7 +249,7 @@ public abstract class Connection extends Thread {
             this.err = e;
             synchronized (this) {
                 notifyAll();
-	    }
+        }
             throw e;
         }
     }

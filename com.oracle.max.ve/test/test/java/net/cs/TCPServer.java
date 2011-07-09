@@ -33,6 +33,7 @@ public class TCPServer extends ServerThread {
 
     private OutputStream _out;
 
+    @Override
     public void run() {
         super.run();
         try {
@@ -98,6 +99,7 @@ public class TCPServer extends ServerThread {
         }
     }
 
+    @Override
     protected void doAck() throws IOException {
         _out.write(ACK_BYTES, 0, ACK_BYTES.length);
     }

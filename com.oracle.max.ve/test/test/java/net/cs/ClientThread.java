@@ -110,6 +110,7 @@ public abstract class ClientThread extends Thread {
         }
     }
 
+    @Override
     public void run() {
         info("connecting to " + _type + " server at " + _host + " on port " + ServerThread.PORT + _threadNum);
     }

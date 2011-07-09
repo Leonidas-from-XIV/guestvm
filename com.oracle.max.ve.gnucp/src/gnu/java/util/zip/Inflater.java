@@ -190,7 +190,8 @@ public class Inflater
   /**
    * Finalizes this object.
    */
-  protected void finalize ()
+  @Override
+protected void finalize ()
   {
     /* Exists only for compatibility */
   }

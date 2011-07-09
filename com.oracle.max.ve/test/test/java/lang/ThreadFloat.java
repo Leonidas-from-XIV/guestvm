@@ -86,6 +86,7 @@ public class ThreadFloat extends Thread {
         }
     }
 
+    @Override
     public void run() {
         while (!_done) {
             double d1 = D1 * _id;
@@ -126,6 +127,7 @@ public class ThreadFloat extends Thread {
     }
 
     static class MyTimerTask extends TimerTask {
+        @Override
         public void run() {
             _done = true;
         }
@@ -158,6 +160,7 @@ public class ThreadFloat extends Thread {
             return _read;
         }
 
+        @Override
         public void run() {
             while (true) {
                 final int x = _random.nextInt(_files.size());

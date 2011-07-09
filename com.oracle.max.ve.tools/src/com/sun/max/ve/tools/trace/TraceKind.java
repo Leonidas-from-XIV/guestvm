@@ -36,6 +36,7 @@ public enum TraceKind {
     IS, RI, BI, WI, TI, US,
 
     IT {
+        @Override
         public TraceElement process(String[] args) {
             final InitialTraceElement traceElement = new InitialTraceElement();
             processPrefix(this, args, traceElement);
@@ -45,6 +46,7 @@ public enum TraceKind {
 
     CT {
 
+        @Override
         public TraceElement process(String[] args) {
             final CreateThreadTraceElement traceElement = new CreateThreadTraceElement();
             processPrefix(this, args, traceElement);
@@ -56,6 +58,7 @@ public enum TraceKind {
 
     SS {
 
+        @Override
         public TraceElement process(String[] args) {
             final SetTimerTraceElement traceElement = new SetTimerTraceElement();
             processPrefix(this, args, traceElement);
@@ -66,6 +69,7 @@ public enum TraceKind {
 
     ST {
 
+        @Override
         public TraceElement process(String[] args) {
             final SetTimerTraceElement traceElement = new SetTimerTraceElement();
             processPrefix(this, args, traceElement);
@@ -76,6 +80,7 @@ public enum TraceKind {
 
     TS {
 
+        @Override
         public TraceElement process(String[] args) {
             final ThreadSwitchTraceElement traceElement = new ThreadSwitchTraceElement();
             processPrefix(this, args, traceElement);
@@ -86,6 +91,7 @@ public enum TraceKind {
 
     PS {
 
+        @Override
         public TraceElement process(String[] args) {
             return processThreadId(this, args);
         }
@@ -94,6 +100,7 @@ public enum TraceKind {
 
     DT {
 
+        @Override
         public TraceElement process(String[] args) {
             return processThreadId(this, args);
         }
@@ -102,6 +109,7 @@ public enum TraceKind {
 
     WK {
 
+        @Override
         public TraceElement process(String[] args) {
             return processThreadId(this, args);
         }
@@ -110,6 +118,7 @@ public enum TraceKind {
 
     TX {
 
+        @Override
         public TraceElement process(String[] args) {
             return processThreadId(this, args);
         }
@@ -118,6 +127,7 @@ public enum TraceKind {
 
     BK {
 
+        @Override
         public TraceElement process(String[] args) {
             return processThreadId(this, args);
         }
@@ -126,6 +136,7 @@ public enum TraceKind {
 
     KC {
 
+        @Override
         public TraceElement process(String[] args) {
             final SMPTraceElement traceElement = new SMPTraceElement();
             processPrefix(this, args, traceElement);
@@ -136,6 +147,7 @@ public enum TraceKind {
 
     SMP {
 
+        @Override
         public TraceElement process(String[] args) {
             final SMPTraceElement traceElement = new SMPTraceElement();
             processPrefix(this, args, traceElement);
@@ -148,6 +160,7 @@ public enum TraceKind {
     // Allocation tracing
 
     AME {
+        @Override
         public TraceElement process(String[] args) {
             final MAllocTraceElement traceElement = new MAllocTraceElement();
             processPrefix(this, args, traceElement);
@@ -158,6 +171,7 @@ public enum TraceKind {
     },
 
     AMX {
+        @Override
         public TraceElement process(String[] args) {
             final MAllocTraceElement traceElement = new MAllocTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -168,6 +182,7 @@ public enum TraceKind {
     },
 
     API {
+        @Override
         public TraceElement process(String[] args) {
             final PagePoolTraceElement traceElement = new PagePoolTraceElement();
             processPrefix(this, args, traceElement);
@@ -179,6 +194,7 @@ public enum TraceKind {
     },
 
     APE {
+        @Override
         public TraceElement process(String[] args) {
             final AllocPagesTraceElement traceElement = new AllocPagesTraceElement();
             processPrefix(this, args, traceElement);
@@ -189,6 +205,7 @@ public enum TraceKind {
     },
 
     APX {
+        @Override
         public TraceElement process(String[] args) {
             final AllocPagesTraceElement traceElement = new AllocPagesTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -200,6 +217,7 @@ public enum TraceKind {
     },
 
     FME {
+        @Override
         public TraceElement process(String[] args) {
             final FreeTraceElement traceElement = new FreeTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -209,6 +227,7 @@ public enum TraceKind {
      },
 
      FMX {
+        @Override
         public TraceElement process(String[] args) {
             final FreeTraceElement traceElement = new FreeTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -218,6 +237,7 @@ public enum TraceKind {
      },
 
      FPE {
+        @Override
         public TraceElement process(String[] args) {
             final AllocPagesTraceElement traceElement = new AllocPagesTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -228,6 +248,7 @@ public enum TraceKind {
      },
 
      FPX {
+        @Override
         public TraceElement process(String[] args) {
             final AllocPagesTraceElement traceElement = new AllocPagesTraceElement();
             processAllocPrefix(this, args, traceElement);
@@ -238,6 +259,7 @@ public enum TraceKind {
      },
 
      USER {
+        @Override
         public TraceElement process(String[] args) {
             final UserTraceElement traceElement = new UserTraceElement(args[TKX]);
             processPrefix(this, args, traceElement);
