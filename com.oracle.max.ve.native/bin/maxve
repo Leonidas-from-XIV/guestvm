@@ -74,4 +74,4 @@ while [ "${1:0:1}" = "-" ]; do
     esac
     shift
 done
-. ../../maxine/bin/max $@
+. ../../maxine/com.oracle.max.shell/max $@
