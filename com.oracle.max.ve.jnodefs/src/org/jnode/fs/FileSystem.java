@@ -52,7 +52,7 @@ import org.jnode.driver.Device;
  */
 public interface FileSystem<T extends FSEntry> {
 
-	public FileSystemType<? extends FileSystem<T>> getType();
+    public FileSystemType<? extends FileSystem<T>> getType();
 
     /**
      * Gets the device this FS driver operates on.
@@ -84,20 +84,20 @@ public interface FileSystem<T extends FSEntry> {
      */
     public boolean isClosed();
 
-	public long getTotalSpace() throws IOException;
+    public long getTotalSpace() throws IOException;
 
-	public long getFreeSpace() throws IOException;
+    public long getFreeSpace() throws IOException;
 
-	public long getUsableSpace() throws IOException;
+    public long getUsableSpace() throws IOException;
 
-	/**
-	 * The most generic form of rename, really a move and (optional) rename.
-	 * As such it has to be a FileSystem level operation.
-	 *
-	 * @param from The entry that is being renamed.
-	 * @param to The entry (directory) that from is being moved to.
-	 * @param newName a new name for the entry after it is moved, may be null to indicate no change.
-	 * @throws IOException
-	 */
-	public void rename(T from, T to, String newName) throws IOException;
+    /**
+     * The most generic form of rename, really a move and (optional) rename.
+     * As such it has to be a FileSystem level operation.
+     *
+     * @param from The entry that is being renamed.
+     * @param to The entry (directory) that from is being moved to.
+     * @param newName a new name for the entry after it is moved, may be null to indicate no change.
+     * @throws IOException
+     */
+    public void rename(T from, T to, String newName) throws IOException;
 }

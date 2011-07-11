@@ -45,10 +45,10 @@ public class RpcHandler {
     /**
      * Called when the RPC times out.
      *
-     * @param server	The name of the server
-     * @param retries	Number of retries (initially 0)
-     * @param waittime	Total time waiting for response
-     * @return bool	True to abort, false to continue retrying
+     * @param server    The name of the server
+     * @param retries   Number of retries (initially 0)
+     * @param waittime  Total time waiting for response
+     * @return bool     True to abort, false to continue retrying
      */
     public boolean timeout(String server, int retries, int waittime) {
         return false;
@@ -57,7 +57,7 @@ public class RpcHandler {
     /**
      * Called when the server responds after a timeout
      *
-     * @param server	The name of the server
+     * @param server    The name of the server
      */
     public void ok(String server) {
     }

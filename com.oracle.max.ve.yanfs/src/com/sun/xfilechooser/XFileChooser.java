@@ -177,7 +177,7 @@ public class XFileChooser extends JFileChooser implements PropertyChangeListener
      * description: the directory that the FileChooser is showing files of
      *
      * @param currentDirectory the XFile object of the
-     *		current directory to point to.
+     *          current directory to point to.
      * @see #getCurrentXDirectory
      */
     public void setCurrentXDirectory(XFile currentDirectory) {

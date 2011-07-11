@@ -1,19 +1,19 @@
 /*******************************************************************************
  * openthinclient.org ThinClient suite
- * 
+ *
  * Copyright (C) 2004, 2007 levigo holding GmbH. All Rights Reserved.
- * 
- * 
+ *
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  * Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -44,7 +44,7 @@ public class nfs_protClient extends OncRpcClientStub {
     /**
      * Constructs a <code>nfs_protClient</code> client stub proxy object from
      * which the NFS_PROGRAM remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param protocol
@@ -64,7 +64,7 @@ public class nfs_protClient extends OncRpcClientStub {
     /**
      * Constructs a <code>nfs_protClient</code> client stub proxy object from
      * which the NFS_PROGRAM remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param port
@@ -86,7 +86,7 @@ public class nfs_protClient extends OncRpcClientStub {
     /**
      * Constructs a <code>nfs_protClient</code> client stub proxy object from
      * which the NFS_PROGRAM remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param program
@@ -109,7 +109,7 @@ public class nfs_protClient extends OncRpcClientStub {
     /**
      * Constructs a <code>nfs_protClient</code> client stub proxy object from
      * which the NFS_PROGRAM remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param program
@@ -134,7 +134,7 @@ public class nfs_protClient extends OncRpcClientStub {
     /**
      * Constructs a <code>nfs_protClient</code> client stub proxy object from
      * which the NFS_PROGRAM remote program can be accessed.
-     * 
+     *
      * @param client
      *            ONC/RPC client connection object implementing a particular
      *            protocol.
@@ -150,7 +150,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_CREATE_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type createargs) to the remote procedure call.
      * @return Result from remote procedure call (of type diropres).
@@ -166,7 +166,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_GETATTR_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type nfs_fh) to the remote procedure call.
      * @return Result from remote procedure call (of type attrstat).
@@ -182,7 +182,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_LOOKUP_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type diropargs) to the remote procedure call.
      * @return Result from remote procedure call (of type diropres).
@@ -198,7 +198,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_MKDIR_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type createargs) to the remote procedure call.
      * @return Result from remote procedure call (of type diropres).
@@ -214,7 +214,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_NULL_2.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -227,7 +227,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_READ_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type readargs) to the remote procedure call.
      * @return Result from remote procedure call (of type readres).
@@ -243,7 +243,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_READDIR_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type readdirargs) to the remote procedure call.
      * @return Result from remote procedure call (of type readdirres).
@@ -260,7 +260,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_READLINK_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type nfs_fh) to the remote procedure call.
      * @return Result from remote procedure call (of type readlinkres).
@@ -276,7 +276,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_REMOVE_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type diropargs) to the remote procedure call.
      * @return Result from remote procedure call (of type nfsstat).
@@ -292,7 +292,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_RENAME_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type renameargs) to the remote procedure call.
      * @return Result from remote procedure call (of type nfsstat).
@@ -308,7 +308,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_RMDIR_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type diropargs) to the remote procedure call.
      * @return Result from remote procedure call (of type nfsstat).
@@ -324,7 +324,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_ROOT_2.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -337,7 +337,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_SETATTR_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type sattrargs) to the remote procedure call.
      * @return Result from remote procedure call (of type attrstat).
@@ -353,7 +353,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_STATFS_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type nfs_fh) to the remote procedure call.
      * @return Result from remote procedure call (of type statfsres).
@@ -369,7 +369,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_LINK_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type linkargs) to the remote procedure call.
      * @return Result from remote procedure call (of type nfsstat).
@@ -378,9 +378,9 @@ public class nfs_protClient extends OncRpcClientStub {
      *             result$ = new XdrInt(); clientt.NFSPROC_LINK_2,
      *             nfs_prot.NFS_VERSION, arg1, result$); return
      *             result$.intValue(); }
-     * 
+     *
      *             /** Call remote procedure NFSPROC_SYMLINK_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type symlinkargs) to the remote procedure call.
      * @return Result from remote procedure call (of type nfsstat).
@@ -396,7 +396,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_WRITE_2.
-     * 
+     *
      * @param arg1
      *            parameter (of type writeargs) to the remote procedure call.
      * @return Result from remote procedure call (of type attrstat).
@@ -412,7 +412,7 @@ public class nfs_protClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure NFSPROC_WRITECACHE_2.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */

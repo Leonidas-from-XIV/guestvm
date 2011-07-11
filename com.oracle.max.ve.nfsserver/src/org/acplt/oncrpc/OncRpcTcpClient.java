@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcTcpClient.java,v 1.5
  * 2005/11/11 21:04:30 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -32,7 +32,7 @@ import java.net.Socket;
 /**
  * ONC/RPC client which communicates with ONC/RPC servers over the network using
  * the stream-oriented protocol TCP/IP.
- * 
+ *
  * @version $Revision: 1.5 $ $Date: 2005/11/11 21:04:30 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -72,18 +72,18 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcTcpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the construction of an <code>OncRpcTcpClient</code> object will
      * result in communication with the portmap process at <code>host</code>.
-     * 
+     *
      * @param host
      *            The host where the ONC/RPC server resides.
      * @param program
      *            Program number of the ONC/RPC server to call.
      * @param version
      *            Program version number.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -99,12 +99,12 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcTcpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the construction of an <code>OncRpcTcpClient</code> object will
      * result in communication with the portmap process at <code>host</code> if
      * <code>port</code> is <code>0</code>.
-     * 
+     *
      * @param host
      *            The host where the ONC/RPC server resides.
      * @param program
@@ -116,7 +116,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      *            <code>0</code>, then the <code>OncRpcUdpClient</code> object
      *            will ask the portmapper at <code>host</code> for the port
      *            number.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -132,12 +132,12 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcTcpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the construction of an <code>OncRpcTcpClient</code> object will
      * result in communication with the portmap process at <code>host</code> if
      * <code>port</code> is <code>0</code>.
-     * 
+     *
      * @param host
      *            The host where the ONC/RPC server resides.
      * @param program
@@ -157,7 +157,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      *            will break up long messages automatically into suitable
      *            pieces. Specifying zero will select the default buffer size
      *            (currently 8192 bytes).
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -173,12 +173,12 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcTcpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the construction of an <code>OncRpcTcpClient</code> object will
      * result in communication with the portmap process at <code>host</code> if
      * <code>port</code> is <code>0</code>.
-     * 
+     *
      * @param host
      *            The host where the ONC/RPC server resides.
      * @param program
@@ -204,7 +204,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      *            setting will apply. <i>Note that this timeout only applies to
      *            the connection phase, but <b>not</b> to later
      *            communication.</i>
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -257,7 +257,7 @@ public class OncRpcTcpClient extends OncRpcClient {
     /**
      * Issues a batched call for a remote procedure to an ONC/RPC server. Below
      * is a small example (exception handling ommited for clarity):
-     * 
+     *
      * <pre>
      * OncRpcTcpClient client = new OncRpcTcpClient(
      *                                              InetAddress.getByName(&quot;localhost&quot;),
@@ -267,17 +267,17 @@ public class OncRpcTcpClient extends OncRpcClient {
      * client.callBatch(42, myotherparams, false);
      * client.callBatch(42, myfinalparams, true);
      * </pre>
-     * 
+     *
      * In the example above, three calls are batched in a row and only be sent
      * all together with the third call. Note that batched calls must not expect
      * replies, with the only exception being the last call in a batch:
-     * 
+     *
      * <pre>
      * client.callBatch(42, myparams, false);
      * client.callBatch(42, myotherparams, false);
      * client.call(43, myfinalparams, myfinalresult);
      * </pre>
-     * 
+     *
      * @param procedureNumber
      *            Procedure number of the procedure to call.
      * @param params
@@ -286,7 +286,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      * @param flush
      *            Make sure that all pending batched calls are sent to the
      *            server.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -328,13 +328,13 @@ public class OncRpcTcpClient extends OncRpcClient {
 
     /**
      * Calls a remote procedure on an ONC/RPC server.
-     * 
+     *
      * <p>
      * Please note that while this method supports call batching by setting the
      * communication timeout to zero (<code>setTimeout(0)</code>) you should
      * better use {@link #batchCall} as it provides better control over when the
      * batch should be flushed to the server.
-     * 
+     *
      * @param procedureNumber
      *            Procedure number of the procedure to call.
      * @param versionNumber
@@ -344,7 +344,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      *            object which implements the {@link XdrAble} interface.
      * @param result
      *            The object receiving the result of the procedure call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -511,7 +511,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Close the connection to an ONC/RPC server and free all network-related
      * resources. Well -- at least hope, that the Java VM will sometimes free
      * some resources. Sigh.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -542,7 +542,7 @@ public class OncRpcTcpClient extends OncRpcClient {
 
     /**
      * Get the character encoding for (de-)serializing strings.
-     * 
+     *
      * @return the encoding currently used for (de-)serializing strings. If
      *         <code>null</code>, then the system's default encoding is used.
      */
@@ -554,7 +554,7 @@ public class OncRpcTcpClient extends OncRpcClient {
     /**
      * Retrieve the current timeout used during transmission phases (call and
      * reply phases).
-     * 
+     *
      * @return Current transmission timeout.
      */
     public int getTransmissionTimeout() {
@@ -563,7 +563,7 @@ public class OncRpcTcpClient extends OncRpcClient {
 
     /**
      * Set the character encoding for (de-)serializing strings.
-     * 
+     *
      * @param characterEncoding
      *            the encoding to use for (de-)serializing strings. If
      *            <code>null</code>, the system's default encoding is to be
@@ -582,7 +582,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      * {@link java.io.InterruptedIOException}. The default timeout value is 30
      * seconds (30,000 milliseconds). The timeout must be > 0. A timeout of zero
      * indicates a batched call, for which no reply message is expected.
-     * 
+     *
      * @param milliseconds
      *            Timeout in milliseconds. A timeout of zero indicates batched
      *            calls.
@@ -596,7 +596,7 @@ public class OncRpcTcpClient extends OncRpcClient {
      * Set the timeout used during transmission of data. If the flow of data
      * when sending calls or receiving replies blocks longer than the given
      * timeout, an exception is thrown. The timeout must be > 0.
-     * 
+     *
      * @param milliseconds
      *            Transmission timeout in milliseconds.
      */

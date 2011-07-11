@@ -84,7 +84,7 @@ public class NfsURL {
     public NfsURL(String url) throws MalformedURLException {
         int p, q, r;
 
-        url = url.trim();	// remove leading & trailing spaces
+        url = url.trim();       // remove leading & trailing spaces
         this.url = url;
         int end = url.length();
 
@@ -92,8 +92,8 @@ public class NfsURL {
         if (p < 0)
             throw new MalformedURLException("colon expected");
         protocol = url.substring(0, p);
-        p++;	// skip colon
-        if (url.regionMatches(p, "//", 0, 2)) {	// have hostname
+        p++;    // skip colon
+        if (url.regionMatches(p, "//", 0, 2)) { // have hostname
             p += 2;
             q = url.indexOf('/', p);
             if (q < 0)
@@ -107,19 +107,19 @@ public class NfsURL {
                         port = (port * 10) + (opts[i] - '0');
                     } else {
                         switch (opts[i]) {
-                        case 'v':	// NFS version
+                        case 'v':       // NFS version
                             version = opts[++i] - '0';
                             break;
-                        case 't':	// Force TCP only
+                        case 't':       // Force TCP only
                             proto = "tcp";
                             break;
-                        case 'u':	// Force UDP only
+                        case 'u':       // Force UDP only
                             proto = "udp";
                             break;
-                        case 'w':	// Force WebNFS only
+                        case 'w':       // Force WebNFS only
                             pub = true;
                             break;
-                        case 'm':	// Force MOUNT protocol only
+                        case 'm':       // Force MOUNT protocol only
                             pub = false;
                             break;
                         default:
@@ -129,7 +129,7 @@ public class NfsURL {
                     }
                 }
             } else {
-                r = q;	// no port
+                r = q;  // no port
             }
             if (p < r)
                 host = url.substring(p, r);

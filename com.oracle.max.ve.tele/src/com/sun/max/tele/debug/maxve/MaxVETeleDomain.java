@@ -75,9 +75,9 @@ public class MaxVETeleDomain extends TeleProcess {
 
     @Override
     protected void kill() throws OSExecutionRequestException {
-    	if (!TeleVM.isDump()) {
+        if (!TeleVM.isDump()) {
             ProgramWarning.message("unimplemented: " + "cannot kill target domain from Inspector");
-    	}
+        }
     }
 
     // In the current synchronous connection with the target domain, we only ever stop at a breakpoint
@@ -85,12 +85,12 @@ public class MaxVETeleDomain extends TeleProcess {
 
     @Override
     protected ProcessState waitUntilStopped() {
-    	return MaxVEXenDBChannel.waitUntilStopped();
+        return MaxVEXenDBChannel.waitUntilStopped();
     }
 
     @Override
     protected void resume() throws OSExecutionRequestException {
-    	MaxVEXenDBChannel.resume(domainId);
+        MaxVEXenDBChannel.resume(domainId);
     }
 
     @Override

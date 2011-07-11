@@ -1,20 +1,20 @@
 /*
  * $Header:/cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jportmap/
  * OncRpcEmbeddedPortmap.java,v 1.2 2003/08/14 08:00:08 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 2001 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -38,7 +38,7 @@ import org.acplt.oncrpc.server.OncRpcServerStub;
  * system does not already provide the portmap service. If an embedded portmap
  * service is started it will stop only after the last ONC/RPC program has been
  * deregistered.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 08:00:08 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -68,11 +68,11 @@ public class OncRpcEmbeddedPortmap {
          * the implementation provided by the <code>jrpcgen</code> superclass,
          * but checks whether there are other ONC/RPC programs registered. If
          * not, it signals itself to shut down the portmap service.
-         * 
+         *
          * @param params
          *            (program, version) to deregister. The protocol and port
          *            fields are not used.
-         * 
+         *
          * @return <code>true</code> if deregistration succeeded.
          */
         @Override
@@ -147,7 +147,7 @@ public class OncRpcEmbeddedPortmap {
      * the operating system or an embedded portmap service) is currently
      * running. This method will check for 3 seconds for an answer from a
      * portmap before assuming that no one exists.
-     * 
+     *
      * @return <code>true</code>, if a portmap service (either external or
      *         embedded) is running and can be contacted.
      */
@@ -159,11 +159,11 @@ public class OncRpcEmbeddedPortmap {
      * Indicates whether a portmap service (regardless whether it's supplied by
      * the operating system or an embedded portmap service) is currently
      * running.
-     * 
+     *
      * @param checkTimeout
      *            timeout in milliseconds to wait before assuming that no
      *            portmap service is currently available.
-     * 
+     *
      * @return <code>true</code>, if a portmap service (either external or
      *         embedded) is running and can be contacted.
      */
@@ -198,11 +198,11 @@ public class OncRpcEmbeddedPortmap {
      * <code>OncRpcEmbeddedPortmap</code> and starts the service if no other
      * (external) portmap service is available. This constructor is the same as
      * <code>OncRpcEmbeddedPortmap</code> calling with a timeout of 3 seconds.
-     * 
+     *
      * <p>
      * The constructor starts the portmap service in its own thread and then
      * returns.
-     * 
+     *
      * @see OncRpcEmbeddedPortmap#embeddedPortmapInUse
      */
     public OncRpcEmbeddedPortmap() throws OncRpcException, IOException {
@@ -213,15 +213,15 @@ public class OncRpcEmbeddedPortmap {
      * Constructs an embeddable portmap service of class
      * <code>OncRpcEmbeddedPortmap</code> and starts the service if no other
      * (external) portmap service is available.
-     * 
+     *
      * <p>
      * The constructor starts the portmap service in its own thread and then
      * returns.
-     * 
+     *
      * @param checkTimeout
      *            timeout in milliseconds to wait before assuming that no
      *            portmap service is currently available.
-     * 
+     *
      * @see OncRpcEmbeddedPortmap#embeddedPortmapInUse
      */
     public OncRpcEmbeddedPortmap(int checkTimeout) throws OncRpcException,
@@ -240,7 +240,7 @@ public class OncRpcEmbeddedPortmap {
 
     /**
      * Indicates whether the embedded portmap service is in use.
-     * 
+     *
      * @return <code>true</code>, if embedded portmap service is currently used.
      */
     public boolean embeddedPortmapInUse() {
@@ -249,7 +249,7 @@ public class OncRpcEmbeddedPortmap {
 
     /**
      * Returns object implementing the embedded portmap service.
-     * 
+     *
      * @return Embedded portmap object or <code>null</code> if no embedded
      *         portmap service has been started.
      */
@@ -259,7 +259,7 @@ public class OncRpcEmbeddedPortmap {
 
     /**
      * Returns the thread object running the embedded portmap service.
-     * 
+     *
      * @return Thread object or <code>null</code> if no embedded portmap service
      *         has been started.
      */
@@ -273,7 +273,7 @@ public class OncRpcEmbeddedPortmap {
      * to terminate. Under normal conditions the thread responsible for the
      * embedded portmap service will terminate automatically after the last
      * ONC/RPC program has been deregistered.
-     * 
+     *
      * <p>
      * This method just signals the portmap thread to stop processing ONC/RPC
      * portmap calls and to terminate itself after it has cleaned up after

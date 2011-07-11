@@ -52,7 +52,7 @@ public class MsgAcceptedException extends RpcException {
 
     /*
      * Construct a new Exception for the specified RPC accepted error
-     * @param error	The RPC error number
+     * @param error     The RPC error number
      */
     public MsgAcceptedException(int error) {
         super(error);
@@ -60,9 +60,9 @@ public class MsgAcceptedException extends RpcException {
 
     /*
      * Construct a new RPC error with the given low and high parameters
-     * @param error	The RPC error number
-     * @param lo	The low version number
-     * @param hi	The high version number
+     * @param error     The RPC error number
+     * @param lo        The low version number
+     * @param hi        The high version number
      */
     public MsgAcceptedException(int error, int lo, int hi) {
         super(error);

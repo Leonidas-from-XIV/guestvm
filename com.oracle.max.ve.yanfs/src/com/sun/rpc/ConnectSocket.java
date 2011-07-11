@@ -59,9 +59,9 @@ public class ConnectSocket extends Connection {
     /**
      * Construct a new connection to a specified server and port.
      *
-     * @param server	The hostname of the server
-     * @param port	The port number on the server
-     * @param maxSize	The maximum size of the received reply
+     * @param server    The hostname of the server
+     * @param port      The port number on the server
+     * @param maxSize   The maximum size of the received reply
      * @exception IOException if the connection cannot be made
      */
     public ConnectSocket (String server, int port, int maxSize)
@@ -69,7 +69,7 @@ public class ConnectSocket extends Connection {
 
     super(server, port, "tcp", maxSize);
         doConnect();
-        start();	// the listener
+        start();        // the listener
     }
 
     private void doConnect()
@@ -166,7 +166,7 @@ public class ConnectSocket extends Connection {
                 x.xdr_offset(off-4);
                 x.xdr_int(save);
             }
-            x.xdr_offset(bufsiz);	// restore XDR offset
+            x.xdr_offset(bufsiz);       // restore XDR offset
         }
     }
 
@@ -242,9 +242,9 @@ public class ConnectSocket extends Connection {
         synchronized (this) {
             while (true) {
                 try {
-                    doClose();	// make sure we're at a known state
+                    doClose();  // make sure we're at a known state
                     doConnect();
-                    break;		// success
+                    break;              // success
 
                 } catch (IOException e) {
 

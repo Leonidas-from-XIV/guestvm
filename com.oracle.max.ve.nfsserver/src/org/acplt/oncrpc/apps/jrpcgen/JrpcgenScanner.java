@@ -4,20 +4,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jrpcgen/JrpcgenScanner
  * .java,v 1.1.1.1 2003/08/13 12:03:47 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -239,7 +239,7 @@ class JrpcgenScanner implements
 
     /**
      * Unpacks the compressed DFA transition table.
-     * 
+     *
      * @param packed
      *            the packed transition table
      * @return the unpacked transition table
@@ -261,7 +261,7 @@ class JrpcgenScanner implements
 
     /**
      * Unpacks the compressed character translation table.
-     * 
+     *
      * @param packed
      *            the packed character translation table
      * @return the unpacked character translation table
@@ -342,7 +342,7 @@ class JrpcgenScanner implements
     /**
      * Creates a new scanner. There is also java.io.Reader version of this
      * constructor.
-     * 
+     *
      * @param in
      *            the java.io.Inputstream to read input from.
      */
@@ -353,7 +353,7 @@ class JrpcgenScanner implements
     /**
      * Creates a new scanner There is also a java.io.InputStream version of this
      * constructor.
-     * 
+     *
      * @param in
      *            the java.io.Reader to read input from.
      */
@@ -364,7 +364,7 @@ class JrpcgenScanner implements
     /**
      * Resumes scanning until the next regular expression is matched, the end of
      * input is encountered or an I/O-Error occurs.
-     * 
+     *
      * @return the next token
      * @exception IOException
      *                if any I/O-Error occurs
@@ -774,7 +774,7 @@ class JrpcgenScanner implements
 
     /**
      * Enters a new lexical state
-     * 
+     *
      * @param newState
      *            the new lexical state
      */
@@ -840,7 +840,7 @@ class JrpcgenScanner implements
 
     /**
      * Gets the next input character.
-     * 
+     *
      * @return the next character of the input stream, EOF if the end of the
      *         stream is reached.
      * @exception IOException
@@ -907,7 +907,7 @@ class JrpcgenScanner implements
 
     /**
      * Reports an error that occured while scanning.
-     * 
+     *
      * @param errorCode
      *            the code of the errormessage to display
      */
@@ -923,9 +923,9 @@ class JrpcgenScanner implements
 
     /**
      * Pushes the specified amount of characters back into the input stream.
-     * 
+     *
      * They will be read again by then next call of the scanning method
-     * 
+     *
      * @param number
      *            the number of characters to be read again. This number must
      *            not be greater than yylength()!

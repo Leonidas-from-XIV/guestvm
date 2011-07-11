@@ -139,8 +139,7 @@ public final class GUK {
     }
 
     public static void initialize() {
-        final Address isCrashingMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(
-                        ClassActor.fromJava(GUK.class).findLocalStaticMethodActor(SymbolTable.makeSymbol("is_crashing")), CallEntryPoint.C_ENTRY_POINT);
+        final Word isCrashingMethodAddress = CompilationScheme.Static.getCurrentTargetMethod(ClassActor.fromJava(GUK.class).findLocalStaticMethodActor(SymbolTable.makeSymbol("is_crashing"))).getEntryPoint(CallEntryPoint.C_ENTRY_POINT);
         guk_register_is_crashing_method(isCrashingMethodAddress);
     }
 
@@ -179,7 +178,7 @@ public final class GUK {
     // C_FUNCTIONs
 
     @C_FUNCTION
-    static native void guk_register_is_crashing_method(Address method);
+    static native void guk_register_is_crashing_method(Word method);
     @C_FUNCTION
     static native Pointer guk_current();
     @C_FUNCTION

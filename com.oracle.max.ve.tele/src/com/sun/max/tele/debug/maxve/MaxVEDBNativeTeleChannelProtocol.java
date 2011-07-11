@@ -39,10 +39,10 @@ import com.sun.max.tele.debug.ProcessState;
 
 public class MaxVEDBNativeTeleChannelProtocol extends MaxVENativeTeleChannelProtocolAdaptor {
 
-	public MaxVEDBNativeTeleChannelProtocol() {
-		
-	}
-	
+    public MaxVEDBNativeTeleChannelProtocol() {
+
+    }
+
     @Override
     public boolean attach(int id) {
         Trace.line(1, "attaching to domain " + id);
@@ -106,7 +106,7 @@ public class MaxVEDBNativeTeleChannelProtocol extends MaxVENativeTeleChannelProt
     public long readWatchpointAddress() {
         return nativeReadWatchpointAddress();
     }
-    
+
     private boolean terminated;
 
     /*
@@ -114,7 +114,7 @@ public class MaxVEDBNativeTeleChannelProtocol extends MaxVENativeTeleChannelProt
      * Since the resume always succeeds we always return true.
      * There is no per-thread resumption.
      */
-    
+
     @Override
     public boolean resume(long threadId) {
         terminated = nativeResume();
@@ -151,20 +151,20 @@ public class MaxVEDBNativeTeleChannelProtocol extends MaxVENativeTeleChannelProt
     public boolean suspendAll() {
         return nativeSuspendAll();
     }
-    
+
     /*
      * Note that resume does not return until the domain is stopped or terminated.
      */
     @Override
     public ProcessState waitUntilStopped() {
-    	return terminated ? ProcessState.TERMINATED : ProcessState.STOPPED;
+        return terminated ? ProcessState.TERMINATED : ProcessState.STOPPED;
     }
 
     @Override
     public int waitUntilStoppedAsInt() {
-    	return terminated ? ProcessState.TERMINATED.ordinal() : ProcessState.STOPPED.ordinal();
+        return terminated ? ProcessState.TERMINATED.ordinal() : ProcessState.STOPPED.ordinal();
     }
-    
+
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
         return nativeWriteBytes(dst, src, false, 0, length);

@@ -41,19 +41,19 @@ import java.util.Date;
  *
  */
 class Fattr3 extends Fattr {
-    int		ftype;
-    long 	mode;
-    long	nlink;
-    long	uid;
-    long	gid;
-    long	size;
-    long	used;
-    long	rdev;
-    long	fsid;
-    long	fileid;
-    long	atime;
-    long	mtime;
-    long	ctime;
+    int         ftype;
+    long        mode;
+    long        nlink;
+    long        uid;
+    long        gid;
+    long        size;
+    long        used;
+    long        rdev;
+    long        fsid;
+    long        fileid;
+    long        atime;
+    long        mtime;
+    long        ctime;
 
     Fattr3() {
     }
@@ -74,12 +74,12 @@ class Fattr3 extends Fattr {
         x.xdr_hyper(rdev);
         x.xdr_hyper(fsid);
         x.xdr_hyper(fileid);
-        x.xdr_u_int(atime / 1000);		// sec
-        x.xdr_u_int(atime % 1000 * 1000000);	// nsec
-        x.xdr_u_int(mtime / 1000);		// sec
-        x.xdr_u_int(mtime % 1000 * 1000000);	// nsec
-        x.xdr_u_int(ctime / 1000);		// sec
-        x.xdr_u_int(ctime % 1000 * 1000000);	// nsec
+        x.xdr_u_int(atime / 1000);              // sec
+        x.xdr_u_int(atime % 1000 * 1000000);    // nsec
+        x.xdr_u_int(mtime / 1000);              // sec
+        x.xdr_u_int(mtime % 1000 * 1000000);    // nsec
+        x.xdr_u_int(ctime / 1000);              // sec
+        x.xdr_u_int(ctime % 1000 * 1000000);    // nsec
     }
 
     @Override

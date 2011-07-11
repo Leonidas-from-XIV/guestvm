@@ -51,11 +51,11 @@ public class DummyCred implements GSSCredSpi {
      * Initialization entry point.
      *
      * @param name of the credential entity; can be null
-     *	meaning a system default
+     *  meaning a system default
      * @param Desired lifetime for the credential's ability
-     *	to initialize contexts; 0 means use default
+     *  to initialize contexts; 0 means use default
      * @param Desired lifetime for the credential's ability
-     *	to accept contexts; 0 means default
+     *  to accept contexts; 0 means default
      * @param Credential usage flag.
      * @exception GSSException may be thrown
      */

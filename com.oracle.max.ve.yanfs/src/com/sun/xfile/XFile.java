@@ -167,7 +167,7 @@ public class XFile {
             xfa = loadAccessor(url);
         } catch (Exception e) {
             if (name.startsWith(".:"))
-                name = name.substring(2);	// lop off ".:"
+                name = name.substring(2);       // lop off ".:"
 
             nativeFile = new File(name);
             xfa = makeNative(nativeFile);
@@ -247,7 +247,7 @@ public class XFile {
              * a "native" URL - not relative.
              */
             if (name.startsWith(".:")) {
-                name = name.substring(2);	// lop off ".:"
+                name = name.substring(2);       // lop off ".:"
                 dir = null;
             }
 
@@ -323,7 +323,7 @@ public class XFile {
 
         String prefixList = null;
 
-        try {	// applets will get a security exception here
+        try {   // applets will get a security exception here
             prefixList = System.getProperty("java.protocol.xfile");
         } catch (SecurityException e) {};
 
@@ -331,7 +331,7 @@ public class XFile {
             prefixList = "";
         else
             prefixList += "|";
-        prefixList += "com.sun";	// always the default
+        prefixList += "com.sun";        // always the default
 
         StringTokenizer pkgs = new StringTokenizer(prefixList, "|");
 

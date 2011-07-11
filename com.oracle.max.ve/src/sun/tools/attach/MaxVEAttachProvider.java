@@ -43,14 +43,17 @@ public class MaxVEAttachProvider extends HotSpotAttachProvider {
 
     }
 
+    @Override
     public String name() {
         return "sun";
     }
 
+    @Override
     public String type() {
         return "socket";
     }
 
+    @Override
     public VirtualMachine attachVirtualMachine(String vmid) throws AttachNotSupportedException, IOException {
         return new MaxVEVirtualMachine(this, vmid, _vmMap.get(vmid));
     }

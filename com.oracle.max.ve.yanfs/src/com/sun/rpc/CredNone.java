@@ -50,9 +50,9 @@ public class CredNone extends Cred {
     void putCred(Xdr x) {
 
         x.xdr_int(AUTH_NONE);
-        x.xdr_int(0);		// no cred data
-        x.xdr_int(0);		// no verifier
-        x.xdr_int(0);		// no verifier
+        x.xdr_int(0);           // no cred data
+        x.xdr_int(0);           // no verifier
+        x.xdr_int(0);           // no verifier
     }
 
     /**
@@ -61,10 +61,10 @@ public class CredNone extends Cred {
     @Override
     void getCred(Xdr x) {
 
-        x.xdr_int();	// assume it's AUTH_NONE
-        x.xdr_int();	// cred length == 0
-        x.xdr_int();	// no verifier
-        x.xdr_int();	// no verifier
+        x.xdr_int();    // assume it's AUTH_NONE
+        x.xdr_int();    // cred length == 0
+        x.xdr_int();    // no verifier
+        x.xdr_int();    // no verifier
     }
 
     @Override

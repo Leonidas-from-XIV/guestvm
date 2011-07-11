@@ -50,7 +50,7 @@ public class MaxVETeleVM extends TeleVM {
 
     @Override
     protected Pointer loadBootImage() throws BootImageException {
-    	// the only reason we override this is to ensure we go via MaxVEDBChannel to get the lock
+        // the only reason we override this is to ensure we go via MaxVEDBChannel to get the lock
         return MaxVEXenDBChannel.getBootHeapStart();
     }
 

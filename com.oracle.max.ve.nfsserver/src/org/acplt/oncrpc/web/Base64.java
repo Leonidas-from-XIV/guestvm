@@ -1,20 +1,20 @@
 /*
  * $Header: /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/web/Base64.java,v
  * 1.1.1.1 2003/08/13 12:03:44 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -26,7 +26,7 @@ package org.acplt.oncrpc.web;
 /**
  * The abstract <code>Base64</code> class provides static methods to convert
  * back and forth between binary and base64-encoded data.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:44 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -72,7 +72,7 @@ public abstract class Base64 {
 
     /**
      * Converts base64 encoded data into binary data.
-     * 
+     *
      * @param encodedData
      *            Base64 encoded data.
      * @param encodedOffset
@@ -85,7 +85,7 @@ public abstract class Base64 {
      * @param binaryOffset
      *            Offset into <code>binaryData</code> where to store the decoded
      *            binary data.
-     * 
+     *
      * @return Length of decoded binary data.
      */
     public static int decode(byte[] encodedData, int encodedOffset, int length,
@@ -143,7 +143,7 @@ public abstract class Base64 {
 
     /**
      * Converts binary data into base64 encoded data.
-     * 
+     *
      * @param binaryData
      *            Binary data to be encoded.
      * @param binaryOffset
@@ -156,7 +156,7 @@ public abstract class Base64 {
      * @param encodedOffset
      *            Offset into <code>encodedData</code> where the store base64
      *            encoded data.
-     * 
+     *
      * @return Length of encoded base64 data.
      */
     public static int encode(byte[] binaryData, int binaryOffset, int length,

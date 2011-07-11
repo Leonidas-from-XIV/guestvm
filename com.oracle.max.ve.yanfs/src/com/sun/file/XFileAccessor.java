@@ -48,7 +48,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
     private File file;
     private RandomAccessFile raf;
     private boolean readOnly;
-    private long fp;	// file pointer
+    private long fp;    // file pointer
 
     char sep = System.getProperty("file.separator").charAt(0);
 
@@ -83,7 +83,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
         for (int p = 0; p < len; p = p2 + 1) {
             p2 = s.indexOf("%", p);
-            if (p2 < 0)	// not found
+            if (p2 < 0) // not found
                 p2 = len;
 
             ns += s.substring(p, p2);

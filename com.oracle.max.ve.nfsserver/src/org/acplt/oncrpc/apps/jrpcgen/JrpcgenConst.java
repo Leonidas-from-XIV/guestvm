@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jrpcgen/JrpcgenConst
  * .java,v 1.1.1.1 2003/08/13 12:03:45 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -27,7 +27,7 @@ package org.acplt.oncrpc.apps.jrpcgen;
 /**
  * The <code>JrpcgenConst</code> class represents a single constant defined in
  * an rpcgen "x"-file.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:45 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -59,7 +59,7 @@ public class JrpcgenConst {
     /**
      * Constructs a <code>JrpcgenConst</code> and sets the identifier and the
      * associated value.
-     * 
+     *
      * @param identifier
      *            Constant identifier to define.
      * @param value
@@ -72,7 +72,7 @@ public class JrpcgenConst {
     /**
      * Constructs a <code>JrpcgenConst</code> and sets the identifier and the
      * associated value of an enumeration etc.
-     * 
+     *
      * @param identifier
      *            Constant identifier to define.
      * @param value
@@ -96,7 +96,7 @@ public class JrpcgenConst {
     /**
      * Returns the identifier this constant depends on or <code>null</code>, if
      * no dependency exists.
-     * 
+     *
      * @return dependency identifier or <code>null</code>.
      */
     public String getDependencyIdentifier() {
@@ -128,14 +128,14 @@ public class JrpcgenConst {
      * recursively, if necessary). This is only possible for simple
      * subsitutions, that is A is defined as B, B as C, and C as 42, thus A is
      * eventually defined as 42.
-     * 
+     *
      * <p>
      * This simple kind of resolving is necessary when defining a particular
      * version of an ONC/RPC protocol. We need to be able to resolve the version
      * to an integer literal because we need to append the version number to any
      * remote procedure defined to avoid identifier clashes if the same remote
      * procedure is defined for several versions.
-     * 
+     *
      * @return integer literal as <code>String</code> or <code>null</code>, if
      *         the identifier could not be resolved to an integer literal.
      */

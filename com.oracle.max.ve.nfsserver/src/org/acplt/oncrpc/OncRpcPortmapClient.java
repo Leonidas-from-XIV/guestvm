@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcPortmapClient.java,v
  * 1.1.1.1 2003/08/13 12:03:41 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000, 2001, 2002 Lehrstuhl fuer Prozessleittechnik (PLT),
  * RWTH Aachen D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -34,7 +34,7 @@ import java.net.InetAddress;
  * contact portmappers using TCP/IP. For this, the constructor of the
  * <code>OncRpcPortmapClient</code> class also accepts a protocol parameter (
  * {@link OncRpcPortmapClient#OncRpcPortmapClient(InetAddress, int)}).
- * 
+ *
  * Technically spoken, instances of <code>OncRpcPortmapClient</code> are proxy
  * objects. <code>OncRpcPortmapClient</code> objects currently speak protocol
  * version 2. The newer transport-independent protocol versions 3 and 4 are
@@ -44,25 +44,25 @@ import java.net.InetAddress;
  * know what I mean and probably agree with me. Otherwise, in case you find XTI
  * the best thing since the Win32 API, please implement the rpcbind protocol
  * versions 3 and 4 and give it to the community -- thank you.
- * 
+ *
  * <p>
  * Here are some simple examples of how to use the portmapper proxy object. We
  * first start with one of the most interesting operations, which can be
  * performed on portmappers, querying the port of a local or remote ONC/RPC
  * server.
- * 
+ *
  * <p>
  * To query the port number of an ONC/RPC server, we need to contact the
  * portmapper at the host machine where the server is running. The following
  * code snippet just contacts the local portmapper. <code>try</code> blocks are
  * ommited for brevity -- but remember that you almost allways need to catch
  * {@link OncRpcException} as well as <code>IOException</code>.
- * 
+ *
  * <pre>
  * OncRpcPortmapClient portmap = new OncRpcPortmapClient(
  *                                                       InetAddress.getByName(&quot;localhost&quot;));
  * </pre>
- * 
+ *
  * <p>
  * With the portmapper proxy object in our hands we can now ask for the port
  * number of a particular ONC/RPC server. In this (ficious) example we ask for
@@ -71,7 +71,7 @@ import java.net.InetAddress;
  * href="http://www.acplt.org/ks">ACPLT/KS</a> protocol). To ask for the port
  * number of a given program number, use the
  * {@link OncRpcPortmapClient#getPort(int, int, int) getPort(...)} method.
- * 
+ *
  * <pre>
  * int port;
  * try {
@@ -86,7 +86,7 @@ import java.net.InetAddress;
  * }
  * System.out.println(&quot;Program available at port &quot; + port);
  * </pre>
- * 
+ *
  * <p>
  * In the call to {@link OncRpcPortmapClient#getPort(int, int, int)
  * getPort(...)}, the first parameter specifies the ONC/RPC program number, the
@@ -95,7 +95,7 @@ import java.net.InetAddress;
  * Currently, only {@link OncRpcProtocols#ONCRPC_UDP} and
  * {@link OncRpcProtocols#ONCRPC_TCP} are supported. But who needs other
  * protocols anyway?!
- * 
+ *
  * <p>
  * In case {@link OncRpcPortmapClient#getPort(int, int, int) getPort(...)}
  * succeeds, it returns the number of the port where the appropriate ONC/RPC
@@ -104,13 +104,13 @@ import java.net.InetAddress;
  * {@link OncRpcProgramNotRegisteredException} is thrown (which is a subclass of
  * {@link OncRpcException} with a detail reason of
  * {@link OncRpcException#RPC_PROGNOTREGISTERED}.
- * 
+ *
  * <p>
  * A second typical example of how to use the portmapper is retrieving a list of
  * the currently registered servers. We use the
  * {@link OncRpcPortmapClient#listServers} method for this purpose in the
  * following example, and print the list we got.
- * 
+ *
  * <pre>
  * OncRpcServerIdent[] list = null;
  * try {
@@ -124,23 +124,23 @@ import java.net.InetAddress;
  *                        + list[i].protocol + &quot; &quot; + list[i].port);
  * }
  * </pre>
- * 
+ *
  * <p>
  * When you do not need the client proxy object any longer, you should return
  * the resources it occupies to the system. Use the {@link #close} method for
  * this.
- * 
+ *
  * <pre>
  * portmap.close();
  * portmap = null; // Hint to the garbage (wo)man
  * </pre>
- * 
+ *
  * <p>
  * For another code example, please consult
  * <code>src/tests/org/acplt/oncrpc/PortmapGetPortTest.java</code>.
- * 
+ *
  * @see OncRpcClient
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:41 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -172,10 +172,10 @@ public class OncRpcPortmapClient {
      * Constructs and initializes an ONC/RPC client object, which can
      * communicate with the portmapper at the specified host using the UDP/IP
      * datagram-oriented internet protocol.
-     * 
+     *
      * @param host
      *            Host where to contact the portmapper.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -190,7 +190,7 @@ public class OncRpcPortmapClient {
      * Constructs and initializes an ONC/RPC client object, which can
      * communicate with the portmapper at the given host using the speicified
      * protocol.
-     * 
+     *
      * @param host
      *            Host where to contact the portmapper.
      * @param protocol
@@ -198,7 +198,7 @@ public class OncRpcPortmapClient {
      *            either <code>OncRpcProtocols.ONCRPC_UDP</code> or
      *            <code>OncRpcProtocols.ONCRPC_TCP</code> (HTTP is currently not
      *            supported).
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -214,7 +214,7 @@ public class OncRpcPortmapClient {
      * Constructs and initializes an ONC/RPC client object, which can
      * communicate with the portmapper at the given host using the speicified
      * protocol.
-     * 
+     *
      * @param host
      *            Host where to contact the portmapper.
      * @param protocol
@@ -228,7 +228,7 @@ public class OncRpcPortmapClient {
      *            portmapper. A negative timeout indicates that the
      *            implementation-specific timeout setting of the JVM and
      *            java.net implementation should be used instead.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -256,7 +256,7 @@ public class OncRpcPortmapClient {
 
     /**
      * Closes the connection to the portmapper.
-     * 
+     *
      * @throws OncRpcException
      */
     public void close() throws OncRpcException {
@@ -266,7 +266,7 @@ public class OncRpcPortmapClient {
     /**
      * Returns the client proxy object used for communicating with the
      * portmapper.
-     * 
+     *
      * @return portmap client proxy object (subclass of
      *         <code>OncRpcClient</code>).
      */
@@ -278,7 +278,7 @@ public class OncRpcPortmapClient {
      * Asks the portmapper this <code>OncRpcPortmapClient</code> object is a
      * proxy for, for the port number of a particular ONC/RPC server identified
      * by the information tuple {program number, program version, protocol}.
-     * 
+     *
      * @param program
      *            Program number of the remote procedure call in question.
      * @param version
@@ -287,9 +287,9 @@ public class OncRpcPortmapClient {
      *            Protocol lateron used for communication with the ONC/RPC
      *            server in question. This can be one of the protocols constants
      *            defined in the {@link OncRpcProtocols} interface.
-     * 
+     *
      * @return port number of ONC/RPC server in question.
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper is not available (detail is
      *             {@link OncRpcException#RPC_PMAPFAILURE}).
@@ -332,10 +332,10 @@ public class OncRpcPortmapClient {
     /**
      * Retrieves a list of all registered ONC/RPC servers at the same host as
      * the contacted portmapper.
-     * 
+     *
      * @return vector of server descriptions (see class
      *         {@link OncRpcServerIdent}).
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper is not available (detail is
      *             {@link OncRpcException#RPC_PMAPFAILURE}).
@@ -367,7 +367,7 @@ public class OncRpcPortmapClient {
 
     /**
      * Ping the portmapper (try to call procedure 0).
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper is not available (detail is
      *             {@link OncRpcException#RPC_PMAPFAILURE}).
@@ -383,7 +383,7 @@ public class OncRpcPortmapClient {
     /**
      * Register an ONC/RPC with the given program number, version and protocol
      * at the given port with the portmapper.
-     * 
+     *
      * @param program
      *            The number of the program to be registered.
      * @param version
@@ -393,10 +393,10 @@ public class OncRpcPortmapClient {
      *            {@link OncRpcProtocols} constants.
      * @param port
      *            The port number where the ONC/RPC server can be reached.
-     * 
+     *
      * @return Indicates whether registration succeeded (<code>true</code>) or
      *         was denied by the portmapper (<code>false</code>).
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper is not available (detail is
      *             {@link OncRpcException#RPC_PMAPFAILURE}).
@@ -427,15 +427,15 @@ public class OncRpcPortmapClient {
      * Unregister an ONC/RPC with the given program number and version. The
      * portmapper will remove all entries with the same program number and
      * version, regardless of the protocol and port number.
-     * 
+     *
      * @param program
      *            The number of the program to be unregistered.
      * @param version
      *            The version number of the program.
-     * 
+     *
      * @return Indicates whether deregistration succeeded (<code>true</code>) or
      *         was denied by the portmapper (<code>false</code>).
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper is not available (detail is
      *             {@link OncRpcException#RPC_PMAPFAILURE}).

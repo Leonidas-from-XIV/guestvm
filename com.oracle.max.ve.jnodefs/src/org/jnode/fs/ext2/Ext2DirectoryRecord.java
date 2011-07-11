@@ -71,18 +71,18 @@ import org.jnode.fs.FileSystemException;
  * @author Mick Jordan
  */
 public class Ext2DirectoryRecord {
-	private static final Logger logger = Logger.getLogger(Ext2DirectoryRecord.class.getName());
+    private static final Logger logger = Logger.getLogger(Ext2DirectoryRecord.class.getName());
     /*
      * private int iNodeNr; private int recLen; private short nameLen; private
      * short type; private StringBuffer name;
      */
 
-	private static final int FIXED_LENGTH = 8;
-	private static final int INODENR_OFFSET = 0; // 4 byte field
-	private static final int RECLEN_OFFSET = 4;   // 2 byte field
-	private static final int NAMLEN_OFFSET = 6;  // 1 byte field
-	private static final int TYPE_OFFSET = 7;       // 1 byte field
-	private static int ALIGN = 4;
+    private static final int FIXED_LENGTH = 8;
+    private static final int INODENR_OFFSET = 0; // 4 byte field
+    private static final int RECLEN_OFFSET = 4;   // 2 byte field
+    private static final int NAMLEN_OFFSET = 6;  // 1 byte field
+    private static final int TYPE_OFFSET = 7;       // 1 byte field
+    private static int ALIGN = 4;
 
     private int offset;
     private byte[] data;

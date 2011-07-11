@@ -78,34 +78,34 @@ public class GUKThreadListAccess extends ThreadAccess {
         public byte[] floatingPointRegisters = new byte[128];
         public byte[] stateRegisters = new byte[16];
 
-    	GUKThreadInfo(long threadHandle, int id, int flags, int cpu) {
+        GUKThreadInfo(long threadHandle, int id, int flags, int cpu) {
             this.id = id;
             this.flags = flags;
             this.cpu = cpu;
             Arrays.fill(integerRegisters, (byte) 0);
             Arrays.fill(floatingPointRegisters, (byte) 0);
             Arrays.fill(stateRegisters, (byte) 0);
-    	}
-    	
-    	public long getStackPointer() {
-    		return rsp;
-    	}
-    	
-    	public long getInstructionPointer() {
-    		return rip;
-    	}
-    	
-    	public int getId() {
-    		return id;
-    	}
-    	
-    	public int getThreadState() {
-    		return toThreadState(flags).ordinal();
-    	}
+        }
+
+        public long getStackPointer() {
+            return rsp;
+        }
+
+        public long getInstructionPointer() {
+            return rip;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public int getThreadState() {
+            return toThreadState(flags).ordinal();
+        }
     }
 
     public GUKThreadListAccess(TeleChannelDataIOProtocol protocol, int threadLocalsAreaSize, long threadListAddress) {
-    	super(protocol, threadLocalsAreaSize);
+        super(protocol, threadLocalsAreaSize);
         this.threadListAddress = threadListAddress;
     }
 
@@ -126,14 +126,14 @@ public class GUKThreadListAccess extends ThreadAccess {
             return WATCHPOINT;
         }
         if ((state & RUNNING_FLAG) != 0) {
-        	return RUNNING;
+            return RUNNING;
         }
         // default
         return SUSPENDED;
     }
 
     @Override
-    public void gatherOSThreads(List<ThreadInfo> threadList) {    
+    public void gatherOSThreads(List<ThreadInfo> threadList) {
         final ByteBuffer listHeadBuffer = ByteBuffer.allocate(STRUCT_LIST_HEAD_SIZE).order(ByteOrder.LITTLE_ENDIAN);
         int n = protocol.readBytes(threadListAddress, listHeadBuffer.array(), 0, STRUCT_LIST_HEAD_SIZE);
         assert n == STRUCT_LIST_HEAD_SIZE;
@@ -156,8 +156,8 @@ public class GUKThreadListAccess extends ThreadAccess {
                 if ((flags & RUNNING_FLAG) != 0) {
                     // full register set is available
                     protocol.readRegisters(id, threadInfo.integerRegisters, threadInfo.integerRegisters.length,
-                    		threadInfo.floatingPointRegisters, threadInfo.floatingPointRegisters.length,
-                    		threadInfo.stateRegisters, threadInfo.stateRegisters.length);
+                            threadInfo.floatingPointRegisters, threadInfo.floatingPointRegisters.length,
+                            threadInfo.stateRegisters, threadInfo.stateRegisters.length);
                     rip = stateRegBuffer.getLong(0);
                     rsp = intRegBuffer.getLong(X86_64Registers.IntegerRegister.RSP.getCanonicalIndex());
                 } else {
@@ -174,7 +174,7 @@ public class GUKThreadListAccess extends ThreadAccess {
             threadStructAddress = threadStructBuffer.getLong(THREAD_LIST_OFFSET);
         }
     }
-    
+
     /**
      * Gets the cpu the thread is currently running on.
      * @param id
@@ -184,5 +184,5 @@ public class GUKThreadListAccess extends ThreadAccess {
         return ((GUKThreadInfo) getThreadInfo(id)).cpu;
     }
 
-    
+
 }

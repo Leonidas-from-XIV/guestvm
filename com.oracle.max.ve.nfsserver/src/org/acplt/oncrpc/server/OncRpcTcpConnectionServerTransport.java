@@ -2,20 +2,20 @@
  * $Header:/cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/
  * OncRpcTcpConnectionServerTransport.java,v 1.5 2008/01/02 15:13:35
  * haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -40,11 +40,11 @@ import org.acplt.oncrpc.XdrTcpEncodingStream;
  * Instances of class <code>OncRpcTcpServerTransport</code> encapsulate
  * TCP/IP-based XDR streams of ONC/RPC servers. This server transport class is
  * responsible for receiving ONC/RPC calls over TCP/IP.
- * 
+ *
  * @see OncRpcServerTransport
  * @see OncRpcTcpServerTransport
  * @see OncRpcUdpServerTransport
- * 
+ *
  * @version $Revision: 1.5 $ $Date: 2008/01/02 15:13:35 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -107,7 +107,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * transport handles individual ONC/RPC connections over TCP/IP. This
      * constructor is a convenience constructor for those transports handling
      * only a single ONC/RPC program and version number.
-     * 
+     *
      * @param dispatcher
      *            Reference to interface of an object capable of dispatching
      *            (handling) ONC/RPC calls.
@@ -147,7 +147,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * <code>OncRpcTcpSConnectionerverTransport</code> which encapsulates
      * TCP/IP-based XDR streams of an ONC/RPC server. This particular server
      * transport handles individual ONC/RPC connections over TCP/IP.
-     * 
+     *
      * @param dispatcher
      *            Reference to interface of an object capable of dispatching
      *            (handling) ONC/RPC calls.
@@ -208,13 +208,13 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
 
     /**
      * Close the server transport and free any resources associated with it.
-     * 
+     *
      * <p>
      * Note that the server transport is <b>not deregistered</b>. You'll have to
      * do it manually if you need to do so. The reason for this behaviour is,
      * that the portmapper removes all entries regardless of the protocol
      * (TCP/IP or UDP/IP) for a given ONC/RPC program number and version.
-     * 
+     *
      * <p>
      * Calling this method on a <code>OncRpcTcpServerTransport</code> results in
      * the listening TCP network socket immediately being closed. The handler
@@ -266,7 +266,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
 
     /**
      * Get the character encoding for (de-)serializing strings.
-     * 
+     *
      * @return the encoding currently used for (de-)serializing strings. If
      *         <code>null</code>, then the system's default encoding is used.
      */
@@ -280,7 +280,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * receive ONC/RPC requests, then dispatching them and finally sending back
      * reply messages. Control in the calling thread immediately returns after
      * the handler thread has been created.
-     * 
+     *
      * <p>
      * Currently only one call after the other is dispatched, so no
      * multithreading is done when receiving multiple calls. Instead, later
@@ -301,7 +301,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for an individual
      *             TCP/IP-based server transport.
@@ -318,7 +318,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * the call parameters have been retrieved. Under the hood this method
      * therefore calls {@link XdrDecodingStream#endDecoding} to free any pending
      * resources from the decoding stage.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully deserialized.
@@ -337,7 +337,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
 
     /**
      * Set the character encoding for (de-)serializing strings.
-     * 
+     *
      * @param characterEncoding
      *            the encoding to use for (de-)serializing strings. If
      *            <code>null</code>, the system's default encoding is to be
@@ -479,13 +479,13 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
     /**
      * Begins the sending phase for ONC/RPC replies. This method belongs to the
      * lower-level access pattern when handling ONC/RPC calls.
-     * 
+     *
      * @param callInfo
      *            Information about ONC/RPC call for which we are about to send
      *            back the reply.
      * @param state
      *            ONC/RPC reply header indicating success or failure.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -518,7 +518,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * returned by {@link #getXdrDecodingStream} must not be used any more. This
      * method belongs to the lower-level access pattern when handling ONC/RPC
      * calls.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully deserialized.
@@ -537,7 +537,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
     /**
      * Finishes encoding the reply to this ONC/RPC call. Afterwards you must not
      * use the XDR stream returned by {@link #getXdrEncodingStream} any longer.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -569,7 +569,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * Returns XDR stream which can be used for deserializing the parameters of
      * this ONC/RPC call. This method belongs to the lower-level access pattern
      * when handling ONC/RPC calls.
-     * 
+     *
      */
     @Override
     protected XdrDecodingStream getXdrDecodingStream() {
@@ -580,7 +580,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * Returns XDR stream which can be used for eserializing the reply to this
      * ONC/RPC call. This method belongs to the lower-level access pattern when
      * handling ONC/RPC calls.
-     * 
+     *
      * @return Reference to enecoding XDR stream.
      */
     @Override
@@ -594,7 +594,7 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * ONC/RPC calls have to use the
      * {@link OncRpcCallInformation#reply(XdrAble)} method instead on the call
      * object supplied to the handler.
-     * 
+     *
      * @param callInfo
      *            information about the original call, which are necessary to
      *            send back the reply to the appropriate caller.
@@ -604,14 +604,14 @@ public class OncRpcTcpConnectionServerTransport extends OncRpcServerTransport {
      * @param reply
      *            If not <code>null</code>, then this parameter references the
      *            reply to be serialized after the reply message header.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
      * @throws IOException
      *             if an I/O exception occurs, like transmission failures over
      *             the network, etc.
-     * 
+     *
      * @see OncRpcCallInformation
      * @see OncRpcDispatchable
      */

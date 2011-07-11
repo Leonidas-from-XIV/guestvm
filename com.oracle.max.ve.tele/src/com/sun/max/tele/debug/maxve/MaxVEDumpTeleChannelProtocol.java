@@ -75,18 +75,18 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
 
     @Override
     public boolean initialize(int threadLocalsAreaSize, boolean bigEndian) {
-    	this.threadLocalsAreaSize = threadLocalsAreaSize;
+        this.threadLocalsAreaSize = threadLocalsAreaSize;
         return true;
     }
 
     @Override
     public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
-    	
+
     }
 
     @Override
     public boolean attach(int id) {
-		tla = new GUKThreadListAccess(this, threadLocalsAreaSize, imageFileHandler.getThreadListSymbolAddress());
+        tla = new GUKThreadListAccess(this, threadLocalsAreaSize, imageFileHandler.getThreadListSymbolAddress());
         return true;
     }
 
@@ -115,7 +115,7 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
             //This essentially assumes 64 bitness of the address and the target.
             return xenReader.getPagesSection().getX64WordAtOffset(address);
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
             ProgramError.unexpected("Couldnt get Boot Heap start from the dump File");
         }
         return 0;
@@ -129,46 +129,46 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
     @Override
     public int readBytes(long src, byte[] dst, int dstOffset, int length) {
         //Resolve the address
-    	try {
-    		Address l1pte = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src)));
-    		long physicalAddr = l1pte.toLong() + (src & (X64VM.L0_ENTRIES-1));
-			return xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        try {
+            Address l1pte = pageTableAccess.getAddressForPte(pageTableAccess.getPteForAddress(Address.fromLong(src)));
+            long physicalAddr = l1pte.toLong() + (src & (X64VM.L0_ENTRIES-1));
+            return xenReader.getPagesSection().readBytes(physicalAddr, dst, dstOffset, length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
-	@Override
-	public boolean readRegisters(long threadId, byte[] integerRegisters,
-			int integerRegistersSize, byte[] floatingPointRegisters,
-			int floatingPointRegistersSize, byte[] stateRegisters,
-			int stateRegistersSize) {
-		GUKThreadListAccess.GUKThreadInfo threadInfo =(GUKThreadListAccess.GUKThreadInfo ) tla.getThreadInfo((int) threadId);
-		if (threadInfo.regsAvail) {
-			System.arraycopy(threadInfo.integerRegisters, 0, integerRegisters, 0, integerRegisters.length);
-			System.arraycopy(threadInfo.floatingPointRegisters, 0, floatingPointRegisters, 0, floatingPointRegisters.length);
-			System.arraycopy(threadInfo.stateRegisters, 0, stateRegisters, 0, stateRegisters.length);
-		} else {
-			// we are filling in the cache in threadInfo
-			assert threadInfo.integerRegisters == integerRegisters;
-			try {
-				GuestContext context = xenReader.getGuestContext(tla
-						.getCpu((int) threadId));
-				context.getCpuUserRegs().canonicalizeTeleIntegerRegisters(
-						integerRegisters);
-				context.getCpuUserRegs().canonicalizeTeleStateRegisters(
-						stateRegisters);
-				System.arraycopy(context.getfpuRegisters(), 0,
-						floatingPointRegisters, 0, floatingPointRegistersSize);
-				threadInfo.regsAvail = true;
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-		return true;
-	}
+    @Override
+    public boolean readRegisters(long threadId, byte[] integerRegisters,
+            int integerRegistersSize, byte[] floatingPointRegisters,
+            int floatingPointRegistersSize, byte[] stateRegisters,
+            int stateRegistersSize) {
+        GUKThreadListAccess.GUKThreadInfo threadInfo =(GUKThreadListAccess.GUKThreadInfo ) tla.getThreadInfo((int) threadId);
+        if (threadInfo.regsAvail) {
+            System.arraycopy(threadInfo.integerRegisters, 0, integerRegisters, 0, integerRegisters.length);
+            System.arraycopy(threadInfo.floatingPointRegisters, 0, floatingPointRegisters, 0, floatingPointRegisters.length);
+            System.arraycopy(threadInfo.stateRegisters, 0, stateRegisters, 0, stateRegisters.length);
+        } else {
+            // we are filling in the cache in threadInfo
+            assert threadInfo.integerRegisters == integerRegisters;
+            try {
+                GuestContext context = xenReader.getGuestContext(tla
+                        .getCpu((int) threadId));
+                context.getCpuUserRegs().canonicalizeTeleIntegerRegisters(
+                        integerRegisters);
+                context.getCpuUserRegs().canonicalizeTeleStateRegisters(
+                        stateRegisters);
+                System.arraycopy(context.getfpuRegisters(), 0,
+                        floatingPointRegisters, 0, floatingPointRegistersSize);
+                threadInfo.regsAvail = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public int readWatchpointAccessCode() {
@@ -187,7 +187,7 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
         inappropriate("resume");
         return false;
     }
-    
+
     @Override
     public boolean resumeAll() {
         inappropriate("resumeAll");
@@ -202,14 +202,14 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
 
     @Override
     public int waitUntilStoppedAsInt() {
-    	inappropriate("waitUntilStoppedAsInt");
-    	return 0;
+        inappropriate("waitUntilStoppedAsInt");
+        return 0;
     }
 
     @Override
     public ProcessState waitUntilStopped() {
-    	inappropriate("waitUntilStopped");
-    	return ProcessState.UNKNOWN;
+        inappropriate("waitUntilStopped");
+        return ProcessState.UNKNOWN;
     }
 
     @Override
@@ -241,7 +241,7 @@ public class MaxVEDumpTeleChannelProtocol extends TeleChannelDataIOProtocolAdapt
         inappropriate("suspendAll");
         return false;
     }
-    
+
     @Override
     public int writeBytes(long dst, byte[] src, int srcOffset, int length) {
         Trace.line(2, "WARNING: Inspector trying to write to " + Long.toHexString(dst));

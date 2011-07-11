@@ -51,7 +51,7 @@ class XFurl {
     XFurl(String url) throws MalformedURLException {
         int p, q, r;
 
-        url = url.trim();	// remove leading & trailing spaces
+        url = url.trim();       // remove leading & trailing spaces
         this.url = url;
         int end = url.length();
 
@@ -60,8 +60,8 @@ class XFurl {
             throw new MalformedURLException("colon expected");
         protocol = url.substring(0, p);
         q = p;
-        p++;	// skip colon
-        if (url.regionMatches(p, "//", 0, 2)) {	// have hostname
+        p++;    // skip colon
+        if (url.regionMatches(p, "//", 0, 2)) { // have hostname
             p += 2;
             q = url.indexOf('/', p);
             if (q < 0)
@@ -85,14 +85,14 @@ class XFurl {
 
         rpath = rpath.trim();
 
-        if (rpath.indexOf("://") > 0) {	// URL - ignore base
+        if (rpath.indexOf("://") > 0) { // URL - ignore base
             url = rpath;
             XFurl u = new XFurl(rpath);
             protocol = u.getProtocol();
             location =  u.getLocation();
             path = u.getPath();
 
-        } else if (rpath.startsWith("/")) {	// absolute path
+        } else if (rpath.startsWith("/")) {     // absolute path
             path = rpath.substring(1);
 
         } else {
@@ -114,7 +114,7 @@ class XFurl {
                 if (p2 >= len)
                     break;
 
-                npath += "%25";	// replace % with %25
+                npath += "%25"; // replace % with %25
                 p1 = p2 + 1;
             }
             rpath = npath;
@@ -170,7 +170,7 @@ class XFurl {
     String getParent() {
 
         if (path.equals(""))
-            return null;	// no parent
+            return null;        // no parent
 
         String s = protocol + ":";
 

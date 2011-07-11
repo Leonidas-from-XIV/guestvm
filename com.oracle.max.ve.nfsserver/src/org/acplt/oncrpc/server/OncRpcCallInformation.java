@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/OncRpcCallInformation
  * .java,v 1.3 2003/08/14 11:26:50 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -47,11 +47,11 @@ import org.acplt.oncrpc.XdrEncodingStream;
  * transports may become multi-threaded handling. The call info object is
  * responsible to control access to the underlaying transport, so never mess
  * with the transport directly.
- * 
+ *
  * <p>
  * Note that this class provides two different patterns for accessing parameters
  * sent by clients within the ONC/RPC call and sending back replies.
- * 
+ *
  * <ol>
  * <li>The convenient high-level access:
  * <ul>
@@ -61,7 +61,7 @@ import org.acplt.oncrpc.XdrEncodingStream;
  * reply/result object. Or use the <code>failXXX</code> methods to send back an
  * error indication instead.
  * </ul>
- * 
+ *
  * <li>The lower-level access, giving more control over how and when data is
  * deserialized and serialized:
  * <ul>
@@ -74,9 +74,9 @@ import org.acplt.oncrpc.XdrEncodingStream;
  * finish the serializing step by calling {@link #endEncoding}.
  * </ul>
  * </ol>
- * 
+ *
  * @see OncRpcDispatchable
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2003/08/14 11:26:50 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -116,7 +116,7 @@ public class OncRpcCallInformation {
      * using the same call info object. To support multithreaded handling of
      * calls in the future (for UDP/IP), the transport is already divided from
      * the call info.
-     * 
+     *
      * @param transport
      *            ONC/RPC server transport.
      */
@@ -130,7 +130,7 @@ public class OncRpcCallInformation {
      * serialization can be obtained using {@link #getXdrEncodingStream}. This
      * method belongs to the lower-level access pattern when handling ONC/RPC
      * calls.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -158,10 +158,10 @@ public class OncRpcCallInformation {
      * use for serialization can be obtained using {@link #getXdrEncodingStream}
      * . This method belongs to the lower-level access pattern when handling
      * ONC/RPC calls.
-     * 
+     *
      * @param state
      *            ONC/RPC reply header indicating success or failure.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -180,7 +180,7 @@ public class OncRpcCallInformation {
      * returned by {@link #getXdrDecodingStream} must not be used any more. This
      * method belongs to the lower-level access pattern when handling ONC/RPC
      * calls.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully deserialized.
@@ -195,7 +195,7 @@ public class OncRpcCallInformation {
     /**
      * Finishes encoding the reply to this ONC/RPC call. Afterwards you must not
      * use the XDR stream returned by {@link #getXdrEncodingStream} any longer.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -210,7 +210,7 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about invalid arguments to the
      * caller who sent in this call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -234,10 +234,10 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about a failed authentication to
      * the caller who sent in this call.
-     * 
+     *
      * @param authStatus
      *            {@link OncRpcAuthStatus Reason} why authentication failed.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -262,7 +262,7 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about a ONC/RPC version mismatch
      * call to the caller who sent in this call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -286,7 +286,7 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about an unavailable procedure
      * call to the caller who sent in this call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -310,12 +310,12 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about a program version mismatch
      * to the caller who sent in this call.
-     * 
+     *
      * @param lowVersion
      *            lowest supported program version.
      * @param highVersion
      *            highest supported program version.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -340,7 +340,7 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about an unavailable program to
      * the caller who sent in this call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -364,7 +364,7 @@ public class OncRpcCallInformation {
     /**
      * Send back an ONC/RPC failure indication about a system error to the
      * caller who sent in this call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -389,7 +389,7 @@ public class OncRpcCallInformation {
      * Returns XDR stream which can be used for deserializing the parameters of
      * this ONC/RPC call. This method belongs to the lower-level access pattern
      * when handling ONC/RPC calls.
-     * 
+     *
      * @return Reference to decoding XDR stream.
      */
     public XdrDecodingStream getXdrDecodingStream() {
@@ -400,7 +400,7 @@ public class OncRpcCallInformation {
      * Returns XDR stream which can be used for eserializing the reply to this
      * ONC/RPC call. This method belongs to the lower-level access pattern when
      * handling ONC/RPC calls.
-     * 
+     *
      * @return Reference to enecoding XDR stream.
      */
     public XdrEncodingStream getXdrEncodingStream() {
@@ -412,21 +412,21 @@ public class OncRpcCallInformation {
      * low-level function and typically should not be used by call dispatchers.
      * Instead use the other {@link #reply(XdrAble) reply method} which just
      * expects a serializable object to send back to the caller.
-     * 
+     *
      * @param state
      *            ONC/RPC reply message header indicating success or failure and
      *            containing associated state information.
      * @param reply
      *            If not <code>null</code>, then this parameter references the
      *            reply to be serialized after the reply message header.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
      * @throws IOException
      *             if an I/O exception occurs, like transmission failures over
      *             the network, etc.
-     * 
+     *
      * @see OncRpcReplyMessage
      * @see OncRpcDispatchable
      */
@@ -440,10 +440,10 @@ public class OncRpcCallInformation {
      * Send back an ONC/RPC reply to the caller who sent in this call. This
      * automatically sends an ONC/RPC reply header before the reply part,
      * indicating success within the header.
-     * 
+     *
      * @param reply
      *            Reply body the ONC/RPC reply message.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully serialized.
@@ -468,7 +468,7 @@ public class OncRpcCallInformation {
      * Retrieves the parameters sent within an ONC/RPC call message. It also
      * makes sure that the deserialization process is properly finished after
      * the call parameters have been retrieved.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC exception occurs, like the data could not be
      *             successfully deserialized.

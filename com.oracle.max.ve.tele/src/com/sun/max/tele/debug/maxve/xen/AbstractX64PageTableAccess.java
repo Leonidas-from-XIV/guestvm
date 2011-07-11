@@ -93,10 +93,10 @@ public abstract class AbstractX64PageTableAccess implements PageTableAccess {
     }
 
 //    public final long getPhysicalAddressForVirtualAddress(Address address)throws IOException {
-//    	long pte = getPteForAddress(address);
-//    	Address l0PageTableAddress = getAddressForPte(pte);
-//    	final int index = getPTIndex(address, 0);
-//    	return getPTEntryAtIndex(l0PageTableAddress, index);
+//      long pte = getPteForAddress(address);
+//      Address l0PageTableAddress = getAddressForPte(pte);
+//      final int index = getPTIndex(address, 0);
+//      return getPTEntryAtIndex(l0PageTableAddress, index);
 //    }
     /* (non-Javadoc)
      * @see com.sun.max.tele.page.PageTableAccess#getPteForAddress(com.sun.max.unsafe.Address)

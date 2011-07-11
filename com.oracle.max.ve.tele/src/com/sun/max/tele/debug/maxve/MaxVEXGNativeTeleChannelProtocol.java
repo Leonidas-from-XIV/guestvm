@@ -52,15 +52,15 @@ public class MaxVEXGNativeTeleChannelProtocol  extends MaxVENativeTeleChannelPro
      * {@link #setNativeAddresses(long, long, long)} method.
      */
     private ImageFileHandler imageFileHandler;
-    
+
     private long threadListAddress;
     private long bootHeapStartAddress;
     private long resumeAddress;
     private boolean started;
-	
-	public MaxVEXGNativeTeleChannelProtocol() {
-	}
-	
+
+    public MaxVEXGNativeTeleChannelProtocol() {
+    }
+
 
     public MaxVEXGNativeTeleChannelProtocol(ImageFileHandler imageFileHandler) {
         this.imageFileHandler = imageFileHandler;
@@ -75,15 +75,15 @@ public class MaxVEXGNativeTeleChannelProtocol  extends MaxVENativeTeleChannelPro
 
     @Override
     public boolean initialize(int threadLocalsAreaSize, boolean bigEndian) {
-    	this.threadLocalsAreaSize = threadLocalsAreaSize;
+        this.threadLocalsAreaSize = threadLocalsAreaSize;
         return true;
     }
-    
+
     @Override
     public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
-    	this.threadListAddress = threadListAddress;
-    	this.bootHeapStartAddress = bootHeapStartAddress;
-    	this.resumeAddress = resumeAddress;
+        this.threadListAddress = threadListAddress;
+        this.bootHeapStartAddress = bootHeapStartAddress;
+        this.resumeAddress = resumeAddress;
     }
 
     @Override
@@ -161,7 +161,7 @@ public class MaxVEXGNativeTeleChannelProtocol  extends MaxVENativeTeleChannelPro
 
     @Override
     public boolean resume(long threadId) {
-    	resumeAll();
+        resumeAll();
         return true;
     }
 
@@ -182,14 +182,14 @@ public class MaxVEXGNativeTeleChannelProtocol  extends MaxVENativeTeleChannelPro
      */
     @Override
     public ProcessState waitUntilStopped() {
-    	return terminated ? ProcessState.TERMINATED : ProcessState.STOPPED;
+        return terminated ? ProcessState.TERMINATED : ProcessState.STOPPED;
     }
 
     @Override
     public int waitUntilStoppedAsInt() {
-    	return terminated ? ProcessState.TERMINATED.ordinal() : ProcessState.STOPPED.ordinal();
+        return terminated ? ProcessState.TERMINATED.ordinal() : ProcessState.STOPPED.ordinal();
     }
-    
+
     @Override
     public boolean setInstructionPointer(long threadId, long ip) {
         return nativeSetInstructionPointer((int) threadId, ip) == 0;

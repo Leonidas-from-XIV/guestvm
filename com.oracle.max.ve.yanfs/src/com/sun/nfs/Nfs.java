@@ -62,7 +62,7 @@ public abstract class Nfs {
     String[] dircache;
     String symlink;
     Buffer[] bufferList;
-    long cacheTime;		// Time when object was cached
+    long cacheTime;             // Time when object was cached
     int rsize, wsize;
     private Object wbLock = new Object(); // write-behind semaphore lock
     static Hashtable cacheNfs = new Hashtable();
@@ -78,14 +78,14 @@ public abstract class Nfs {
     private final static int ASYNC = 0;
     private final static int SYNC  = 2;
 
-    int NRA;	// max reads-ahead      (set in subclass constructor)
-    int NWB;	// max writes-behind    (")
-    int NWC;	// max writes committed (")
-    int nwb;	// current writes-behind
-    int prevReadIndex  = -1;	// Buffer index of previous read
-    int prevWriteIndex = -1;	// Buffer index of previous write
-    int maxIndexRead = 0;	// Max file offset read
-    long maxLength = 0;		// Size of file
+    int NRA;    // max reads-ahead      (set in subclass constructor)
+    int NWB;    // max writes-behind    (")
+    int NWC;    // max writes committed (")
+    int nwb;    // current writes-behind
+    int prevReadIndex  = -1;    // Buffer index of previous read
+    int prevWriteIndex = -1;    // Buffer index of previous write
+    int maxIndexRead = 0;       // Max file offset read
+    long maxLength = 0;         // Size of file
 
     // Some important permission bits
 
@@ -191,7 +191,7 @@ public abstract class Nfs {
     /*
      * Cache an Nfs object
      *
-     * @param n	the object to be cached
+     * @param n the object to be cached
      */
     static void cache_put(Nfs n) {
         cacheNfs.put(n.rpc.conn.server + ":" + n.name, n);
@@ -200,9 +200,9 @@ public abstract class Nfs {
     /*
      * Retrieve a cached Nfs object
      *
-     * @param server	The server that hosts the object
-     * @param name	The pathname of the object
-     * @returns		The object - or null if not cached
+     * @param server    The server that hosts the object
+     * @param name      The pathname of the object
+     * @returns         The object - or null if not cached
      */
     static Nfs cache_get(String server, String name) {
         return ((Nfs)cacheNfs.get(server + ":" + name));
@@ -211,7 +211,7 @@ public abstract class Nfs {
     /*
      * Remove an Nfs object from the cache
      *
-     * @param n	the object to be removed from cache
+     * @param n the object to be removed from cache
      */
     static void cache_remove(Nfs n, String name) {
     if (n.name.equals("."))
@@ -223,12 +223,12 @@ public abstract class Nfs {
     /**
      * Read data from the specified file offset
      *
-     * @param buf	The destination buffer
-     * @param boff	Offset into the dest buffer
-     * @param length	Amount of data to read
-     * @param foffset	File offset to begin reading
-     * @exception	java.io.IOException
-     * @return		actual bytes read
+     * @param buf       The destination buffer
+     * @param boff      Offset into the dest buffer
+     * @param length    Amount of data to read
+     * @param foffset   File offset to begin reading
+     * @exception       java.io.IOException
+     * @return          actual bytes read
      */
     public synchronized int read(byte[] buf, int boff, int length, long foffset)
         throws IOException {
@@ -244,7 +244,7 @@ public abstract class Nfs {
          */
         if (!cacheOK(cacheTime) && bufferList != null) {
             for (int i = 0; i < bufferList.length; i++)
-                if (i != prevWriteIndex)	// don't delete dirty buffers
+                if (i != prevWriteIndex)        // don't delete dirty buffers
                     bufferList[i] = null;
 
             prevReadIndex = -1;
@@ -364,7 +364,7 @@ public abstract class Nfs {
                 prevReadIndex  = -1;
                 prevWriteIndex = -1;
 
-                continue;	// Try again with new rsize
+                continue;       // Try again with new rsize
             }
 
         /*
@@ -411,11 +411,11 @@ public abstract class Nfs {
     /**
      * Write data to a file at a specified offset.
      *
-     * @param buf	The data to write
-     * @param boff	Offset into the data buffer
-     * @param length	Amount of data to write
-     * @param foffset	File offset to begin writing at
-     * @exception	java.io.IOException
+     * @param buf       The data to write
+     * @param boff      Offset into the data buffer
+     * @param length    Amount of data to write
+     * @param foffset   File offset to begin writing at
+     * @exception       java.io.IOException
      */
     public synchronized void write(byte buf[], int boff, int length, long foffset)
     throws IOException {
@@ -589,10 +589,10 @@ public abstract class Nfs {
             Buffer b = bufferList[prevWriteIndex];
         if (b != null) {
                 if (b.status == b.DIRTY) {
-                    if (nwc == 0) {		// just one - do it sync
+                    if (nwc == 0) {             // just one - do it sync
                         b.startUnload(SYNC);
                         b.waitUnloaded();
-                    } else {		// more than one - do it async
+                    } else {            // more than one - do it async
                         b.startUnload(ASYNC);
                         b.waitUnloaded();
 
@@ -651,7 +651,7 @@ public abstract class Nfs {
                             continue;
                         }
 
-                        bufferList[i] = null;		// release buffer
+                        bufferList[i] = null;           // release buffer
                         b.exit();
                     } else {
 
@@ -683,7 +683,7 @@ public abstract class Nfs {
      * if server ran out of disk space.
      */
     synchronized public void flush() throws IOException {
-        if (prevWriteIndex >= 0)	// if no writes then don't bother
+        if (prevWriteIndex >= 0)        // if no writes then don't bother
             checkCommit(true);
     }
 
@@ -698,7 +698,7 @@ public abstract class Nfs {
         if (bufferList == null)
             return;
 
-        flush();	// unwritten data
+        flush();        // unwritten data
 
         for (int i = 0; i < bufferList.length; i++) {
             if (bufferList[i] != null) {

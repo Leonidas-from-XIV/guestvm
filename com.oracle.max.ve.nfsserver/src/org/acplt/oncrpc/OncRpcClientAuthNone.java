@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcClientAuthNone.java,v
  * 1.1.1.1 2003/08/13 12:03:40 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -29,7 +29,7 @@ import java.io.IOException;
 /**
  * The <code>OncRpcClientAuthNone</code> class handles protocol issues of
  * ONC/RPC <code>AUTH_NONE</code> authentication.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:40 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -44,7 +44,7 @@ public class OncRpcClientAuthNone extends OncRpcClientAuth {
 
     /**
      * Indicates whether the ONC/RPC authentication credential can be refreshed.
-     * 
+     *
      * @return true, if the credential can be refreshed
      */
     @Override
@@ -59,11 +59,11 @@ public class OncRpcClientAuthNone extends OncRpcClientAuth {
     /**
      * Decodes ONC/RPC authentication information in form of a verifier when
      * receiving an ONC/RPC reply message.
-     * 
+     *
      * @param xdr
      *            XDR stream from which to receive the verifier sent together
      *            with an ONC/RPC reply message.
-     * 
+     *
      * @throws OncRpcAuthenticationException
      *             if the received verifier is not kosher.
      * @throws OncRpcException
@@ -89,10 +89,10 @@ public class OncRpcClientAuthNone extends OncRpcClientAuth {
     /**
      * Encodes ONC/RPC authentication information in form of a credential and a
      * verifier when sending an ONC/RPC call message.
-     * 
+     *
      * @param xdr
      *            XDR stream where to encode the credential and the verifier to.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

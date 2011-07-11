@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrTcpEncodingStream.java,v
  * 1.2 2003/08/14 11:07:39 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -33,7 +33,7 @@ import java.net.Socket;
  * The <code>XdrTcpEncodingStream</code> class provides the necessary
  * functionality to {@link XdrEncodingStream} to send XDR records to the network
  * using the stream-oriented TCP/IP.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 11:07:39 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -81,7 +81,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * Construct a new <code>XdrTcpEncodingStream</code> object and associate it
      * with the given <code>streamingSocket</code> for TCP/IP-based
      * communication.
-     * 
+     *
      * @param streamingSocket
      *            Socket to which XDR data is sent.
      * @param bufferSize
@@ -116,14 +116,14 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
     /**
      * Begins encoding a new XDR record. This typically involves resetting this
      * encoding XDR stream back into a known state.
-     * 
+     *
      * @param receiverAddress
      *            Indicates the receiver of the XDR data. This can be
      *            <code>null</code> for XDR streams connected permanently to a
      *            receiver (like in case of TCP/IP based XDR streams).
      * @param receiverPort
      *            Port number of the receiver.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -149,7 +149,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * associated with this stream. The general contract of <code>close</code>
      * is that it closes the encoding XDR stream. A closed XDR stream cannot
      * perform encoding operations and cannot be reopened.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -167,7 +167,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * calling it is an indication that the current record is finished and any
      * bytes previously encoded should immediately be written to their intended
      * destination.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -187,7 +187,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * <b>must not</b> send a reply (with the exception for the last call in a
      * batch, which might be trigger a reply). Otherwise, you will most probably
      * cause an interaction deadlock between client and server.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -201,7 +201,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * Returns the Internet address of the sender of the current XDR data. This
      * method should only be called after {@link #beginEncoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return InetAddress of the sender of the current XDR data.
      */
     public InetAddress getSenderAddress() {
@@ -212,7 +212,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * Returns the port number of the sender of the current XDR data. This
      * method should only be called after {@link #beginEncoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return Port number of the sender of the current XDR data.
      */
     public int getSenderPort() {
@@ -224,7 +224,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * stream. A XDR int is 32 bits wide -- the same width Java's "int" data
      * type has. This method is one of the basic methods all other methods can
      * rely on.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -254,7 +254,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      * how long the opaque value will be. The encoded data is always padded to
      * be a multiple of four. If the given length is not a multiple of four,
      * zero bytes will be used for padding.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -298,7 +298,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
     /**
      * Flushes the current contents of the buffer as one fragment to the
      * network.
-     * 
+     *
      * @param lastFragment
      *            <code>true</code> if this is the last fragment of the current
      *            XDR record.
@@ -306,7 +306,7 @@ public class XdrTcpEncodingStream extends XdrEncodingStream {
      *            if last fragment and <code>batch</code> is <code>true</code>,
      *            then the buffer is not flushed to the network but instead we
      *            wait for more records to be encoded.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

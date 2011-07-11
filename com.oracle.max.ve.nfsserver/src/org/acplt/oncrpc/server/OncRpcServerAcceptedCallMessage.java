@@ -2,20 +2,20 @@
  * $Header:/cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/
  * OncRpcServerAcceptedCallMessage.java,v 1.2 2003/08/14 08:10:59 haraldalbrecht
  * Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -35,11 +35,11 @@ import org.acplt.oncrpc.OncRpcReplyStatus;
  * call does not mean that it carries a result from the remote procedure call,
  * but rather that the call was accepted at the basic ONC/RPC level and no
  * authentification failure or else occured.
- * 
+ *
  * <p>
  * This ONC/RPC reply header class is only a convenience for server
  * implementors.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 08:10:59 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -50,7 +50,7 @@ public class OncRpcServerAcceptedCallMessage extends OncRpcServerReplyMessage {
      * Constructs an <code>OncRpcServerAcceptedCallMessage</code> object which
      * represents an accepted call, which was also successfully executed, so the
      * reply will contain information from the remote procedure call.
-     * 
+     *
      * @param call
      *            The call message header, which is used to construct the
      *            matching reply message header from.
@@ -69,7 +69,7 @@ public class OncRpcServerAcceptedCallMessage extends OncRpcServerReplyMessage {
      * represents an accepted call, which was not necessarily successfully
      * carried out. The parameter <code>acceptStatus</code> will then indicate
      * the exact outcome of the ONC/RPC call.
-     * 
+     *
      * @param call
      *            The call message header, which is used to construct the
      *            matching reply message header from.
@@ -90,7 +90,7 @@ public class OncRpcServerAcceptedCallMessage extends OncRpcServerReplyMessage {
      * Constructs an <code>OncRpcAcceptedCallMessage</code> object for an
      * accepted call with an unsupported version. The reply will contain
      * information about the lowest and highest supported version.
-     * 
+     *
      * @param call
      *            The call message header, which is used to construct the
      *            matching reply message header from.

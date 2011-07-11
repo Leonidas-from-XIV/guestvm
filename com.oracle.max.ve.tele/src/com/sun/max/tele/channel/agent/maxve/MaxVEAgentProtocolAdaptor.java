@@ -28,21 +28,21 @@ import com.sun.max.tele.debug.maxve.MaxVETeleChannelProtocol;
 
 /**
  * Variant of the adaptor that implements the {@link MaxVETeleChannelProtocol} protocol.
- * 
+ *
  * @author Mick Jordan
  *
  */
 
 public class MaxVEAgentProtocolAdaptor extends AgentProtocolAdaptor implements MaxVETeleChannelDataIOProtocol {
-	private MaxVETeleChannelProtocol impl;
-	
-	public MaxVEAgentProtocolAdaptor(TeleProcess teleProcess, MaxVETeleChannelProtocol impl) {
-		super(teleProcess, impl);
-		this.impl = impl;
-	}
-	
-	@Override
-	public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
-		impl.setNativeAddresses(threadListAddress, bootHeapStartAddress, resumeAddress);
-	}
+    private MaxVETeleChannelProtocol impl;
+
+    public MaxVEAgentProtocolAdaptor(TeleProcess teleProcess, MaxVETeleChannelProtocol impl) {
+        super(teleProcess, impl);
+        this.impl = impl;
+    }
+
+    @Override
+    public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
+        impl.setNativeAddresses(threadListAddress, bootHeapStartAddress, resumeAddress);
+    }
 }

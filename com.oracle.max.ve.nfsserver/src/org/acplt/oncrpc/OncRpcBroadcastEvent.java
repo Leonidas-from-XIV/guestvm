@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcBroadcastEvent.java,v
  * 1.3 2005/11/11 21:19:20 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -32,11 +32,11 @@ import java.util.EventObject;
  * {@link OncRpcUdpClient ONC/RPC UDP/IP-based clients} whenever replies to a
  * {@link OncRpcUdpClient#broadcastCall(int, XdrAble, XdrAble, OncRpcBroadcastListener)
  * broadcast call} are received.
- * 
+ *
  * @see OncRpcBroadcastListener
  * @see OncRpcBroadcastAdapter
  * @see OncRpcUdpClient
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2005/11/11 21:19:20 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -50,14 +50,14 @@ public class OncRpcBroadcastEvent extends EventObject {
 
     /**
      * Contains the parameters sent in the ONC/RPC broadcast call.
-     * 
+     *
      * @serial
      */
     private XdrAble params;
 
     /**
      * Contains the number of the remote procedure called.
-     * 
+     *
      * @serial
      */
     private int procedureNumber;
@@ -65,14 +65,14 @@ public class OncRpcBroadcastEvent extends EventObject {
     /**
      * Contains the reply from a remote ONC/RPC server, which answered the
      * broadcast call.
-     * 
+     *
      * @serial
      */
     private XdrAble reply;
 
     /**
      * Contains the address of the sender of the ONC/RPC reply message.
-     * 
+     *
      * @serial
      */
     private InetAddress replyAddress;
@@ -80,7 +80,7 @@ public class OncRpcBroadcastEvent extends EventObject {
     /**
      * Creates a new <code>KscPackageUpdateEvent</code> object and initializes
      * its state.
-     * 
+     *
      * @param source
      *            The {@link OncRpcUdpClient ONC/RPC client object} which has
      *            fired this event.
@@ -105,7 +105,7 @@ public class OncRpcBroadcastEvent extends EventObject {
 
     /**
      * Returns the parameter message sent in a broadcast RPC.
-     * 
+     *
      * @return parameter message object.
      */
     public XdrAble getParams() {
@@ -114,7 +114,7 @@ public class OncRpcBroadcastEvent extends EventObject {
 
     /**
      * Returns the number of the remote procedure called.
-     * 
+     *
      * @return procedure number.
      */
     public int getProcedureNumber() {
@@ -123,7 +123,7 @@ public class OncRpcBroadcastEvent extends EventObject {
 
     /**
      * Returns ONC/RPC reply message.
-     * 
+     *
      * @return reply message object.
      */
     public XdrAble getReply() {
@@ -132,7 +132,7 @@ public class OncRpcBroadcastEvent extends EventObject {
 
     /**
      * Returns the address of the sender of the ONC/RPC reply message.
-     * 
+     *
      * @return address of sender of reply.
      */
     public InetAddress getReplyAddress() {

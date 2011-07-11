@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/OncRpcServerStub
  * .java,v 1.2 2003/08/14 13:47:04 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -33,7 +33,7 @@ import org.acplt.oncrpc.OncRpcException;
  * ONC/RPC-program specific servers upon. This class is typically only used by
  * jrpcgen generated servers, which provide a particular set of remote
  * procedures as defined in a x-file.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 13:47:04 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -69,7 +69,7 @@ public abstract class OncRpcServerStub {
      * calling this method processing of remote procedure calls by individual
      * transports can be stopped. This is because every server transport is
      * handled by its own thread.
-     * 
+     *
      * @param transports
      *            Array of server transport objects to close.
      */
@@ -82,7 +82,7 @@ public abstract class OncRpcServerStub {
 
     /**
      * Get the character encoding for deserializing strings.
-     * 
+     *
      * @return the encoding currently used for deserializing strings. If
      *         <code>null</code>, then the system's default encoding is used.
      */
@@ -92,11 +92,11 @@ public abstract class OncRpcServerStub {
 
     /**
      * Register a set of server transports with the local portmapper.
-     * 
+     *
      * @param transports
      *            Array of server transport objects to register, which will
      *            later handle incomming remote procedure call requests.
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper could not be contacted successfully.
      */
@@ -112,7 +112,7 @@ public abstract class OncRpcServerStub {
      * All inclusive convenience method: register server transports with
      * portmapper, then run the call dispatcher until the server is signalled to
      * shut down, and finally deregister the transports.
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper can not be contacted successfully.
      * @throws IOException
@@ -143,7 +143,7 @@ public abstract class OncRpcServerStub {
      * {@link #shutdownSignal} object. Note that the thread on which
      * <code>run()</code> is called will ignore any interruptions and will
      * silently swallow them.
-     * 
+     *
      * @param transports
      *            Array of server transport objects for which processing of
      *            remote procedure call requests should be done.
@@ -172,7 +172,7 @@ public abstract class OncRpcServerStub {
 
     /**
      * Set the character encoding for deserializing strings.
-     * 
+     *
      * @param characterEncoding
      *            the encoding to use for deserializing strings. If
      *            <code>null</code>, the system's default encoding is to be
@@ -202,10 +202,10 @@ public abstract class OncRpcServerStub {
 
     /**
      * Unregister a set of server transports from the local portmapper.
-     * 
+     *
      * @param transports
      *            Array of server transport objects to unregister.
-     * 
+     *
      * @throws OncRpcException
      *             with a reason of {@link OncRpcException#RPC_FAILED
      *             OncRpcException.RPC_FAILED} if the portmapper could not be

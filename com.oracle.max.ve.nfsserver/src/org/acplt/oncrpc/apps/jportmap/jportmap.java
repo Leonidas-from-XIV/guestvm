@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jportmap/jportmap
  * .java,v 1.2 2003/08/14 11:26:50 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 2001 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -48,13 +48,13 @@ import org.acplt.oncrpc.server.OncRpcUdpServerTransport;
 /**
  * The class <code>jportmap</code> implements a Java-based ONC/RPC port mapper,
  * speaking the widely deployed protocol version 2.
- * 
+ *
  * <p>
  * This class can be either used stand-alone (a static <code>main</code> is
  * provided for this purpose) or as part of an application. In this case you
  * should check first for another portmap already running before starting your
  * own one.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 11:26:50 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -166,7 +166,7 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
                 }
             }
             if (loopbackIncluded) {
-                locals = addrs; 
+                locals = addrs;
             } else {
                 locals = new InetAddress[addrs.length + 1];
                 locals[0] = loopback;
@@ -190,7 +190,7 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
     /**
      * Dispatch incomming ONC/RPC calls to the individual handler functions. The
      * CALLIT method is currently unimplemented.
-     * 
+     *
      * @param call
      *            The ONC/RPC call, with references to the transport and XDR
      *            streams to use for retrieving parameters and sending replies.
@@ -200,7 +200,7 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
      *            the portmap's protocol version, 2
      * @param procedure
      *            the procedure to call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -282,11 +282,11 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
      * entry if found and an entry with another version, but the same program
      * and version number is found, this is returned instead. This is compatible
      * with the way Sun's portmap implementation works.
-     * 
+     *
      * @param params
      *            server identification (program, version, protocol) to look up.
      *            The port field is not used.
-     * 
+     *
      * @return port number where server listens for incomming ONC/RPC calls, or
      *         <code>0</code>, if no server is registered for (program,
      *         protocol).
@@ -327,10 +327,10 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
     /**
      * Checks whether the address given belongs to one of the local addresses of
      * this host.
-     * 
+     *
      * @param addr
      *            IP address to check.
-     * 
+     *
      * @return <code>true</code> if address specified belongs to one of the
      *         local addresses of this host.
      */
@@ -346,7 +346,7 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
 
     /**
      * Return list of registered ONC/RPC servers.
-     * 
+     *
      * @return list of ONC/RPC server descriptions (program, version, protocol,
      *         port).
      */
@@ -362,10 +362,10 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
      * for another port. In this case we return false. Thus, a caller first
      * needs to deregister any old entries which it whishes to update. Always
      * add new registration entries to the end of the list (vector).
-     * 
+     *
      * @param params
      *            (program, version, protocol, port) to register.
-     * 
+     *
      * @return <code>true</code> if registration succeeded.
      */
     XdrBoolean setPort(OncRpcServerIdent params) {
@@ -402,11 +402,11 @@ public class jportmap extends OncRpcServerStub implements OncRpcDispatchable {
      * Deregister all port settings for a particular (program, version) for all
      * transports (TCP, UDP, ...). While these are strange semantics, they are
      * compatible with Sun's portmap implementation.
-     * 
+     *
      * @param params
      *            (program, version) to deregister. The protocol and port fields
      *            are not used.
-     * 
+     *
      * @return <code>true</code> if deregistration succeeded.
      */
     XdrBoolean unsetPort(OncRpcServerIdent params) {

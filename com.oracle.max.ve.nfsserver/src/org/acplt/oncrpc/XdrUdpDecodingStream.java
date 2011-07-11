@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrUdpDecodingStream.java,v
  * 1.2 2005/11/11 21:07:40 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -33,7 +33,7 @@ import java.net.InetAddress;
  * The <code>XdrUdpDecodingStream</code> class provides the necessary
  * functionality to {@link XdrDecodingStream} to receive XDR packets from the
  * network using the datagram-oriented UDP/IP.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2005/11/11 21:07:40 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -78,7 +78,7 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * with the given <code>datagramSocket</code> for UDP/IP-based
      * communication. This constructor is typically used when communicating with
      * servers over UDP/IP using a "connected" datagram socket.
-     * 
+     *
      * @param datagramSocket
      *            Datagram socket from which XDR data is received.
      * @param bufferSize
@@ -105,7 +105,7 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
     /**
      * Initiates decoding of the next XDR record. For UDP-based XDR decoding
      * streams this reads in the next datagram from the network socket.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -125,12 +125,12 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * Closes this decoding XDR stream and releases any system resources
      * associated with this stream. A closed XDR stream cannot perform decoding
      * operations and cannot be reopened.
-     * 
+     *
      * <p>
      * This implementation frees the allocated buffer but does not close the
      * associated datagram socket. It only throws away the reference to this
      * socket.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -147,13 +147,13 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * <code>endDecoding</code> is that calling it is an indication that the
      * current record is no more interesting to the caller and any allocated
      * data for this record can be freed.
-     * 
+     *
      * <p>
      * This method overrides {@link XdrDecodingStream#endDecoding}. It does
      * nothing more than resetting the buffer pointer (eeek! a pointer in
      * Java!!!) back to the begin of an empty buffer, so attempts to decode data
      * will fail until the buffer is filled again.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -169,7 +169,7 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * Returns the Internet address of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return InetAddress of the sender of the current XDR data.
      */
     @Override
@@ -181,7 +181,7 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * Returns the port number of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return Port number of the sender of the current XDR data.
      */
     @Override
@@ -193,9 +193,9 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * Decodes (aka "deserializes") a "XDR int" value received from a XDR
      * stream. A XDR int is 32 bits wide -- the same width Java's "int" data
      * type has.
-     * 
+     *
      * @return The decoded int value.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -229,14 +229,14 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * of <code>length</code>. Only the opaque value is decoded, so the caller
      * has to know how long the opaque value will be. The decoded data is always
      * padded to be a multiple of four (because that's what the sender does).
-     * 
+     *
      * @param opaque
      *            Byte vector which will receive the decoded opaque value.
      * @param offset
      *            Start offset in the byte vector.
      * @param length
      *            the number of bytes to decode.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -272,12 +272,12 @@ public class XdrUdpDecodingStream extends XdrDecodingStream {
      * opaque value is given, we don't need to retrieve it from the XDR stream.
      * This is different from {@link #xdrDecodeOpaque(byte[], int, int)} where
      * first the length of the opaque value is retrieved from the XDR stream.
-     * 
+     *
      * @param length
      *            Length of opaque data to decode.
-     * 
+     *
      * @return Opaque data as a byte vector.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

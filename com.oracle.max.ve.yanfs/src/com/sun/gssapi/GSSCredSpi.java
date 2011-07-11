@@ -46,9 +46,9 @@ public interface GSSCredSpi {
      *
      * @param desiredName - desired name of the principal
      * @param initLifetime - desired lifetime for the init
-     *	credential; 0 signals use mechanism default
+     *  credential; 0 signals use mechanism default
      * @param acceptLifetime - desired lifetime for the accept
-     *	credential; 0 signals use mechanism default
+     *  credential; 0 signals use mechanism default
      * @param usage - the desired usage for this credential
      * @exception - GSSException may be thrown
      */

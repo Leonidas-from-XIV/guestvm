@@ -49,7 +49,7 @@ public class RpcException extends java.io.IOException {
 
     /*
      * Construct a new RPC exception with the given error
-     * @param string	The error message
+     * @param string    The error message
      */
     public RpcException(String msg) {
         super("RPC error: " + msg);
@@ -57,7 +57,7 @@ public class RpcException extends java.io.IOException {
 
     /*
      * Construct a new RPC exception with the given error
-     * @param error	The RPC error
+     * @param error     The RPC error
      */
     public RpcException(int error) {
         super("RPC error: " + error);

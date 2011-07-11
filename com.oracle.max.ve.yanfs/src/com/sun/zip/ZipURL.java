@@ -54,21 +54,21 @@ public class ZipURL {
         int p, q, r;
         int end = url.length();
 
-        url = url.trim();	// remove leading & trailing spaces
+        url = url.trim();       // remove leading & trailing spaces
         this.url = url;
 
         p = url.indexOf(':');
         if (p < 0)
             throw new MalformedURLException("colon expected");
         protocol = url.substring(0, p);
-        p++;	// skip colon
-        if (url.regionMatches(p, "//", 0, 2)) {	// have location
+        p++;    // skip colon
+        if (url.regionMatches(p, "//", 0, 2)) { // have location
             p += 2;
             q = url.indexOf('/', p);
             if (q < 0)
                 q = end;
             location = url.substring(0, q);
-            r = q;	// no port
+            r = q;      // no port
             if (p < r)
                 location = url.substring(p, r);
         } else {

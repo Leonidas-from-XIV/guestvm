@@ -120,8 +120,8 @@ public class CredUnix extends Cred {
 
         x.xdr_bytes(cr);
 
-        x.xdr_int(0);		// no verifier
-        x.xdr_int(0);		// no verifier
+        x.xdr_int(0);           // no verifier
+        x.xdr_int(0);           // no verifier
     }
 
     /**
@@ -132,10 +132,10 @@ public class CredUnix extends Cred {
     @Override
     void getCred(Xdr x) {
 
-        x.xdr_int();	// assume it's AUTH_UNIX
-        x.xdr_int();	// cred length
-        x.xdr_int();	// timestamp
-        x.xdr_string();	// hostname
+        x.xdr_int();    // assume it's AUTH_UNIX
+        x.xdr_int();    // cred length
+        x.xdr_int();    // timestamp
+        x.xdr_string(); // hostname
         uid = x.xdr_int();
         gid = x.xdr_int();
         int count = x.xdr_int();
@@ -144,8 +144,8 @@ public class CredUnix extends Cred {
             for (int i = 0; i < count; i++)
                 gids[i] = x.xdr_int();
         }
-        x.xdr_int();	// no verifier
-        x.xdr_int();	// no verifier
+        x.xdr_int();    // no verifier
+        x.xdr_int();    // no verifier
     }
 
     /**
@@ -282,10 +282,10 @@ public class CredUnix extends Cred {
         Xdr call = new Xdr(MAXREPLY);
         pc.rpc_header(call, PCNFSD2_AUTH);
 
-        call.xdr_string("(anyhost)");	// XXX should be hostname
+        call.xdr_string("(anyhost)");   // XXX should be hostname
         call.xdr_string(username);
         call.xdr_string(passwd);
-        call.xdr_string("Java client");	// comment
+        call.xdr_string("Java client"); // comment
 
         Xdr reply = pc.rpc_call(call, 10 * 1000, 2);
 

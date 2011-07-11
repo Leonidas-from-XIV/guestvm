@@ -82,9 +82,9 @@ public class DummyName implements GSSNameSpi {
      * Initializer for the GSSNameSpi object using a byte array.
      *
      * @param byte[] name bytes which is to be interpreted based
-     *	on the nameType
+     *  on the nameType
      * @exception GSSException The major codes can be BAD_NAMETYPE,
-     *	BAD_NAME, and FAILURE.
+     *  BAD_NAME, and FAILURE.
      * @see #init(String,Oid)
      */
     @Override
@@ -98,9 +98,9 @@ public class DummyName implements GSSNameSpi {
      * Initializer for the GSSNameSpi object using a String.
      *
      * @param name string which is to be interpreted based
-     *	on the nameType
+     *  on the nameType
      * @exception GSSException The major codes can be BAD_NAMETYPE,
-     *	BAD_NAME, and FAILURE.
+     *  BAD_NAME, and FAILURE.
      * @see #init(String,Oid)
      */
     @Override
@@ -119,7 +119,7 @@ public class DummyName implements GSSNameSpi {
      * @param name to be compared with
      * @returns true if they both refer to the same entity, else false
      * @exception GSSException with major codes of BAD_NAMETYPE,
-     *	BAD_NAME, FAILURE
+     *  BAD_NAME, FAILURE
      */
     @Override
     public boolean equals(GSSNameSpi name) throws GSSException {
@@ -138,7 +138,7 @@ public class DummyName implements GSSNameSpi {
      *
      * @return the flat name representation for this object
      * @exception GSSException with major codes NAME_NOT_MN, BAD_NAME,
-     *	BAD_NAME, FAILURE.
+     *  BAD_NAME, FAILURE.
      */
     @Override
     public byte[] export() throws GSSException {

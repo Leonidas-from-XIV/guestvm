@@ -31,10 +31,10 @@
 
 /**
  * Open an nfs input stream given a URL.
- * @author	Robert Mines
- * @author	Caveh Jalali
- * @author	Ted Schuh
- * @version 	2.00, 06/01/97
+ * @author      Robert Mines
+ * @author      Caveh Jalali
+ * @author      Ted Schuh
+ * @version     2.00, 06/01/97
  */
 
 package sun.net.www.protocol.nfs;

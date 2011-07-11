@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/OncRpcServerAuth
  * .java,v 1.1.1.1 2003/08/13 12:03:51 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -36,7 +36,7 @@ import org.acplt.oncrpc.XdrEncodingStream;
 /**
  * The <code>OncRpcServerAuth</code> class is the base class and factory for
  * handling all protocol issues of ONC/RPC authentication on the server side.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:51 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -45,17 +45,17 @@ public abstract class OncRpcServerAuth {
 
     /**
      * Restores (deserializes) an authentication object from an XDR stream.
-     * 
+     *
      * @param xdr
      *            XDR stream from which the authentication object is restored.
      * @param recycle
      *            old authtentication object which is intended to be reused in
      *            case it is of the same authentication type as the new one just
      *            arriving from the XDR stream.
-     * 
+     *
      * @return Authentication information encapsulated in an object, whose class
      *         is derived from <code>OncRpcServerAuth</code>.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -114,7 +114,7 @@ public abstract class OncRpcServerAuth {
 
     /**
      * Returns the type (flavor) of {@link OncRpcAuthType authentication} used.
-     * 
+     *
      * @return Authentication type used by this authentication object.
      */
     public abstract int getAuthenticationType();
@@ -122,7 +122,7 @@ public abstract class OncRpcServerAuth {
     /**
      * Decodes -- that is: deserializes -- an ONC/RPC authentication object
      * (credential & verifier) on the server side.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -135,7 +135,7 @@ public abstract class OncRpcServerAuth {
     /**
      * Encodes -- that is: serializes -- an ONC/RPC authentication object (its
      * verifier) on the server side.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

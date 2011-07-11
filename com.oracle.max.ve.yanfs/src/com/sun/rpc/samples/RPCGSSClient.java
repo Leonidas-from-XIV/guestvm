@@ -36,12 +36,12 @@
  *
  * This java client sample program is invoked as follows:
  *
- *	% java RPCGSSClient host service -m <mech_number>
+ *      % java RPCGSSClient host service -m <mech_number>
  *
- * 	The -m indicates the mechanism used.
- * 	'-m 1' is for kerberos mechanism
- * 	'-m 2' is for dummy mechanism
- * 	The dummy is used as the default mechanism.
+ *      The -m indicates the mechanism used.
+ *      '-m 1' is for kerberos mechanism
+ *      '-m 2' is for dummy mechanism
+ *      The dummy is used as the default mechanism.
  */
 
 package com.sun.rpc.samples;
@@ -244,7 +244,7 @@ class RPCGSSClient {
         offset = 0; n = 0; i = 0;
 
         while (i < (len - 1)) {
-            while (Character.isSpace((char) argbuf[i])) {
+            while (Character.isWhitespace((char) argbuf[i])) {
             i++;
             }
             offset = i;
@@ -253,7 +253,7 @@ class RPCGSSClient {
                //!Character.isSpace((char) argbuf[i]))
             i++;
             }
-            args[n++] = new String(argbuf, 0, offset, i-offset);
+            args[n++] = new String(argbuf, offset, i-offset);
         }
         args[n] = null;
 

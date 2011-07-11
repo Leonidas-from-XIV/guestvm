@@ -59,7 +59,7 @@ public class MsgRejectedException extends RpcException {
 
     /*
      * Construct a new Exception for the specified RPC accepted error
-     * @param error	The RPC error number
+     * @param error     The RPC error number
      */
     public MsgRejectedException(int error) {
         super(error);
@@ -67,8 +67,8 @@ public class MsgRejectedException extends RpcException {
 
     /*
      * Construct a new RPC error with the given auth sub-error
-     * @param error	The RPC error number
-     * @param why	The auth sub-error
+     * @param error     The RPC error number
+     * @param why       The auth sub-error
      */
     public MsgRejectedException(int error, int why) {
         super(error);
@@ -77,9 +77,9 @@ public class MsgRejectedException extends RpcException {
 
     /*
      * Construct a new RPC error with the given low and high parameters
-     * @param error	The RPC error number
-     * @param lo	The low version number
-     * @param hi	The high version number
+     * @param error     The RPC error number
+     * @param lo        The low version number
+     * @param hi        The high version number
      */
     public MsgRejectedException(int error, int lo, int hi) {
         super(error);

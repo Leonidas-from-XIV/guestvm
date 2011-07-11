@@ -38,8 +38,8 @@ import java.net.URLStreamHandler;
 import com.sun.xfile.*;
 
 /* Open an nfs input stream given a URL.
- * @author	Ted Schuh
- * @version 	1.25, 07/12/96
+ * @author      Ted Schuh
+ * @version     1.25, 07/12/96
  */
 
 public class Handler extends URLStreamHandler {

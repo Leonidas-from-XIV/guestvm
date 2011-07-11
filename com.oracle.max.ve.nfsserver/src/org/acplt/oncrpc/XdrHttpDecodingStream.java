@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrHttpDecodingStream
  * .java,v 1.3 2005/11/11 21:23:44 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -36,28 +36,28 @@ import org.acplt.oncrpc.web.HttpTunnelConstants;
  * The <code>XdrHttpDecodingStream</code> class provides the necessary
  * functionality to {@link XdrDecodingStream} to receive XDR data through HTTP
  * tunnels.
- * 
+ *
  * <p>
  * Please note that there is currently no standard about how to tunnel XDR data
  * over HTTP connections. There are a (quite a) few solutions out there, but
  * they are more or less incompatible due to the lack of a RFC.
- * 
+ *
  * <p>
  * This class is responsible solely for <em>receiving</em> ONC/RPC replies. The
  * reply data is base64 encoded and embedded within an ordinary plain ASCII
  * page, as is shown in this example.
- * 
+ *
  * <pre>
  *     DEADBEEFDEADBEEFDEADBEEF...&lt;CR&gt;&lt;LF&gt;
  *     B0D0EADSDEADBEEFB0D0EADS...&lt;CR&gt;&lt;LF&gt;
  *     ...&lt;CR&gt;&lt;LF&gt;
  *     DEADBE==&lt;CR&gt;&lt;LF&gt;
  * </pre>
- * 
+ *
  * <p>
  * Parsing is minimalistic to make the whole sucker as fast as possible (not
  * looking at Java's performance at all).
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2005/11/11 21:23:44 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -102,7 +102,7 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
 
     /**
      * Constructs a new <code>XdrHttpDecodingStream</code>.
-     * 
+     *
      * @param httpClient
      *            HTTP client connection from which to read the encoded and
      *            embedded ONC/RPC reply message.
@@ -134,7 +134,7 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
     /**
      * Initiates decoding of the next XDR record. For HTTP-based XDR we just
      * read the content delivered with the answer to the POST command.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -163,12 +163,12 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * Closes this decoding XDR stream and releases any system resources
      * associated with this stream. A closed XDR stream cannot perform decoding
      * operations and cannot be reopened.
-     * 
+     *
      * <p>
      * This implementation frees the allocated buffer but does not close the
      * associated datagram socket. It only throws away the reference to this
      * socket.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -189,14 +189,14 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * <code>endDecoding</code> is that calling it is an indication that the
      * current record is no more interesting to the caller and any allocated
      * data for this record can be freed.
-     * 
+     *
      * <p>
      * To help the HTTP connection keeping alive, we swallow all data until we
      * reach the end. If this is not possible, either because the server
      * indicated that it can not keep the connection open, the content length
      * was unknown in advance, or we got an I/O exception, we close the
      * connection.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -224,7 +224,7 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * Returns the Internet address of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return InetAddress of the sender of the current XDR data.
      */
     @Override
@@ -236,7 +236,7 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * Returns the port number of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return Port number of the sender of the current XDR data.
      */
     @Override
@@ -248,9 +248,9 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * Decodes (aka "deserializes") a "XDR int" value received from a XDR
      * stream. A XDR int is 32 bits wide -- the same width Java's "int" data
      * type has.
-     * 
+     *
      * @return The decoded int value.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -283,14 +283,14 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * of <code>length</code>. Only the opaque value is decoded, so the caller
      * has to know how long the opaque value will be. The decoded data is always
      * padded to be a multiple of four (because that's what the sender does).
-     * 
+     *
      * @param opaque
      *            Byte vector which will receive the decoded opaque value.
      * @param offset
      *            Start offset in the byte vector.
      * @param length
      *            the number of bytes to decode.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -341,12 +341,12 @@ public class XdrHttpDecodingStream extends XdrDecodingStream {
      * opaque value is given, we don't need to retrieve it from the XDR stream.
      * This is different from {@link #xdrDecodeOpaque(byte[], int, int)} where
      * first the length of the opaque value is retrieved from the XDR stream.
-     * 
+     *
      * @param length
      *            Length of opaque data to decode.
-     * 
+     *
      * @return Opaque data as a byte vector.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

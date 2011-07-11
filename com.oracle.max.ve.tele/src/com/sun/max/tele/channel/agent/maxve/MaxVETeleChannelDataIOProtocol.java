@@ -25,7 +25,7 @@ package com.sun.max.tele.channel.agent.maxve;
 import com.sun.max.tele.channel.TeleChannelDataIOProtocol;
 
 public interface MaxVETeleChannelDataIOProtocol extends
-		TeleChannelDataIOProtocol {
+        TeleChannelDataIOProtocol {
 
-	void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress);
+    void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress);
 }

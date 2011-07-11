@@ -69,7 +69,7 @@ public class ChannelBinding {
      * @param initAddr the address of the context initiator
      * @param acceptAddr address of the context acceptor
      * @param appData a byte array of application data to be used as
-     *	part of the channel-binding
+     *  part of the channel-binding
      */
     public ChannelBinding(InetAddress initAddr, InetAddress acceptAddr,
             byte[] appData) {
@@ -90,7 +90,7 @@ public class ChannelBinding {
      * information.
      *
      * @param appData a byte array of application data to be used as
-     *	part of the channel-binding
+     *  part of the channel-binding
      */
     public ChannelBinding(byte[] appData) {
 
@@ -105,7 +105,7 @@ public class ChannelBinding {
      * Get the initiator's address for this channel binding.
      *
      * @return the initiator's address. null if no address
-     *	information is contained
+     *  information is contained
      */
     public InetAddress getInitiatorAddress() {
 
@@ -116,7 +116,7 @@ public class ChannelBinding {
      * Get the acceptor's address for this channel binding.
      *
      * @return the acceptor's address. null if no address
-     *	information is contained
+     *  information is contained
      */
     public InetAddress getAcceptorAddress() {
 
@@ -129,7 +129,7 @@ public class ChannelBinding {
      * The byte array is not copied.
      *
      * @return byte[] the application data that comprises this
-     *			channel-binding
+     *                  channel-binding
      */
     public byte[] getApplicationData() {
 

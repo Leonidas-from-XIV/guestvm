@@ -48,7 +48,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
 
     private XFile xf;
     private InputStream iStream;
-    private long fp;	// file pointer
+    private long fp;    // file pointer
     private ZipFile zf;
     private ZipEntry ze;
     private String path;
@@ -276,10 +276,10 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
                     slash = zname.length();
                 s[i++] = zname.substring(plen, slash);
 
-                if (i >= s.length) {		// last elem in array ?
+                if (i >= s.length) {            // last elem in array ?
                     String[] tmp = s;
 
-                    s = new String[i*2];	// double its size
+                    s = new String[i*2];        // double its size
                     System.arraycopy(tmp, 0, s, 0, i);
                 }
             }

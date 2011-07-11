@@ -57,9 +57,9 @@ public class ConnectDatagram extends Connection {
 
     /**
      * Construct a new connection to a specified server and port.
-     * @param server	The hostname of the server
-     * @param port	The port number on the server
-     * @param maxSize	The maximum size in bytes of the received message
+     * @param server    The hostname of the server
+     * @param port      The port number on the server
+     * @param maxSize   The maximum size in bytes of the received message
      * @exception IOException if the server does not exist
      */
     public ConnectDatagram (String server, int port, int maxSize)

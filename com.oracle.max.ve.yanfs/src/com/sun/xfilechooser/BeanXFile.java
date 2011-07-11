@@ -70,7 +70,7 @@ public class BeanXFile extends File {
     String path = beanXF.getPath();
 
     // For nfs URLs, if the url is nfs://<server_name>, path is ""
-    if (path == "")
+    if (path.equals(""))
         path = beanXF.getAbsolutePath();
 
     return path;

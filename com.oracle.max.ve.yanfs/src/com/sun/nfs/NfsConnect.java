@@ -84,7 +84,7 @@ public class NfsConnect {
             /*for (int i =0; i<list.length; i++)
             {
                 System.out.println(list[i]);
-            }	*/
+            }   */
         }catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -103,8 +103,8 @@ public class NfsConnect {
      * if present in the URL and use them to set specific
      * configurations.
      *
-     * @param url	NFS URL
-     * @returns		The Nfs object
+     * @param url       NFS URL
+     * @returns         The Nfs object
      */
     static Nfs connect(String urlstr) throws IOException {
 
@@ -138,9 +138,9 @@ public class NfsConnect {
      * We're not fussy about NFS version or whether TCP
      * or UDP is used.
      *
-     * @param server	The server that hosts the object
-     * @param name	The pathname of the object
-     * @returns		The object
+     * @param server    The server that hosts the object
+     * @param name      The pathname of the object
+     * @returns         The object
      */
     static Nfs connect(String server, int port, String path)
         throws IOException {
@@ -158,13 +158,13 @@ public class NfsConnect {
      * Try to obtain the filehandle for the object via a public filehandle
      * otherwise fall back to the mount protocol.
      *
-     * @param server	The server that hosts the object
-     * @param name	The pathname of the object
-     * @param vers	The version of NFS to be used.  If zero then
-     * 			prefer v3 over v2.
-     * @param proto	The transport protocol to be used: "tcp" or "udp."
-     *			If this is null then prefer TCP over UDP.
-     * @param pub	Boolean Public filehandle support.
+     * @param server    The server that hosts the object
+     * @param name      The pathname of the object
+     * @param vers      The version of NFS to be used.  If zero then
+     *                  prefer v3 over v2.
+     * @param proto     The transport protocol to be used: "tcp" or "udp."
+     *                  If this is null then prefer TCP over UDP.
+     * @param pub       Boolean Public filehandle support.
      */
     static Nfs connect(String server, String path, int port, int vers,
                                     String proto, boolean pub)
@@ -181,7 +181,7 @@ public class NfsConnect {
          */
         Nfs nfs = Nfs.cache_get(server, path);
         if (nfs != null) {
-            nfs.getattr();	// for close-to-open consistency
+            nfs.getattr();      // for close-to-open consistency
 
         if (nfs.isSymlink())
         return followLink(nfs);
@@ -205,14 +205,14 @@ public class NfsConnect {
             if (conn == null)
                 conn = Connection.getCache(server, port, "udp");
 
-            if (conn == null)  {	// no cached connections
+            if (conn == null)  {        // no cached connections
                 try {
                     conn = new ConnectSocket(server, port, MAXBUF);
                     Connection.putCache(conn);
                     proto = "tcp";
 
                 } catch (java.net.UnknownHostException e) {
-                    throw e;	// don't catch as an IOException
+                    throw e;    // don't catch as an IOException
 
                 } catch (IOException e) {
                     conn = new ConnectDatagram(server, port, MAXBUF);
@@ -280,10 +280,10 @@ public class NfsConnect {
                     throw e;
 
                 if (vers == 0)
-                    vers = 3;	// if we get here then server must be v3
+                    vers = 3;   // if we get here then server must be v3
             }
 
-            if (nfs != null) {	// public fh worked
+            if (nfs != null) {  // public fh worked
                 NfsConnect.cache_put(new NfsConnect(server, port, vers, proto, true));
                 return (nfs);
             }
@@ -377,13 +377,13 @@ public class NfsConnect {
         int port = link.rpc.conn.port;
         String newpath;
 
-        if (text.startsWith("nfs://")) {	// NFS URL
+        if (text.startsWith("nfs://")) {        // NFS URL
             NfsURL url = new NfsURL(text);
             server =  url.getHost();
             port = url.getPort();
             newpath = url.getFile();
 
-        } else if (text.startsWith("/")) {	// absolute path
+        } else if (text.startsWith("/")) {      // absolute path
             newpath = text;
 
         } else {
@@ -429,7 +429,7 @@ public class NfsConnect {
     /**
      * Cache an NfsConnect object
      *
-     * @param n	the object to be cached
+     * @param n the object to be cached
      */
     private static void cache_put(NfsConnect n) {
         cacheNfsConnect.put(n.server, n);
@@ -438,8 +438,8 @@ public class NfsConnect {
     /**
      * Retrieve a cached NfsConnect object
      *
-     * @param server	The server that hosts the object
-     * @returns		The object - or null if not cached
+     * @param server    The server that hosts the object
+     * @returns         The object - or null if not cached
      */
     private static NfsConnect cache_get(String server) {
         return ((NfsConnect)cacheNfsConnect.get(server));
@@ -448,7 +448,7 @@ public class NfsConnect {
     /**
      * Get the credential as a Unix cred
      *
-     * @returns		The credential stored for Nfs operations
+     * @returns         The credential stored for Nfs operations
      */
     public static CredUnix getCred() {
     return (cred);

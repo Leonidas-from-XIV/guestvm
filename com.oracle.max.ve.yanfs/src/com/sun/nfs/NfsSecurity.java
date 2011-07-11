@@ -93,7 +93,7 @@ public final class NfsSecurity {
     else if (serviceString.equals("privacy"))
         service = Cred.SVC_PRIVACY;
     else
-        service = Cred.SVC_PRIVACY;	// just use privacy service
+        service = Cred.SVC_PRIVACY;     // just use privacy service
 
     qop = Integer.parseInt(parser.nextToken());
 
@@ -103,8 +103,8 @@ public final class NfsSecurity {
      *  Does the key have a value defined in the nfssec.properties file?
      *  (i.e. is key=value defined in the properties list?)
      *
-     *  @param key 	the key to be searched
-     *  @returns	true or false
+     *  @param key      the key to be searched
+     *  @returns        true or false
      */
     public static boolean hasValue(String key) {
 
@@ -156,11 +156,11 @@ public final class NfsSecurity {
      * getName will get the NFS security flavor name from the first token
      * in the value.
      *
-     * 		key=nfsSecName:mechOid:service:qop
-     *		    ^^^^^^^^^^
+     *          key=nfsSecName:mechOid:service:qop
+     *              ^^^^^^^^^^
      *
-     * @param key	the key to be searched
-     * @returns		NFS Security flavor name
+     * @param key       the key to be searched
+     * @returns         NFS Security flavor name
      */
     public static String getName(String key) {
 
@@ -177,11 +177,11 @@ public final class NfsSecurity {
      * getMech will get the security mechanism OID string from the second token
      * in the value.
      *
-     * 		key=nfsSecName:mechOid:service:qop
-     *		    	       ^^^^^^^
+     *          key=nfsSecName:mechOid:service:qop
+     *                         ^^^^^^^
      *
-     * @param key	the key to be searched
-     * @returns 	security mechansim OID string
+     * @param key       the key to be searched
+     * @returns         security mechansim OID string
      */
     public static String getMech(String key) {
 
@@ -198,13 +198,13 @@ public final class NfsSecurity {
      * getService will get the security service type from the third token
      * in the value.
      *
-     * 		key=nfsSecName:mechOid:service:qop
-     *		    	               ^^^^^^^
+     *          key=nfsSecName:mechOid:service:qop
+     *                                 ^^^^^^^
      *
-     * @param key	the key to be searched
-     * @returns		one of (none, integrity, privacy); if the third token
-     *			in the value does not have the expected data, simply
-     *			returns the privacy service number.
+     * @param key       the key to be searched
+     * @returns         one of (none, integrity, privacy); if the third token
+     *                  in the value does not have the expected data, simply
+     *                  returns the privacy service number.
      */
     public static int getService(String key) {
 
@@ -221,11 +221,11 @@ public final class NfsSecurity {
      * getQop will get the Quality of Protection number from the fourth token
      * in the value.
      *
-     * 		key=nfsSecName:mechOid:service:qop
-     *		    	                       ^^^
+     *          key=nfsSecName:mechOid:service:qop
+     *                                         ^^^
      *
-     * @param key	the key to be searched
-     * @returns		qop number; 0 means the mechanism-specific default qop
+     * @param key       the key to be searched
+     * @returns         qop number; 0 means the mechanism-specific default qop
      */
     public static int getQop(String key) {
 

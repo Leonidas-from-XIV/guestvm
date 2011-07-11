@@ -39,7 +39,7 @@ import java.io.*;
  */
 public class XFileOutputStream extends OutputStream {
 
-    private long fp;	/* File Pointer */
+    private long fp;    /* File Pointer */
 
     /*
      * File Accessor that implements the underlying filesystem

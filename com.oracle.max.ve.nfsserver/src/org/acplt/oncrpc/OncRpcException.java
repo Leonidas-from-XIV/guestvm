@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcException.java,v 1.3
  * 2008/01/02 15:13:35 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -31,18 +31,18 @@ package org.acplt.oncrpc;
  * errors usually can't. Because we don't want to throw our applications out of
  * the virtual machine (should I mock here "out of the window"?), we only define
  * exceptions.
- * 
+ *
  * <p>
  * The class <code>OncRpcException</code> also defines a set of ONC/RPC error
  * codes as defined by RFC 1831. Note that all these error codes are solely used
  * on the client-side or server-side, but never transmitted over the wire. For
  * error codes transmitted over the network, refer to {@link OncRpcAcceptStatus}
  * and {@link OncRpcRejectStatus}.
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2008/01/02 15:13:35 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
- * 
+ *
  * @see java.lang.Exception
  */
 public class OncRpcException extends Exception {
@@ -160,7 +160,7 @@ public class OncRpcException extends Exception {
     /**
      * Specific detail about this <code>OncRpcException</code>, like a detailed
      * error message.
-     * 
+     *
      * @serial
      */
     private String message;
@@ -168,7 +168,7 @@ public class OncRpcException extends Exception {
      * Specific detail (reason) about this <code>OncRpcException</code>, like
      * the ONC/RPC error code, as defined by the <code>RPC_xxx</code> constants
      * of this interface.
-     * 
+     *
      * @serial
      */
     private int reason;
@@ -184,7 +184,7 @@ public class OncRpcException extends Exception {
     /**
      * Constructs an <code>OncRpcException</code> with the specified detail
      * reason. The detail message is derived automatically from the reason.
-     * 
+     *
      * @param r
      *            The reason. This can be one of the constants -- oops, that
      *            should be "public final static integers" -- defined in this
@@ -265,7 +265,7 @@ public class OncRpcException extends Exception {
     /**
      * Constructs an <code>OncRpcException</code> with the specified detail
      * reason and message. For possible reasons, see below.
-     * 
+     *
      * @param r
      *            The detail reason.
      * @param s
@@ -281,7 +281,7 @@ public class OncRpcException extends Exception {
     /**
      * Constructs an <code>OncRpcException</code> with the specified detail
      * message.
-     * 
+     *
      * @param s
      *            The detail message.
      */
@@ -294,7 +294,7 @@ public class OncRpcException extends Exception {
 
     /**
      * Returns the error message string of this ONC/RPC object.
-     * 
+     *
      * @return The error message string of this <code>OncRpcException</code>
      *         object if it was created either with an error message string or
      *         an ONC/RPC error code.
@@ -306,7 +306,7 @@ public class OncRpcException extends Exception {
 
     /**
      * Returns the error reason of this ONC/RPC exception object.
-     * 
+     *
      * @return The error reason of this <code>OncRpcException</code> object if
      *         it was {@link #OncRpcException(int) created} with an error
      *         reason; or <code>RPC_FAILED</code> if it was

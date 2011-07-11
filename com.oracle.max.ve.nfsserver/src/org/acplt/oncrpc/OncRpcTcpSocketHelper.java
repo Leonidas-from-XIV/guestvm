@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcTcpSocketHelper
  * .java,v 1.3 2007/05/29 19:45:46 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 2001 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -41,7 +41,7 @@ import java.net.SocketException;
  * to control certain aspects of the transport layer's behaviour was also well
  * known at this time -- looks like the one exceptions was -- and still is --
  * Sun, and the second one is MS.
- * 
+ *
  * <p>
  * Sun always toutes Java as the perfect network "whatever" (replace with
  * buzzword-of-the-day, like "programming language", "operating system",...) and
@@ -49,7 +49,7 @@ import java.net.SocketException;
  * JRE&nbsp;1.3 to realize that half-closed connections are the way to do
  * HTTP/1.0 non-persistent connections. And even more irony that they are now
  * beginning to understand about polled network i/o.
- * 
+ *
  * <p>
  * The following JRE-dependent methods are wrapped and will just do nothing or
  * return fake information on old JRE plattforms. The number after each method
@@ -57,7 +57,7 @@ import java.net.SocketException;
  * <li>
  * <li>setSendBufferSize() -- 1.2
  * <li>setReceiveBufferSize() -- 1.2</li>
- * 
+ *
  * <p>
  * The following methods have been around since JDK&nbsp;1.1, so we do not need
  * to wrap them as we will never support JDK&nbsp;1.0 -- let it rest in
@@ -66,12 +66,12 @@ import java.net.SocketException;
  * <li>getTcpNoDelay() / setTcpNoDelay()
  * <li>getSoTimeout() / setSoTimeout()
  * </ul>
- * 
+ *
  * <p>
  * In order to support connect() timeouts before JDK&nbsp;1.4, there's now a
  * <code>connect()</code> method available. It is more than just a simple
  * wrapper for pre JDK&nbsp;1.4.
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2007/05/29 19:45:46 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -128,11 +128,11 @@ public class OncRpcTcpSocketHelper {
         /**
          * Return exception caused by connection operation, if any, or
          * <code>null</code> if no exception was thrown.
-         * 
+         *
          * <p>
          * Note that we do not need to synchronize this method as the caller
          * calls us when it is already holding the lock on us.
-         * 
+         *
          * @return Connection operation exception or <code>null</code>.
          */
         public IOException getIOException() {
@@ -142,11 +142,11 @@ public class OncRpcTcpSocketHelper {
         /**
          * Return socket created by connection establishment, or
          * <code>null</code> if the connection could not be established.
-         * 
+         *
          * <p>
          * Note that we do not need to synchronize this method as the caller
          * calls us when it is already holding the lock on us.
-         * 
+         *
          * @return Socket or <code>null</code>.
          */
         public Socket getSocket() {
@@ -156,7 +156,7 @@ public class OncRpcTcpSocketHelper {
         /**
          * Indicates that the caller initiating this Thread is not interested in
          * its results any more.
-         * 
+         *
          * <p>
          * Note that we do not need to synchronize this method as the caller
          * calls us when it is already holding the lock on us.
@@ -255,7 +255,7 @@ public class OncRpcTcpSocketHelper {
     /**
      * Creates a stream socket helper and associates it with the given
      * stream-based socket.
-     * 
+     *
      * @param socket
      *            The socket associated with this helper.
      */
@@ -268,19 +268,19 @@ public class OncRpcTcpSocketHelper {
      * Connects to specified TCP port at given host address, but aborts after
      * timeout milliseconds if the connection could not be established within
      * this time frame.
-     * 
+     *
      * <p>
      * On pre-JRE&nbsp;1.4 systems, this method will create a new thread to
      * handle connection establishment. This should be no problem, as in general
      * you might not want to connect to many ONC/RPC servers at the same time;
      * but surely someone will soon pop up with a perfect reason just to do
      * so...
-     * 
+     *
      * @param timeout
      *            Timeout in milliseconds for connection operation. A negative
      *            timeout leaves the exact timeout up to the particular JVM and
      *            java.net implementation.
-     * 
+     *
      * @throws IOException
      *             with the message "connect interrupted" in case the timeout
      *             was reached before the connection could be established.
@@ -385,9 +385,9 @@ public class OncRpcTcpSocketHelper {
 
     /**
      * Get size of receive buffer for this socket.
-     * 
+     *
      * @return Size of receive buffer.
-     * 
+     *
      * @throws SocketException
      *             If the transport layer could not be queried for the size of
      *             this socket's receive buffer.
@@ -422,9 +422,9 @@ public class OncRpcTcpSocketHelper {
 
     /**
      * Get size of send buffer for this socket.
-     * 
+     *
      * @return Size of send buffer.
-     * 
+     *
      * @throws SocketException
      *             If the transport layer could not be queried for the size of
      *             this socket's send buffer.
@@ -461,11 +461,11 @@ public class OncRpcTcpSocketHelper {
      * transport layer to use appropriately sized I/O buffers. If the class
      * libraries of the underlying JRE do not support setting the receive buffer
      * size, this is silently ignored.
-     * 
+     *
      * @param size
      *            The size to which to set the receive buffer size. This value
      *            must be greater than 0.
-     * 
+     *
      * @throws SocketException
      *             if the socket's receive buffer size could not be set, because
      *             the transport layer decided against accepting the new buffer
@@ -499,11 +499,11 @@ public class OncRpcTcpSocketHelper {
      * layer to use appropriately sized I/O buffers. If the class libraries of
      * the underlying JRE do not support setting the send buffer size, this is
      * silently ignored.
-     * 
+     *
      * @param size
      *            The size to which to set the send buffer size. This value must
      *            be greater than 0.
-     * 
+     *
      * @throws SocketException
      *             if the socket's send buffer size could not be set, because
      *             the transport layer decided against accepting the new buffer

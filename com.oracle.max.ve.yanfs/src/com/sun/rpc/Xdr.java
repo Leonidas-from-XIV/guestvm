@@ -62,7 +62,7 @@ public class Xdr {
     /**
      * Build a new Xdr object with a buffer of given size
      *
-     * @param size	of the buffer in bytes
+     * @param size      of the buffer in bytes
      */
     public Xdr(int size) {
     this.buf = new byte[size];
@@ -75,7 +75,7 @@ public class Xdr {
      * <br>Note that the count is
      * rounded up to the next XDRUNIT.
      *
-     * @param count	of the buffer in bytes
+     * @param count     of the buffer in bytes
      */
     public void xdr_skip(int count) {
     int r = (off += count) % XDRUNIT;
@@ -87,7 +87,7 @@ public class Xdr {
     /**
      * Return the entire Xdr buffer
      *
-     * @return	Xdr buffer
+     * @return  Xdr buffer
      */
     public byte[] xdr_buf() {
     return buf;
@@ -96,7 +96,7 @@ public class Xdr {
     /**
      * Return the current offset
      *
-     * @return	offset
+     * @return  offset
      */
     public int xdr_offset() {
     return off;
@@ -105,7 +105,7 @@ public class Xdr {
     /**
      * Set the current offset
      *
-     * @param	off offset into XDR buffer
+     * @param   off offset into XDR buffer
      */
     public void xdr_offset(int off) {
     this.off = off;
@@ -115,7 +115,7 @@ public class Xdr {
      * Return the starting point of the bytes that will
      * be encrypted.
      *
-     * @return	offset for bytes to be encrypted
+     * @return  offset for bytes to be encrypted
      */
     public int xdr_wrap_offset() {
     return wrap_offset;
@@ -125,7 +125,7 @@ public class Xdr {
      * Set the starting point of the bytes that will
      * be encrypted.
      *
-     * @return	offset for bytes to be encrypted
+     * @return  offset for bytes to be encrypted
      */
     public void xdr_wrap_offset(int off) {
     wrap_offset = off;
@@ -134,7 +134,7 @@ public class Xdr {
     /**
      * Return the current size of the XDR buffer
      *
-     * @return	size
+     * @return  size
      */
     public int xdr_size() {
     return size;
@@ -143,7 +143,7 @@ public class Xdr {
     /**
      * Set the current size of the XDR buffer
      *
-     * @param	size of buffer
+     * @param   size of buffer
      */
     public void xdr_size(int size) {
     this.size = size;
@@ -314,7 +314,7 @@ public class Xdr {
      * Put a counted array of bytes into the buffer.
      * Note that the entire byte array is encoded.
      *
-     * @param	b byte array
+     * @param   b byte array
      */
     public void xdr_bytes(byte[] b) {
     xdr_bytes(b, 0, b.length);
@@ -323,8 +323,8 @@ public class Xdr {
     /**
      * Put a counted array of bytes into the buffer
      *
-     * @param	b byte array
-     * @param	len number of bytes to encode
+     * @param   b byte array
+     * @param   len number of bytes to encode
      */
     public void xdr_bytes(byte[] b, int len) {
     xdr_bytes(b, 0, len);
@@ -333,9 +333,9 @@ public class Xdr {
     /**
      * Put a counted array of bytes into the buffer
      *
-     * @param	b byte array
-     * @param	boff offset into byte array
-     * @param	len number of bytes to encode
+     * @param   b byte array
+     * @param   boff offset into byte array
+     * @param   len number of bytes to encode
      */
     public void xdr_bytes(byte[] b, int boff, int len) {
     xdr_int(len);
@@ -348,7 +348,7 @@ public class Xdr {
      *
      * <br> This is used to encode the RPC credentials
      *
-     * @param	x XDR buffer
+     * @param   x XDR buffer
      */
     public void xdr_bytes(Xdr x) {
     xdr_bytes(x.xdr_buf(), x.xdr_offset());
@@ -359,7 +359,7 @@ public class Xdr {
      *
      * e.g. an NFS v2 filehandle
      *
-     * @param len	Number of bytes to get
+     * @param len       Number of bytes to get
      * @return byte array
      */
     public byte[] xdr_raw(int len) {
@@ -377,8 +377,8 @@ public class Xdr {
      * Get a fixed number (len) of bytes from the buffer
      * at offset off.  Do not change any buffer indicators.
      *
-     * @param off	Offset of bytes to get from
-     * @param len	Number of bytes to copy
+     * @param off       Offset of bytes to get from
+     * @param len       Number of bytes to copy
      * @return byte array
      */
     public byte[] xdr_raw(int off, int len) {

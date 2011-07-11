@@ -54,18 +54,18 @@ public abstract class Connection extends Thread {
     String proto;
     Hashtable waiters = new Hashtable();
     static final int IDLETIME = 300 * 1000; // idle connection after 5 min
-    int xid;		// transaction id
+    int xid;            // transaction id
     Xdr reply;
-    int maxSize;	// size of reply Xdr buffer
-    Error err;		// might get thrown by the thread
+    int maxSize;        // size of reply Xdr buffer
+    Error err;          // might get thrown by the thread
 
     /**
      * Construct a new connection to a specified <i>server</i>
      * and <i>port</i> using protocol <i>proto</i> with a
      * reply buffer of size <i>maxsize</i>.
      *
-     * @param server	The hostname of the server
-     * @param port	The port number on the server
+     * @param server    The hostname of the server
+     * @param port      The port number on the server
      */
     public Connection (String server, int port, String proto, int maxSize) {
         this.server = server;
@@ -80,10 +80,10 @@ public abstract class Connection extends Thread {
     /**
      * Get a cached connection for the specified server, port and protocol
      *
-     * @param server	The hostname of the server
-     * @param port	The port number on the server
-     * @param proto	The connection type: "tcp" or "udp"
-     * @returns null	If there is no cached connection
+     * @param server    The hostname of the server
+     * @param port      The port number on the server
+     * @param proto     The connection type: "tcp" or "udp"
+     * @returns null    If there is no cached connection
      */
     public static Connection getCache(String server, int port, String proto) {
         Connection conn = (Connection) connections.get(
@@ -95,7 +95,7 @@ public abstract class Connection extends Thread {
     /**
      * Stash a new connection in the cache
      *
-     * @param	The connection to be cached
+     * @param   The connection to be cached
      */
     public static void putCache(Connection conn) {
         connections.put(conn.server + ":" + conn.port + ":" + conn.proto, conn);

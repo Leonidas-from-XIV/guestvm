@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/OncRpcServerReplyMessage
  * .java,v 1.1.1.1 2003/08/13 12:03:51 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -40,17 +40,17 @@ import org.acplt.oncrpc.XdrEncodingStream;
  * as defined by ONC/RPC in RFC 1831. Such messages are sent back by ONC/RPC to
  * servers to clients and contain (in case of real success) the result of a
  * remote procedure call.
- * 
+ *
  * <p>
  * This class and all its derived classes can be encoded only. They are not able
  * to encode themselves, because they are used solely on the server side of an
  * ONC/RPC connection.
- * 
+ *
  * <p>
  * The decision to define only one single class for the accepted and rejected
  * replies was driven by the motivation not to use polymorphism and thus have to
  * upcast and downcast references all the time.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:51 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -65,12 +65,12 @@ public class OncRpcServerReplyMessage extends OncRpcReplyMessage {
     /**
      * Initializes a new <code>OncRpcReplyMessage</code> object and initializes
      * its complete state from the given parameters.
-     * 
+     *
      * <p>
      * Note that depending on the reply, acceptance and rejectance status some
      * parameters are unused and can be specified as
      * <code>UNUSED_PARAMETER</code>.
-     * 
+     *
      * @param call
      *            The ONC/RPC call this reply message corresponds to.
      * @param replyStatus
@@ -98,7 +98,7 @@ public class OncRpcServerReplyMessage extends OncRpcReplyMessage {
     /**
      * Encodes -- that is: serializes -- a ONC/RPC reply header object into a
      * XDR stream.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

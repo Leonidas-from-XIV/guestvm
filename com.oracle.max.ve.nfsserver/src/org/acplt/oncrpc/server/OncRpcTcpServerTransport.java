@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/server/OncRpcTcpServerTransport
  * .java,v 1.3 2008/01/02 15:13:35 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -40,11 +40,11 @@ import org.acplt.oncrpc.XdrEncodingStream;
  * Instances of class <code>OncRpcTcpServerTransport</code> encapsulate
  * TCP/IP-based XDR streams of ONC/RPC servers. This server transport class is
  * responsible for accepting new ONC/RPC connections over TCP/IP.
- * 
+ *
  * @see OncRpcServerTransport
  * @see OncRpcTcpConnectionServerTransport
  * @see OncRpcUdpServerTransport
- * 
+ *
  * @version $Revision: 1.3 $ $Date: 2008/01/02 15:13:35 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -57,7 +57,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * listening transport is shut down. The only reason why we have this code
      * here instead of using java.util.LinkedList is due to JDK&nbsp;1.1
      * compatibility.
-     * 
+     *
      * <p>
      * Note that the methods are not synchronized as we leave this up to the
      * caller, who can thus optimize access during critical sections.
@@ -176,7 +176,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
         /**
          * Returns the number of (open) transports in this list.
-         * 
+         *
          * @return the number of (open) transports.
          */
         public int size() {
@@ -218,7 +218,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * particular server transport only waits for incoming connection requests
      * and then creates {@link OncRpcTcpConnectionServerTransport} server
      * transports to handle individual connections.
-     * 
+     *
      * @param dispatcher
      *            Reference to interface of an object capable of dispatching
      *            (handling) ONC/RPC calls.
@@ -264,7 +264,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * transports to handle individual connections. This constructor is a
      * convenience constructor for those transports handling only a single
      * ONC/RPC program and version number.
-     * 
+     *
      * @param dispatcher
      *            Reference to interface of an object capable of dispatching
      *            (handling) ONC/RPC calls.
@@ -298,7 +298,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * particular server transport only waits for incoming connection requests
      * and then creates {@link OncRpcTcpConnectionServerTransport} server
      * transports to handle individual connections.
-     * 
+     *
      * @param dispatcher
      *            Reference to interface of an object capable of dispatching
      *            (handling) ONC/RPC calls.
@@ -323,13 +323,13 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Close the server transport and free any resources associated with it.
-     * 
+     *
      * <p>
      * Note that the server transport is <b>not deregistered</b>. You'll have to
      * do it manually if you need to do so. The reason for this behaviour is,
      * that the portmapper removes all entries regardless of the protocol
      * (TCP/IP or UDP/IP) for a given ONC/RPC program number and version.
-     * 
+     *
      * <p>
      * Calling this method on a <code>OncRpcTcpServerTransport</code> results in
      * the listening TCP network socket immediately being closed. In addition,
@@ -369,7 +369,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Get the character encoding for (de-)serializing strings.
-     * 
+     *
      * @return the encoding currently used for (de-)serializing strings. If
      *         <code>null</code>, then the system's default encoding is used.
      */
@@ -381,7 +381,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
     /**
      * Retrieve the current timeout used during transmission phases (call and
      * reply phases).
-     * 
+     *
      * @return Current transmission timeout.
      */
     public int getTransmissionTimeout() {
@@ -393,7 +393,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * requests, then dispatches them and finally sends back the appropriate
      * reply messages. Control in the calling thread immediately returns after
      * the handler thread has been created.
-     * 
+     *
      * <p>
      * For every incomming TCP/IP connection a handler thread is created to
      * handle ONC/RPC calls on this particular connection.
@@ -462,7 +462,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
     /**
      * Register the TCP/IP port where this server transport waits for incoming
      * requests with the ONC/RPC portmapper.
-     * 
+     *
      * @throws OncRpcException
      *             if the portmapper could not be contacted successfully of if
      *             the portmapper rejected port registration(s).
@@ -492,7 +492,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -505,7 +505,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Set the character encoding for (de-)serializing strings.
-     * 
+     *
      * @param characterEncoding
      *            the encoding to use for (de-)serializing strings. If
      *            <code>null</code>, the system's default encoding is to be
@@ -520,7 +520,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
      * Set the timeout used during transmission of data. If the flow of data
      * when sending calls or receiving replies blocks longer than the given
      * timeout, an exception is thrown. The timeout must be > 0.
-     * 
+     *
      * @param milliseconds
      *            Transmission timeout in milliseconds.
      */
@@ -534,7 +534,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -551,7 +551,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -564,7 +564,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -577,7 +577,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -591,7 +591,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.
@@ -606,7 +606,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
     /**
      * Removes a TCP/IP server transport from the list of currently open
      * transports.
-     * 
+     *
      * @param transport
      *            Server transport to remove from the list of currently open
      *            transports for this listening transport.
@@ -619,7 +619,7 @@ public class OncRpcTcpServerTransport extends OncRpcServerTransport {
 
     /**
      * Do not call.
-     * 
+     *
      * @throws Error
      *             because this method must not be called for a listening server
      *             transport.

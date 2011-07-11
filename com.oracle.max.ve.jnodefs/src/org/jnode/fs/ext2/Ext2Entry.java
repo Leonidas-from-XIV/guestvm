@@ -70,8 +70,8 @@ public class Ext2Entry extends AbstractFSEntry {
         this.iNode = iNode;
         this.type = type;
 
-	    if (logger.isLoggable(Level.FINE)) {
-	        logger.log(Level.FINE, "name: " + name + ", type: " + type);
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "name: " + name + ", type: " + type);
         }
     }
     public long getLastChanged() throws IOException {

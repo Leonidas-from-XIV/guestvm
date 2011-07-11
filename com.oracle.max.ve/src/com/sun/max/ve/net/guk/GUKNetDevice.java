@@ -141,7 +141,7 @@ public final class GUKNetDevice implements NetDevice {
         }
         // Have to pass the address of copyPacket down to the kernel
         final ClassActor classActor = ClassActor.fromJava(getClass());
-        final Address copyMethodAddress = CompilationScheme.Static.getCriticalEntryPoint(classActor.findLocalStaticMethodActor(SymbolTable.makeSymbol("copyPacket")), CallEntryPoint.C_ENTRY_POINT);
+        final Word copyMethodAddress = CompilationScheme.Static.getCurrentTargetMethod(classActor.findLocalStaticMethodActor(SymbolTable.makeSymbol("copyPacket"))).getEntryPoint(CallEntryPoint.C_ENTRY_POINT);
         _deviceActive = maxve_netStart(copyMethodAddress);
         _device = this;
     }
@@ -316,7 +316,7 @@ public final class GUKNetDevice implements NetDevice {
     }
 
     @C_FUNCTION
-    private static native boolean maxve_netStart(Address address);
+    private static native boolean maxve_netStart(Word address);
     @C_FUNCTION
     private static native Pointer maxve_getMacAddress();
     @C_FUNCTION

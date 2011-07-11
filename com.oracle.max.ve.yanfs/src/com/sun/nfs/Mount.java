@@ -169,7 +169,7 @@ public class Mount {
             throw e;
 
         } catch (IOException e) {
-            return new String[0];	// an empty export list
+            return new String[0];       // an empty export list
         }
 
         /*
@@ -179,10 +179,10 @@ public class Mount {
          */
         while (replymsg.xdr_bool()) {
             elist[i++] = replymsg.xdr_string();
-            if (i >= elist.length) {		// last elem in array ?
+            if (i >= elist.length) {            // last elem in array ?
                 String[] tmp = elist;
 
-                elist = new String[i*2];	// double its size
+                elist = new String[i*2];        // double its size
                 System.arraycopy(tmp, 0, elist, 0, i);
             }
 

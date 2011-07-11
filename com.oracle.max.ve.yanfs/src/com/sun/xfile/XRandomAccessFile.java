@@ -44,7 +44,7 @@ import java.io.*;
  */
 public class XRandomAccessFile implements DataOutput, DataInput {
 
-    private long fp;	/* File Pointer */
+    private long fp;    /* File Pointer */
 
     private boolean readOnly;
 

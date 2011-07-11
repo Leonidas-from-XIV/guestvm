@@ -1,19 +1,19 @@
 /*******************************************************************************
  * openthinclient.org ThinClient suite
- * 
+ *
  * Copyright (C) 2004, 2007 levigo holding GmbH. All Rights Reserved.
- * 
- * 
+ *
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  * Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -43,7 +43,7 @@ public class mountClient extends OncRpcClientStub {
     /**
      * Constructs a <code>mountClient</code> client stub proxy object from which
      * the MOUNTPROG remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param protocol
@@ -62,7 +62,7 @@ public class mountClient extends OncRpcClientStub {
     /**
      * Constructs a <code>mountClient</code> client stub proxy object from which
      * the MOUNTPROG remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param port
@@ -84,7 +84,7 @@ public class mountClient extends OncRpcClientStub {
     /**
      * Constructs a <code>mountClient</code> client stub proxy object from which
      * the MOUNTPROG remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param program
@@ -108,7 +108,7 @@ public class mountClient extends OncRpcClientStub {
     /**
      * Constructs a <code>mountClient</code> client stub proxy object from which
      * the MOUNTPROG remote program can be accessed.
-     * 
+     *
      * @param host
      *            Internet address of host where to contact the remote program.
      * @param program
@@ -133,7 +133,7 @@ public class mountClient extends OncRpcClientStub {
     /**
      * Constructs a <code>mountClient</code> client stub proxy object from which
      * the MOUNTPROG remote program can be accessed.
-     * 
+     *
      * @param client
      *            ONC/RPC client connection object implementing a particular
      *            protocol.
@@ -148,7 +148,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_DUMP_1.
-     * 
+     *
      * @return Result from remote procedure call (of type mountlist).
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
@@ -162,7 +162,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_EXPORT_1.
-     * 
+     *
      * @return Result from remote procedure call (of type exports).
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
@@ -176,7 +176,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_EXPORTALL_1.
-     * 
+     *
      * @return Result from remote procedure call (of type exports).
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
@@ -191,7 +191,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_MNT_1.
-     * 
+     *
      * @param arg1
      *            parameter (of type dirpath) to the remote procedure call.
      * @return Result from remote procedure call (of type fhstatus).
@@ -206,7 +206,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_NULL_1.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -218,7 +218,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_UMNT_1.
-     * 
+     *
      * @param arg1
      *            parameter (of type dirpath) to the remote procedure call.
      * @throws OncRpcException
@@ -231,7 +231,7 @@ public class mountClient extends OncRpcClientStub {
 
     /**
      * Call remote procedure MOUNTPROC_UMNTALL_1.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */

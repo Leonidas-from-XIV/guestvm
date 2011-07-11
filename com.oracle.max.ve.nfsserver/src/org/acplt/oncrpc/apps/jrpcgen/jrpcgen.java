@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jrpcgen/jrpcgen.java,v
  * 1.6 2007/05/29 19:38:30 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -50,7 +50,7 @@ import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
  * classes to implement an RPC protocol. The input to jrpcgen is a language
  * similiar to C (but more probably much more similiar to FORTRAN) known as the
  * RPC language (Remote Procedure Call Language).
- * 
+ *
  * @version $Revision: 1.6 $ $Date: 2007/05/29 19:38:30 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -227,10 +227,10 @@ public class jrpcgen {
     /**
      * Return the en-/decoding syllable XXX appropriate for a base data type
      * including arrays of base data types.
-     * 
+     *
      * @param decl
      *            declaration of a member of RPC struct or union.
-     * 
+     *
      * @return <code>null</code>, if the declaration does not specify a base
      *         data type. Otherwise a three-element String array, with [0]
      *         containing the type syllable for base type (including arrays),
@@ -326,10 +326,10 @@ public class jrpcgen {
      * Checks whether a given value references an identifier and then returns
      * the qualified identifier (interface where the value is defined in) or
      * simply the value in case of an integer literal.
-     * 
+     *
      * @param value
      *            Either an identifier to resolve or an integer literal.
-     * 
+     *
      * @return Integer literal or qualified identifier.
      */
     public static String checkForEnumValue(String value) {
@@ -362,10 +362,10 @@ public class jrpcgen {
      * and then returns Java's int data type instead. In case of the pseudo-type
      * "opaque" return Java's byte data type. For all other data types, the data
      * type identifier is returned unaltered.
-     * 
+     *
      * @param dataType
      *            data type identifier to check.
-     * 
+     *
      * @return data type identifier.
      */
     public static String checkForSpecials(String dataType) {
@@ -408,7 +408,7 @@ public class jrpcgen {
 
     /**
      * Return en- or decoding method appropriate for a struct or union member.
-     * 
+     *
      * @param decl
      *            declaration for which the en-/decoding Java source code be
      *            returned.
@@ -582,12 +582,12 @@ public class jrpcgen {
      * Creates a new source code file for a Java class based on its class name.
      * Same as {@link #createJavaSourceFile(String, boolean)} with the
      * <code>emitImport</code> parameter set to <code>true</code>.
-     * 
+     *
      * @param classname
      *            Name of Java class to generate. Must not contain a file
      *            extension -- especially ".java" is invalid. When the source
      *            code file is created, ".java" is appended automatically.
-     * 
+     *
      * @return PrintWriter to send source code to.
      */
     public static PrintWriter createJavaSourceFile(String classname) {
@@ -598,7 +598,7 @@ public class jrpcgen {
      * Creates a new source code file for a Java class based on its class name.
      * If an old version of the source file exists, it is renamed first. The
      * backup will have the same name as the original file with "~" appended.
-     * 
+     *
      * @param classname
      *            Name of Java class to generate. Must not contain a file
      *            extension -- especially ".java" is invalid. When the source
@@ -606,7 +606,7 @@ public class jrpcgen {
      * @param emitImports
      *            if <code>true</code>, then import statements for the remotetea
      *            ONC/RPC package and IOExceptions.
-     * 
+     *
      * @return PrintWriter to send source code to.
      */
     public static PrintWriter createJavaSourceFile(String classname,
@@ -700,10 +700,10 @@ public class jrpcgen {
     /**
      * Create a new hash function object and initialize it using a class and
      * package name.
-     * 
+     *
      * @param classname
      *            Name of class.
-     * 
+     *
      * @return hash function object.
      */
     public static JrpcgenSHA createSHA(String classname) {
@@ -969,7 +969,7 @@ public class jrpcgen {
      * the caller, encode them and throw them over to the server. After
      * receiving a reply, they will unpack and return it as the outcome of the
      * method call.
-     * 
+     *
      * @param out
      *            Printer writer to send source code to.
      * @param versionInfo
@@ -1326,7 +1326,7 @@ public class jrpcgen {
     /**
      * Generate a source code file containing all elements of an enumeration
      * defined in a x-file.
-     * 
+     *
      * @param e
      *            {@link JrpcgenEnum Description} of XDR enumeration.
      */
@@ -1760,7 +1760,7 @@ public class jrpcgen {
     /**
      * Generate a source code file containing all elements of a struct defined
      * in a x-file.
-     * 
+     *
      * @param s
      *            {@link JrpcgenStruct Description} of XDR struct.
      */
@@ -1956,7 +1956,7 @@ public class jrpcgen {
     /**
      * Generate a source code file containing a wrapper class for a typedef
      * defined in a x-file.
-     * 
+     *
      * @param d
      *            {@link JrpcgenDeclaration Description} of XDR typedef.
      */
@@ -2042,7 +2042,7 @@ public class jrpcgen {
     /**
      * Generate a source code file containing all elements of a union defined in
      * a x-file.
-     * 
+     *
      * @param u
      *            {@link JrpcgenUnion Description} of XDR union.
      */
@@ -2454,10 +2454,10 @@ public class jrpcgen {
     /**
      * Given a name of a data type return the name of the equivalent Java data
      * type (if it exists), otherwise return <code>null</code>.
-     * 
+     *
      * NOTE: "opaque" is considered like "byte" to be a base type... FIXME:
      * char/byte?
-     * 
+     *
      * @return Name of Java base data type or <code>null</code> if the given
      *         data type is not equivalent to one of Java's base data types.
      */
@@ -2485,7 +2485,7 @@ public class jrpcgen {
  * The class <code>JrpcgenEnDecodingInfo</code> contains information which is
  * necessary to generate source code calling appropriate XDR encoding and
  * decoding methods.
- * 
+ *
  * @version $Revision: 1.6 $ $Date: 2007/05/29 19:38:30 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -2522,7 +2522,7 @@ class JrpcgenEnDecodingInfo {
      * Construct a <code>JrpcgenEnDecodingInfo</code> object containing
      * information for generating source code for encoding and decoding of
      * XDR/Java base data types.
-     * 
+     *
      * @param syllable
      *            Syllable of encoding/decoding method.
      * @param encodingOptions

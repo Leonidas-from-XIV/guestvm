@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcUdpSocketHelper
  * .java,v 1.3 2007/05/29 19:45:46 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 2001 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -32,7 +32,7 @@ import java.net.SocketException;
 /**
  * Wraps JRE-specific networking code for UDP/IP-based client sockets. So much
  * for compile once, make it unuseable everywhere.
- * 
+ *
  * <p>
  * The following JRE-dependent methods are wrapped and will just do nothing or
  * return fake information on old JRE plattforms. The number after each method
@@ -40,7 +40,7 @@ import java.net.SocketException;
  * <li>
  * <li>setSendBufferSize() -- 1.2
  * <li>setReceiveBufferSize() -- 1.2</li>
- * 
+ *
  * <p>
  * The following methods have been around since JDK&nbsp;1.1, so we do not need
  * to wrap them as we will never support JDK&nbsp;1.0 -- let it rest in
@@ -49,7 +49,7 @@ import java.net.SocketException;
  * <li>getTcpNoDelay() / setTcpNoDelay()
  * <li>getSoTimeout() / setSoTimeout()
  * </ul>
- * 
+ *
  * @version $Header:
  *          /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcUdpSocketHelper
  *          .java,v 1.3 2007/05/29 19:45:46 haraldalbrecht Exp $
@@ -99,9 +99,9 @@ public class OncRpcUdpSocketHelper {
 
     /**
      * Get size of receive buffer for this socket.
-     * 
+     *
      * @return Size of receive buffer.
-     * 
+     *
      * @throws SocketException
      *             If the transport layer could not be queried for the size of
      *             this socket's receive buffer.
@@ -136,9 +136,9 @@ public class OncRpcUdpSocketHelper {
 
     /**
      * Get size of send buffer for this socket.
-     * 
+     *
      * @return Size of send buffer.
-     * 
+     *
      * @throws SocketException
      *             If the transport layer could not be queried for the size of
      *             this socket's send buffer.
@@ -175,11 +175,11 @@ public class OncRpcUdpSocketHelper {
      * transport layer to use appropriately sized I/O buffers. If the class
      * libraries of the underlying JRE do not support setting the receive buffer
      * size, this is silently ignored.
-     * 
+     *
      * @param size
      *            The size to which to set the receive buffer size. This value
      *            must be greater than 0.
-     * 
+     *
      * @throws SocketException
      *             if the socket's receive buffer size could not be set, because
      *             the transport layer decided against accepting the new buffer
@@ -213,11 +213,11 @@ public class OncRpcUdpSocketHelper {
      * layer to use appropriately sized I/O buffers. If the class libraries of
      * the underlying JRE do not support setting the send buffer size, this is
      * silently ignored.
-     * 
+     *
      * @param size
      *            The size to which to set the send buffer size. This value must
      *            be greater than 0.
-     * 
+     *
      * @throws SocketException
      *             if the socket's send buffer size could not be set, because
      *             the transport layer decided against accepting the new buffer

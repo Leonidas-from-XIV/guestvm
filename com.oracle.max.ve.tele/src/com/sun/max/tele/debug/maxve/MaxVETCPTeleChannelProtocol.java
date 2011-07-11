@@ -26,23 +26,23 @@ import com.sun.max.program.Trace;
 import com.sun.max.tele.channel.tcp.TCPTeleChannelProtocol;
 
 public class MaxVETCPTeleChannelProtocol extends TCPTeleChannelProtocol implements MaxVETeleChannelProtocol {
-	public MaxVETCPTeleChannelProtocol(String host, int port) {
-		super(host, port);
-	}
-	
-    @Override
-    public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
-		try {
-			out.writeUTF("setNativeAddresses");
-			out.writeLong(threadListAddress);
-			out.writeLong(bootHeapStartAddress);
-			out.writeLong(resumeAddress);
-		} catch (Exception ex) {
-			Trace.line(1, ex);
-		}
-    	
+    public MaxVETCPTeleChannelProtocol(String host, int port) {
+        super(host, port);
     }
 
-	
-	
+    @Override
+    public void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress) {
+        try {
+            out.writeUTF("setNativeAddresses");
+            out.writeLong(threadListAddress);
+            out.writeLong(bootHeapStartAddress);
+            out.writeLong(resumeAddress);
+        } catch (Exception ex) {
+            Trace.line(1, ex);
+        }
+
+    }
+
+
+
 }

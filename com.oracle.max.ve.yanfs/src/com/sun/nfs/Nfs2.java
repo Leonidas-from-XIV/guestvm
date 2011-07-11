@@ -69,23 +69,23 @@ public class Nfs2 extends Nfs {
     private final static int NFSPROC2_STATFS      = 17;
 
     private final static int NFS_OK = 0;
-    private final static int RWSIZE = 8192;	// optimal read/write size
-    private final static int FHSIZE = 32;	// file handle size
+    private final static int RWSIZE = 8192;     // optimal read/write size
+    private final static int FHSIZE = 32;       // file handle size
 
-    int nwb;	// current writes-behind
+    int nwb;    // current writes-behind
 
     /**
      * Construct a new NFS version 2 object (file or directory)
      *
-     * @param rpc	Rpc object for the server
-     * @param fh	File handle for the object
-     * @param name	Name of the file/dir
-     * @param attr	File attributes for the object
+     * @param rpc       Rpc object for the server
+     * @param fh        File handle for the object
+     * @param name      Name of the file/dir
+     * @param attr      File attributes for the object
      */
     public Nfs2(Rpc rpc, byte[] fh, String name, Fattr2 attr) {
         this.rpc = rpc;
         this.fh = fh;
-        if (name.startsWith("./"))	// normalize for cache lookup
+        if (name.startsWith("./"))      // normalize for cache lookup
             name = name.substring(2);
         this.name = name;
         this.attr = attr == null ? new Fattr2() : attr;
@@ -313,8 +313,8 @@ public class Nfs2 extends Nfs {
      *
      * If its a symbolic link - follow it
      *
-     * @param name	Name of entry in directory
-     * @returns		Nfs object
+     * @param name      Name of entry in directory
+     * @returns         Nfs object
      * @exception java.io.IOException
      */
     @Override
@@ -441,11 +441,11 @@ public class Nfs2 extends Nfs {
      *
      *  Here is an example of the WebNFS security negotiation protocol:
      *
-     *	    Suppose the server shares /export/home as follows:
+     *      Suppose the server shares /export/home as follows:
      *
      *           share -o sec=sec_1:sec_2:sec_3 /export/secure
      *
-     *	    Here is how to READ a file from server:/export/secure:
+     *      Here is how to READ a file from server:/export/secure:
      *
      *         Client                                  Server
      *          ------                                  ------
@@ -460,7 +460,7 @@ public class Nfs2 extends Nfs {
      *                              <-----------
      *                                          FH = {...,sec_1, ..., sec_3}
      *       LOOKUP 0x0, foo, "path"
-     *		use a selected sec flavor (sec_x)
+     *          use a selected sec flavor (sec_x)
      *                              ----------->
      *                              <-----------
      *                                          FH = 0x01
@@ -478,9 +478,9 @@ public class Nfs2 extends Nfs {
      *
      *  where l is the length : 4 * n (bytes)
      *        s is status indicating whether there are more sec flavors
-     *		(1 is yes, 0 is no) that require the client to perform
-     *		another 0x81 LOOKUP request. Client uses <sec_index>
-     *		to indicate the offset of the flavor number (sec_index + n)
+     *          (1 is yes, 0 is no) that require the client to perform
+     *          another 0x81 LOOKUP request. Client uses <sec_index>
+     *          to indicate the offset of the flavor number (sec_index + n)
      *
      */
     @Override
@@ -553,7 +553,7 @@ public class Nfs2 extends Nfs {
         call.xdr_raw(fh);
         call.xdr_u_int(buf.foffset);
         call.xdr_u_int(rsize);
-        call.xdr_u_int(rsize);	// totalcount (unused)
+        call.xdr_u_int(rsize);  // totalcount (unused)
 
         Xdr reply = rpc.rpc_call(call, 1 * 1000, 0);
 
@@ -585,9 +585,9 @@ public class Nfs2 extends Nfs {
 
         rpc.rpc_header(call, NFSPROC2_WRITE);
         call.xdr_raw(fh);
-        call.xdr_u_int(fileOffset);	// beginoffset - not used
+        call.xdr_u_int(fileOffset);     // beginoffset - not used
         call.xdr_u_int(fileOffset);
-        call.xdr_u_int(writeLength);	// totalcount - not used
+        call.xdr_u_int(writeLength);    // totalcount - not used
         call.xdr_bytes(buf.buf, buf.bufoff + buf.minOffset, writeLength);
 
         Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
@@ -632,7 +632,7 @@ public class Nfs2 extends Nfs {
             rpc.rpc_header(call, NFSPROC2_READDIR);
             call.xdr_raw(fh);
             call.xdr_u_int(cookie);
-            call.xdr_u_int(4096);	// number of directory bytes
+            call.xdr_u_int(4096);       // number of directory bytes
 
             Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
@@ -644,24 +644,24 @@ public class Nfs2 extends Nfs {
              * Get directory entries
              */
             while (reply.xdr_bool()) {
-                reply.xdr_u_int();		// skip fileid
-                ename = reply.xdr_string();	// filename
+                reply.xdr_u_int();              // skip fileid
+                ename = reply.xdr_string();     // filename
 
                 cookie = reply.xdr_u_int();
 
-                if (ename.equals(".") || ename.equals(".."))	// ignore
+                if (ename.equals(".") || ename.equals(".."))    // ignore
                     continue;
 
                 s[i++] = ename;
 
-                if (i >= s.length) {		// last elem in array ?
+                if (i >= s.length) {            // last elem in array ?
                     String[] tmp = s;
 
-                    s = new String[i*2];	// double its size
+                    s = new String[i*2];        // double its size
                     System.arraycopy(tmp, 0, s, 0, i);
                 }
             }
-            eof = reply.xdr_bool();	// end of directory
+            eof = reply.xdr_bool();     // end of directory
         }
 
         /*
@@ -713,9 +713,9 @@ public class Nfs2 extends Nfs {
     /*
      * Create a file
      *
-     * @param name	Name of file
-     * @param mode	UNIX style mode
-     * @returns		true if successful
+     * @param name      Name of file
+     * @param mode      UNIX style mode
+     * @returns         true if successful
      * @exception java.io.IOException
      */
     @Override
@@ -726,9 +726,9 @@ public class Nfs2 extends Nfs {
     /*
      * Create a directory
      *
-     * @param name	name of directory
-     * @param mode	UNIX style mode
-     * @returns 	true if successful
+     * @param name      name of directory
+     * @param mode      UNIX style mode
+     * @returns         true if successful
      * @exception java.io.IOException
      */
     @Override
@@ -739,9 +739,9 @@ public class Nfs2 extends Nfs {
     /*
      * Create Nfs Object over-the-wire
      *
-     * @param nfsOp	NFS operation
-     * @param mode	UNIX style mode
-     * @returns		true if successful
+     * @param nfsOp     NFS operation
+     * @param mode      UNIX style mode
+     * @returns         true if successful
      * @exception java.io.IOException
      */
     private Nfs create_otw(int nfsOp, String name, long mode)
@@ -757,13 +757,13 @@ public class Nfs2 extends Nfs {
     call.xdr_raw(fh);
     call.xdr_string(name);
     call.xdr_u_int(mode);
-    call.xdr_u_int(NfsConnect.getCred().getUid());	// owner
-    call.xdr_u_int(NfsConnect.getCred().getGid());	// group
-    call.xdr_u_int(0);			// size
-    call.xdr_u_int(currTime / 1000);	// atime seconds
-    call.xdr_u_int(currTime % 1000);	// atime mseconds
-    call.xdr_u_int(currTime / 1000);	// mtime seconds
-    call.xdr_u_int(currTime % 1000);	// mtime mseconds
+    call.xdr_u_int(NfsConnect.getCred().getUid());      // owner
+    call.xdr_u_int(NfsConnect.getCred().getGid());      // group
+    call.xdr_u_int(0);                  // size
+    call.xdr_u_int(currTime / 1000);    // atime seconds
+    call.xdr_u_int(currTime % 1000);    // atime mseconds
+    call.xdr_u_int(currTime / 1000);    // mtime seconds
+    call.xdr_u_int(currTime % 1000);    // mtime mseconds
 
     Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
@@ -845,7 +845,7 @@ public class Nfs2 extends Nfs {
     if (status != NFS_OK)
         throw new NfsException(status);
 
-    cache_remove(this, name);	// Remove Nfs object from cache
+    cache_remove(this, name);   // Remove Nfs object from cache
     dircache = null;
     return true;
     }
@@ -853,11 +853,11 @@ public class Nfs2 extends Nfs {
     /*
      * Rename file
      *
-     * @param srcP	Nfs obj of parent of src
-     * @param dstP	Nfs obj of parent of dst
-     * @param sName	src Name.
-     * @param dName	destination filename. May be 'path/filename' or simply
-     * 			'filename'
+     * @param srcP      Nfs obj of parent of src
+     * @param dstP      Nfs obj of parent of dst
+     * @param sName     src Name.
+     * @param dName     destination filename. May be 'path/filename' or simply
+     *                  'filename'
      * @returns true if the file/directory was renamed
      * @exception java.io.IOException
      */
@@ -867,10 +867,10 @@ public class Nfs2 extends Nfs {
     Xdr call = new Xdr(rsize + 512);
 
     rpc.rpc_header(call, NFSPROC2_RENAME);
-    call.xdr_raw(fh);			// Source dir filehandle
-    call.xdr_string(sName);			// Source filename
-    call.xdr_raw(dstP.getFH());		// Dest dir filehandle
-    call.xdr_string(dName);			// Dest filename
+    call.xdr_raw(fh);                   // Source dir filehandle
+    call.xdr_string(sName);                     // Source filename
+    call.xdr_raw(dstP.getFH());         // Dest dir filehandle
+    call.xdr_string(dName);                     // Dest filename
 
     Xdr reply = rpc.rpc_call(call, 2 * 1000, 0);
 
@@ -878,7 +878,7 @@ public class Nfs2 extends Nfs {
     if (status != NFS_OK)
         throw new NfsException(status);
 
-    cache_remove(this, sName);	// Remove Nfs object from cache
+    cache_remove(this, sName);  // Remove Nfs object from cache
     dircache = null;
     dstP.dircache = null;
     return true;

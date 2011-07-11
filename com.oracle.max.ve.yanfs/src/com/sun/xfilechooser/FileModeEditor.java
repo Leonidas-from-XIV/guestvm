@@ -84,7 +84,7 @@ public class FileModeEditor extends PropertyEditorSupport
 
     /**
      *  Sets the selected file mode
-     *	@param text name of selected file mode
+     *  @param text name of selected file mode
      */
     @Override
     public void setAsText(String text) throws IllegalArgumentException {

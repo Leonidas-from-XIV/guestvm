@@ -80,7 +80,7 @@ public class DialogEditor extends PropertyEditorSupport {
 
     /**
      *  Sets the selected dialog type
-     *	@param text name of selected dialog type
+     *  @param text name of selected dialog type
      */
     @Override
     public void setAsText(String text) throws IllegalArgumentException {

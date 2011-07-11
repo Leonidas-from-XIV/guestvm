@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcClientAuthUnix.java,v
  * 1.1.1.1 2003/08/13 12:03:40 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -30,7 +30,7 @@ import java.io.IOException;
  * The <code>OncRpcClientAuthUnix</code> class handles protocol issues of
  * ONC/RPC <code>AUTH_UNIX</code> (and thus <code>AUTH_SHORT</code>)
  * authentication.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:40 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -79,11 +79,11 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
      * Constructs a new <code>OncRpcClientAuthUnix</code> authentication
      * protocol handling object capable of handling <code>AUTH_UNIX</code> and
      * <code>AUTH_SHORT</code>.
-     * 
+     *
      * <p>
      * Please note that the credential information is typically only unique
      * within a particular domain of machines, user IDs and group IDs.
-     * 
+     *
      * @param machinename
      *            Name of the caller's machine (like "ebankruptcy-dot-com", just
      *            for instance...).
@@ -100,11 +100,11 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
      * Constructs a new <code>OncRpcClientAuthUnix</code> authentication
      * protocol handling object capable of handling <code>AUTH_UNIX</code> and
      * <code>AUTH_SHORT</code>.
-     * 
+     *
      * <p>
      * Please note that the credential information is typically only unique
      * within a particular domain of machines, user IDs and group IDs.
-     * 
+     *
      * @param machinename
      *            Name of the caller's machine (like "ebankruptcy-dot-com", just
      *            for instance...).
@@ -125,7 +125,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Returns the group ID from the credential.
-     * 
+     *
      * @return group ID.
      */
     public int getGid() {
@@ -134,7 +134,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Returns the group IDs from the credential.
-     * 
+     *
      * @return array of group IDs.
      */
     public int[] getGids() {
@@ -143,7 +143,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Returns the machine name information from the credential.
-     * 
+     *
      * @return machine name.
      */
     public String getMachinename() {
@@ -152,7 +152,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Returns the timestamp information from the credential.
-     * 
+     *
      * @return timestamp from credential.
      */
     public int getStamp() {
@@ -161,7 +161,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Returns the user ID from the credential.
-     * 
+     *
      * @return user ID.
      */
     public int getUid() {
@@ -170,7 +170,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Sets the group ID in the credential.
-     * 
+     *
      * @param gid
      *            Group ID.
      */
@@ -180,7 +180,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Sets the group IDs in the credential.
-     * 
+     *
      * @param gids
      *            Array of group IDs.
      */
@@ -190,7 +190,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Sets the machine name information in the credential.
-     * 
+     *
      * @param machinename
      *            Machine name.
      */
@@ -200,7 +200,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Sets the timestamp information in the credential.
-     * 
+     *
      * @param stamp
      *            New timestamp
      */
@@ -210,7 +210,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Sets the user ID in the credential.
-     * 
+     *
      * @param uid
      *            User ID.
      */
@@ -220,7 +220,7 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
 
     /**
      * Indicates whether the ONC/RPC authentication credential can be refreshed.
-     * 
+     *
      * @return true, if the credential can be refreshed
      */
     @Override
@@ -252,11 +252,11 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
     /**
      * Decodes ONC/RPC authentication information in form of a verifier when
      * receiving an ONC/RPC reply message.
-     * 
+     *
      * @param xdr
      *            XDR stream from which to receive the verifier sent together
      *            with an ONC/RPC reply message.
-     * 
+     *
      * @throws OncRpcAuthenticationException
      *             if the received verifier is not kosher.
      * @throws OncRpcException
@@ -313,10 +313,10 @@ public class OncRpcClientAuthUnix extends OncRpcClientAuth {
      * ONC/RPC server sent a <code>AUTH_SHORT</code> "shorthand" credential
      * together with the previous reply message, it is used instead of the
      * original credential.
-     * 
+     *
      * @param xdr
      *            XDR stream where to encode the credential and the verifier to.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

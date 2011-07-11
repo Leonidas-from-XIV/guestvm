@@ -47,16 +47,16 @@ public class CredGss extends Cred {
     /*
      * These are the data needed for setting up RPCSEC_GSS dialog.
      */
-    public int serviceType;	// authenticate, integrity or privacy
+    public int serviceType;     // authenticate, integrity or privacy
 
     Oid mechOid;
     int qop;
     String serviceName; // e.g. "nfs" is a service name
     int seq_num_out; // sequence number in the out going request
     int seq_window;
-    int control;	  // RPCSEC_GSS_INIT or RPCSEC_GSS_DATA ...etc
-    GSSContext gssCtx;	  // context object for gss operations
-    byte[] ctx_handle;	  // context handle for the security context
+    int control;          // RPCSEC_GSS_INIT or RPCSEC_GSS_DATA ...etc
+    GSSContext gssCtx;    // context object for gss operations
+    byte[] ctx_handle;    // context handle for the security context
 
     public static final int RPCSEC_GSS = 6;
     public static final int RPCSEC_GSS_DATA = 0;
@@ -74,10 +74,10 @@ public class CredGss extends Cred {
      * Constructor creates an instance of RPCSEC_GSS credential with
      * given service name, mechanism, service type and qop number.
      *
-     * @param svcName	the target service name
-     * @param mech	the string format of mech oid; e.g. "1.2.3.4.5"
-     * @param svcType	none, integrity or privacy
-     * @param qop_num	the number of quality protection
+     * @param svcName   the target service name
+     * @param mech      the string format of mech oid; e.g. "1.2.3.4.5"
+     * @param svcType   none, integrity or privacy
+     * @param qop_num   the number of quality protection
      */
     public CredGss(String svcName, String mech, int svcType, int qop_num)
     throws IOException {
@@ -100,10 +100,10 @@ public class CredGss extends Cred {
      * Constructor creates an instance of RPCSEC_GSS credential with
      * given service name, mechanism, service type and qop number.
      *
-     * @param svcName	the target service name
-     * @param mech	the GSS Oid object of the mech
-     * @param svcType	none, integrity or privacy
-     * @param qop_num	the number of quality protection
+     * @param svcName   the target service name
+     * @param mech      the GSS Oid object of the mech
+     * @param svcType   none, integrity or privacy
+     * @param qop_num   the number of quality protection
      */
     public CredGss(String svcName, Oid mech, int svcType, int qop_num) {
 
@@ -219,7 +219,7 @@ public class CredGss extends Cred {
          */
         try {
         reply = rpc.rpc_call_one(call, null, timeout);
-        break;	// reply received OK
+        break;  // reply received OK
 
         } catch (RpcException e) {
         throw e;
@@ -230,7 +230,7 @@ public class CredGss extends Cred {
         }
     }
 
-    if (reply == null)	// reached retry limit
+    if (reply == null)  // reached retry limit
         throw new InterruptedIOException();
 
     return reply;
@@ -239,9 +239,9 @@ public class CredGss extends Cred {
     /**
      * Init a security context using the given connection instance.
      *
-     * @param conn	The connection to the server
-     * @param prog	The program number of the rpc service
-     * @param vers	The version number of the rpc service
+     * @param conn      The connection to the server
+     * @param prog      The program number of the rpc service
+     * @param vers      The version number of the rpc service
      */
     @Override
     synchronized void init(Connection conn, int prog, int vers)
@@ -379,10 +379,10 @@ public class CredGss extends Cred {
      * Refresh the RPCSEC_GSS credential.
      * Nulled context and ctx_handle and re-try init sec context.
      *
-     * @param conn	The connection to the server
-     * @param prog	The program number of the rpc service
-     * @param vers	The version number of the rpc service
-     * @return		true if success
+     * @param conn      The connection to the server
+     * @param prog      The program number of the rpc service
+     * @param vers      The version number of the rpc service
+     * @return          true if success
      */
     @Override
     synchronized boolean refresh(Connection conn, int prog, int vers) {
@@ -405,9 +405,9 @@ public class CredGss extends Cred {
     /**
      * Use this cred object to encrypt the given xdr buffer.
      *
-     * @param call	xdr buffer
-     * @param arg	the rpc argument to be encrypted
-     * @return		the xdr buffer with the encrypted data
+     * @param call      xdr buffer
+     * @param arg       the rpc argument to be encrypted
+     * @return          the xdr buffer with the encrypted data
      */
     @Override
     synchronized void wrap(Xdr call, byte[] arg) throws RpcException {
@@ -446,8 +446,8 @@ public class CredGss extends Cred {
     /**
      * Use this cred object to decrypt the given xdr buffer.
      *
-     * @param reply	xdr buffer
-     * @return		the xdr buffer with the unencrypted data
+     * @param reply     xdr buffer
+     * @return          the xdr buffer with the unencrypted data
      */
     @Override
     synchronized int unwrap(Xdr reply) throws RpcException {
@@ -539,8 +539,8 @@ public class CredGss extends Cred {
      * Validate RPC response verifier from server. The response verifier
      * is the checksum of the request sequence number.
      *
-     * @param snumber	the sequence number
-     * @param token	the verifier
+     * @param snumber   the sequence number
+     * @param token     the verifier
      */
     @Override
     synchronized void validate(byte[] token, int snumber)
@@ -570,7 +570,7 @@ public class CredGss extends Cred {
      * Delete the RPC credential data and destroy its security
      * context with the server.
      *
-     * @param rpc	delete the security context of this Rpc object
+     * @param rpc       delete the security context of this Rpc object
      */
     @Override
     synchronized void destroy(Rpc rpc)

@@ -51,7 +51,7 @@ public class XFileAccessor implements com.sun.xfile.XFileAccessor {
     URLConnection urlConn;
     InputStream  iStream;
     OutputStream oStream;
-    long fp;	// file pointer
+    long fp;    // file pointer
 
     /**
      * Open this file object

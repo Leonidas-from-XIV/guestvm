@@ -32,8 +32,8 @@ import com.sun.max.tele.channel.TeleChannelProtocol;
  */
 
 public interface MaxVETeleChannelProtocol extends TeleChannelProtocol {
-	/**
-	 * It may be necessary to inform the native layer of certain key addresses.
-	 */
-	void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress);
+    /**
+     * It may be necessary to inform the native layer of certain key addresses.
+     */
+    void setNativeAddresses(long threadListAddress, long bootHeapStartAddress, long resumeAddress);
 }

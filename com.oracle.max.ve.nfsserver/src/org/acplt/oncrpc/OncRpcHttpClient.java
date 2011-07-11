@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcHttpClient.java,v 1.5
  * 2005/11/11 21:18:43 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -34,48 +34,48 @@ import org.acplt.oncrpc.web.HttpTunnelConstants;
 /**
  * ONC/RPC client which communicates with ONC/RPC servers over the network using
  * the ISO/OSI level 7 application protocol HTTP as a tunnel.
- * 
+ *
  * <p>
  * Please note that currently no standard exists about how to tunnel XDR data
  * over HTTP connections. There are a few solutions out there, but they are more
  * or less incompatible due to the lack of an RFC. So I'm now adding yet another
  * proprietary solution.
- * 
+ *
  * <p>
  * The protocol which is used here is rather simple and tries to be compatible
  * with as much firewall systems as possible. For this to achieve, both the
  * ONC/RPC calls as well as their replies are first base64 encoded, before they
  * are sent through the tunnel. This way, calls and replies appear to be
  * ordinary text documents of mime type "text/plain".
- * 
+ *
  * <p>
  * Calls will appear to be something like this, carrying redirection
  * information. Note that we do not include ONC/RPC call information in the
  * header section, as this is already included in the ONC/RPC call itself. So
  * including it in the header would just make it easier to play games with the
  * header.
- * 
+ *
  * <pre>
  *     CALL <i>host name</i>:<i>port</i> <i>protocol</i> TEA/1&lt;CR&gt;&lt;LF&gt;
  *     B0D0EADSDEADBEEF...&lt;CR&gt;&lt;LF&gt;
  *     ...&lt;CR&gt;&lt;LF&gt;
  *     DEADBE==&lt;CR&gt;&lt;LF&gt;
  * </pre>
- * 
+ *
  * <p>
  * Replies do not carry the redirection head, but only the base64 encoded data
  * of the ONC/RPC reply:
- * 
+ *
  * <pre>
  *     B0D0EADSDEADBEEF...&lt;CR&gt;&lt;LF&gt;
  *     ...&lt;CR&gt;&lt;LF&gt;
  *     DEADBE==&lt;CR&gt;&lt;LF&gt;
  * </pre>
- * 
+ *
  * <p>
  * The decoding from the base64 encoded data is carried out by the
  * {@link XdrHttpDecodingStream} class.
- * 
+ *
  * <p>
  * I'm not using eecks-emm-ell on purpose (net yet). While it is surely fun to
  * play with and it has its merits, just to create yet another RPC tunnel
@@ -84,7 +84,7 @@ import org.acplt.oncrpc.web.HttpTunnelConstants;
  * visible at all, I nevertheless disagree. On the other hand, XML would be
  * really fine to be misused for yet another proprietary and misguided ASCII,
  * pardon UTF-8, data format...
- * 
+ *
  * <pre>
  *     &lt;?xml version="1.0"?&gt;
  *     &lt;!DOCTYPE oncrpc-call SYSTEM "oncrpc-call.dtd"&gt;
@@ -94,10 +94,10 @@ import org.acplt.oncrpc.web.HttpTunnelConstants;
  *         DEADBE==&lt;CR&gt;&lt;LF&gt;
  *     &lt;/oncrpc-call&gt;
  * </pre>
- * 
+ *
  * <p>
  * The answer then could be represented as follows:
- * 
+ *
  * <pre>
  *     &lt;?xml version="1.0"?&gt;
  *     &lt;!DOCTYPE oncrpc-reply SYSTEM "oncrpc-reply.dtd"&gt;
@@ -107,16 +107,16 @@ import org.acplt.oncrpc.web.HttpTunnelConstants;
  *         DEADBE==&lt;CR&gt;&lt;LF&gt;
  *     &lt;/oncrpc-reply&gt;
  * </pre>
- * 
+ *
  * <p>
  * So it should be fairly easy to switch over to XML if someone will insist on
  * it. Reminds me of my Xmas lecture about "Internet Technologies -- Sacred Land
  * of the Automation Industry?"...
- * 
+ *
  * @version $Revision: 1.5 $ $Date: 2005/11/11 21:18:43 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
- * 
+ *
  * @see XdrHttpDecodingStream
  * @see org.acplt.oncrpc.web.HttpClientConnection
  */
@@ -173,14 +173,14 @@ public class OncRpcHttpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcHttpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the HTTP connection is not build before the first ONC/RPC call
      * is done through the {@link #call} method. The HTTP client tries to keep
      * the connection alive but reconnects if necessary. Nevertheless, as it
      * signals all failures, the caller has to handle reconnect situations --
      * but this is easy to achieve.
-     * 
+     *
      * @param hostname
      *            The DNS name of the host where the ONC/RPC server resides.
      * @param httpPort
@@ -202,7 +202,7 @@ public class OncRpcHttpClient extends OncRpcClient {
      * @param protocol
      *            Transport protocol to be used by the other end of the tunnel
      *            to call the ONC/RPC server.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -255,14 +255,14 @@ public class OncRpcHttpClient extends OncRpcClient {
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }. At the other end of the HTTP tunnel,
      * TCP/IP is used to call the ONC/RPC server.
-     * 
+     *
      * <p>
      * Note that the HTTP connection is not build before the first ONC/RPC call
      * is done through the {@link #call} method. The HTTP client tries to keep
      * the connection alive but reconnects if necessary. Nevertheless, as it
      * signals all failures, the caller has to handle reconnect situations --
      * but this is easy to achieve.
-     * 
+     *
      * @param hostname
      *            The DNS name of the host where the ONC/RPC server resides.
      * @param cgiHandlerPath
@@ -279,7 +279,7 @@ public class OncRpcHttpClient extends OncRpcClient {
      *            <code>0</code>, then the other end of the HTTP tunnel will try
      *            to ask the portmapper at <code>host</code> for the port
      *            number.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -296,14 +296,14 @@ public class OncRpcHttpClient extends OncRpcClient {
      * Constructs a new <code>OncRpcHttpClient</code> object, which connects to
      * the ONC/RPC server at <code>host</code> for calling remote procedures of
      * the given { program, version }.
-     * 
+     *
      * <p>
      * Note that the HTTP connection is not build before the first ONC/RPC call
      * is done through the {@link #call} method. The HTTP client tries to keep
      * the connection alive but reconnects if necessary. Nevertheless, as it
      * signals all failures, the caller has to handle reconnect situations --
      * but this is easy to achieve.
-     * 
+     *
      * @param hostname
      *            The DNS name of the host where the ONC/RPC server resides.
      * @param cgiHandlerPath
@@ -323,7 +323,7 @@ public class OncRpcHttpClient extends OncRpcClient {
      * @param protocol
      *            Transport protocol to be used by the other end of the tunnel
      *            to call the ONC/RPC server.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -339,10 +339,10 @@ public class OncRpcHttpClient extends OncRpcClient {
 
     /**
      * Calls a remote procedure on an ONC/RPC server.
-     * 
+     *
      * <p>
      * FIXME: timeout control?
-     * 
+     *
      * @param procedureNumber
      *            Procedure number of the procedure to call.
      * @param versionNumber
@@ -352,7 +352,7 @@ public class OncRpcHttpClient extends OncRpcClient {
      *            object which implements the {@link XdrAble} interface.
      * @param result
      *            The object receiving the result of the procedure call.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -615,7 +615,7 @@ public class OncRpcHttpClient extends OncRpcClient {
      * Close the connection to an ONC/RPC server and free all network-related
      * resources. Well -- at least hope, that the Java VM will sometimes free
      * some resources. Sigh.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      */
@@ -649,7 +649,7 @@ public class OncRpcHttpClient extends OncRpcClient {
 
     /**
      * Get the character encoding for (de-)serializing strings.
-     * 
+     *
      * @return the encoding currently used for (de-)serializing strings. If
      *         <code>null</code>, then the system's default encoding is used.
      */
@@ -660,7 +660,7 @@ public class OncRpcHttpClient extends OncRpcClient {
 
     /**
      * Returns the host name of the HTTP server we are connected to.
-     * 
+     *
      * @return host name.
      */
     public String getHostname() {
@@ -669,7 +669,7 @@ public class OncRpcHttpClient extends OncRpcClient {
 
     /**
      * Returns the port of the HTTP server we are connected to.
-     * 
+     *
      * @return port number.
      */
     public int getHttpPort() {
@@ -678,7 +678,7 @@ public class OncRpcHttpClient extends OncRpcClient {
 
     /**
      * Set the character encoding for (de-)serializing strings.
-     * 
+     *
      * @param characterEncoding
      *            the encoding to use for (de-)serializing strings. If
      *            <code>null</code>, the system's default encoding is to be

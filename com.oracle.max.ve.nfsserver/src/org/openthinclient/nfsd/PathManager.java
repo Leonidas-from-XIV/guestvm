@@ -1,19 +1,19 @@
 /*******************************************************************************
  * openthinclient.org ThinClient suite
- * 
+ *
  * Copyright (C) 2004, 2007 levigo holding GmbH. All Rights Reserved.
- * 
- * 
+ *
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  * Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -104,7 +104,7 @@ public class PathManager {
     /**
      * Construct a new PathManager. The path data is persisted into the
      * specified path database.
-     * 
+     *
      * @throws IOException
      *             If the given handle database is not writable.
      */
@@ -197,7 +197,7 @@ public class PathManager {
      * With very high loads and a large number of files it might by problematic
      * to flush the path database synchronously. In this case we would need to
      * do something a lot smarter. However, for now this seems to be ok.
-     * 
+     *
      * @throws IOException
      */
     public synchronized void flushPathDatabase() throws IOException {
@@ -286,7 +286,7 @@ public class PathManager {
 
     /**
      * Get an NFSFile by its nfs_fh handle. The file has to exist.
-     * 
+     *
      * @param fh
      * @return
      * @throws StaleHandleException
@@ -337,7 +337,7 @@ public class PathManager {
     }
 
     /**
-     * 
+     *
      * @param filesList
      *            list of files which should be removed from the NFS DB
      * @return true only if all files could be deleted from the NFS Database

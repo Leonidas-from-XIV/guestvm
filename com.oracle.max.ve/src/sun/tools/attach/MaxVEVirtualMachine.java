@@ -39,6 +39,7 @@ public class MaxVEVirtualMachine extends HotSpotVirtualMachine {
         _vmd = vmd;
     }
 
+    @Override
     InputStream execute(String cmd, Object... args) throws AgentLoadException, IOException {
         System.out.print("execute:" + cmd);
         final Socket sock = new Socket(_vmd.host(), AttachPort.getPort());
@@ -80,6 +81,7 @@ public class MaxVEVirtualMachine extends HotSpotVirtualMachine {
         }
     }
 
+    @Override
     public void detach() throws IOException {
 
     }

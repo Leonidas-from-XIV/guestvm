@@ -1,20 +1,20 @@
 /*
  * $Header: /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrUnion.java,v
  * 1.1.1.1 2003/08/13 12:03:41 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -38,14 +38,14 @@ import java.io.InvalidClassException;
  * part is serialized first before the common part. This behaviour stems from
  * the ACPLT C++ Communication Library and has been retained for compatibility
  * reasons. As it doesn't hurt, you won't mind anyway.
- * 
+ *
  * <p>
  * To use polymorphism with XDR streams, you'll have to derive your own base
  * class (let's call it <code>foo</code> from <code>XdrUnion</code> and
  * implement the two methods {@link #xdrEncodeCommon(XdrEncodingStream)} and
  * {@link #xdrDecodeCommon(XdrDecodingStream)}. Do not overwrite the methods
  * xdrEncode and xdrDecode!
- * 
+ *
  * <p>
  * Then, in your <code>foo</code>-derived classes, like <code>bar</code> and
  * <code>baz</code>, implement the other two methods
@@ -54,7 +54,7 @@ import java.io.InvalidClassException;
  * {@link #getXdrTypeCode} to return an int, uniquely identifying your class.
  * Note that this identifier only needs to be unique within the scope of your
  * <code>foo</code> class.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:41 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -69,7 +69,7 @@ public abstract class XdrUnion implements XdrAble {
      * and <code>foo</code> is the base class for <code>bar</code> and
      * <code>baz</code>, then the type code needs only be unique between
      * <code>bar</code> and <code>baz</code>.
-     * 
+     *
      * @return Type code identifying an object's class when encoding or decoding
      *         the object into or from a XDR stream.
      */
@@ -78,7 +78,7 @@ public abstract class XdrUnion implements XdrAble {
     /**
      * Decodes -- that is: deserializes -- an object from a XDR stream in
      * compliance to RFC 1832.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -110,7 +110,7 @@ public abstract class XdrUnion implements XdrAble {
      * Decodes -- that is: deserializes -- the common part of an object from a
      * XDR stream in compliance to RFC 1832. Note that the common part is
      * deserialized after the variant part.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -124,7 +124,7 @@ public abstract class XdrUnion implements XdrAble {
      * Decodes -- that is: deserializes -- the variant part of an object from a
      * XDR stream in compliance to RFC 1832. Note that the variant part is
      * deserialized before the common part.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -137,7 +137,7 @@ public abstract class XdrUnion implements XdrAble {
     /**
      * Encodes -- that is: serializes -- an object into a XDR stream in
      * compliance to RFC 1832.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -160,7 +160,7 @@ public abstract class XdrUnion implements XdrAble {
      * Encodes -- that is: serializes -- the common part of an object into a XDR
      * stream in compliance to RFC 1832. Note that the common part is
      * deserialized after the variant part.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -174,7 +174,7 @@ public abstract class XdrUnion implements XdrAble {
      * Encodes -- that is: serializes -- the variant part of an object into a
      * XDR stream in compliance to RFC 1832. Note that the variant part is
      * deserialized before the common part.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

@@ -48,13 +48,13 @@ public class Buffer extends Thread {
     Nfs nfs;
     long foffset;
 
-    byte[] buf;		// The buffer itself
-    int bufoff;		// Offset into the buffer
-    int buflen;		// Bytes in buffer
-    int bufsize;	// Size of buffer
+    byte[] buf;         // The buffer itself
+    int bufoff;         // Offset into the buffer
+    int buflen;         // Bytes in buffer
+    int bufsize;        // Size of buffer
 
-    int minOffset;	// First byte written
-    int maxOffset;	// Last byte written
+    int minOffset;      // First byte written
+    int maxOffset;      // Last byte written
 
     int status;
     private int action;
@@ -80,10 +80,10 @@ public class Buffer extends Thread {
      * not yet committed.  Once committed, the state returns
      * to LOADED.
      */
-    final static int EMPTY  = 0;	// Has no data
-    final static int LOADED = 1;	// Has file data
-    final static int DIRTY  = 2;	// Has new data
-    final static int COMMIT = 3;	// Not committed
+    final static int EMPTY  = 0;        // Has no data
+    final static int LOADED = 1;        // Has file data
+    final static int DIRTY  = 2;        // Has new data
+    final static int COMMIT = 3;        // Not committed
 
     public Buffer(Nfs nfs, int foffset, int bufsize) {
         this.nfs = nfs;
@@ -94,7 +94,7 @@ public class Buffer extends Thread {
         minOffset = bufsize;
         maxOffset = 0;
 
-        setDaemon(true);	// NFS threads die when app exits
+        setDaemon(true);        // NFS threads die when app exits
         try {
             setName("Buffer-" + (foffset / bufsize));
         } catch (Exception e) {}; // non-essential, ignore

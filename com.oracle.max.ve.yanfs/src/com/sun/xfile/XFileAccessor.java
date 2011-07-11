@@ -51,14 +51,14 @@ import java.io.IOException;
  * associated with the "http" URL and its class file would be
  * called:
  * <p><blockquote><code>
- * 	http.XFileAccessor
+ *      http.XFileAccessor
  * </code></blockquote><p>
  * A class prefix is added to this name.  The default prefix is
  * <code>com.sun</code> and this composite name is located by the
  * classLoader via the CLASSPATH.
  * For instance, Sun's "nfs" XFileAccessor is installed as:
  * <p><blockquote><code>
- * 	com.sun.nfs.XFileAccessor
+ *      com.sun.nfs.XFileAccessor
  * </code></blockquote><p>
  * The default class prefix <code>com.sun</code> can be changed by
  * setting the System property <b><code>java.protocol.xfile</code></b>
@@ -73,7 +73,7 @@ import java.io.IOException;
  * from "ABC Inc." then you can set the system property as
  * follows:
  * <p><blockquote><code>
- * 	<b>java.protocol.xfile=com.acme|com.abc</b>
+ *      <b>java.protocol.xfile=com.acme|com.abc</b>
  * </code></blockquote>
  * When an "ftp" URL is used, the following package names will
  * be constructed:
@@ -114,17 +114,17 @@ public interface XFileAccessor {
      * It may be used to open the <i>real</i> file.
      *
      * @param xf The XFile for the file to be accessed
-     * 		The URL will be of the form
-     * 		<p>
-     * 		    &lt;proto&gt;://&lt;location&gt;/&lt;path&gt;
-     * 		<p>
-     * 		where &lt;proto&gt; is the name of the filesystem,
-     *		e.g. "nfs" and &lt;location&gt; is the location of
-     *		the filesystem.  For nfs this is the network name of
-     *		a server.  The &lt;path&gt; is a pathname that locates
-     *		the file within &lt;location&gt;. As required by
-     *		RFC 1738, the component delimiters in the pathname
-     *		are as for URL syntax: forward slashes only.
+     *          The URL will be of the form
+     *          <p>
+     *              &lt;proto&gt;://&lt;location&gt;/&lt;path&gt;
+     *          <p>
+     *          where &lt;proto&gt; is the name of the filesystem,
+     *          e.g. "nfs" and &lt;location&gt; is the location of
+     *          the filesystem.  For nfs this is the network name of
+     *          a server.  The &lt;path&gt; is a pathname that locates
+     *          the file within &lt;location&gt;. As required by
+     *          RFC 1738, the component delimiters in the pathname
+     *          are as for URL syntax: forward slashes only.
      * @param serial true if serial access; false if random access
      * @param readOnly true if read only; false if read/write
      */

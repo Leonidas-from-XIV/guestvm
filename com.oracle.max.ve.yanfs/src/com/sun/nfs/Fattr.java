@@ -56,13 +56,13 @@ import com.sun.rpc.*;
  */
 public abstract class Fattr {
 
-    long validtime;			// time when attrs were new
-    long cachetime;			// max cache duration in ms
-    static final int ACMIN = 3  * 1000;	// 3 sec - min cache time
-    static final int ACMAX = 60 * 1000;	// 1 min - max cache time
+    long validtime;                     // time when attrs were new
+    long cachetime;                     // max cache duration in ms
+    static final int ACMIN = 3  * 1000; // 3 sec - min cache time
+    static final int ACMAX = 60 * 1000; // 1 min - max cache time
 
-    static final int NOBODY = 60001;	// Svr4 UID/GID "nobody"
-    static final int NFS_NOBODY = -2;	// NFS  UID/GID "nobody"
+    static final int NOBODY = 60001;    // Svr4 UID/GID "nobody"
+    static final int NFS_NOBODY = -2;   // NFS  UID/GID "nobody"
 
 
     /**
@@ -71,7 +71,7 @@ public abstract class Fattr {
      * If not, then the caller will likely update
      * the attributes with an NFS getattr request.
      *
-     * @returns	true if the attributes are valid
+     * @returns true if the attributes are valid
      */
     boolean valid() {
         long timenow = System.currentTimeMillis();

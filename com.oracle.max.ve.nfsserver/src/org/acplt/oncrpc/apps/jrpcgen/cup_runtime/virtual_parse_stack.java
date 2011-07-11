@@ -12,7 +12,7 @@ import java.util.Stack;
  * the system then reverts to the original parse stack (which has not actually
  * been modified). Since parse ahead does not execute actions, only parse state
  * is maintained on the virtual stack, not full Symbol objects.
- * 
+ *
  * @see java_cup.runtime.lr_parser
  * @version last updated: 7/3/96
  * @author Frank Flannery

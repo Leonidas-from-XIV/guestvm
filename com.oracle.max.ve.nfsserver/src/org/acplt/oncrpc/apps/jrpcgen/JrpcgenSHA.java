@@ -1,22 +1,22 @@
 /*
  * SHA.java -- Class implementing the SHA-1 algorithm as specified in [1].
  * Copyright (C) 1999, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Classpath.
- * 
+ *
  * GNU Classpath is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2, or (at your option) any later version.
- * 
+ *
  * GNU Classpath is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * GNU Classpath; see the file COPYING. If not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * 
+ *
  * As a special exception, if you link this library with other files to produce
  * an executable, this library does not by itself cause the resulting executable
  * to be covered by the GNU General Public License. This exception does not
@@ -28,16 +28,16 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jrpcgen/JrpcgenSHA
  * .java,v 1.1.1.1 2003/08/13 12:03:47 haraldalbrecht Exp $
- * 
+ *
  * The original file gnu.java.security.provider.SHA.java has been renamed to
  * reflect the many chances made to it. While the processing kernel has not been
  * changed, the overall interface has. Especially some methods have been added
  * which can hash several kinds of data types, as needed by the jrpcgen protocol
  * compiler.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:47 $ $State: Exp $
  * $Locker: $
- * 
+ *
  * @author GNU Classpath
  */
 package org.acplt.oncrpc.apps.jrpcgen;
@@ -75,7 +75,7 @@ public class JrpcgenSHA {
 
     /**
      * Retrieve the digest (that is, informally spoken, the "hash value").
-     * 
+     *
      * @return digest as a series of 20 bytes (80 bits).
      */
     public byte[] getDigest() {
@@ -114,7 +114,7 @@ public class JrpcgenSHA {
 
     /**
      * Return first 64 bits of hash digest for use as a serialization UID, etc.
-     * 
+     *
      * @return hash digest with only 64 bit size.
      */
     public long getHash() {
@@ -143,7 +143,7 @@ public class JrpcgenSHA {
 
     /**
      * Update the hash using a single byte (8 bits).
-     * 
+     *
      * @param b
      *            Byte to hash.
      */
@@ -163,7 +163,7 @@ public class JrpcgenSHA {
 
     /**
      * Update the hash using an integer (32 bits).
-     * 
+     *
      * @param i
      *            Integer to hash.
      */
@@ -176,7 +176,7 @@ public class JrpcgenSHA {
 
     /**
      * Update the hash using a short integer (16 bits).
-     * 
+     *
      * @param s
      *            Short integer to hash.
      */
@@ -187,7 +187,7 @@ public class JrpcgenSHA {
 
     /**
      * Update the hash using a string.
-     * 
+     *
      * @param s
      *            String to hash.
      */

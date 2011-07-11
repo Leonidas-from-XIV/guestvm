@@ -4,7 +4,7 @@ package org.acplt.oncrpc.apps.jrpcgen.cup_runtime;
  * Defines the Symbol class, which is used to represent all terminals and
  * nonterminals while parsing. The lexer should pass CUP Symbols and CUP returns
  * a Symbol.
- * 
+ *
  * @version last updated: 7/3/96
  * @author Frank Flannery
  */

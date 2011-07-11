@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/apps/jrpcgen/JrpcgenVersionInfo
  * .java,v 1.1.1.1 2003/08/13 12:03:47 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -30,7 +30,7 @@ import java.util.Vector;
 /**
  * The <code>JrpcgenVersionInfo</code> class contains information about a
  * specific version of an ONC/RPC program as defined in a rpcgen "x"-file.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:47 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -60,7 +60,7 @@ class JrpcgenVersionInfo {
      * Constructs a new <code>JrpcgenVersionInfo</code> object containing
      * information about a programs' version and a set of procedures defined by
      * this program version.
-     * 
+     *
      * @param versionId
      *            Identifier defined for this version of a particular ONC/RPC
      *            program.
@@ -79,7 +79,7 @@ class JrpcgenVersionInfo {
     /**
      * Generates source code to define the version constant belonging to this
      * program.
-     * 
+     *
      * @param out
      *            PrintWriter to send source code to.
      */

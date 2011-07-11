@@ -67,9 +67,9 @@ public class Rpc {
      * Construct a new Rpc object - equivalent to a "client handle"
      * using an AUTH_NONE cred handle.
      *
-     * @param conn	A connection to the server
-     * @param prog	The program number of the service
-     * @param vers	The version number of the service
+     * @param conn      A connection to the server
+     * @param prog      The program number of the service
+     * @param vers      The version number of the service
      */
     public Rpc(Connection conn, int prog, int vers) {
         this.conn = conn;
@@ -82,10 +82,10 @@ public class Rpc {
      * Construct a new Rpc object - equivalent to a "client handle"
      * using a given cred handle "cr"
      *
-     * @param conn	A connection to the server
-     * @param prog	The program number of the service
-     * @param vers	The version number of the service
-     * @param cr	The cred to be used: CredUnix or CredGss
+     * @param conn      A connection to the server
+     * @param prog      The program number of the service
+     * @param vers      The version number of the service
+     * @param cr        The cred to be used: CredUnix or CredGss
      */
     public Rpc(Connection conn, int prog, int vers, Cred cr) {
         this.conn = conn;
@@ -97,13 +97,13 @@ public class Rpc {
     /**
      * Construct a new Rpc object - equivalent to a "client handle"
      *
-     * @param server	The hostname of the server
-     * @param port	The port number for the service
-     * @param prog	The program number of the service
-     * @param vers	The version number of the service
-     * @param proto	The protocol to be used: "tcp" or "udp"
-     * @param maxReply	The maximum size of the RPC reply
-     * @exception	IOException if an I/O error occurs
+     * @param server    The hostname of the server
+     * @param port      The port number for the service
+     * @param prog      The program number of the service
+     * @param vers      The version number of the service
+     * @param proto     The protocol to be used: "tcp" or "udp"
+     * @param maxReply  The maximum size of the RPC reply
+     * @exception       IOException if an I/O error occurs
      */
     public Rpc(String server, int port, int prog, int vers,
                 String proto, int maxReply)
@@ -189,7 +189,7 @@ public class Rpc {
     /**
      * Return the RPC credential
      *
-     * @return		The credential
+     * @return          The credential
      */
     public Cred getCred() {
         return cred;
@@ -205,8 +205,8 @@ public class Rpc {
     /**
      * Construct an RPC header in the XDR buffer
      *
-     * @param call	The XDR buffer for the header
-     * @param proc	The service procedure to be called
+     * @param call      The XDR buffer for the header
+     * @param proc      The service procedure to be called
      */
     public void rpc_header(Xdr call, int proc) throws RpcException {
 
@@ -219,8 +219,8 @@ public class Rpc {
         call.xdr_offset(conn instanceof ConnectSocket ? 4 : 0);
 
         call.xdr_int(call.xid);
-        call.xdr_int(0);	// direction=CALL
-        call.xdr_int(2);	// RPC version
+        call.xdr_int(0);        // direction=CALL
+        call.xdr_int(2);        // RPC version
         call.xdr_int(prog);
         call.xdr_int(vers);
         call.xdr_int(proc);
@@ -300,11 +300,11 @@ public class Rpc {
      * followed by a protocol header and receive the
      * reply.
      *
-     * @param call	XDR buffer containing RPC call to transmit
-     * @param arg	(seq_num + RPC argument) if wrap
-     * @param timeout	after this number of milliseconds
-     * @return Xdr	the XDR buffer for the reply
-     * @throws		RpcException
+     * @param call      XDR buffer containing RPC call to transmit
+     * @param arg       (seq_num + RPC argument) if wrap
+     * @param timeout   after this number of milliseconds
+     * @return Xdr      the XDR buffer for the reply
+     * @throws          RpcException
      */
     public Xdr rpc_call_one(Xdr call, byte[] arg, int timeout)
     throws IOException, RpcException {
@@ -321,13 +321,13 @@ public class Rpc {
 
         // XID already xdr'ed by the connection listener
 
-        if (reply.xdr_int() != REPLY)		// direction
+        if (reply.xdr_int() != REPLY)           // direction
             throw new RpcException("Unknown RPC header");
 
         status = reply.xdr_int();
         switch (status) {
         case MSG_ACCEPTED:
-            reply.xdr_skip(4);		// verifier flavor
+            reply.xdr_skip(4);          // verifier flavor
         verifier = reply.xdr_bytes(); // get the verifier
             astat = reply.xdr_int();
 
@@ -380,12 +380,12 @@ public class Rpc {
      * Note that we handle TCP connections differently: there is
      * no timeout, and retransmission is used only when reconnecting.
      *
-     * @param call	XDR buffer containing RPC call to transmit
-     * @param timeout	for the initial call
-     * @param retries	the number of times to retry the call.
-     *			A value of zero implies forever.
-     * @return Xdr	the XDR buffer for the reply
-     * @throws		IOException
+     * @param call      XDR buffer containing RPC call to transmit
+     * @param timeout   for the initial call
+     * @param retries   the number of times to retry the call.
+     *                  A value of zero implies forever.
+     * @return Xdr      the XDR buffer for the reply
+     * @throws          IOException
      */
     public Xdr rpc_call(Xdr call, int timeout, int retries)
         throws IOException {
@@ -395,7 +395,7 @@ public class Rpc {
         long startTime = System.currentTimeMillis();
 
         if (retries == 0)
-            retries = Integer.MAX_VALUE;	// retry forever
+            retries = Integer.MAX_VALUE;        // retry forever
 
         /*
          * If it's a TCP connection, do retries only
@@ -426,7 +426,7 @@ public class Rpc {
             try {
 
                 reply = rpc_call_one(call, arg, timeout);
-                break;	// reply received OK
+                break;  // reply received OK
 
         } catch (MsgRejectedException e) {
 
@@ -470,13 +470,13 @@ public class Rpc {
                  * Double the timeout and retry
                  */
                 timedout = true;
-                timeout *= 2;			// double the timeout
+                timeout *= 2;                   // double the timeout
                 if (timeout > MAX_TIMEOUT)
                     timeout = MAX_TIMEOUT;
 
         /*
          * For CredGss: reconstruct the clear-text-argument
-         *		and use a new sequence number.
+         *              and use a new sequence number.
          * Currently, only CredNone, CredUnix, CredGss is supported.
          *
          * CredGss not checked to avoid loading un-used CredGss class.
@@ -488,7 +488,7 @@ public class Rpc {
             }
         }
 
-        if (reply == null)			// reached retry limit
+        if (reply == null)                      // reached retry limit
             throw new InterruptedIOException();
 
         /*

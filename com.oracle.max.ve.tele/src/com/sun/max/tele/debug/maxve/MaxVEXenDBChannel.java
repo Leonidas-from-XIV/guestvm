@@ -47,7 +47,7 @@ public final class MaxVEXenDBChannel {
     private static MaxVETeleDomain teleDomain;
     private static MaxVETeleChannelProtocol channelProtocol;
     private static int maxByteBufferSize;
-    
+
     public static synchronized void attach(MaxVETeleDomain teleDomain, int domId) {
         MaxVEXenDBChannel.teleDomain = teleDomain;
         channelProtocol = (MaxVETeleChannelProtocol) TeleVM.teleChannelProtocol();
@@ -59,7 +59,7 @@ public final class MaxVEXenDBChannel {
             final ImageFileHandler fh  = ImageFileHandler.open(maxvm);
             channelProtocol.setNativeAddresses(fh.getThreadListSymbolAddress(), fh.getBootHeapStartSymbolAddress(), fh.getSymbolAddress("xg_resume_flag"));
         } catch (Exception ex) {
-        	FatalError.unexpected("failed to open maxvm image file", ex);
+            FatalError.unexpected("failed to open maxvm image file", ex);
         }
         channelProtocol.attach(domId);
         maxByteBufferSize = channelProtocol.maxByteBufferSize();
@@ -133,9 +133,9 @@ public final class MaxVEXenDBChannel {
     public static synchronized boolean resume(int domainId) {
         return channelProtocol.resume(0);
     }
-    
+
     public static synchronized ProcessState waitUntilStopped() {
-    	return channelProtocol.waitUntilStopped();
+        return channelProtocol.waitUntilStopped();
     }
 
     public static synchronized boolean setInstructionPointer(int threadId, long ip) {

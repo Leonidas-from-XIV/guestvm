@@ -342,7 +342,7 @@ public class Ext2Directory extends AbstractFSDirectory {
                         //                      .getOffset(), dr.getRecLen());
                         if (logger.isLoggable(Level.FINER)) {
                             doLog(Level.FINER,
-                        		    "addDirectoryRecord(): LAST   record: begins at: "
+                                            "addDirectoryRecord(): LAST   record: begins at: "
                                             + (lastPos + lastLen)
                                             + ", length: "
                                             + dr.getRecLen());

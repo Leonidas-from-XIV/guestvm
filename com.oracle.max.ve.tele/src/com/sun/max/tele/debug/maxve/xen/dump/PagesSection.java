@@ -64,7 +64,7 @@ public class PagesSection {
     }
 
     public int readBytes(long address,byte[] dst, int dstOffset,int length)throws IOException {
-    	if(address > pageSectionHeader.getSize()) {
+        if(address > pageSectionHeader.getSize()) {
             throw new IllegalArgumentException("Improper address:" + address + " Size is:" + pageSectionHeader.getSize());
         }
         raf.seek(pageSectionHeader.getOffset() + address);

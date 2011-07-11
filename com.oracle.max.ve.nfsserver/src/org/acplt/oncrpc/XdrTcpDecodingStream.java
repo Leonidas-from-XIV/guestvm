@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrTcpDecodingStream.java,v
  * 1.2 2005/11/11 21:07:27 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -33,7 +33,7 @@ import java.net.Socket;
  * The <code>XdrTcpDecodingStream</code> class provides the necessary
  * functionality to {@link XdrDecodingStream} to receive XDR records from the
  * network using the stream-oriented TCP/IP.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2005/11/11 21:07:27 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -83,7 +83,7 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Construct a new <code>XdrTcpDecodingStream</code> object and associate it
      * with the given <code>streamingSocket</code> for TCP/IP-based
      * communication.
-     * 
+     *
      * @param streamingSocket
      *            Socket from which XDR data is received.
      * @param bufferSize
@@ -120,14 +120,14 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * streams this reads in the next chunk of data from the network socket (a
      * chunk of data is not necessary the same as a fragment, just enough to
      * fill the internal buffer or receive the remaining part of a fragment).
-     * 
+     *
      * <p>
      * Read in the next bunch of bytes. This can be either a complete fragment,
      * or if the fragments sent by the communication partner are too large for
      * our buffer, only parts of fragments. In every case, this method ensures
      * that there will be more data available in the buffer (or else an
      * exception thrown).
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -142,12 +142,12 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Closes this decoding XDR stream and releases any system resources
      * associated with this stream. A closed XDR stream cannot perform decoding
      * operations and cannot be reopened.
-     * 
+     *
      * <p>
      * This implementation frees the allocated buffer but does not close the
      * associated datagram socket. It only throws away the reference to this
      * socket.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -165,11 +165,11 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * <code>endDecoding</code> is that calling it is an indication that the
      * current record is no more interesting to the caller and any allocated
      * data for this record can be freed.
-     * 
+     *
      * <p>
      * This method overrides {@link XdrDecodingStream#endDecoding}. It reads in
      * and throws away fragments until it reaches the last fragment.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -200,7 +200,7 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Returns the Internet address of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return InetAddress of the sender of the current XDR data.
      */
     @Override
@@ -212,7 +212,7 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Returns the port number of the sender of the current XDR data. This
      * method should only be called after {@link #beginDecoding}, otherwise it
      * might return stale information.
-     * 
+     *
      * @return Port number of the sender of the current XDR data.
      */
     @Override
@@ -224,9 +224,9 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Decodes (aka "deserializes") a "XDR int" value received from a XDR
      * stream. A XDR int is 32 bits wide -- the same width Java's "int" data
      * type has.
-     * 
+     *
      * @return The decoded int value.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -265,14 +265,14 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * of <code>length</code>. Only the opaque value is decoded, so the caller
      * has to know how long the opaque value will be. The decoded data is always
      * padded to be a multiple of four (because that's what the sender does).
-     * 
+     *
      * @param opaque
      *            Byte vector which will receive the decoded opaque value.
      * @param offset
      *            Start offset in the byte vector.
      * @param length
      *            the number of bytes to decode.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -323,12 +323,12 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * opaque value is given, we don't need to retrieve it from the XDR stream.
      * This is different from {@link #xdrDecodeOpaque(byte[], int, int)} where
      * first the length of the opaque value is retrieved from the XDR stream.
-     * 
+     *
      * @param length
      *            Length of opaque data to decode.
-     * 
+     *
      * @return Opaque data as a byte vector.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -385,14 +385,14 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
      * Fills the internal buffer with the next chunk of data. The chunk is
      * either as long as the buffer or as long as the remaining part of the
      * current XDR fragment, whichever is smaller.
-     * 
+     *
      * <p>
      * This method does not accept empty XDR record fragments with the only
      * exception of a final trailing empty fragment. This special case is
      * accepted as some ONC/RPC implementations emit such trailing empty
      * fragments whenever the encoded data is a full multiple of their internal
      * record buffer size.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -478,14 +478,14 @@ public class XdrTcpDecodingStream extends XdrDecodingStream {
 
     /**
      * Read into buffer exactly the amound of bytes specified.
-     * 
+     *
      * @param stream
      *            Input stream to read byte data from.
      * @param bytes
      *            buffer receiving data.
      * @param bytesToRead
      *            number of bytes to read into buffer.
-     * 
+     *
      * @throws OncRpcException
      *             if EOF is reached before all bytes could be read.
      * @throws IOException

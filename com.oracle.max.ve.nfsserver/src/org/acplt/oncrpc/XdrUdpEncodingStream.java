@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/XdrUdpEncodingStream.java,v
  * 1.2 2003/08/14 11:07:39 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -33,7 +33,7 @@ import java.net.InetAddress;
  * The <code>XdrUdpDecodingStream</code> class provides the necessary
  * functionality to {@link XdrDecodingStream} to send XDR packets over the
  * network using the datagram-oriented UDP/IP.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 11:07:39 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -80,7 +80,7 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
     /**
      * Creates a new UDP-based encoding XDR stream, associated with the given
      * datagram socket.
-     * 
+     *
      * @param datagramSocket
      *            Datagram-based socket to use to get rid of encoded data.
      * @param bufferSize
@@ -108,14 +108,14 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
     /**
      * Begins encoding a new XDR record. This involves resetting this encoding
      * XDR stream back into a known state.
-     * 
+     *
      * @param receiverAddress
      *            Indicates the receiver of the XDR data. This can be
      *            <code>null</code> for XDR streams connected permanently to a
      *            receiver (like in case of TCP/IP based XDR streams).
      * @param receiverPort
      *            Port number of the receiver.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -135,7 +135,7 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
      * associated with this stream. The general contract of <code>close</code>
      * is that it closes the encoding XDR stream. A closed XDR stream cannot
      * perform encoding operations and cannot be reopened.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -153,7 +153,7 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
      * calling it is an indication that the current record is finished and any
      * bytes previously encoded should immediately be written to their intended
      * destination.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -172,7 +172,7 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
      * stream. A XDR int is 32 bits wide -- the same width Java's "int" data
      * type has. This method is one of the basic methods all other methods can
      * rely on.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException
@@ -203,7 +203,7 @@ public class XdrUdpEncodingStream extends XdrEncodingStream {
      * how long the opaque value will be. The encoded data is always padded to
      * be a multiple of four. If the given length is not a multiple of four,
      * zero bytes will be used for padding.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

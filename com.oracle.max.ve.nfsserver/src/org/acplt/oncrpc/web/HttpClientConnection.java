@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/web/HttpClientConnection
  * .java,v 1.1.1.1 2003/08/13 12:03:45 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -45,7 +45,7 @@ import org.acplt.oncrpc.OncRpcConstants;
  * provide a full-blown HTTP connection, but it is rather optimized for what
  * ONC/RPC clients need in order to tunnel ONC remote procedure calls through
  * ordinary HTTP connections, thus penetrating firewalls.
- * 
+ *
  * <p>
  * A <code>HttpClientConnection</code> is not that clever as you would first
  * expect. Rather you have to do some things for yourself, like reconnecting
@@ -53,18 +53,18 @@ import org.acplt.oncrpc.OncRpcConstants;
  * the caller's shoulders, this keeps resource wasting at a minimum, and gives
  * you full control over redirections and other mess -- you do want full
  * control, right?.
- * 
+ *
  * <p>
  * For this reason, for instance, an <code>HttpClientConnection</code> does not
  * buffer the whole request before sending it to the server but rather relies on
  * the caller to supply the right content-length information. This avoids
  * unnecessary double buffering but instead creates the bas64 encoded content
  * on-the-fly.
- * 
+ *
  * <p>
  * Of course, this client connection object does not touch the content, it just
  * suplies the pipe to swallow the data.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:45 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -246,7 +246,7 @@ public class HttpClientConnection {
     /**
      * Constructs a new <code>HttpClientConnection</code>. The port used on the
      * HTTP server side is the default HTTP port, 80.
-     * 
+     *
      * @param hostname
      *            name (DNS name or IP dotted address) of host running a HTTP
      *            server to which we want to connect to.
@@ -257,7 +257,7 @@ public class HttpClientConnection {
 
     /**
      * Constructs a new <code>HttpClientConnection</code>.
-     * 
+     *
      * @param hostname
      *            name (DNS name or IP dotted address) of host running a HTTP
      *            server to which we should connect to.
@@ -277,7 +277,7 @@ public class HttpClientConnection {
      * Begin receiving the content sent by the HTTP server. This method blocks
      * until at least the HTTP header section has been received or until the
      * connection times out.
-     * 
+     *
      * @return HTTP server response code (status code).
      */
     public int beginDecoding() throws IOException {
@@ -311,7 +311,7 @@ public class HttpClientConnection {
      * fields. Next, the caller can send lots of content using the
      * {@link #writeContentBytes} method. Finally, to finish the request he has
      * to call the {@link #endPostRequest} method.
-     * 
+     *
      * @param path
      *            Path to server object which handles the POST request. For
      *            instance, this can be a CGI script (although it better should
@@ -323,7 +323,7 @@ public class HttpClientConnection {
      *            known in advance. In this case, keeping the connection alive
      *            is not possible, so callers should avoid this situation, if
      *            possible.
-     * 
+     *
      * @exception IOException
      *                if an I/O exception occurs when sending the HTTP headers.
      *                In this case the connection is closed automatically and
@@ -449,7 +449,7 @@ public class HttpClientConnection {
     }
 
     /**
-     * 
+     *
      * <p>
      * This method silently discards any unread content, if the caller has yet
      * not read all content.
@@ -579,7 +579,7 @@ public class HttpClientConnection {
 
     /**
      * Returns the content type (MIME type, charset, etc.).
-     * 
+     *
      * @return content type
      */
     public String getContentType() {
@@ -597,7 +597,7 @@ public class HttpClientConnection {
      * Returns amount of content still available (to be read). This always shows
      * the remaining amount and is updated whenever content is read using
      * {@link #readContentBytes}.
-     * 
+     *
      * @return Amount of content available.
      */
     public int getRemainingContentLength() {
@@ -614,7 +614,7 @@ public class HttpClientConnection {
     /**
      * Retrieve the current timeout set for remote procedure calls. A timeout of
      * zero indicates batching calls (no reply message is expected).
-     * 
+     *
      * @return Current timeout.
      */
     public int getTimeout() {
@@ -630,14 +630,14 @@ public class HttpClientConnection {
      * request before sending it just to know its exact length. Unfortunately,
      * chunking has only been introduced lately so we can not expect servers and
      * especially proxies to handle it. Sigh.
-     * 
+     *
      * @param buffer
      *            Buffer to receive the content sent by the HTTP server.
      * @param offset
      *            Start offset in the buffer.
      * @param length
      *            Number of bytes to receive.
-     * 
+     *
      * @exception ProtocolException
      *                if not enough content was available (the caller attempted
      *                to read more data than available) or if we received junk
@@ -870,7 +870,7 @@ public class HttpClientConnection {
     /**
      * Set the timout for sending or receiving information to/from the HTTP
      * server.
-     * 
+     *
      * @param milliseconds
      *            Timeout in milliseconds.
      */
@@ -885,14 +885,14 @@ public class HttpClientConnection {
      * Send (part) of the content to the HTTP server. Note that the output is
      * done unbuffered, so callers should write their content in large chunks to
      * avoid the calling overhead for sending data.
-     * 
+     *
      * @param bytes
      *            The data.
      * @param offset
      *            Start offset in the data.
      * @param length
      *            Number of bytes to write.
-     * 
+     *
      * @exception RuntimeException
      *                if too much content was sent.
      * @exception IOException
@@ -949,11 +949,11 @@ public class HttpClientConnection {
     /**
      * Connects to the HTTP server. In case an HTTP proxy has been configured,
      * this connects to the proxy instead.
-     * 
+     *
      * <p>
      * If the connection is in keep-alive mode and already open, then the
      * connection is reused.
-     * 
+     *
      * @exception SecurityException
      *                if a security manager exists and its
      *                <code>checkConnect</code> method does not allow the
@@ -1047,7 +1047,7 @@ public class HttpClientConnection {
     /**
      * Retrieves the host name where the HTTP proxy server resided from the
      * system properties.
-     * 
+     *
      * @return Name of proxy host or <code>null</code> if no proxy has been
      *         configured.
      */
@@ -1065,7 +1065,7 @@ public class HttpClientConnection {
      * Retrieves the port number where the HTTP proxy server resides from the
      * system properties. If no port number has been configured for the HTTP
      * proxy, then the default http port number of 80 is returned.
-     * 
+     *
      * @return Port number of HTTP proxy server.
      */
     private int getProxyPort() {
@@ -1091,7 +1091,7 @@ public class HttpClientConnection {
 
     /**
      * Read in a header line coming over the HTTP connection from the server.
-     * 
+     *
      * @param keyvalue
      *            An array with room for either exactly one or two strings,
      *            receiving the header option and optionally its value. If only
@@ -1100,7 +1100,7 @@ public class HttpClientConnection {
      *            (like the first HTTP header) without separating the options's
      *            value from its name. If a header option has no option, then
      *            <code>null</code> is returned as the value string.
-     * 
+     *
      * @return <code>false</code> if the end of the headers has been reached.
      */
     private boolean readHeaderLine(String[] keyvalue) throws IOException {
@@ -1229,7 +1229,7 @@ public class HttpClientConnection {
     /**
      * Read the HTTP headers sent by the servers and also parse them at the same
      * time.
-     * 
+     *
      * @return HTTP status code.
      */
     private int readHeaders() throws IOException {
@@ -1325,7 +1325,7 @@ public class HttpClientConnection {
     /**
      * Read exactly one line, termined by CRLF or either CR or LF, and return
      * it.
-     * 
+     *
      * @return Line without the terminating CR, LF or CRLF.
      */
     private String readLine() throws IOException {
@@ -1382,7 +1382,7 @@ public class HttpClientConnection {
 
     /**
      * Writes an ASCII string to the HTTP server (this is buffered first).
-     * 
+     *
      * @param s
      *            String to write.
      */
@@ -1405,7 +1405,7 @@ public class HttpClientConnection {
     /**
      * Writes an ASCII string and appends a line termination in the form of CR
      * followed by LF.
-     * 
+     *
      * @param s
      *            String to write.
      */
@@ -1416,7 +1416,7 @@ public class HttpClientConnection {
 
     /**
      * Handle options sent by the HTTP server.
-     * 
+     *
      * <p>
      * Currently the following options are handled by this class:
      * <ul>
@@ -1426,7 +1426,7 @@ public class HttpClientConnection {
      * <li>Connection -- handle keep-alive request</li>
      * <li>Transfer-Encoding -- transfer encoding choosen by HTTP server</li>
      * </ul>
-     * 
+     *
      * @param option
      *            Name of option sent by HTTP server.
      * @param value

@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcCallMessage.java,v
  * 1.2 2003/08/14 07:55:07 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -28,19 +28,19 @@ package org.acplt.oncrpc;
  * The <code>OncRpcCallMessage</code> class represents a remote procedure call
  * message as defined by ONC/RPC in RFC 1831. Such messages are sent by ONC/RPC
  * clients to servers in order to request a remote procedure call.
- * 
+ *
  * <p>
  * Note that this is an abstract class. Because call message objects also need
  * to deal with authentication protocol issues, they need help of so-called
  * authentication protocol handling objects. These objects are of different
  * classes, depending on where they are used (either within the server or the
  * client).
- * 
+ *
  * <p>
  * Please also note that this class implements no encoding or decoding
  * functionality: it doesn't need them. Only derived classes will be able to be
  * encoded on the side of the client and decoded at the end of the server.
- * 
+ *
  * @version $Revision: 1.2 $ $Date: 2003/08/14 07:55:07 $ $State: Exp $ $Locker:
  *          $
  * @author Harald Albrecht
@@ -90,7 +90,7 @@ public abstract class OncRpcCallMessage extends OncRpcMessage {
 
     /**
      * Constructs and initialises a new ONC/RPC call message header.
-     * 
+     *
      * @param messageId
      *            An identifier choosen by an ONC/RPC client to uniquely
      *            identify matching call and reply messages.

@@ -149,7 +149,7 @@ public class DummyCtxt implements C018FE95 {
      * Inquire the remaining lifetime.
      *
      * @return the lifetime in seconds. May return reserved
-     *	value GSSContext.INDEFINITE for an indefinite lifetime.
+     *  value GSSContext.INDEFINITE for an indefinite lifetime.
      */
     public int _S4080EED () {
 
@@ -222,7 +222,7 @@ public class DummyCtxt implements C018FE95 {
      * Tests if this is the initiator side of the context.
      *
      * @return boolean indicating if this is initiator (true)
-     *	or target (false)
+     *  or target (false)
      */
     public boolean _S123049E () {
 
@@ -236,7 +236,7 @@ public class DummyCtxt implements C018FE95 {
      * functions before being fully established.
      *
      * @return boolean indicating if per-message methods can
-     *	be called.
+     *  be called.
      */
     public boolean _S1116FAA () {
 
@@ -251,12 +251,12 @@ public class DummyCtxt implements C018FE95 {
      * is received from the peer.
      *
      * @param is contains the token received from the peer. On the
-     *	first call it will be ignored.
+     *  first call it will be ignored.
      * @param os to which any tokens required to be sent to the peer
-     *	will be written. It is responsibility of the caller
-     *	to send the token to its peer for processing.
+     *  will be written. It is responsibility of the caller
+     *  to send the token to its peer for processing.
      * @return integer indicating if more calls are needed. Possible
-     *	values are COMPLETE and CONTINUE_NEEDED.
+     *  values are COMPLETE and CONTINUE_NEEDED.
      * @exception GSSException
      */
     public int _S0E039DB (InputStream is, OutputStream os) throws GSSException {
@@ -307,10 +307,10 @@ public class DummyCtxt implements C018FE95 {
      *
      * @param is contains the token received from the peer.
      * @param os to which any tokens required to be sent to the peer
-     *	will be written. It is responsibility of the caller
-     *	to send the token to its peer for processing.
+     *  will be written. It is responsibility of the caller
+     *  to send the token to its peer for processing.
      * @return integer indicating if more calls are needed. Possible
-     *	values are COMPLETE and CONTINUE_NEEDED.
+     *  values are COMPLETE and CONTINUE_NEEDED.
      * @exception GSSException
      */
     public int _S80A2F2C (InputStream is, OutputStream os) throws GSSException {
@@ -360,13 +360,13 @@ public class DummyCtxt implements C018FE95 {
      * the specified protection and be <= maxTokSize.
      *
      * @param qop the quality of protection that the context will be
-     *	asked to provide.
+     *  asked to provide.
      * @param confReq a flag indicating whether confidentiality will be
-     *	requested or not
+     *  requested or not
      * @param outputSize the maximum size of the output token
      * @return the maximum size for the input message that can be
-     *	provided to the wrap() method in order to guarantee that these
-     *	requirements are met.
+     *  provided to the wrap() method in order to guarantee that these
+     *  requirements are met.
      * @throws GSSException
      */
     public int _S808028B (int qop, boolean confReq, int maxTokSize) throws GSSException {
@@ -380,9 +380,9 @@ public class DummyCtxt implements C018FE95 {
      *
      * @param is the user-provided message to be protected
      * @param os the token to be sent to the peer. It includes
-     *	the message from <i>is</i> with the requested protection.
+     *  the message from <i>is</i> with the requested protection.
      * @param msgPro on input it contains the requested qop and
-     *	confidentiality state, on output, the applied values
+     *  confidentiality state, on output, the applied values
      * @exception GSSException
      * @see MessageInfo
      * @see unwrap
@@ -418,9 +418,9 @@ public class DummyCtxt implements C018FE95 {
      * @param is the token from the peer
      * @param os unprotected message data
      * @param msgProp will contain the applied qop and confidentiality
-     *	of the input token
+     *  of the input token
      * @return int representing the informatory status; this can be
-     *	COMPLETE, DUPLICATE_TOKEN, OLD_TOKEN, UNSEQ_TOKEN and GAP_TOKEN.
+     *  COMPLETE, DUPLICATE_TOKEN, OLD_TOKEN, UNSEQ_TOKEN and GAP_TOKEN.
      * @exception GSSException
      * @see MessageInfo
      * @see wrap
@@ -450,7 +450,7 @@ public class DummyCtxt implements C018FE95 {
      *
      * @param is the user-provided message
      * @param os the token to be sent to the peer along with the
-     *	message token. The message token <b>is not</b> encapsulated.
+     *  message token. The message token <b>is not</b> encapsulated.
      * @param msgProp on input the desired QOP and output the applied QOP
      * @exception GSSException
      */
@@ -483,9 +483,9 @@ public class DummyCtxt implements C018FE95 {
      * @param is token generated by getMIC
      * @param msgStr the message to check integrity for
      * @param msgProp will contain the applied QOP and confidentiality
-     *	states of the token
+     *  states of the token
      * @return int informatory status which can be one of COMPLETE,
-     *	DUPLICATE_TOKEN, OLD_TOKEN, UNSEQ_TOKEN and GAP_TOKEN.
+     *  DUPLICATE_TOKEN, OLD_TOKEN, UNSEQ_TOKEN and GAP_TOKEN.
      * @exception GSSException
      */
     public void _S00256CF (InputStream is, InputStream msgStr, MessageProp mProp) throws GSSException {
@@ -556,11 +556,11 @@ public class DummyCtxt implements C018FE95 {
 
             /*
              * the token is composed of:
-             * 	tag
-             *	DER tok length
-             *	DER oid
-             *	2 bytes for token type
-             *	msg body
+             *  tag
+             *  DER tok length
+             *  DER oid
+             *  2 bytes for token type
+             *  msg body
              */
 
             createTokenHeader(os, msgBody.length() + 1);
@@ -569,7 +569,7 @@ public class DummyCtxt implements C018FE95 {
 
             //need to be written as bytes because that is what C version uses
             dos.writeBytes(msgBody);
-            dos.write(0);	//add null char - this is what C dummy wants
+            dos.write(0);       //add null char - this is what C dummy wants
             dos.flush();
         } catch (IOException e) {
             throw new GSSException(GSSException.FAILURE, -1, "createInitOutToken");
@@ -640,10 +640,10 @@ public class DummyCtxt implements C018FE95 {
         try {
             /*
              * the token header is composed of:
-             * 	tag
-             *	DER tok length
-             *	DER oid
-             *	0x0 0x0 (token tag)
+             *  tag
+             *  DER tok length
+             *  DER oid
+             *  0x0 0x0 (token tag)
              */
 
             byte [] derOid = Dummy.getMyOid().getDER();

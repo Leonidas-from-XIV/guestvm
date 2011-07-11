@@ -11,7 +11,7 @@ import org.acplt.oncrpc.apps.jrpcgen.cup_runtime.Symbol;
 
 /**
  * CUP v0.10k TUM Edition 20050516 generated parser.
- * 
+ *
  * @version Fri Nov 11 20:53:50 CET 2005
  */
 @SuppressWarnings("unchecked")

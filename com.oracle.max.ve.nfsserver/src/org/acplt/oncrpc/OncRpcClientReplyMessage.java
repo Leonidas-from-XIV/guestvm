@@ -2,20 +2,20 @@
  * $Header:
  * /cvsroot/remotetea/remotetea/src/org/acplt/oncrpc/OncRpcClientReplyMessage
  * .java,v 1.1.1.1 2003/08/13 12:03:40 haraldalbrecht Exp $
- * 
+ *
  * Copyright (c) 1999, 2000 Lehrstuhl fuer Prozessleittechnik (PLT), RWTH Aachen
  * D-52064 Aachen, Germany. All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program (see the file COPYING.LIB for more details); if not,
  * write to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
@@ -31,15 +31,15 @@ import java.io.IOException;
  * as defined by ONC/RPC in RFC 1831. Such messages are sent back by ONC/RPC to
  * servers to clients and contain (in case of real success) the result of a
  * remote procedure call.
- * 
+ *
  * <p>
  * The decision to define only one single class for the accepted and rejected
  * replies was driven by the motivation not to use polymorphism and thus have to
  * upcast and downcast references all the time.
- * 
+ *
  * <p>
  * The derived classes are only provided for convinience on the server side.
- * 
+ *
  * @version $Revision: 1.1.1.1 $ $Date: 2003/08/13 12:03:40 $ $State: Exp $
  *          $Locker: $
  * @author Harald Albrecht
@@ -57,7 +57,7 @@ public class OncRpcClientReplyMessage extends OncRpcReplyMessage {
      * invalid state. This default constructor should only be used if in the
      * next step the real state of the reply message is immediately decoded from
      * a XDR stream.
-     * 
+     *
      * @param auth
      *            Client-side authentication protocol handling object which is
      *            to be used when decoding the verifier data contained in the
@@ -71,7 +71,7 @@ public class OncRpcClientReplyMessage extends OncRpcReplyMessage {
     /**
      * Return an appropriate exception object according to the state this reply
      * message header object is in. The exception object then can be thrown.
-     * 
+     *
      * @return Exception object of class {@link OncRpcException} or a subclass
      *         thereof.
      */
@@ -114,7 +114,7 @@ public class OncRpcClientReplyMessage extends OncRpcReplyMessage {
     /**
      * Check whether this <code>OncRpcReplyMessage</code> represents an accepted
      * and successfully executed remote procedure call.
-     * 
+     *
      * @return <code>true</code> if remote procedure call was accepted and
      *         successfully executed.
      */
@@ -126,7 +126,7 @@ public class OncRpcClientReplyMessage extends OncRpcReplyMessage {
     /**
      * Decodes -- that is: deserializes -- a ONC/RPC message header object from
      * a XDR stream.
-     * 
+     *
      * @throws OncRpcException
      *             if an ONC/RPC error occurs.
      * @throws IOException

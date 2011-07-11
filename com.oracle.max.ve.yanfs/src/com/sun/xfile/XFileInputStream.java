@@ -39,7 +39,7 @@ import java.io.*;
  */
 public class XFileInputStream extends InputStream {
 
-    private long fp;	/* File Pointer */
+    private long fp;    /* File Pointer */
 
     /**
      * File Accessor that implements the underlying filesystem
@@ -57,7 +57,7 @@ public class XFileInputStream extends InputStream {
      */
     public XFileInputStream(XFile xfile) throws IOException {
         xfa = xfile.newAccessor();
-        if (! xfa.open(xfile, true, true))	// serial, read-only
+        if (! xfa.open(xfile, true, true))      // serial, read-only
             throw new FileNotFoundException("no file");
 
         if (!xfa.canRead())
