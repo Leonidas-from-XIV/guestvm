@@ -128,11 +128,11 @@ static long pfn_alloc_thread_stack(pfn_alloc_env_t *env, unsigned long addr) {
 	 * allowing failures to cause an exception in the creating thread.
 	 * In the second and subsequent calls we are extending the stack down from the blue zone.
 	 * Identifying the phases:
-	 *   Phase 1: nativeThreadLocals->stackBase == 0 && nativeThreadLocals->stackYellowZone != 0 && nativeThreadLocals->stackBlueZone != 0;
+	 *   Phase 1: nativeThreadLocals->stackBase == 0 && nativeThreadLocals->yellowZone != 0 && nativeThreadLocals->blueZone != 0;
 	 *   Phase 2: nativeThreadLocals->stackBase != 0;
 	 */
 	if (nativeThreadLocals->stackBase == 0) {
-		map = addr == nativeThreadLocals->stackYellowZone || addr >= nativeThreadLocals->stackBlueZone;
+		map = addr == nativeThreadLocals->yellowZone || addr >= nativeThreadLocals->blueZone;
 	} else {
    	    // lowering blue zone
    	    map = 1;
@@ -189,8 +189,8 @@ unsigned long allocate_thread_stack(unsigned long vsize) {
   }
   /* Clear the NativeThreadLocals: */
   memset((void *) ntl, 0, sizeof(NativeThreadLocalsStruct));
-  ntl->stackYellowZone = stackbase + PAGE_SIZE;
-  ntl->stackBlueZone = stackend  - STACK_INCREMENT_SIZE;
+  ntl->yellowZone = stackbase + PAGE_SIZE;
+  ntl->blueZone = stackend  - STACK_INCREMENT_SIZE;
 
   if (extend_stack(ntl, stackbase, stackend)) {
 	  result = stackbase;
@@ -243,9 +243,9 @@ int extend_stack(NativeThreadLocals nativeThreadLocals, unsigned long start_addr
 void check_stack_protectPages(unsigned long addr, int count);
 
 void maxve_initStack(NativeThreadLocals nativeThreadLocals) {
-	nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE;
-    check_stack_protectPages(nativeThreadLocals->stackBlueZone, 1);
-    check_stack_protectPages(nativeThreadLocals->stackYellowZone, 1);
+	nativeThreadLocals->blueZone = nativeThreadLocals->stackBase + nativeThreadLocals->stackSize - STACK_INCREMENT_SIZE;
+    check_stack_protectPages(nativeThreadLocals->blueZone, 1);
+    check_stack_protectPages(nativeThreadLocals->yellowZone, 1);
 }
 
 unsigned long get_pfn_for_address(unsigned long address) {
@@ -265,15 +265,15 @@ unsigned long get_pfn_for_address(unsigned long address) {
  * yellow zone page.
  */
 void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
-  Address nbz = nativeThreadLocals->stackBlueZone - STACK_INCREMENT_SIZE;
+  Address nbz = nativeThreadLocals->blueZone - STACK_INCREMENT_SIZE;
   unsigned long start_address;
-  unsigned long end_address = nativeThreadLocals->stackBlueZone;
-  if (nbz > nativeThreadLocals->stackYellowZone) {
-    nativeThreadLocals->stackBlueZone = nbz;
+  unsigned long end_address = nativeThreadLocals->blueZone;
+  if (nbz > nativeThreadLocals->yellowZone) {
+    nativeThreadLocals->blueZone = nbz;
 	start_address = nbz;
   } else {
-    nativeThreadLocals->stackBlueZone = nativeThreadLocals->stackYellowZone;
-    start_address = nativeThreadLocals->stackYellowZone + PAGE_SIZE;
+    nativeThreadLocals->blueZone = nativeThreadLocals->yellowZone;
+    start_address = nativeThreadLocals->yellowZone + PAGE_SIZE;
   }
   /* Need to allocate and map new pages */
   //guk_printk(" nbz %lx\n", start_address);
@@ -281,15 +281,15 @@ void lower_blue_zone(NativeThreadLocals nativeThreadLocals) {
     extend_stack(nativeThreadLocals, start_address, end_address);
     /* There must be at least two mapped pages above the yellow zone for the stack check code to work.
      * If we are in the last increment no point in unmapping the blue zone page. */
-    if (start_address  > nativeThreadLocals->stackYellowZone + STACK_INCREMENT_SIZE) {
+    if (start_address  > nativeThreadLocals->yellowZone + STACK_INCREMENT_SIZE) {
     	guk_unmap_page_pfn(start_address, get_pfn_for_address(start_address));
     }
   }
 }
 
 void maxve_blue_zone_trap(NativeThreadLocals nativeThreadLocals) {
-  //guk_printk("blue zone trap bz %lx, yz %lx\n", nativeThreadLocals->stackBlueZone, nativeThreadLocals->stackYellowZone);
-  guk_remap_page_pfn(nativeThreadLocals->stackBlueZone, get_pfn_for_address(nativeThreadLocals->stackBlueZone));
+  //guk_printk("blue zone trap bz %lx, yz %lx\n", nativeThreadLocals->blueZone, nativeThreadLocals->yellowZone);
+  guk_remap_page_pfn(nativeThreadLocals->blueZone, get_pfn_for_address(nativeThreadLocals->blueZone));
   lower_blue_zone(nativeThreadLocals);
 }
 

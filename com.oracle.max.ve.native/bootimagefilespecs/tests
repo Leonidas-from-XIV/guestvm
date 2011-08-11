@@ -21,7 +21,9 @@
 # questions.
 #
 # Include the class files for some tests
+# Assumption is the the cwd of the program interpreting this file
+# is the one containing the VE project directories
 
 include prefix
-path ../VEMain/bin/test /VEMain/bin/test
-path ../../maxine/VM/bin/test/output /maxine/VM/bin/test/output
+path com.oracle.max.ve/bin/test /com.oracle.max.ve/bin/test
+path ../maxine/com.oracle.max.vm/bin/test/output /maxine/com.oracle.max.vm/bin/test/output

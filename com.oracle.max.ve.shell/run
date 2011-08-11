@@ -35,7 +35,7 @@ gukargs=""
 run=1
 help=0
 name=""
-classpath="/maxve/image/VEMain/bin"
+classpath="/maxve/image/com.oracle.max.ve/bin"
 guest=""
 jar=""
 ramdisk=""
@@ -46,17 +46,19 @@ while [ -h "$me" ]; do
     me=`readlink -e "$me"`
 done
 # this assumes this script is in bin that is a sibling of xmconfigs
-parent=`dirname $me`
-parent=`dirname $parent`
-# ensure absolute
-parent=`cd $parent; pwd`
-if [ ! -d $parent/xmconfigs ] ; then
-  echo "no xmconfigs directory in $parent"
+ve_dir=`dirname $me`
+ve_dir=`dirname $ve_dir`
+# ensure absoluteSys
+ve_dir=`cd $ve_dir; pwd`
+native_dir=$ve_dir/com.oracle.max.ve.native
+
+if [ ! -d $native_dir/xmconfigs ] ; then
+  echo "no xmconfigs directory in $native_dir"
   exit 1
 fi
 
 fst="ext2:/blk/0:/maxve/java:ro,auto"
-vmargs="-Dmax.ve.dir=$parent -Dmax.ve.pid=$$"
+vmargs="-Dmax.ve.dir=$native_dir -Dmax.ve.pid=$$"
 
 function show_help() {
   echo "run the Maxine Virtual Edition image
@@ -276,10 +278,10 @@ if [ ${#extra} -ge 1023 ] ; then
 fi
 
 if [ "$echocmd" -eq 1 ] ; then
-  echo xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
+  echo xm create -c $native_dir/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
 fi
 if [ "$run" -eq 1 ] ; then
-  export IMAGE_DIR=$parent
-  xm create -c $parent/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
+  export IMAGE_DIR=$native_dir
+  xm create -c $native_dir/xmconfigs/domain_config_${config} extra="$extra" name=$name $memory $maxmem $ramdisk
 fi
 exit 0

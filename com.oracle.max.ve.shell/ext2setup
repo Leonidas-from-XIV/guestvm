@@ -21,26 +21,52 @@
 # or visit www.oracle.com if you need additional information or have any
 # questions.
 #
-# Script to setup Maxine VE based on properties file values.
-# Should be run from VENative directory
+# Setup for other ext2 scripts
 #
 
-
+# Resolve location of this script
     me="${BASH_SOURCE[0]}"
     while [ -h "$me" ]; do
         me=`readlink -e "$me"`
     done
 
 me_dir=`dirname $me`
-propfile=$1
-if [ ! -e $propfile ];
-then
-    echo "Properties does not exist/is inaccessible"
-    exit 1
+export ve_dir=`cd $me_dir/..; pwd`
+
+
+if [ -n "${DISK}" ] ; then
+  dfile=$DISK
 fi
-wsroot=`dirname $PWD`
-dfile="maxve-disk1.img"
-cp=$wsroot/VEMain/bin:$wsroot/VEBase/bin:$wsroot/JNodeFS/bin
-mc=com.sun.max.ve.tools.ScratchPadGenerator
-h="-Dmax.ve.logging.handler=com.sun.max.ve.logging.SystemOutHandler -Dmax.ve.logging.level=WARNING"
-java -classpath $cp $h $mc $propfile
+mc=com.sun.max.ve.tools.ext2.Ext2FileTool
+h="-Dmax.ve.logging.handler=com.sun.max.ve.logging.SystemOutLogHandler -Dmax.ve.logging.level=WARNING"
+
+while [ "$1" != "" ];
+do
+  case $1 in
+    -disk )
+      shift
+      dfile=$1
+      ;;
+    -wsroot )
+      shift
+      ve_dir=$1
+      ;;
+    * )
+      break
+      ;;
+  esac
+  shift
+done
+
+if [ -z "$dfile" ]; then
+  echo "no disk specified, use -disk or set DISK environment variable"
+  exit 1
+fi
+
+cp=$ve_dir/com.oracle.max.ve/bin:$ve_dir/com.oracle.max.ve.base/bin:$ve_dir/com.oracle.max.ve.tools/bin:$ve_dir/com.oracle.max.ve.jnodefs/bin
+
+if [ ! -d "$ve_dir/com.oracle.max.ve.tools/bin" ] ;
+then
+  echo "cannot find classes for Ext2FileTool, set -wsroot to directory containing MaxVE projects"
+  exit 1;
+fi

@@ -34,9 +34,17 @@ import com.sun.max.vm.hosted.BootImageGenerator;
 
 import test.com.sun.max.vm.compiler.JavaTester;
 
+/**
+ * Generates the Maxine VE boot image.
+ * Assumes that the current working directory contains the VE project directories and
+ * that "maxine" and "guk" are sibling directories.
+ */
 public class VEBootImageGenerator {
     private static final OptionSet _options = new OptionSet(true);
-    private static final Option<String> BOOTIMAGEFS_SPEC_FILE = _options.newStringOption("bootimagefscontents", "bootimagefilespecs/tests",
+    private static final String VMNative = "com.oracle.max.vm.native";
+    private static final String VENative = "com.oracle.max.ve.native";
+
+    private static final Option<String> BOOTIMAGEFS_SPEC_FILE = _options.newStringOption("bootimagefscontents", VENative + "/bootimagefilespecs/tests",
                 "File defining the content of the boot image file system");
     private static final Option<String> MAINCLASS = _options.newStringOption("mainclass", null,
                 "main class to compile (bound image)");
@@ -49,7 +57,7 @@ public class VEBootImageGenerator {
     private static final Option<Boolean> NO_MAXINE_NATIVE = _options.newBooleanOption("nomaxinenative", false,
                 "Suppress the Maxine native gmake step");
     private static final Option<Boolean> NO_VE_NATIVE = _options.newBooleanOption("novenative", false,
-                "Suppress the VENative gmake step");
+                "Suppress the VE native gmake step");
     private static final Option<List<String>> MAXINE_IMAGE_PROPS = _options.newStringListOption("maxineimageprops", null, ',',
                 "list of system properties to pass to Maxine image generator");
     private static final Option<List<String>> MAXINE_IMAGE_ARGS = _options.newStringListOption("maxineimageargs", null, ',',
@@ -74,7 +82,7 @@ public class VEBootImageGenerator {
                    "Name of scheduler factory class");
     private static final Option<String> SCHEDRUNQUEUE_FACTORY = _options.newStringOption("schedrunqueuefactory", "com.sun.max.ve.sched.nopriority.RingRunQueueFactory",
                   "Name of scheduler run queue factory class");
-    private static final Option<String> NETCONFIG_FILE = _options.newStringOption("netconfig", "netconfig",
+    private static final Option<String> NETCONFIG_FILE = _options.newStringOption("netconfig", VENative + "/netconfig",
                   "Name of file containing network configuration properties");
     private static final Option<String> VE_IMAGE_SUFFIX = _options.newStringOption("imagesuffix", null,
                   "Suffix to append to max.ve image name, i.e., giving max.ve-imagesuffix");
@@ -108,7 +116,7 @@ public class VEBootImageGenerator {
         final String[] testerArgs = {"-scenario=target", TESTGEN.getValue()};
         final String [] javaArgs = buildJavaArgs(JavaTester.class, null, new String[0], new String[0], testerArgs);
         if (!checkEcho(javaArgs)) {
-            exec(new File(maxineDir() + "/VM/test"), javaArgs, System.out, System.err, System.in);
+            exec(new File(maxineDir() + "/com.oracle.max.vm/test"), javaArgs, System.out, System.err, System.in);
         }
     }
 
@@ -160,7 +168,7 @@ public class VEBootImageGenerator {
 
     private static final String COM_SUN_MAX = ".com.sun.max".replace('.', File.separatorChar);
     private static final int OFFSET_TO_MAXINE = 3;
-    
+
     private static String fixupClassPath() {
         /* The way that BootImageGenerator determines where the "prototype" native library
            is to be found is by taking the first element of the classpath that contains a com.sun.max package,
@@ -203,7 +211,7 @@ public class VEBootImageGenerator {
         }
         return sb.toString();
     }
-    
+
     private static String prefixClassPath(String classPath) {
         if (PREFIX_CLASSPATH.getValue() != null) {
             return PREFIX_CLASSPATH.getValue() + File.pathSeparator + classPath;
@@ -212,11 +220,11 @@ public class VEBootImageGenerator {
     }
 
     /**
-     * Path where the JDK override code lives, for putting on bootclasspath
+     * Path where the JDK override code lives, for putting on bootclasspath.
      * @return
      */
     private static String pathToVEJDK() {
-        final File path = new File("../VEJDK/bin");
+        final File path = new File("com.oracle.max.ve.jdk/bin");
         return path.getAbsolutePath();
     }
 
@@ -228,7 +236,7 @@ public class VEBootImageGenerator {
     }
 
     private static void asmImage(String[] arguments)  throws IOException, InterruptedException {
-        String[] args = {"-image", maxineDir() + "/Native/generated/maxve/maxine.vm"};
+        String[] args = {"-image", maxineDir() + "/" + VMNative + "/generated/maxve/maxine.vm"};
         if (USE_ASM.getValue()) {
             args = addArg(args, "-asm");
         }
@@ -252,16 +260,16 @@ public class VEBootImageGenerator {
     private static void maxineNative(String[] arguments)  throws IOException, InterruptedException {
         final String[] args = {"gmake", "OS=maxve", "substrate"};
         if (!checkEcho(args)) {
-            exec(new File(maxineDir() + "/Native"), args, System.out, System.err, System.in);
+            exec(new File(maxineDir() + "/" + VMNative), args, System.out, System.err, System.in);
         }
     }
 
     /**
-     * Return the path to the maxine directory relative to out cwd.
+     * Return the path to the maxine directory relative to the cwd.
      * @return
      */
     private static String maxineDir() {
-        return "../../maxine";
+        return "../maxine";
     }
 
     private static void veNative(String[] arguments)  throws IOException, InterruptedException {
@@ -270,7 +278,7 @@ public class VEBootImageGenerator {
             args = addArg(args, "TARGET_NAME=" + VE_IMAGE_SUFFIX.getValue());
         }
         if (!checkEcho(args)) {
-            exec(null, args, System.out, System.err, System.in);
+            exec(new File(VENative), args, System.out, System.err, System.in);
         }
     }
 

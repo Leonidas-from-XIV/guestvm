@@ -23,15 +23,21 @@
 #
 # This script runs the Maxine inspector (on Linux).
 #
-CWD=`basename $PWD`
-if [ "$CWD" != "VENative" ];
-then
-  echo "cwd is not in VENative package"
-  exit 1
-fi
 
-MAXVE_ROOT=`dirname $PWD`
-WS_ROOT=`dirname $MAXVE_ROOT`
+# Resolve location of this script
+me="${BASH_SOURCE[0]}"
+while [ -h "$me" ]; do
+    me=`readlink -e "$me"`
+done
+# this assumes this script is in bin that is a sibling of xmconfigs
+ve_dir=`dirname $me`
+ve_dir=`dirname $ve_dir`
+# ensure absoluteSys
+ve_dir=`cd $ve_dir; pwd`
+native_dir=$ve_dir/com.oracle.max.ve.native
+
+VE=$ve_dir
+MAX=`cd $ve_dir/../maxine; pwd`
 
 echocmd=0
 id=""
@@ -65,9 +71,6 @@ do
   "-c" )
     shift
     commandfilearg="-c=$1"
-    ;;
-  "-xvm" )
-    xvm=1
     ;;
   "-id" )
     shift
@@ -119,12 +122,7 @@ do
   shift
 done
 
-BUILD_WS_ROOT="$WS_ROOT"
-INS_WS_ROOT="$WS_ROOT"
-IMAGE_WS_ROOT="$WS_ROOT"
-MAX=$INS_WS_ROOT/maxine
-
-classpath=$MAX/Inspector/bin:$MAX/Inspector/jlfgr-1_0.jar:$MAX/Inspector/NB3B.jar:$MAX/Tele/bin:$MAX/VMDI/bin:$MAX/VM/bin:$MAX/Base/bin:$MAX/Assembler/bin:$MAX/CPS/bin:$MAX/CRI/bin:$MAX/C1X/bin:$MAX/C0X/bin:$MAX/MaxineELF/bin:$MAXVE_ROOT/VETele/bin:$MAXVE_ROOT/VEMain/bin:$MAXVE_ROOT/VEBase/bin:$MAXVE_ROOT/JNodeFS/bin:$MAXVE_ROOT/YANFS/bin:$MAXVE_ROOT/NFSServer/bin:$MAXVE_ROOT/GNUCP/bin
+classpath=$MAX/com.oracle.max.tele.ins/bin:$MAX/com.oracle.max.tele.ins/jlfgr-1_0.jar:$MAX/com.oracle.max.tele.ins/NB3B.jar:$MAX/com.oracle.max.tele.vm/bin:$MAX/com.oracle.max.vmdi/bin:$MAX/com.oracle.max.ve.tele.jdwp/bin:$MAX/com.oracle.max.vm/bin:$MAX/com.oracle.max.base/bin:$MAX/com.oracle.max.asm/bin:$MAX/com.oracle.max.asmdis/bin:$MAX/com.oracle.max.vm.ext.c1x/bin:$MAX/com.oracle.max.vm.ext.t1x/bin:$MAX/com.oracle.max.cri/bin:$MAX/com.oracle.max.c1x/bin:$MAX/com.oracle.max.elf/bin:$VE/com.oracle.max.ve.tele/bin:$VE/com.oracle.max.ve/bin:$VE/com.oracle.max.ve.base/bin:$VE/com.oracle.max.ve.jnodefs/bin:$VE/com.oracle.max.ve.yanfs/bin:$VE/com.oracle.max.ve.nfsserver/bin:$VE/com.oracle.max.ve.gnucp/bin
 if [ "$cp" != "" ] ;
 then
   classpath=${classpath}:$cp
@@ -133,7 +131,7 @@ if [ "$cpb" != "" ] ;
 then
   classpath=${cpb}:${classpath}
 fi
-cmd="$javacmd -d64 $vmargs -Xbootclasspath/a:$MAXVE_ROOT/VEJDK/bin -classpath $classpath -Dmax.os=MaxVE -Dmax.os.signalcount=0 -Xms512m -Xmx1024m  com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$IMAGE_WS_ROOT/maxine/Native/generated/maxve $commandfilearg -mode=$mode -target=$target -location=$location"
+cmd="$javacmd -d64 $vmargs -Xbootclasspath/a:$VE/com.oracle.max.ve.jdk/bin -classpath $classpath -Dmax.os=MaxVE -Dmax.os.signalcount=0 -Xms512m -Xmx1024m  com.sun.max.ins.MaxineInspector $id -trace=$trace -vmdir=$MAX/com.oracle.max.vm.native/generated/maxve $commandfilearg -mode=$mode -target=$target -location=$location"
 
 if [ "$echocmd" -eq 1 ] ;
 then

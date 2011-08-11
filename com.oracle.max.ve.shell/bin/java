@@ -39,12 +39,14 @@ while [ -h "$me" ]; do
     me=`readlink -e "$me"`
 done
 # this assumes this script is in bin that is a sibling of xmconfigs
-parent=`dirname $me`
-parent=`dirname $parent`
-# ensure absolute
-parent=`cd $parent; pwd`
-if [ ! -d $parent/xmconfigs ] ; then
-  echo "no xmconfigs directory in $parent"
+ve_dir=`dirname $me`
+ve_dir=`dirname $ve_dir`
+# ensure absoluteSys
+ve_dir=`cd $ve_dir; pwd`
+native_dir=$ve_dir/com.oracle.max.ve.native
+
+if [ ! -d $native_dir/xmconfigs ] ; then
+  echo "no xmconfigs directory in $native_dir"
   exit 1
 fi
 
@@ -95,7 +97,7 @@ else
 fi
 
 name=MaxVE-${USER}-$$
-javaxtra=$vmargs $cp $*"
+javaxtra="$vmargs $cp $*"
 extra="$gukargs $javaxtra"
 if [ ${#extra} -ge 1023 ] ; then
   argsfile=".$name-args"
@@ -104,6 +106,6 @@ if [ ${#extra} -ge 1023 ] ; then
   extra="$gukargs -XX:GVMRamArgs"
   ramdisk="ramdisk=$argsfile"
 fi
-export IMAGE_DIR=$parent
-#echo /usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
-/usr/sbin/xm create -c $parent/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
+export IMAGE_DIR=$native_dir
+#echo /usr/sbin/xm create -c $native_dir/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
+/usr/sbin/xm create -c $native_dir/xmconfigs/domain_config_generic extra="$extra" name=$name $ramdisk
