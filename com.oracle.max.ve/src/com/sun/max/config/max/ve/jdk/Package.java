@@ -27,41 +27,41 @@ import com.sun.max.vm.hosted.Extensions;
 
 /**
  * Additional JDK packages/classes added to the Virtual Edition boot image and their customisations.
- * 
+ *
  * @author Mick Jordan
  *
  */
 
 public class Package extends BootImagePackage {
     private static final String[] packages = {
-        "java.net.*", 
+        "java.net.*",
         "java.security.cert.Certificate",
-        "java.util.concurrent.*", 
-        "java.util.concurrent.locks.*", 
-        "java.util.logging.Level",                   
-        "java.util.logging.LogRecord",                   
-        "java.text.*", 
-        "java.text.spi.*",                    
-        "sun.net.*", 
-        "sun.net.util.*", 
-        "sun.net.spi.*", 
-        "sun.net.www.*", 
-        "sun.net.www.protocol.jar.*", 
+        "java.util.concurrent.*",
+        "java.util.concurrent.locks.*",
+        "java.util.logging.Level",
+        "java.util.logging.LogRecord",
+        "java.text.*",
+        "java.text.spi.*",
+        "sun.net.*",
+        "sun.net.util.*",
+        "sun.net.spi.*",
+        "sun.net.www.*",
+        "sun.net.www.protocol.jar.*",
         "sun.nio.*",
-        "sun.reflect.*", 
+//        "sun.reflect.*",
         "sun.jkernel.DownloadManager",
          "sun.management.ManagementFactory",
          "sun.management.VMManagementImpl",
-         "sun.util.*", 
-         "sun.util.calendar.*", 
-         "com.sun.security.auth.*", 
-         "sun.security.acl.*", 
-         "sun.security.action.GetBooleanAction", 
-         "sun.security.action.LoadLibraryAction", 
-         "sun.security.provider.PolicyFile", 
+         "sun.util.*",
+         "sun.util.calendar.*",
+         "com.sun.security.auth.*",
+         "sun.security.acl.*",
+         "sun.security.action.GetBooleanAction",
+         "sun.security.action.LoadLibraryAction",
+         "sun.security.provider.PolicyFile",
          "sun.security.util.*"
     };
-    
+
     public Package() {
         super(packages);
         String className = "java.net.InetAddress";
@@ -90,8 +90,8 @@ public class Package extends BootImagePackage {
         Extensions.registerClassForReInit("java.net.NetworkInterface");
         Extensions.registerClassForReInit("java.net.PlainDatagramSocketImpl");
         Extensions.registerClassForReInit("java.net.PlainSocketImpl");
-        Extensions.registerClassForReInit("java.text.SimpleDateFormat");            
-        Extensions.registerClassForReInit("java.text.DateFormatSymbols");            
+        Extensions.registerClassForReInit("java.text.SimpleDateFormat");
+        Extensions.registerClassForReInit("java.text.DateFormatSymbols");
     }
-    
+
 }

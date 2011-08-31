@@ -115,9 +115,7 @@ int maxve_thread_initializeSpecificsKey(maxve_ThreadKey *key, void (*destructor)
 }
 
 extern unsigned long nativeThreadCreate(int id, int stackSize, int priority);
-extern unsigned char nonJniNativeJoin(void *a1);
 extern int Java_com_sun_max_vm_thread_VmThread_nativeSleep(void *env, void *c, long numberOfMilliSeconds);
-extern int Java_com_sun_max_vm_thread_VmThread_nativeJoin(void *env, void *c, void *nativeThread);
 extern void Java_com_sun_max_vm_thread_VmThread_nativeSetPriority(void *env,  void *c, void *nativeThread, int priority);
 extern void Java_com_sun_max_vm_thread_VmThread_nativeYield(void *env,  void *c);
 extern void Java_com_sun_max_vm_thread_VmThread_nativeInterrupt(void *env,  void *c, void *thread);
@@ -132,12 +130,9 @@ void *maxine_threads_dlsym(const char * symbol) {
       return Java_com_sun_max_vm_thread_VmThread_nativeYield;
     else if (strcmp(symbol, "Java_com_sun_max_vm_thread_VmThread_nativeSleep") == 0)
       return Java_com_sun_max_vm_thread_VmThread_nativeSleep;
-    else if (strcmp(symbol, "Java_com_sun_max_vm_thread_VmThread_nativeJoin") == 0)
-      return Java_com_sun_max_vm_thread_VmThread_nativeJoin;
     else if (strcmp(symbol, "Java_com_sun_max_vm_thread_VmThread_nativeInterrupt") == 0)
       return Java_com_sun_max_vm_thread_VmThread_nativeInterrupt;
     else if (strcmp(symbol, "nonJniNativeSleep") == 0) return nonJniNativeSleep;
-    else if (strcmp(symbol, "nonJniNativeJoin") == 0) return nonJniNativeJoin;
     else if (strcmp(symbol, "nativeSetGlobalThreadLock") == 0) return nativeSetGlobalThreadLock;
     else return 0;
 }

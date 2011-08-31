@@ -263,7 +263,7 @@ public final class GUKNetDevice implements NetDevice {
      * @param ts time of this upcall
      */
     @VM_ENTRY_POINT
-    @NO_SAFEPOINTS("network packet copy must be atomic")
+    @NO_SAFEPOINT_POLLS("network packet copy must be atomic")
     private static void copyPacket(Pointer p, int pktLength, long ts) {
         int length = pktLength;
         PacketHandler packetHandler = null;

@@ -94,9 +94,9 @@ public abstract class GUKUpcallHandler extends Scheduler {
      */
     @INLINE
     private static boolean disableSafepoints() {
-        final boolean safepointsDisabled = Safepoint.isDisabled();
+        final boolean safepointsDisabled = SafepointPoll.isDisabled();
         if (!safepointsDisabled) {
-            Safepoint.disable();
+            SafepointPoll.disable();
         }
         return !safepointsDisabled;
     }
@@ -104,7 +104,7 @@ public abstract class GUKUpcallHandler extends Scheduler {
     @INLINE
     private static void enableSafepoints(boolean safepointsDisabled) {
         if (safepointsDisabled) {
-            Safepoint.enable();
+            SafepointPoll.enable();
         }
     }
 

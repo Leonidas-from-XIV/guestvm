@@ -22,8 +22,6 @@
  */
 package com.sun.max.tele.debug.maxve;
 
-import java.io.*;
-
 import com.sun.max.platform.*;
 import com.sun.max.program.*;
 import com.sun.max.tele.*;
@@ -34,8 +32,8 @@ import com.sun.max.vm.hosted.BootImageException;
 
 public class MaxVETeleVM extends TeleVM {
 
-    public MaxVETeleVM(File bootImageFile, BootImage bootImage, Classpath sourcepath, String[] commandlineArguments) throws BootImageException {
-        super(bootImageFile, bootImage, sourcepath, commandlineArguments);
+    public MaxVETeleVM(BootImage bootImage, Classpath sourcepath, String[] commandlineArguments) throws BootImageException {
+        super(bootImage, sourcepath, commandlineArguments);
     }
 
     @Override

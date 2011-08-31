@@ -56,4 +56,4 @@ do
   shift
 done
 
-bin/run $echo $vmargs $debug -fstable "ext2:/blk/0:/maxve/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch;sg:/exports:/sg" $*
+com.oracle.max.ve.shell/run $echo $vmargs $debug -fstable "ext2:/blk/0:/maxve/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch;sg:/exports:/sg" $*

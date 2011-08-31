@@ -27,7 +27,7 @@ import com.sun.max.vm.hosted.*;
 
 /**
  * Redirections for the Virtual Edition extension packages.
- * 
+ *
  * @author Mick Jordan
  *
  */
@@ -41,7 +41,6 @@ public class Package extends BootImagePackage {
         Extensions.registerVMEntryPoint("com.sun.max.ve.net.guk.GUKNetDevice", "copyPacket");
         Extensions.registerVMEntryPoint("com.sun.max.ve.blk.guk.GUKBlkDevice", null);
         Extensions.registerVMEntryPoint("com.sun.max.ve.memory.PageDirectByteBuffer", "allocateDirect");
-        Extensions.resetField("com.sun.max.ve.logging.Logger", "_singleton");
-   }
-        
+    }
+
 }

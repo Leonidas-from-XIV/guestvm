@@ -57,4 +57,4 @@ done
 
 jh=${JAVA_HOME##*/}
 
-bin/run $echo $debug $vmargs -J-Djava.home=/maxve/java/$jh/jre "-J-Dmax.ve.fs.table=ext2:/blk/0:/maxve/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" "-J-Dmax.ve.nfs.exports=/maxve/java:/maxve/exports/java;${mount}:/maxve/exports/${mount};/scratch:/maxve/exports/scratch" -J-Xbootclasspath/a:/maxve/java/nfs_server/bin com.sun.max.ve.fs.nfs.NfsServer $*
+com.oracle.max.ve.shell/run $echo $debug $vmargs -J-Djava.home=/maxve/java/$jh/jre "-J-Dmax.ve.fs.table=ext2:/blk/0:/maxve/java:ro;ext2:/blk/1:${mount};ext2:/blk/2:/scratch" "-J-Dmax.ve.nfs.exports=/maxve/java:/maxve/exports/java;${mount}:/maxve/exports/${mount};/scratch:/maxve/exports/scratch" -J-Xbootclasspath/a:/maxve/java/nfs_server/bin com.sun.max.ve.fs.nfs.NfsServer $*
